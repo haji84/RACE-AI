@@ -1,0 +1,5253 @@
+{
+  "units": "時刻は参照したダイジェストに表示された秒数。各車番はそのレース内。空欄は未確認。",
+  "observed_race_count": 125,
+  "races": [
+    {
+      "race_id": "20231124-13-01",
+      "source_page": "https://keirin.kdreams.jp/iwakitaira/racedetail/1320231124010001/",
+      "source_groups": [
+        "current_viewing"
+      ],
+      "fold": "earlier_training",
+      "B_leader_registration": "013468",
+      "B_car": 3,
+      "B_second": 5,
+      "corner_car": 3,
+      "corner_second": 5,
+      "published_B_car": 3,
+      "published_B_reference": "https://keirin.kdreams.jp/iwakitaira/racedetail/1320231124010001/?pageType=showResult",
+      "B_basis": "visually_observed",
+      "corner_basis": "visually_observed",
+      "included_in_earlier_rider_fit": true,
+      "readable_B_to_corner": true,
+      "historical_purposive_win_loss_sample": false,
+      "issues": [],
+      "known_movement_reviews": 0,
+      "unknown_movement_reviews": 0,
+      "checkpoints": [
+        {
+          "phase": "back",
+          "seconds_in_digest": 47,
+          "first_car": 3,
+          "second_car": 5,
+          "basis": "current_viewing",
+          "public_page": "https://keirin.kdreams.jp/iwakitaira/racedetail/1320231124010001/"
+        },
+        {
+          "phase": "corner",
+          "seconds_in_digest": 53,
+          "first_car": 3,
+          "second_car": 5,
+          "basis": "current_viewing",
+          "public_page": "https://keirin.kdreams.jp/iwakitaira/racedetail/1320231124010001/"
+        }
+      ]
+    },
+    {
+      "race_id": "20231124-13-02",
+      "source_page": "https://keirin.kdreams.jp/iwakitaira/racedetail/1320231124010002/",
+      "source_groups": [
+        "current_viewing"
+      ],
+      "fold": "earlier_training",
+      "B_leader_registration": "013980",
+      "B_car": 3,
+      "B_second": 4,
+      "corner_car": 4,
+      "corner_second": 3,
+      "published_B_car": 3,
+      "published_B_reference": "https://keirin.kdreams.jp/iwakitaira/racedetail/1320231124010002/?pageType=showResult",
+      "B_basis": "visually_observed",
+      "corner_basis": "visually_observed",
+      "included_in_earlier_rider_fit": true,
+      "readable_B_to_corner": true,
+      "historical_purposive_win_loss_sample": false,
+      "issues": [],
+      "known_movement_reviews": 0,
+      "unknown_movement_reviews": 0,
+      "checkpoints": [
+        {
+          "phase": "back",
+          "seconds_in_digest": 44.2,
+          "first_car": 3,
+          "second_car": 4,
+          "basis": "current_viewing",
+          "public_page": "https://keirin.kdreams.jp/iwakitaira/racedetail/1320231124010002/"
+        },
+        {
+          "phase": "corner",
+          "seconds_in_digest": 52.2,
+          "first_car": 4,
+          "second_car": 3,
+          "basis": "current_viewing",
+          "public_page": "https://keirin.kdreams.jp/iwakitaira/racedetail/1320231124010002/"
+        }
+      ]
+    },
+    {
+      "race_id": "20231124-13-03",
+      "source_page": "https://keirin.kdreams.jp/iwakitaira/racedetail/1320231124010003/",
+      "source_groups": [
+        "current_viewing"
+      ],
+      "fold": "earlier_training",
+      "B_leader_registration": "015703",
+      "B_car": 2,
+      "B_second": 5,
+      "corner_car": 2,
+      "corner_second": 5,
+      "published_B_car": 2,
+      "published_B_reference": "https://keirin.kdreams.jp/iwakitaira/racedetail/1320231124010003/?pageType=showResult",
+      "B_basis": "visually_observed",
+      "corner_basis": "visually_observed",
+      "included_in_earlier_rider_fit": true,
+      "readable_B_to_corner": true,
+      "historical_purposive_win_loss_sample": false,
+      "issues": [],
+      "known_movement_reviews": 0,
+      "unknown_movement_reviews": 0,
+      "checkpoints": [
+        {
+          "phase": "back",
+          "seconds_in_digest": 43.5,
+          "first_car": 2,
+          "second_car": 5,
+          "basis": "current_viewing",
+          "public_page": "https://keirin.kdreams.jp/iwakitaira/racedetail/1320231124010003/"
+        },
+        {
+          "phase": "corner",
+          "seconds_in_digest": 51.5,
+          "first_car": 2,
+          "second_car": 5,
+          "basis": "current_viewing",
+          "public_page": "https://keirin.kdreams.jp/iwakitaira/racedetail/1320231124010003/"
+        }
+      ]
+    },
+    {
+      "race_id": "20231124-13-04",
+      "source_page": "https://keirin.kdreams.jp/iwakitaira/racedetail/1320231124010004/",
+      "source_groups": [
+        "current_viewing"
+      ],
+      "fold": "unresolved",
+      "B_leader_registration": "015434",
+      "B_car": 4,
+      "B_second": 3,
+      "corner_car": null,
+      "corner_second": null,
+      "published_B_car": 4,
+      "published_B_reference": "https://keirin.kdreams.jp/iwakitaira/racedetail/1320231124010004/?pageType=showResult",
+      "B_basis": "visually_observed",
+      "corner_basis": null,
+      "included_in_earlier_rider_fit": false,
+      "readable_B_to_corner": false,
+      "historical_purposive_win_loss_sample": false,
+      "issues": [],
+      "known_movement_reviews": 0,
+      "unknown_movement_reviews": 0,
+      "checkpoints": [
+        {
+          "phase": "back",
+          "seconds_in_digest": 43.6,
+          "first_car": 4,
+          "second_car": 3,
+          "basis": "current_viewing",
+          "public_page": "https://keirin.kdreams.jp/iwakitaira/racedetail/1320231124010004/"
+        }
+      ]
+    },
+    {
+      "race_id": "20231124-13-05",
+      "source_page": "https://keirin.kdreams.jp/iwakitaira/racedetail/1320231124010005/",
+      "source_groups": [
+        "current_viewing"
+      ],
+      "fold": "earlier_training",
+      "B_leader_registration": "015507",
+      "B_car": 6,
+      "B_second": 3,
+      "corner_car": 6,
+      "corner_second": 3,
+      "published_B_car": 6,
+      "published_B_reference": "https://keirin.kdreams.jp/iwakitaira/racedetail/1320231124010005/?pageType=showResult",
+      "B_basis": "visually_observed",
+      "corner_basis": "visually_observed",
+      "included_in_earlier_rider_fit": true,
+      "readable_B_to_corner": true,
+      "historical_purposive_win_loss_sample": false,
+      "issues": [],
+      "known_movement_reviews": 0,
+      "unknown_movement_reviews": 0,
+      "checkpoints": [
+        {
+          "phase": "back",
+          "seconds_in_digest": 45,
+          "first_car": 6,
+          "second_car": 3,
+          "basis": "current_viewing",
+          "public_page": "https://keirin.kdreams.jp/iwakitaira/racedetail/1320231124010005/"
+        },
+        {
+          "phase": "corner",
+          "seconds_in_digest": 53,
+          "first_car": 6,
+          "second_car": 3,
+          "basis": "current_viewing",
+          "public_page": "https://keirin.kdreams.jp/iwakitaira/racedetail/1320231124010005/"
+        }
+      ]
+    },
+    {
+      "race_id": "20231124-13-06",
+      "source_page": "https://keirin.kdreams.jp/iwakitaira/racedetail/1320231124010006/",
+      "source_groups": [
+        "current_viewing"
+      ],
+      "fold": "earlier_training",
+      "B_leader_registration": "015334",
+      "B_car": 5,
+      "B_second": 1,
+      "corner_car": 5,
+      "corner_second": 1,
+      "published_B_car": 5,
+      "published_B_reference": "https://keirin.kdreams.jp/iwakitaira/racedetail/1320231124010006/?pageType=showResult",
+      "B_basis": "visually_observed",
+      "corner_basis": "visually_observed",
+      "included_in_earlier_rider_fit": true,
+      "readable_B_to_corner": true,
+      "historical_purposive_win_loss_sample": false,
+      "issues": [],
+      "known_movement_reviews": 0,
+      "unknown_movement_reviews": 0,
+      "checkpoints": [
+        {
+          "phase": "back",
+          "seconds_in_digest": 42.8,
+          "first_car": 5,
+          "second_car": 1,
+          "basis": "current_viewing",
+          "public_page": "https://keirin.kdreams.jp/iwakitaira/racedetail/1320231124010006/"
+        },
+        {
+          "phase": "corner",
+          "seconds_in_digest": 52.8,
+          "first_car": 5,
+          "second_car": 1,
+          "basis": "current_viewing",
+          "public_page": "https://keirin.kdreams.jp/iwakitaira/racedetail/1320231124010006/"
+        }
+      ]
+    },
+    {
+      "race_id": "20231124-13-07",
+      "source_page": "https://keirin.kdreams.jp/iwakitaira/racedetail/1320231124010007/",
+      "source_groups": [
+        "current_viewing"
+      ],
+      "fold": "earlier_training",
+      "B_leader_registration": "015525",
+      "B_car": 6,
+      "B_second": 5,
+      "corner_car": 6,
+      "corner_second": 1,
+      "published_B_car": 6,
+      "published_B_reference": "https://keirin.kdreams.jp/iwakitaira/racedetail/1320231124010007/?pageType=showResult",
+      "B_basis": "visually_observed",
+      "corner_basis": "visually_observed",
+      "included_in_earlier_rider_fit": true,
+      "readable_B_to_corner": true,
+      "historical_purposive_win_loss_sample": false,
+      "issues": [],
+      "known_movement_reviews": 0,
+      "unknown_movement_reviews": 0,
+      "checkpoints": [
+        {
+          "phase": "back",
+          "seconds_in_digest": 45.3,
+          "first_car": 6,
+          "second_car": 5,
+          "basis": "current_viewing",
+          "public_page": "https://keirin.kdreams.jp/iwakitaira/racedetail/1320231124010007/"
+        },
+        {
+          "phase": "corner",
+          "seconds_in_digest": 54.3,
+          "first_car": 6,
+          "second_car": 1,
+          "basis": "current_viewing",
+          "public_page": "https://keirin.kdreams.jp/iwakitaira/racedetail/1320231124010007/"
+        }
+      ]
+    },
+    {
+      "race_id": "20231128-27-01",
+      "source_page": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/2720231126/27202311260300/1/",
+      "source_groups": [
+        "prior_78"
+      ],
+      "fold": "earlier_training",
+      "B_leader_registration": "015402",
+      "B_car": 1,
+      "B_second": null,
+      "corner_car": 1,
+      "corner_second": null,
+      "published_B_car": 1,
+      "published_B_reference": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/2720231126/27202311260300/1/",
+      "B_basis": "original_two_published_results",
+      "corner_basis": "visually_observed",
+      "included_in_earlier_rider_fit": true,
+      "readable_B_to_corner": true,
+      "historical_purposive_win_loss_sample": false,
+      "issues": [],
+      "known_movement_reviews": 1,
+      "unknown_movement_reviews": 0,
+      "checkpoints": [
+        {
+          "phase": "corner",
+          "seconds_in_digest": 71.5,
+          "first_car": 1,
+          "second_car": null,
+          "basis": "archived_visual_witness",
+          "public_page": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/2720231126/27202311260300/1/"
+        }
+      ]
+    },
+    {
+      "race_id": "20231205-37-01",
+      "source_page": "https://keirin.kdreams.jp/ito/racedetail/3720231202040001/?pageType=showResult",
+      "source_groups": [
+        "prior_78"
+      ],
+      "fold": "unresolved",
+      "B_leader_registration": null,
+      "B_car": null,
+      "B_second": null,
+      "corner_car": null,
+      "corner_second": null,
+      "published_B_car": null,
+      "published_B_reference": null,
+      "B_basis": null,
+      "corner_basis": null,
+      "included_in_earlier_rider_fit": false,
+      "readable_B_to_corner": false,
+      "historical_purposive_win_loss_sample": false,
+      "issues": [],
+      "known_movement_reviews": 0,
+      "unknown_movement_reviews": 0,
+      "checkpoints": []
+    },
+    {
+      "race_id": "20240117-13-10",
+      "source_page": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/1320240116/13202401160200/10/",
+      "source_groups": [
+        "prior_78"
+      ],
+      "fold": "earlier_training",
+      "B_leader_registration": "015625",
+      "B_car": 6,
+      "B_second": null,
+      "corner_car": 6,
+      "corner_second": null,
+      "published_B_car": 6,
+      "published_B_reference": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/1320240116/13202401160200/10/",
+      "B_basis": "original_two_published_results",
+      "corner_basis": "visually_observed",
+      "included_in_earlier_rider_fit": true,
+      "readable_B_to_corner": true,
+      "historical_purposive_win_loss_sample": false,
+      "issues": [],
+      "known_movement_reviews": 0,
+      "unknown_movement_reviews": 0,
+      "checkpoints": [
+        {
+          "phase": "corner",
+          "seconds_in_digest": 51.957,
+          "first_car": 6,
+          "second_car": null,
+          "basis": "archived_visual_witness",
+          "public_page": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/1320240116/13202401160200/10/"
+        }
+      ]
+    },
+    {
+      "race_id": "20240316-22-07",
+      "source_page": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/2220240315/22202403150200/7/",
+      "source_groups": [
+        "prior_78"
+      ],
+      "fold": "earlier_training",
+      "B_leader_registration": "015679",
+      "B_car": 6,
+      "B_second": null,
+      "corner_car": 4,
+      "corner_second": null,
+      "published_B_car": 6,
+      "published_B_reference": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/2220240315/22202403150200/7/",
+      "B_basis": "original_two_published_results",
+      "corner_basis": "visually_observed",
+      "included_in_earlier_rider_fit": true,
+      "readable_B_to_corner": true,
+      "historical_purposive_win_loss_sample": false,
+      "issues": [],
+      "known_movement_reviews": 1,
+      "unknown_movement_reviews": 0,
+      "checkpoints": [
+        {
+          "phase": "corner",
+          "seconds_in_digest": 50.8,
+          "first_car": 4,
+          "second_car": null,
+          "basis": "archived_visual_witness",
+          "public_page": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/2220240315/22202403150200/7/"
+        }
+      ]
+    },
+    {
+      "race_id": "20240504-13-01",
+      "source_page": "https://keirin.kdreams.jp/iwakitaira/racedetail/1320240430050001/?pageType=showResult",
+      "source_groups": [
+        "prior_78"
+      ],
+      "fold": "unresolved",
+      "B_leader_registration": null,
+      "B_car": null,
+      "B_second": null,
+      "corner_car": null,
+      "corner_second": null,
+      "published_B_car": null,
+      "published_B_reference": null,
+      "B_basis": null,
+      "corner_basis": null,
+      "included_in_earlier_rider_fit": false,
+      "readable_B_to_corner": false,
+      "historical_purposive_win_loss_sample": false,
+      "issues": [],
+      "known_movement_reviews": 5,
+      "unknown_movement_reviews": 14,
+      "checkpoints": []
+    },
+    {
+      "race_id": "20240516-25-09",
+      "source_page": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/2520240514/25202405140300/9/",
+      "source_groups": [
+        "prior_78"
+      ],
+      "fold": "earlier_training",
+      "B_leader_registration": "015339",
+      "B_car": 5,
+      "B_second": null,
+      "corner_car": 5,
+      "corner_second": null,
+      "published_B_car": 5,
+      "published_B_reference": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/2520240514/25202405140300/9/",
+      "B_basis": "original_two_published_results",
+      "corner_basis": "visually_observed",
+      "included_in_earlier_rider_fit": true,
+      "readable_B_to_corner": true,
+      "historical_purposive_win_loss_sample": false,
+      "issues": [],
+      "known_movement_reviews": 0,
+      "unknown_movement_reviews": 0,
+      "checkpoints": [
+        {
+          "phase": "corner",
+          "seconds_in_digest": 67.516,
+          "first_car": 5,
+          "second_car": null,
+          "basis": "archived_visual_witness",
+          "public_page": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/2520240514/25202405140300/9/"
+        }
+      ]
+    },
+    {
+      "race_id": "20240611-56-01",
+      "source_page": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/5620240611/56202406110100/1/",
+      "source_groups": [
+        "current_viewing"
+      ],
+      "fold": "unresolved",
+      "B_leader_registration": "015527",
+      "B_car": 1,
+      "B_second": 9,
+      "corner_car": null,
+      "corner_second": null,
+      "published_B_car": 1,
+      "published_B_reference": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/5620240611/56202406110100/1/",
+      "B_basis": "visually_observed",
+      "corner_basis": null,
+      "included_in_earlier_rider_fit": false,
+      "readable_B_to_corner": false,
+      "historical_purposive_win_loss_sample": false,
+      "issues": [],
+      "known_movement_reviews": 0,
+      "unknown_movement_reviews": 0,
+      "checkpoints": [
+        {
+          "phase": "back",
+          "seconds_in_digest": 60.4,
+          "first_car": 1,
+          "second_car": 9,
+          "basis": "current_viewing",
+          "public_page": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/5620240611/56202406110100/1/"
+        }
+      ]
+    },
+    {
+      "race_id": "20240611-56-02",
+      "source_page": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/5620240611/56202406110100/2/",
+      "source_groups": [
+        "current_viewing"
+      ],
+      "fold": "earlier_training",
+      "B_leader_registration": "015413",
+      "B_car": 9,
+      "B_second": 1,
+      "corner_car": 9,
+      "corner_second": 1,
+      "published_B_car": 9,
+      "published_B_reference": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/5620240611/56202406110100/2/",
+      "B_basis": "visually_observed",
+      "corner_basis": "visually_observed",
+      "included_in_earlier_rider_fit": true,
+      "readable_B_to_corner": true,
+      "historical_purposive_win_loss_sample": false,
+      "issues": [],
+      "known_movement_reviews": 0,
+      "unknown_movement_reviews": 0,
+      "checkpoints": [
+        {
+          "phase": "back",
+          "seconds_in_digest": 60.49,
+          "first_car": 9,
+          "second_car": 1,
+          "basis": "current_viewing",
+          "public_page": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/5620240611/56202406110100/2/"
+        },
+        {
+          "phase": "corner",
+          "seconds_in_digest": 67.2,
+          "first_car": 9,
+          "second_car": 1,
+          "basis": "current_viewing",
+          "public_page": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/5620240611/56202406110100/2/"
+        }
+      ]
+    },
+    {
+      "race_id": "20240611-56-03",
+      "source_page": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/5620240611/56202406110100/3/",
+      "source_groups": [
+        "current_viewing"
+      ],
+      "fold": "earlier_training",
+      "B_leader_registration": "015034",
+      "B_car": 7,
+      "B_second": 2,
+      "corner_car": 7,
+      "corner_second": 2,
+      "published_B_car": 7,
+      "published_B_reference": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/5620240611/56202406110100/3/",
+      "B_basis": "visually_observed",
+      "corner_basis": "visually_observed",
+      "included_in_earlier_rider_fit": true,
+      "readable_B_to_corner": true,
+      "historical_purposive_win_loss_sample": false,
+      "issues": [],
+      "known_movement_reviews": 0,
+      "unknown_movement_reviews": 0,
+      "checkpoints": [
+        {
+          "phase": "back",
+          "seconds_in_digest": 56.72,
+          "first_car": 7,
+          "second_car": 2,
+          "basis": "current_viewing",
+          "public_page": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/5620240611/56202406110100/3/"
+        },
+        {
+          "phase": "corner",
+          "seconds_in_digest": 62.72,
+          "first_car": 7,
+          "second_car": 2,
+          "basis": "current_viewing",
+          "public_page": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/5620240611/56202406110100/3/"
+        }
+      ]
+    },
+    {
+      "race_id": "20240611-56-04",
+      "source_page": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/5620240611/56202406110100/4/",
+      "source_groups": [
+        "current_viewing"
+      ],
+      "fold": "earlier_training",
+      "B_leader_registration": "014835",
+      "B_car": 5,
+      "B_second": 2,
+      "corner_car": 5,
+      "corner_second": 2,
+      "published_B_car": 5,
+      "published_B_reference": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/5620240611/56202406110100/4/",
+      "B_basis": "visually_observed",
+      "corner_basis": "visually_observed",
+      "included_in_earlier_rider_fit": true,
+      "readable_B_to_corner": true,
+      "historical_purposive_win_loss_sample": false,
+      "issues": [],
+      "known_movement_reviews": 0,
+      "unknown_movement_reviews": 0,
+      "checkpoints": [
+        {
+          "phase": "back",
+          "seconds_in_digest": 59.92,
+          "first_car": 5,
+          "second_car": 2,
+          "basis": "current_viewing",
+          "public_page": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/5620240611/56202406110100/4/"
+        },
+        {
+          "phase": "corner",
+          "seconds_in_digest": 67.7,
+          "first_car": 5,
+          "second_car": 2,
+          "basis": "current_viewing",
+          "public_page": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/5620240611/56202406110100/4/"
+        }
+      ]
+    },
+    {
+      "race_id": "20240611-56-05",
+      "source_page": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/5620240611/56202406110100/5/",
+      "source_groups": [
+        "current_viewing"
+      ],
+      "fold": "earlier_training",
+      "B_leader_registration": "015582",
+      "B_car": 6,
+      "B_second": 5,
+      "corner_car": 6,
+      "corner_second": 5,
+      "published_B_car": 6,
+      "published_B_reference": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/5620240611/56202406110100/5/",
+      "B_basis": "visually_observed",
+      "corner_basis": "visually_observed",
+      "included_in_earlier_rider_fit": true,
+      "readable_B_to_corner": true,
+      "historical_purposive_win_loss_sample": false,
+      "issues": [],
+      "known_movement_reviews": 0,
+      "unknown_movement_reviews": 0,
+      "checkpoints": [
+        {
+          "phase": "back",
+          "seconds_in_digest": 67.4,
+          "first_car": 6,
+          "second_car": 5,
+          "basis": "current_viewing",
+          "public_page": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/5620240611/56202406110100/5/"
+        },
+        {
+          "phase": "corner",
+          "seconds_in_digest": 77.8,
+          "first_car": 6,
+          "second_car": 5,
+          "basis": "current_viewing",
+          "public_page": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/5620240611/56202406110100/5/"
+        }
+      ]
+    },
+    {
+      "race_id": "20240611-56-06",
+      "source_page": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/5620240611/56202406110100/6/",
+      "source_groups": [
+        "current_viewing"
+      ],
+      "fold": "earlier_training",
+      "B_leader_registration": "015501",
+      "B_car": 5,
+      "B_second": 1,
+      "corner_car": 5,
+      "corner_second": 1,
+      "published_B_car": 5,
+      "published_B_reference": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/5620240611/56202406110100/6/",
+      "B_basis": "visually_observed",
+      "corner_basis": "visually_observed",
+      "included_in_earlier_rider_fit": true,
+      "readable_B_to_corner": true,
+      "historical_purposive_win_loss_sample": false,
+      "issues": [],
+      "known_movement_reviews": 0,
+      "unknown_movement_reviews": 0,
+      "checkpoints": [
+        {
+          "phase": "back",
+          "seconds_in_digest": 67.09,
+          "first_car": 5,
+          "second_car": 1,
+          "basis": "current_viewing",
+          "public_page": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/5620240611/56202406110100/6/"
+        },
+        {
+          "phase": "corner",
+          "seconds_in_digest": 74.09,
+          "first_car": 5,
+          "second_car": 1,
+          "basis": "current_viewing",
+          "public_page": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/5620240611/56202406110100/6/"
+        }
+      ]
+    },
+    {
+      "race_id": "20240611-56-07",
+      "source_page": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/5620240611/56202406110100/7/",
+      "source_groups": [
+        "current_viewing"
+      ],
+      "fold": "earlier_training",
+      "B_leader_registration": "015020",
+      "B_car": 4,
+      "B_second": 3,
+      "corner_car": 4,
+      "corner_second": 3,
+      "published_B_car": 4,
+      "published_B_reference": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/5620240611/56202406110100/7/",
+      "B_basis": "visually_observed",
+      "corner_basis": "visually_observed",
+      "included_in_earlier_rider_fit": true,
+      "readable_B_to_corner": true,
+      "historical_purposive_win_loss_sample": false,
+      "issues": [],
+      "known_movement_reviews": 0,
+      "unknown_movement_reviews": 0,
+      "checkpoints": [
+        {
+          "phase": "back",
+          "seconds_in_digest": 71.9,
+          "first_car": 4,
+          "second_car": 3,
+          "basis": "current_viewing",
+          "public_page": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/5620240611/56202406110100/7/"
+        },
+        {
+          "phase": "corner",
+          "seconds_in_digest": 77.9,
+          "first_car": 4,
+          "second_car": 3,
+          "basis": "current_viewing",
+          "public_page": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/5620240611/56202406110100/7/"
+        }
+      ]
+    },
+    {
+      "race_id": "20240611-56-08",
+      "source_page": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/5620240611/56202406110100/8/",
+      "source_groups": [
+        "current_viewing"
+      ],
+      "fold": "earlier_training",
+      "B_leader_registration": "015080",
+      "B_car": 1,
+      "B_second": 7,
+      "corner_car": 1,
+      "corner_second": 7,
+      "published_B_car": 1,
+      "published_B_reference": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/5620240611/56202406110100/8/",
+      "B_basis": "visually_observed",
+      "corner_basis": "visually_observed",
+      "included_in_earlier_rider_fit": true,
+      "readable_B_to_corner": true,
+      "historical_purposive_win_loss_sample": false,
+      "issues": [],
+      "known_movement_reviews": 0,
+      "unknown_movement_reviews": 0,
+      "checkpoints": [
+        {
+          "phase": "back",
+          "seconds_in_digest": 73.2,
+          "first_car": 1,
+          "second_car": 7,
+          "basis": "current_viewing",
+          "public_page": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/5620240611/56202406110100/8/"
+        },
+        {
+          "phase": "corner",
+          "seconds_in_digest": 79.1,
+          "first_car": 1,
+          "second_car": 7,
+          "basis": "current_viewing",
+          "public_page": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/5620240611/56202406110100/8/"
+        }
+      ]
+    },
+    {
+      "race_id": "20240611-56-09",
+      "source_page": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/5620240611/56202406110100/9/",
+      "source_groups": [
+        "current_viewing"
+      ],
+      "fold": "earlier_training",
+      "B_leader_registration": "015242",
+      "B_car": 2,
+      "B_second": 7,
+      "corner_car": 2,
+      "corner_second": 7,
+      "published_B_car": 2,
+      "published_B_reference": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/5620240611/56202406110100/9/",
+      "B_basis": "visually_observed",
+      "corner_basis": "visually_observed",
+      "included_in_earlier_rider_fit": true,
+      "readable_B_to_corner": true,
+      "historical_purposive_win_loss_sample": false,
+      "issues": [],
+      "known_movement_reviews": 0,
+      "unknown_movement_reviews": 0,
+      "checkpoints": [
+        {
+          "phase": "back",
+          "seconds_in_digest": 63.55,
+          "first_car": 2,
+          "second_car": 7,
+          "basis": "current_viewing",
+          "public_page": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/5620240611/56202406110100/9/"
+        },
+        {
+          "phase": "corner",
+          "seconds_in_digest": 69.5,
+          "first_car": 2,
+          "second_car": 7,
+          "basis": "current_viewing",
+          "public_page": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/5620240611/56202406110100/9/"
+        }
+      ]
+    },
+    {
+      "race_id": "20240611-56-10",
+      "source_page": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/5620240611/56202406110100/10/",
+      "source_groups": [
+        "current_viewing"
+      ],
+      "fold": "earlier_training",
+      "B_leader_registration": "015553",
+      "B_car": 7,
+      "B_second": 1,
+      "corner_car": 7,
+      "corner_second": 1,
+      "published_B_car": 7,
+      "published_B_reference": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/5620240611/56202406110100/10/",
+      "B_basis": "visually_observed",
+      "corner_basis": "visually_observed",
+      "included_in_earlier_rider_fit": true,
+      "readable_B_to_corner": true,
+      "historical_purposive_win_loss_sample": false,
+      "issues": [],
+      "known_movement_reviews": 0,
+      "unknown_movement_reviews": 0,
+      "checkpoints": [
+        {
+          "phase": "back",
+          "seconds_in_digest": 60.39,
+          "first_car": 7,
+          "second_car": 1,
+          "basis": "current_viewing",
+          "public_page": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/5620240611/56202406110100/10/"
+        },
+        {
+          "phase": "corner",
+          "seconds_in_digest": 66.39,
+          "first_car": 7,
+          "second_car": 1,
+          "basis": "current_viewing",
+          "public_page": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/5620240611/56202406110100/10/"
+        }
+      ]
+    },
+    {
+      "race_id": "20240611-56-11",
+      "source_page": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/5620240611/56202406110100/11/",
+      "source_groups": [
+        "current_viewing"
+      ],
+      "fold": "unresolved",
+      "B_leader_registration": "015333",
+      "B_car": 4,
+      "B_second": 7,
+      "corner_car": null,
+      "corner_second": null,
+      "published_B_car": 4,
+      "published_B_reference": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/5620240611/56202406110100/11/",
+      "B_basis": "visually_observed",
+      "corner_basis": null,
+      "included_in_earlier_rider_fit": false,
+      "readable_B_to_corner": false,
+      "historical_purposive_win_loss_sample": false,
+      "issues": [],
+      "known_movement_reviews": 0,
+      "unknown_movement_reviews": 0,
+      "checkpoints": [
+        {
+          "phase": "back",
+          "seconds_in_digest": 63.12,
+          "first_car": 4,
+          "second_car": 7,
+          "basis": "current_viewing",
+          "public_page": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/5620240611/56202406110100/11/"
+        }
+      ]
+    },
+    {
+      "race_id": "20240611-56-12",
+      "source_page": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/5620240611/56202406110100/12/",
+      "source_groups": [
+        "current_viewing"
+      ],
+      "fold": "earlier_training",
+      "B_leader_registration": "015061",
+      "B_car": 8,
+      "B_second": 2,
+      "corner_car": 1,
+      "corner_second": null,
+      "published_B_car": 8,
+      "published_B_reference": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/5620240611/56202406110100/12/",
+      "B_basis": "visually_observed",
+      "corner_basis": "visually_observed",
+      "included_in_earlier_rider_fit": true,
+      "readable_B_to_corner": true,
+      "historical_purposive_win_loss_sample": false,
+      "issues": [],
+      "known_movement_reviews": 0,
+      "unknown_movement_reviews": 0,
+      "checkpoints": [
+        {
+          "phase": "back",
+          "seconds_in_digest": 59.25,
+          "first_car": 8,
+          "second_car": 2,
+          "basis": "current_viewing",
+          "public_page": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/5620240611/56202406110100/12/"
+        },
+        {
+          "phase": "corner",
+          "seconds_in_digest": 69.35,
+          "first_car": 1,
+          "second_car": null,
+          "basis": "current_viewing",
+          "public_page": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/5620240611/56202406110100/12/"
+        }
+      ]
+    },
+    {
+      "race_id": "20240716-73-07",
+      "source_page": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/7320240716/73202407160100/7/",
+      "source_groups": [
+        "prior_78"
+      ],
+      "fold": "earlier_training",
+      "B_leader_registration": "014885",
+      "B_car": 2,
+      "B_second": null,
+      "corner_car": 2,
+      "corner_second": null,
+      "published_B_car": 2,
+      "published_B_reference": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/7320240716/73202407160100/7/",
+      "B_basis": "original_two_published_results",
+      "corner_basis": "visually_observed",
+      "included_in_earlier_rider_fit": true,
+      "readable_B_to_corner": true,
+      "historical_purposive_win_loss_sample": false,
+      "issues": [],
+      "known_movement_reviews": 0,
+      "unknown_movement_reviews": 0,
+      "checkpoints": [
+        {
+          "phase": "corner",
+          "seconds_in_digest": 69.696,
+          "first_car": 2,
+          "second_car": null,
+          "basis": "archived_visual_witness",
+          "public_page": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/7320240716/73202407160100/7/"
+        }
+      ]
+    },
+    {
+      "race_id": "20240916-12-06",
+      "source_page": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/1220240915/12202409150200/6/",
+      "source_groups": [
+        "prior_78"
+      ],
+      "fold": "earlier_training",
+      "B_leader_registration": "015782",
+      "B_car": 1,
+      "B_second": null,
+      "corner_car": 1,
+      "corner_second": null,
+      "published_B_car": 1,
+      "published_B_reference": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/1220240915/12202409150200/6/",
+      "B_basis": "original_two_published_results",
+      "corner_basis": "visually_observed",
+      "included_in_earlier_rider_fit": true,
+      "readable_B_to_corner": true,
+      "historical_purposive_win_loss_sample": false,
+      "issues": [],
+      "known_movement_reviews": 0,
+      "unknown_movement_reviews": 0,
+      "checkpoints": [
+        {
+          "phase": "corner",
+          "seconds_in_digest": 55.037,
+          "first_car": 1,
+          "second_car": null,
+          "basis": "archived_visual_witness",
+          "public_page": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/1220240915/12202409150200/6/"
+        }
+      ]
+    },
+    {
+      "race_id": "20241115-13-10",
+      "source_page": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/1320241113/13202411130300/10/",
+      "source_groups": [
+        "prior_78"
+      ],
+      "fold": "earlier_training",
+      "B_leader_registration": "015794",
+      "B_car": 1,
+      "B_second": null,
+      "corner_car": 1,
+      "corner_second": null,
+      "published_B_car": 1,
+      "published_B_reference": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/1320241113/13202411130300/10/",
+      "B_basis": "original_two_published_results",
+      "corner_basis": "visually_observed",
+      "included_in_earlier_rider_fit": true,
+      "readable_B_to_corner": true,
+      "historical_purposive_win_loss_sample": false,
+      "issues": [],
+      "known_movement_reviews": 0,
+      "unknown_movement_reviews": 0,
+      "checkpoints": [
+        {
+          "phase": "corner",
+          "seconds_in_digest": 50.592,
+          "first_car": 1,
+          "second_car": null,
+          "basis": "archived_visual_witness",
+          "public_page": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/1320241113/13202411130300/10/"
+        }
+      ]
+    },
+    {
+      "race_id": "20241119-25-01",
+      "source_page": "https://keirin.kdreams.jp/omiya/racedetail/2520241119010001/?pageType=showResult",
+      "source_groups": [
+        "prior_78"
+      ],
+      "fold": "unresolved",
+      "B_leader_registration": null,
+      "B_car": null,
+      "B_second": null,
+      "corner_car": null,
+      "corner_second": null,
+      "published_B_car": null,
+      "published_B_reference": null,
+      "B_basis": null,
+      "corner_basis": null,
+      "included_in_earlier_rider_fit": false,
+      "readable_B_to_corner": false,
+      "historical_purposive_win_loss_sample": false,
+      "issues": [],
+      "known_movement_reviews": 0,
+      "unknown_movement_reviews": 0,
+      "checkpoints": []
+    },
+    {
+      "race_id": "20250115-75-05",
+      "source_page": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/7520250113/75202501130300/5/",
+      "source_groups": [
+        "prior_78"
+      ],
+      "fold": "earlier_training",
+      "B_leader_registration": "015757",
+      "B_car": 7,
+      "B_second": null,
+      "corner_car": 7,
+      "corner_second": null,
+      "published_B_car": 7,
+      "published_B_reference": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/7520250113/75202501130300/5/",
+      "B_basis": "original_two_published_results",
+      "corner_basis": "visually_observed",
+      "included_in_earlier_rider_fit": true,
+      "readable_B_to_corner": true,
+      "historical_purposive_win_loss_sample": false,
+      "issues": [],
+      "known_movement_reviews": 0,
+      "unknown_movement_reviews": 0,
+      "checkpoints": [
+        {
+          "phase": "corner",
+          "seconds_in_digest": 76.992,
+          "first_car": 7,
+          "second_car": null,
+          "basis": "archived_visual_witness",
+          "public_page": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/7520250113/75202501130300/5/"
+        }
+      ]
+    },
+    {
+      "race_id": "20250316-63-06",
+      "source_page": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/6320250316/63202503160100/6/",
+      "source_groups": [
+        "prior_78"
+      ],
+      "fold": "unresolved",
+      "B_leader_registration": "014561",
+      "B_car": 5,
+      "B_second": null,
+      "corner_car": null,
+      "corner_second": null,
+      "published_B_car": 5,
+      "published_B_reference": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/6320250316/63202503160100/6/",
+      "B_basis": "original_two_published_results",
+      "corner_basis": null,
+      "included_in_earlier_rider_fit": false,
+      "readable_B_to_corner": false,
+      "historical_purposive_win_loss_sample": false,
+      "issues": [],
+      "known_movement_reviews": 1,
+      "unknown_movement_reviews": 0,
+      "checkpoints": []
+    },
+    {
+      "race_id": "20250516-73-03",
+      "source_page": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/7320250514/73202505140300/3/",
+      "source_groups": [
+        "prior_78"
+      ],
+      "fold": "earlier_training",
+      "B_leader_registration": "015599",
+      "B_car": 1,
+      "B_second": null,
+      "corner_car": 3,
+      "corner_second": null,
+      "published_B_car": 1,
+      "published_B_reference": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/7320250514/73202505140300/3/",
+      "B_basis": "original_two_published_results",
+      "corner_basis": "visually_observed",
+      "included_in_earlier_rider_fit": true,
+      "readable_B_to_corner": true,
+      "historical_purposive_win_loss_sample": false,
+      "issues": [],
+      "known_movement_reviews": 1,
+      "unknown_movement_reviews": 1,
+      "checkpoints": [
+        {
+          "phase": "corner",
+          "seconds_in_digest": 65.4,
+          "first_car": 3,
+          "second_car": null,
+          "basis": "archived_visual_witness",
+          "public_page": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/7320250514/73202505140300/3/"
+        }
+      ]
+    },
+    {
+      "race_id": "20250520-11-01",
+      "source_page": "https://keirin.kdreams.jp/hakodate/racedetail/1120250519020001/?pageType=showResult",
+      "source_groups": [
+        "prior_78"
+      ],
+      "fold": "unresolved",
+      "B_leader_registration": null,
+      "B_car": null,
+      "B_second": null,
+      "corner_car": null,
+      "corner_second": null,
+      "published_B_car": null,
+      "published_B_reference": null,
+      "B_basis": null,
+      "corner_basis": null,
+      "included_in_earlier_rider_fit": false,
+      "readable_B_to_corner": false,
+      "historical_purposive_win_loss_sample": false,
+      "issues": [],
+      "known_movement_reviews": 0,
+      "unknown_movement_reviews": 0,
+      "checkpoints": []
+    },
+    {
+      "race_id": "20250716-34-04",
+      "source_page": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/3420250716/34202507160100/4/",
+      "source_groups": [
+        "prior_78"
+      ],
+      "fold": "earlier_training",
+      "B_leader_registration": "015914",
+      "B_car": 2,
+      "B_second": null,
+      "corner_car": 2,
+      "corner_second": null,
+      "published_B_car": 2,
+      "published_B_reference": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/3420250716/34202507160100/4/",
+      "B_basis": "original_two_published_results",
+      "corner_basis": "visually_observed",
+      "included_in_earlier_rider_fit": true,
+      "readable_B_to_corner": true,
+      "historical_purposive_win_loss_sample": false,
+      "issues": [],
+      "known_movement_reviews": 0,
+      "unknown_movement_reviews": 0,
+      "checkpoints": [
+        {
+          "phase": "corner",
+          "seconds_in_digest": 58.418,
+          "first_car": 2,
+          "second_car": null,
+          "basis": "archived_visual_witness",
+          "public_page": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/3420250716/34202507160100/4/"
+        }
+      ]
+    },
+    {
+      "race_id": "20250916-11-01",
+      "source_page": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/1120250914/11202509140300/01/",
+      "source_groups": [
+        "current_viewing"
+      ],
+      "fold": "earlier_training",
+      "B_leader_registration": "014868",
+      "B_car": 1,
+      "B_second": 6,
+      "corner_car": 4,
+      "corner_second": 1,
+      "published_B_car": 1,
+      "published_B_reference": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/1120250914/11202509140300/01/",
+      "B_basis": "visually_observed",
+      "corner_basis": "visually_observed",
+      "included_in_earlier_rider_fit": true,
+      "readable_B_to_corner": true,
+      "historical_purposive_win_loss_sample": false,
+      "issues": [],
+      "known_movement_reviews": 0,
+      "unknown_movement_reviews": 0,
+      "checkpoints": [
+        {
+          "phase": "back",
+          "seconds_in_digest": 59.0,
+          "first_car": 1,
+          "second_car": 6,
+          "basis": "current_viewing",
+          "public_page": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/1120250914/11202509140300/01/"
+        },
+        {
+          "phase": "corner",
+          "seconds_in_digest": 67.0,
+          "first_car": 4,
+          "second_car": 1,
+          "basis": "current_viewing",
+          "public_page": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/1120250914/11202509140300/01/"
+        }
+      ]
+    },
+    {
+      "race_id": "20250916-11-02",
+      "source_page": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/1120250914/11202509140300/02/",
+      "source_groups": [
+        "current_viewing"
+      ],
+      "fold": "earlier_training",
+      "B_leader_registration": "012299",
+      "B_car": 2,
+      "B_second": 1,
+      "corner_car": 2,
+      "corner_second": 1,
+      "published_B_car": 2,
+      "published_B_reference": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/1120250914/11202509140300/02/",
+      "B_basis": "visually_observed",
+      "corner_basis": "visually_observed",
+      "included_in_earlier_rider_fit": true,
+      "readable_B_to_corner": true,
+      "historical_purposive_win_loss_sample": false,
+      "issues": [],
+      "known_movement_reviews": 0,
+      "unknown_movement_reviews": 0,
+      "checkpoints": [
+        {
+          "phase": "back",
+          "seconds_in_digest": 58.0,
+          "first_car": 2,
+          "second_car": 1,
+          "basis": "current_viewing",
+          "public_page": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/1120250914/11202509140300/02/"
+        },
+        {
+          "phase": "corner",
+          "seconds_in_digest": 68.0,
+          "first_car": 2,
+          "second_car": 1,
+          "basis": "current_viewing",
+          "public_page": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/1120250914/11202509140300/02/"
+        }
+      ]
+    },
+    {
+      "race_id": "20250916-11-03",
+      "source_page": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/1120250914/11202509140300/03/",
+      "source_groups": [
+        "current_viewing"
+      ],
+      "fold": "earlier_training",
+      "B_leader_registration": "014595",
+      "B_car": 5,
+      "B_second": 3,
+      "corner_car": 5,
+      "corner_second": 3,
+      "published_B_car": 5,
+      "published_B_reference": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/1120250914/11202509140300/03/",
+      "B_basis": "visually_observed",
+      "corner_basis": "visually_observed",
+      "included_in_earlier_rider_fit": true,
+      "readable_B_to_corner": true,
+      "historical_purposive_win_loss_sample": false,
+      "issues": [],
+      "known_movement_reviews": 0,
+      "unknown_movement_reviews": 0,
+      "checkpoints": [
+        {
+          "phase": "back",
+          "seconds_in_digest": 62.0,
+          "first_car": 5,
+          "second_car": 3,
+          "basis": "current_viewing",
+          "public_page": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/1120250914/11202509140300/03/"
+        },
+        {
+          "phase": "corner",
+          "seconds_in_digest": 72.0,
+          "first_car": 5,
+          "second_car": 3,
+          "basis": "current_viewing",
+          "public_page": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/1120250914/11202509140300/03/"
+        }
+      ]
+    },
+    {
+      "race_id": "20250916-11-04",
+      "source_page": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/1120250914/11202509140300/04/",
+      "source_groups": [
+        "current_viewing"
+      ],
+      "fold": "earlier_training",
+      "B_leader_registration": "013760",
+      "B_car": 1,
+      "B_second": 5,
+      "corner_car": 1,
+      "corner_second": 3,
+      "published_B_car": 1,
+      "published_B_reference": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/1120250914/11202509140300/04/",
+      "B_basis": "visually_observed",
+      "corner_basis": "visually_observed",
+      "included_in_earlier_rider_fit": true,
+      "readable_B_to_corner": true,
+      "historical_purposive_win_loss_sample": false,
+      "issues": [],
+      "known_movement_reviews": 0,
+      "unknown_movement_reviews": 0,
+      "checkpoints": [
+        {
+          "phase": "back",
+          "seconds_in_digest": 62.0,
+          "first_car": 1,
+          "second_car": 5,
+          "basis": "current_viewing",
+          "public_page": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/1120250914/11202509140300/04/"
+        },
+        {
+          "phase": "corner",
+          "seconds_in_digest": 72.0,
+          "first_car": 1,
+          "second_car": 3,
+          "basis": "current_viewing",
+          "public_page": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/1120250914/11202509140300/04/"
+        }
+      ]
+    },
+    {
+      "race_id": "20250916-11-05",
+      "source_page": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/1120250914/11202509140300/5/",
+      "source_groups": [
+        "prior_78"
+      ],
+      "fold": "earlier_training",
+      "B_leader_registration": "012336",
+      "B_car": 6,
+      "B_second": null,
+      "corner_car": 5,
+      "corner_second": null,
+      "published_B_car": 6,
+      "published_B_reference": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/1120250914/11202509140300/5/",
+      "B_basis": "original_two_published_results",
+      "corner_basis": "visually_observed",
+      "included_in_earlier_rider_fit": true,
+      "readable_B_to_corner": true,
+      "historical_purposive_win_loss_sample": false,
+      "issues": [],
+      "known_movement_reviews": 11,
+      "unknown_movement_reviews": 5,
+      "checkpoints": [
+        {
+          "phase": "corner",
+          "seconds_in_digest": 71.9,
+          "first_car": 5,
+          "second_car": null,
+          "basis": "archived_visual_witness",
+          "public_page": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/1120250914/11202509140300/5/"
+        }
+      ]
+    },
+    {
+      "race_id": "20250916-11-06",
+      "source_page": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/1120250914/11202509140300/06/",
+      "source_groups": [
+        "current_viewing"
+      ],
+      "fold": "earlier_training",
+      "B_leader_registration": "013146",
+      "B_car": 1,
+      "B_second": 3,
+      "corner_car": 1,
+      "corner_second": 3,
+      "published_B_car": 1,
+      "published_B_reference": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/1120250914/11202509140300/06/",
+      "B_basis": "visually_observed",
+      "corner_basis": "visually_observed",
+      "included_in_earlier_rider_fit": true,
+      "readable_B_to_corner": true,
+      "historical_purposive_win_loss_sample": false,
+      "issues": [],
+      "known_movement_reviews": 0,
+      "unknown_movement_reviews": 0,
+      "checkpoints": [
+        {
+          "phase": "back",
+          "seconds_in_digest": 60.0,
+          "first_car": 1,
+          "second_car": 3,
+          "basis": "current_viewing",
+          "public_page": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/1120250914/11202509140300/06/"
+        },
+        {
+          "phase": "corner",
+          "seconds_in_digest": 68.0,
+          "first_car": 1,
+          "second_car": 3,
+          "basis": "current_viewing",
+          "public_page": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/1120250914/11202509140300/06/"
+        }
+      ]
+    },
+    {
+      "race_id": "20250916-11-07",
+      "source_page": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/1120250914/11202509140300/07/",
+      "source_groups": [
+        "current_viewing"
+      ],
+      "fold": "earlier_training",
+      "B_leader_registration": "014314",
+      "B_car": 5,
+      "B_second": 3,
+      "corner_car": 5,
+      "corner_second": 3,
+      "published_B_car": 5,
+      "published_B_reference": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/1120250914/11202509140300/07/",
+      "B_basis": "visually_observed",
+      "corner_basis": "visually_observed",
+      "included_in_earlier_rider_fit": true,
+      "readable_B_to_corner": true,
+      "historical_purposive_win_loss_sample": false,
+      "issues": [],
+      "known_movement_reviews": 0,
+      "unknown_movement_reviews": 0,
+      "checkpoints": [
+        {
+          "phase": "back",
+          "seconds_in_digest": 65.0,
+          "first_car": 5,
+          "second_car": 3,
+          "basis": "current_viewing",
+          "public_page": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/1120250914/11202509140300/07/"
+        },
+        {
+          "phase": "corner",
+          "seconds_in_digest": 76.0,
+          "first_car": 5,
+          "second_car": 3,
+          "basis": "current_viewing",
+          "public_page": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/1120250914/11202509140300/07/"
+        }
+      ]
+    },
+    {
+      "race_id": "20250916-11-08",
+      "source_page": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/1120250914/11202509140300/08/",
+      "source_groups": [
+        "current_viewing"
+      ],
+      "fold": "earlier_training",
+      "B_leader_registration": "014449",
+      "B_car": 3,
+      "B_second": 7,
+      "corner_car": 3,
+      "corner_second": 7,
+      "published_B_car": 3,
+      "published_B_reference": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/1120250914/11202509140300/08/",
+      "B_basis": "visually_observed",
+      "corner_basis": "visually_observed",
+      "included_in_earlier_rider_fit": true,
+      "readable_B_to_corner": true,
+      "historical_purposive_win_loss_sample": false,
+      "issues": [],
+      "known_movement_reviews": 0,
+      "unknown_movement_reviews": 0,
+      "checkpoints": [
+        {
+          "phase": "back",
+          "seconds_in_digest": 68.0,
+          "first_car": 3,
+          "second_car": 7,
+          "basis": "current_viewing",
+          "public_page": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/1120250914/11202509140300/08/"
+        },
+        {
+          "phase": "corner",
+          "seconds_in_digest": 77.0,
+          "first_car": 3,
+          "second_car": 7,
+          "basis": "current_viewing",
+          "public_page": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/1120250914/11202509140300/08/"
+        }
+      ]
+    },
+    {
+      "race_id": "20250916-11-09",
+      "source_page": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/1120250914/11202509140300/09/",
+      "source_groups": [
+        "current_viewing"
+      ],
+      "fold": "earlier_training",
+      "B_leader_registration": "014954",
+      "B_car": 6,
+      "B_second": 1,
+      "corner_car": 1,
+      "corner_second": 2,
+      "published_B_car": 6,
+      "published_B_reference": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/1120250914/11202509140300/09/",
+      "B_basis": "visually_observed",
+      "corner_basis": "visually_observed",
+      "included_in_earlier_rider_fit": true,
+      "readable_B_to_corner": true,
+      "historical_purposive_win_loss_sample": false,
+      "issues": [],
+      "known_movement_reviews": 0,
+      "unknown_movement_reviews": 0,
+      "checkpoints": [
+        {
+          "phase": "back",
+          "seconds_in_digest": 59.0,
+          "first_car": 6,
+          "second_car": 1,
+          "basis": "current_viewing",
+          "public_page": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/1120250914/11202509140300/09/"
+        },
+        {
+          "phase": "corner",
+          "seconds_in_digest": 67.0,
+          "first_car": 1,
+          "second_car": 2,
+          "basis": "current_viewing",
+          "public_page": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/1120250914/11202509140300/09/"
+        }
+      ]
+    },
+    {
+      "race_id": "20251119-31-01",
+      "source_page": "https://keirin.kdreams.jp/matsudo/racedetail/3120251119010001/?pageType=showResult",
+      "source_groups": [
+        "prior_78"
+      ],
+      "fold": "unresolved",
+      "B_leader_registration": null,
+      "B_car": null,
+      "B_second": null,
+      "corner_car": null,
+      "corner_second": null,
+      "published_B_car": 6,
+      "published_B_reference": null,
+      "B_basis": null,
+      "corner_basis": null,
+      "included_in_earlier_rider_fit": false,
+      "readable_B_to_corner": false,
+      "historical_purposive_win_loss_sample": false,
+      "issues": [],
+      "known_movement_reviews": 1,
+      "unknown_movement_reviews": 0,
+      "checkpoints": []
+    },
+    {
+      "race_id": "20260807-85-01",
+      "source_page": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/8520260807/85202608070100/1/",
+      "source_groups": [
+        "prior_78"
+      ],
+      "fold": "unresolved",
+      "B_leader_registration": "015982",
+      "B_car": 1,
+      "B_second": null,
+      "corner_car": null,
+      "corner_second": null,
+      "published_B_car": 1,
+      "published_B_reference": "https://keirin.jp/sp/racerracentrecord?snum=015982",
+      "B_basis": "visually_observed",
+      "corner_basis": null,
+      "included_in_earlier_rider_fit": false,
+      "readable_B_to_corner": false,
+      "historical_purposive_win_loss_sample": false,
+      "issues": [],
+      "known_movement_reviews": 0,
+      "unknown_movement_reviews": 0,
+      "checkpoints": [
+        {
+          "phase": "back",
+          "seconds_in_digest": 49.234,
+          "first_car": 1,
+          "second_car": null,
+          "basis": "archived_visual_witness",
+          "public_page": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/8520260807/85202608070100/1/"
+        }
+      ]
+    },
+    {
+      "race_id": "20260811-22-05",
+      "source_page": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/2220260809/22202608090300/5/",
+      "source_groups": [
+        "previous_10"
+      ],
+      "fold": "earlier_training",
+      "B_leader_registration": "014366",
+      "B_car": 6,
+      "B_second": 4,
+      "corner_car": 6,
+      "corner_second": null,
+      "published_B_car": 6,
+      "published_B_reference": null,
+      "B_basis": "visually_observed",
+      "corner_basis": "visually_observed",
+      "included_in_earlier_rider_fit": true,
+      "readable_B_to_corner": true,
+      "historical_purposive_win_loss_sample": false,
+      "issues": [],
+      "known_movement_reviews": 0,
+      "unknown_movement_reviews": 0,
+      "checkpoints": [
+        {
+          "phase": "back",
+          "seconds_in_digest": 57.55,
+          "first_car": 6,
+          "second_car": 4,
+          "basis": "previous_10",
+          "public_page": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/2220260809/22202608090300/5/"
+        },
+        {
+          "phase": "corner",
+          "seconds_in_digest": 65.0,
+          "first_car": 6,
+          "second_car": null,
+          "basis": "previous_10",
+          "public_page": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/2220260809/22202608090300/5/"
+        }
+      ]
+    },
+    {
+      "race_id": "20260820-21-04",
+      "source_page": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/2120260818/21202608180300/4/",
+      "source_groups": [
+        "prior_78"
+      ],
+      "fold": "earlier_training",
+      "B_leader_registration": "014366",
+      "B_car": 7,
+      "B_second": null,
+      "corner_car": 4,
+      "corner_second": null,
+      "published_B_car": 7,
+      "published_B_reference": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/2120260818/21202608180300/4/",
+      "B_basis": "visually_observed",
+      "corner_basis": "visually_observed",
+      "included_in_earlier_rider_fit": true,
+      "readable_B_to_corner": true,
+      "historical_purposive_win_loss_sample": false,
+      "issues": [],
+      "known_movement_reviews": 0,
+      "unknown_movement_reviews": 0,
+      "checkpoints": [
+        {
+          "phase": "back",
+          "seconds_in_digest": 55.495,
+          "first_car": 7,
+          "second_car": null,
+          "basis": "archived_visual_witness",
+          "public_page": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/2120260818/21202608180300/4/"
+        },
+        {
+          "phase": "corner",
+          "seconds_in_digest": 61.495,
+          "first_car": 4,
+          "second_car": null,
+          "basis": "archived_visual_witness",
+          "public_page": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/2120260818/21202608180300/4/"
+        }
+      ]
+    },
+    {
+      "race_id": "20260825-74-02",
+      "source_page": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/7420260825/74202608250100/2/",
+      "source_groups": [
+        "prior_78"
+      ],
+      "fold": "earlier_training",
+      "B_leader_registration": "015557",
+      "B_car": 7,
+      "B_second": null,
+      "corner_car": 7,
+      "corner_second": null,
+      "published_B_car": 7,
+      "published_B_reference": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/7420260825/74202608250100/2/",
+      "B_basis": "visually_observed",
+      "corner_basis": "visually_observed",
+      "included_in_earlier_rider_fit": true,
+      "readable_B_to_corner": true,
+      "historical_purposive_win_loss_sample": false,
+      "issues": [],
+      "known_movement_reviews": 0,
+      "unknown_movement_reviews": 0,
+      "checkpoints": [
+        {
+          "phase": "back",
+          "seconds_in_digest": 75.352,
+          "first_car": 7,
+          "second_car": null,
+          "basis": "archived_visual_witness",
+          "public_page": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/7420260825/74202608250100/2/"
+        },
+        {
+          "phase": "corner",
+          "seconds_in_digest": 81.352,
+          "first_car": 7,
+          "second_car": null,
+          "basis": "archived_visual_witness",
+          "public_page": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/7420260825/74202608250100/2/"
+        }
+      ]
+    },
+    {
+      "race_id": "20260918-84-07",
+      "source_page": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/8420260916/84202609160300/7/",
+      "source_groups": [
+        "prior_78"
+      ],
+      "fold": "earlier_training",
+      "B_leader_registration": "016019",
+      "B_car": 5,
+      "B_second": null,
+      "corner_car": 5,
+      "corner_second": null,
+      "published_B_car": 5,
+      "published_B_reference": "https://keirin.jp/sp/racerracentrecord?snum=016019",
+      "B_basis": "visually_observed",
+      "corner_basis": "visually_observed",
+      "included_in_earlier_rider_fit": true,
+      "readable_B_to_corner": true,
+      "historical_purposive_win_loss_sample": true,
+      "issues": [],
+      "known_movement_reviews": 0,
+      "unknown_movement_reviews": 0,
+      "checkpoints": [
+        {
+          "phase": "back",
+          "seconds_in_digest": 46.608,
+          "first_car": 5,
+          "second_car": null,
+          "basis": "archived_visual_witness",
+          "public_page": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/8420260916/84202609160300/7/"
+        },
+        {
+          "phase": "corner",
+          "seconds_in_digest": 52.608,
+          "first_car": 5,
+          "second_car": null,
+          "basis": "archived_visual_witness",
+          "public_page": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/8420260916/84202609160300/7/"
+        }
+      ]
+    },
+    {
+      "race_id": "20260920-75-11",
+      "source_page": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/7520260919/75202609190200/11/",
+      "source_groups": [
+        "previous_10"
+      ],
+      "fold": "earlier_training",
+      "B_leader_registration": "015557",
+      "B_car": 7,
+      "B_second": 3,
+      "corner_car": 7,
+      "corner_second": 3,
+      "published_B_car": 7,
+      "published_B_reference": null,
+      "B_basis": "visually_observed",
+      "corner_basis": "visually_observed",
+      "included_in_earlier_rider_fit": true,
+      "readable_B_to_corner": true,
+      "historical_purposive_win_loss_sample": false,
+      "issues": [],
+      "known_movement_reviews": 0,
+      "unknown_movement_reviews": 0,
+      "checkpoints": [
+        {
+          "phase": "back",
+          "seconds_in_digest": 59.0,
+          "first_car": 7,
+          "second_car": 3,
+          "basis": "previous_10",
+          "public_page": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/7520260919/75202609190200/11/"
+        },
+        {
+          "phase": "corner",
+          "seconds_in_digest": 67.0,
+          "first_car": 7,
+          "second_car": 3,
+          "basis": "previous_10",
+          "public_page": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/7520260919/75202609190200/11/"
+        }
+      ]
+    },
+    {
+      "race_id": "20260928-43-10",
+      "source_page": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/4320260926/43202609260300/10/",
+      "source_groups": [
+        "previous_10"
+      ],
+      "fold": "earlier_training",
+      "B_leader_registration": "015436",
+      "B_car": 2,
+      "B_second": 5,
+      "corner_car": 2,
+      "corner_second": 5,
+      "published_B_car": 2,
+      "published_B_reference": null,
+      "B_basis": "visually_observed",
+      "corner_basis": "visually_observed",
+      "included_in_earlier_rider_fit": true,
+      "readable_B_to_corner": true,
+      "historical_purposive_win_loss_sample": false,
+      "issues": [],
+      "known_movement_reviews": 0,
+      "unknown_movement_reviews": 0,
+      "checkpoints": [
+        {
+          "phase": "back",
+          "seconds_in_digest": 43.0,
+          "first_car": 2,
+          "second_car": 5,
+          "basis": "previous_10",
+          "public_page": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/4320260926/43202609260300/10/"
+        },
+        {
+          "phase": "corner",
+          "seconds_in_digest": 52.25,
+          "first_car": 2,
+          "second_car": 5,
+          "basis": "previous_10",
+          "public_page": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/4320260926/43202609260300/10/"
+        }
+      ]
+    },
+    {
+      "race_id": "20260929-43-10",
+      "source_page": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/4320260926/43202609260400/10/",
+      "source_groups": [
+        "prior_78"
+      ],
+      "fold": "earlier_training",
+      "B_leader_registration": "015436",
+      "B_car": 9,
+      "B_second": null,
+      "corner_car": 9,
+      "corner_second": null,
+      "published_B_car": 9,
+      "published_B_reference": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/4320260926/43202609260400/10/",
+      "B_basis": "visually_observed",
+      "corner_basis": "visually_observed",
+      "included_in_earlier_rider_fit": true,
+      "readable_B_to_corner": true,
+      "historical_purposive_win_loss_sample": false,
+      "issues": [],
+      "known_movement_reviews": 1,
+      "unknown_movement_reviews": 0,
+      "checkpoints": [
+        {
+          "phase": "back",
+          "seconds_in_digest": 50.829,
+          "first_car": 9,
+          "second_car": null,
+          "basis": "archived_visual_witness",
+          "public_page": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/4320260926/43202609260400/10/"
+        },
+        {
+          "phase": "corner",
+          "seconds_in_digest": 54.1,
+          "first_car": 9,
+          "second_car": null,
+          "basis": "archived_visual_witness",
+          "public_page": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/4320260926/43202609260400/10/"
+        }
+      ]
+    },
+    {
+      "race_id": "20261017-38-09",
+      "source_page": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/3820261015/38202610150300/9/",
+      "source_groups": [
+        "prior_78"
+      ],
+      "fold": "earlier_training",
+      "B_leader_registration": "015875",
+      "B_car": 2,
+      "B_second": null,
+      "corner_car": 2,
+      "corner_second": null,
+      "published_B_car": 2,
+      "published_B_reference": "https://keirin.jp/sp/racerracentrecord?snum=015875",
+      "B_basis": "visually_observed",
+      "corner_basis": "visually_observed",
+      "included_in_earlier_rider_fit": true,
+      "readable_B_to_corner": true,
+      "historical_purposive_win_loss_sample": true,
+      "issues": [],
+      "known_movement_reviews": 0,
+      "unknown_movement_reviews": 0,
+      "checkpoints": [
+        {
+          "phase": "back",
+          "seconds_in_digest": 52.504,
+          "first_car": 2,
+          "second_car": null,
+          "basis": "archived_visual_witness",
+          "public_page": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/3820261015/38202610150300/9/"
+        },
+        {
+          "phase": "corner",
+          "seconds_in_digest": 58.504,
+          "first_car": 2,
+          "second_car": null,
+          "basis": "archived_visual_witness",
+          "public_page": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/3820261015/38202610150300/9/"
+        }
+      ]
+    },
+    {
+      "race_id": "20261028-36-07",
+      "source_page": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/3620261026/36202610260300/7/",
+      "source_groups": [
+        "prior_78"
+      ],
+      "fold": "unresolved",
+      "B_leader_registration": "015613",
+      "B_car": 5,
+      "B_second": null,
+      "corner_car": null,
+      "corner_second": null,
+      "published_B_car": 5,
+      "published_B_reference": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/3620261026/36202610260300/7/",
+      "B_basis": "visually_observed",
+      "corner_basis": null,
+      "included_in_earlier_rider_fit": false,
+      "readable_B_to_corner": false,
+      "historical_purposive_win_loss_sample": false,
+      "issues": [],
+      "known_movement_reviews": 1,
+      "unknown_movement_reviews": 0,
+      "checkpoints": [
+        {
+          "phase": "back",
+          "seconds_in_digest": 60.712,
+          "first_car": 5,
+          "second_car": null,
+          "basis": "archived_visual_witness",
+          "public_page": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/3620261026/36202610260300/7/"
+        }
+      ]
+    },
+    {
+      "race_id": "20261030-42-05",
+      "source_page": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/4220261030/42202610300100/5/",
+      "source_groups": [
+        "previous_10"
+      ],
+      "fold": "earlier_training",
+      "B_leader_registration": "015257",
+      "B_car": 1,
+      "B_second": null,
+      "corner_car": 7,
+      "corner_second": 1,
+      "published_B_car": 1,
+      "published_B_reference": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/4220261030/42202610300100/5/",
+      "B_basis": "visually_observed",
+      "corner_basis": "visually_observed",
+      "included_in_earlier_rider_fit": true,
+      "readable_B_to_corner": true,
+      "historical_purposive_win_loss_sample": false,
+      "issues": [],
+      "known_movement_reviews": 0,
+      "unknown_movement_reviews": 0,
+      "checkpoints": [
+        {
+          "phase": "back",
+          "seconds_in_digest": 51.2,
+          "first_car": 1,
+          "second_car": null,
+          "basis": "previous_10",
+          "public_page": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/4220261030/42202610300100/5/"
+        },
+        {
+          "phase": "corner",
+          "seconds_in_digest": 59.85,
+          "first_car": 7,
+          "second_car": 1,
+          "basis": "previous_10",
+          "public_page": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/4220261030/42202610300100/5/"
+        }
+      ]
+    },
+    {
+      "race_id": "20261104-45-12",
+      "source_page": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/4520261102/45202611020300/12/",
+      "source_groups": [
+        "prior_78"
+      ],
+      "fold": "earlier_training",
+      "B_leader_registration": "014534",
+      "B_car": 1,
+      "B_second": null,
+      "corner_car": 1,
+      "corner_second": null,
+      "published_B_car": 1,
+      "published_B_reference": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/4520261102/45202611020300/12/",
+      "B_basis": "visually_observed",
+      "corner_basis": "visually_observed",
+      "included_in_earlier_rider_fit": true,
+      "readable_B_to_corner": true,
+      "historical_purposive_win_loss_sample": false,
+      "issues": [],
+      "known_movement_reviews": 0,
+      "unknown_movement_reviews": 0,
+      "checkpoints": [
+        {
+          "phase": "back",
+          "seconds_in_digest": 50.338,
+          "first_car": 1,
+          "second_car": null,
+          "basis": "archived_visual_witness",
+          "public_page": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/4520261102/45202611020300/12/"
+        },
+        {
+          "phase": "corner",
+          "seconds_in_digest": 56.338,
+          "first_car": 1,
+          "second_car": null,
+          "basis": "archived_visual_witness",
+          "public_page": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/4520261102/45202611020300/12/"
+        }
+      ]
+    },
+    {
+      "race_id": "20261105-23-06",
+      "source_page": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/2320261104/23202611040200/6/",
+      "source_groups": [
+        "prior_78"
+      ],
+      "fold": "earlier_training",
+      "B_leader_registration": "015791",
+      "B_car": 1,
+      "B_second": null,
+      "corner_car": 4,
+      "corner_second": null,
+      "published_B_car": 1,
+      "published_B_reference": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/2320261104/23202611040200/6/",
+      "B_basis": "visually_observed",
+      "corner_basis": "visually_observed",
+      "included_in_earlier_rider_fit": true,
+      "readable_B_to_corner": true,
+      "historical_purposive_win_loss_sample": false,
+      "issues": [],
+      "known_movement_reviews": 0,
+      "unknown_movement_reviews": 0,
+      "checkpoints": [
+        {
+          "phase": "back",
+          "seconds_in_digest": 49.77,
+          "first_car": 1,
+          "second_car": null,
+          "basis": "archived_visual_witness",
+          "public_page": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/2320261104/23202611040200/6/"
+        },
+        {
+          "phase": "corner",
+          "seconds_in_digest": 58.2,
+          "first_car": 4,
+          "second_car": null,
+          "basis": "archived_visual_witness",
+          "public_page": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/2320261104/23202611040200/6/"
+        }
+      ]
+    },
+    {
+      "race_id": "20261106-86-09",
+      "source_page": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/8620261104/86202611040300/9/",
+      "source_groups": [
+        "prior_78"
+      ],
+      "fold": "earlier_training",
+      "B_leader_registration": "016019",
+      "B_car": 1,
+      "B_second": null,
+      "corner_car": 1,
+      "corner_second": null,
+      "published_B_car": 1,
+      "published_B_reference": "https://keirin.jp/sp/racerracentrecord?snum=016019",
+      "B_basis": "visually_observed",
+      "corner_basis": "visually_observed",
+      "included_in_earlier_rider_fit": true,
+      "readable_B_to_corner": true,
+      "historical_purposive_win_loss_sample": true,
+      "issues": [],
+      "known_movement_reviews": 0,
+      "unknown_movement_reviews": 0,
+      "checkpoints": [
+        {
+          "phase": "back",
+          "seconds_in_digest": 50.203,
+          "first_car": 1,
+          "second_car": null,
+          "basis": "archived_visual_witness",
+          "public_page": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/8620261104/86202611040300/9/"
+        },
+        {
+          "phase": "corner",
+          "seconds_in_digest": 56.203,
+          "first_car": 1,
+          "second_car": null,
+          "basis": "archived_visual_witness",
+          "public_page": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/8620261104/86202611040300/9/"
+        }
+      ]
+    },
+    {
+      "race_id": "20261107-48-05",
+      "source_page": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/4820261105/48202611050300/5/",
+      "source_groups": [
+        "previous_10"
+      ],
+      "fold": "unresolved",
+      "B_leader_registration": "015613",
+      "B_car": 7,
+      "B_second": 3,
+      "corner_car": null,
+      "corner_second": null,
+      "published_B_car": 7,
+      "published_B_reference": null,
+      "B_basis": "visually_observed",
+      "corner_basis": null,
+      "included_in_earlier_rider_fit": false,
+      "readable_B_to_corner": false,
+      "historical_purposive_win_loss_sample": false,
+      "issues": [],
+      "known_movement_reviews": 0,
+      "unknown_movement_reviews": 0,
+      "checkpoints": [
+        {
+          "phase": "back",
+          "seconds_in_digest": 50.7,
+          "first_car": 7,
+          "second_car": 3,
+          "basis": "previous_10",
+          "public_page": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/4820261105/48202611050300/5/"
+        }
+      ]
+    },
+    {
+      "race_id": "20261108-48-03",
+      "source_page": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/4820261105/48202611050400/3/",
+      "source_groups": [
+        "prior_78"
+      ],
+      "fold": "earlier_training",
+      "B_leader_registration": "015613",
+      "B_car": 9,
+      "B_second": null,
+      "corner_car": 9,
+      "corner_second": 1,
+      "published_B_car": 9,
+      "published_B_reference": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/4820261105/48202611050400/3/",
+      "B_basis": "visually_observed",
+      "corner_basis": "visually_observed",
+      "included_in_earlier_rider_fit": true,
+      "readable_B_to_corner": true,
+      "historical_purposive_win_loss_sample": false,
+      "issues": [],
+      "known_movement_reviews": 3,
+      "unknown_movement_reviews": 0,
+      "checkpoints": [
+        {
+          "phase": "back",
+          "seconds_in_digest": 57.56,
+          "first_car": 9,
+          "second_car": null,
+          "basis": "archived_visual_witness",
+          "public_page": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/4820261105/48202611050400/3/"
+        },
+        {
+          "phase": "corner",
+          "seconds_in_digest": 62.3,
+          "first_car": 9,
+          "second_car": null,
+          "basis": "archived_visual_witness",
+          "public_page": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/4820261105/48202611050400/3/"
+        },
+        {
+          "phase": "corner",
+          "seconds_in_digest": 62.8,
+          "first_car": 9,
+          "second_car": 1,
+          "basis": "explicit_agreement_in_two_archived_movement_notes",
+          "public_page": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/4820261105/48202611050400/3/"
+        }
+      ]
+    },
+    {
+      "race_id": "20261108-75-08",
+      "source_page": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/7520261108/75202611080100/8/",
+      "source_groups": [
+        "prior_78"
+      ],
+      "fold": "earlier_training",
+      "B_leader_registration": "015557",
+      "B_car": 2,
+      "B_second": null,
+      "corner_car": 2,
+      "corner_second": null,
+      "published_B_car": 2,
+      "published_B_reference": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/7520261108/75202611080100/8/",
+      "B_basis": "visually_observed",
+      "corner_basis": "visually_observed",
+      "included_in_earlier_rider_fit": true,
+      "readable_B_to_corner": true,
+      "historical_purposive_win_loss_sample": false,
+      "issues": [],
+      "known_movement_reviews": 0,
+      "unknown_movement_reviews": 0,
+      "checkpoints": [
+        {
+          "phase": "back",
+          "seconds_in_digest": 63.84,
+          "first_car": 2,
+          "second_car": null,
+          "basis": "archived_visual_witness",
+          "public_page": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/7520261108/75202611080100/8/"
+        },
+        {
+          "phase": "corner",
+          "seconds_in_digest": 69.84,
+          "first_car": 2,
+          "second_car": null,
+          "basis": "archived_visual_witness",
+          "public_page": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/7520261108/75202611080100/8/"
+        }
+      ]
+    },
+    {
+      "race_id": "20261109-31-12",
+      "source_page": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/3120261109/31202611090100/12/",
+      "source_groups": [
+        "prior_78"
+      ],
+      "fold": "earlier_training",
+      "B_leader_registration": "015436",
+      "B_car": 3,
+      "B_second": null,
+      "corner_car": 3,
+      "corner_second": null,
+      "published_B_car": 3,
+      "published_B_reference": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/3120261109/31202611090100/12/",
+      "B_basis": "visually_observed",
+      "corner_basis": "visually_observed",
+      "included_in_earlier_rider_fit": true,
+      "readable_B_to_corner": true,
+      "historical_purposive_win_loss_sample": false,
+      "issues": [],
+      "known_movement_reviews": 0,
+      "unknown_movement_reviews": 0,
+      "checkpoints": [
+        {
+          "phase": "back",
+          "seconds_in_digest": 55.962,
+          "first_car": 3,
+          "second_car": null,
+          "basis": "archived_visual_witness",
+          "public_page": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/3120261109/31202611090100/12/"
+        },
+        {
+          "phase": "corner",
+          "seconds_in_digest": 61.962,
+          "first_car": 3,
+          "second_car": null,
+          "basis": "archived_visual_witness",
+          "public_page": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/3120261109/31202611090100/12/"
+        }
+      ]
+    },
+    {
+      "race_id": "20261110-53-09",
+      "source_page": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/5320261108/53202611080300/9/",
+      "source_groups": [
+        "previous_10"
+      ],
+      "fold": "earlier_training",
+      "B_leader_registration": "014658",
+      "B_car": 2,
+      "B_second": 3,
+      "corner_car": 5,
+      "corner_second": 3,
+      "published_B_car": 2,
+      "published_B_reference": null,
+      "B_basis": "visually_observed",
+      "corner_basis": "visually_observed",
+      "included_in_earlier_rider_fit": true,
+      "readable_B_to_corner": true,
+      "historical_purposive_win_loss_sample": false,
+      "issues": [],
+      "known_movement_reviews": 0,
+      "unknown_movement_reviews": 0,
+      "checkpoints": [
+        {
+          "phase": "back",
+          "seconds_in_digest": 52.8,
+          "first_car": 2,
+          "second_car": 3,
+          "basis": "previous_10",
+          "public_page": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/5320261108/53202611080300/9/"
+        },
+        {
+          "phase": "corner",
+          "seconds_in_digest": 61.8,
+          "first_car": 5,
+          "second_car": 3,
+          "basis": "previous_10",
+          "public_page": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/5320261108/53202611080300/9/"
+        }
+      ]
+    },
+    {
+      "race_id": "20261111-51-05",
+      "source_page": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/5120261111/51202611110100/5/",
+      "source_groups": [
+        "previous_10"
+      ],
+      "fold": "earlier_training",
+      "B_leader_registration": "015791",
+      "B_car": 3,
+      "B_second": 7,
+      "corner_car": 3,
+      "corner_second": 7,
+      "published_B_car": 3,
+      "published_B_reference": null,
+      "B_basis": "visually_observed",
+      "corner_basis": "visually_observed",
+      "included_in_earlier_rider_fit": true,
+      "readable_B_to_corner": true,
+      "historical_purposive_win_loss_sample": false,
+      "issues": [],
+      "known_movement_reviews": 0,
+      "unknown_movement_reviews": 0,
+      "checkpoints": [
+        {
+          "phase": "back",
+          "seconds_in_digest": 51.0,
+          "first_car": 3,
+          "second_car": 7,
+          "basis": "previous_10",
+          "public_page": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/5120261111/51202611110100/5/"
+        },
+        {
+          "phase": "corner",
+          "seconds_in_digest": 58.2,
+          "first_car": 3,
+          "second_car": 7,
+          "basis": "previous_10",
+          "public_page": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/5120261111/51202611110100/5/"
+        }
+      ]
+    },
+    {
+      "race_id": "20261112-46-05",
+      "source_page": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/4620261110/46202611100300/5/",
+      "source_groups": [
+        "prior_78"
+      ],
+      "fold": "earlier_training",
+      "B_leader_registration": "014366",
+      "B_car": 6,
+      "B_second": null,
+      "corner_car": 6,
+      "corner_second": null,
+      "published_B_car": 6,
+      "published_B_reference": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/4620261110/46202611100300/5/",
+      "B_basis": "visually_observed",
+      "corner_basis": "visually_observed",
+      "included_in_earlier_rider_fit": true,
+      "readable_B_to_corner": true,
+      "historical_purposive_win_loss_sample": false,
+      "issues": [],
+      "known_movement_reviews": 0,
+      "unknown_movement_reviews": 0,
+      "checkpoints": [
+        {
+          "phase": "back",
+          "seconds_in_digest": 52.143,
+          "first_car": 6,
+          "second_car": null,
+          "basis": "archived_visual_witness",
+          "public_page": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/4620261110/46202611100300/5/"
+        },
+        {
+          "phase": "corner",
+          "seconds_in_digest": 61.143,
+          "first_car": 6,
+          "second_car": null,
+          "basis": "archived_visual_witness",
+          "public_page": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/4620261110/46202611100300/5/"
+        }
+      ]
+    },
+    {
+      "race_id": "20261113-51-04",
+      "source_page": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/5120261111/51202611110300/4/",
+      "source_groups": [
+        "prior_78"
+      ],
+      "fold": "earlier_training",
+      "B_leader_registration": "015791",
+      "B_car": 4,
+      "B_second": null,
+      "corner_car": 4,
+      "corner_second": null,
+      "published_B_car": 4,
+      "published_B_reference": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/5120261111/51202611110300/4/",
+      "B_basis": "visually_observed",
+      "corner_basis": "visually_observed",
+      "included_in_earlier_rider_fit": true,
+      "readable_B_to_corner": true,
+      "historical_purposive_win_loss_sample": false,
+      "issues": [],
+      "known_movement_reviews": 0,
+      "unknown_movement_reviews": 0,
+      "checkpoints": [
+        {
+          "phase": "back",
+          "seconds_in_digest": 49.898,
+          "first_car": 4,
+          "second_car": null,
+          "basis": "archived_visual_witness",
+          "public_page": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/5120261111/51202611110300/4/"
+        },
+        {
+          "phase": "corner",
+          "seconds_in_digest": 55.898,
+          "first_car": 4,
+          "second_car": null,
+          "basis": "archived_visual_witness",
+          "public_page": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/5120261111/51202611110300/4/"
+        }
+      ]
+    },
+    {
+      "race_id": "20261116-34-05",
+      "source_page": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/3420261114/34202611140300/5/",
+      "source_groups": [
+        "prior_78"
+      ],
+      "fold": "earlier_training",
+      "B_leader_registration": "015519",
+      "B_car": 1,
+      "B_second": 2,
+      "corner_car": 1,
+      "corner_second": 2,
+      "published_B_car": 1,
+      "published_B_reference": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/3420261114/34202611140300/5/",
+      "B_basis": "visually_observed",
+      "corner_basis": "visually_observed",
+      "included_in_earlier_rider_fit": true,
+      "readable_B_to_corner": true,
+      "historical_purposive_win_loss_sample": false,
+      "issues": [],
+      "known_movement_reviews": 0,
+      "unknown_movement_reviews": 0,
+      "checkpoints": [
+        {
+          "phase": "home",
+          "seconds_in_digest": 34.378,
+          "first_car": 1,
+          "second_car": 4,
+          "basis": "archived_visual_witness",
+          "public_page": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/3420261114/34202611140300/5/"
+        },
+        {
+          "phase": "back",
+          "seconds_in_digest": 47.5,
+          "first_car": 1,
+          "second_car": 2,
+          "basis": "archived_visual_witness",
+          "public_page": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/3420261114/34202611140300/5/"
+        },
+        {
+          "phase": "corner",
+          "seconds_in_digest": 55.378,
+          "first_car": 1,
+          "second_car": 2,
+          "basis": "archived_visual_witness",
+          "public_page": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/3420261114/34202611140300/5/"
+        }
+      ]
+    },
+    {
+      "race_id": "20261116-42-07",
+      "source_page": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/4220261114/42202611140300/7/",
+      "source_groups": [
+        "prior_78"
+      ],
+      "fold": "earlier_training",
+      "B_leader_registration": "015531",
+      "B_car": 7,
+      "B_second": 5,
+      "corner_car": 7,
+      "corner_second": 5,
+      "published_B_car": 7,
+      "published_B_reference": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/4220261114/42202611140300/7/",
+      "B_basis": "visually_observed",
+      "corner_basis": "visually_observed",
+      "included_in_earlier_rider_fit": true,
+      "readable_B_to_corner": true,
+      "historical_purposive_win_loss_sample": false,
+      "issues": [],
+      "known_movement_reviews": 0,
+      "unknown_movement_reviews": 0,
+      "checkpoints": [
+        {
+          "phase": "home",
+          "seconds_in_digest": 36.0,
+          "first_car": 7,
+          "second_car": 5,
+          "basis": "archived_visual_witness",
+          "public_page": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/4220261114/42202611140300/7/"
+        },
+        {
+          "phase": "back",
+          "seconds_in_digest": 46.0,
+          "first_car": 7,
+          "second_car": 5,
+          "basis": "archived_visual_witness",
+          "public_page": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/4220261114/42202611140300/7/"
+        },
+        {
+          "phase": "corner",
+          "seconds_in_digest": 57.011,
+          "first_car": 7,
+          "second_car": 5,
+          "basis": "archived_visual_witness",
+          "public_page": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/4220261114/42202611140300/7/"
+        }
+      ]
+    },
+    {
+      "race_id": "20261116-46-06",
+      "source_page": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/4620261115/46202611150200/6/",
+      "source_groups": [
+        "prior_78"
+      ],
+      "fold": "unresolved",
+      "B_leader_registration": "015713",
+      "B_car": 5,
+      "B_second": 6,
+      "corner_car": null,
+      "corner_second": null,
+      "published_B_car": 5,
+      "published_B_reference": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/4620261115/46202611150200/6/",
+      "B_basis": "visually_observed",
+      "corner_basis": null,
+      "included_in_earlier_rider_fit": false,
+      "readable_B_to_corner": false,
+      "historical_purposive_win_loss_sample": false,
+      "issues": [],
+      "known_movement_reviews": 0,
+      "unknown_movement_reviews": 0,
+      "checkpoints": [
+        {
+          "phase": "home",
+          "seconds_in_digest": 43.143,
+          "first_car": 5,
+          "second_car": 6,
+          "basis": "archived_visual_witness",
+          "public_page": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/4620261115/46202611150200/6/"
+        },
+        {
+          "phase": "back",
+          "seconds_in_digest": 52.143,
+          "first_car": 5,
+          "second_car": 6,
+          "basis": "archived_visual_witness",
+          "public_page": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/4620261115/46202611150200/6/"
+        }
+      ]
+    },
+    {
+      "race_id": "20261116-84-05",
+      "source_page": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/8420261114/84202611140300/5/",
+      "source_groups": [
+        "prior_78"
+      ],
+      "fold": "earlier_training",
+      "B_leader_registration": "016022",
+      "B_car": 7,
+      "B_second": 1,
+      "corner_car": 7,
+      "corner_second": 1,
+      "published_B_car": 7,
+      "published_B_reference": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/8420261114/84202611140300/5/",
+      "B_basis": "visually_observed",
+      "corner_basis": "visually_observed",
+      "included_in_earlier_rider_fit": true,
+      "readable_B_to_corner": true,
+      "historical_purposive_win_loss_sample": false,
+      "issues": [],
+      "known_movement_reviews": 0,
+      "unknown_movement_reviews": 0,
+      "checkpoints": [
+        {
+          "phase": "home",
+          "seconds_in_digest": 34.464,
+          "first_car": 7,
+          "second_car": 1,
+          "basis": "archived_visual_witness",
+          "public_page": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/8420261114/84202611140300/5/"
+        },
+        {
+          "phase": "back",
+          "seconds_in_digest": 46.464,
+          "first_car": 7,
+          "second_car": 1,
+          "basis": "archived_visual_witness",
+          "public_page": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/8420261114/84202611140300/5/"
+        },
+        {
+          "phase": "corner",
+          "seconds_in_digest": 58.464,
+          "first_car": 7,
+          "second_car": 1,
+          "basis": "archived_visual_witness",
+          "public_page": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/8420261114/84202611140300/5/"
+        }
+      ]
+    },
+    {
+      "race_id": "20261116-86-08",
+      "source_page": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/8620261115/86202611150200/8/",
+      "source_groups": [
+        "prior_78"
+      ],
+      "fold": "earlier_training",
+      "B_leader_registration": "015525",
+      "B_car": 2,
+      "B_second": 4,
+      "corner_car": 2,
+      "corner_second": 4,
+      "published_B_car": 2,
+      "published_B_reference": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/8620261115/86202611150200/8/",
+      "B_basis": "visually_observed",
+      "corner_basis": "visually_observed",
+      "included_in_earlier_rider_fit": true,
+      "readable_B_to_corner": true,
+      "historical_purposive_win_loss_sample": false,
+      "issues": [],
+      "known_movement_reviews": 0,
+      "unknown_movement_reviews": 0,
+      "checkpoints": [
+        {
+          "phase": "home",
+          "seconds_in_digest": 37.84,
+          "first_car": 2,
+          "second_car": 4,
+          "basis": "archived_visual_witness",
+          "public_page": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/8620261115/86202611150200/8/"
+        },
+        {
+          "phase": "back",
+          "seconds_in_digest": 49.84,
+          "first_car": 2,
+          "second_car": 4,
+          "basis": "archived_visual_witness",
+          "public_page": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/8620261115/86202611150200/8/"
+        },
+        {
+          "phase": "corner",
+          "seconds_in_digest": 55.84,
+          "first_car": 2,
+          "second_car": 4,
+          "basis": "archived_visual_witness",
+          "public_page": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/8620261115/86202611150200/8/"
+        }
+      ]
+    },
+    {
+      "race_id": "20261117-24-01",
+      "source_page": "https://keirin.kdreams.jp/utsunomiya/racedetail/2420261117010001/?pageType=showResult",
+      "source_groups": [
+        "prior_78"
+      ],
+      "fold": "unresolved",
+      "B_leader_registration": null,
+      "B_car": null,
+      "B_second": null,
+      "corner_car": null,
+      "corner_second": null,
+      "published_B_car": 1,
+      "published_B_reference": null,
+      "B_basis": null,
+      "corner_basis": null,
+      "included_in_earlier_rider_fit": false,
+      "readable_B_to_corner": false,
+      "historical_purposive_win_loss_sample": false,
+      "issues": [],
+      "known_movement_reviews": 0,
+      "unknown_movement_reviews": 0,
+      "checkpoints": []
+    },
+    {
+      "race_id": "20261117-24-06",
+      "source_page": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/2420261117/24202611170100/6/",
+      "source_groups": [
+        "prior_78"
+      ],
+      "fold": "earlier_training",
+      "B_leader_registration": "015803",
+      "B_car": 1,
+      "B_second": 2,
+      "corner_car": 1,
+      "corner_second": 2,
+      "published_B_car": 1,
+      "published_B_reference": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/2420261117/24202611170100/6/",
+      "B_basis": "visually_observed",
+      "corner_basis": "visually_observed",
+      "included_in_earlier_rider_fit": true,
+      "readable_B_to_corner": true,
+      "historical_purposive_win_loss_sample": false,
+      "issues": [],
+      "known_movement_reviews": 0,
+      "unknown_movement_reviews": 0,
+      "checkpoints": [
+        {
+          "phase": "back",
+          "seconds_in_digest": 37.626,
+          "first_car": 1,
+          "second_car": 2,
+          "basis": "archived_visual_witness",
+          "public_page": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/2420261117/24202611170100/6/"
+        },
+        {
+          "phase": "corner",
+          "seconds_in_digest": 49.626,
+          "first_car": 1,
+          "second_car": 2,
+          "basis": "archived_visual_witness",
+          "public_page": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/2420261117/24202611170100/6/"
+        }
+      ]
+    },
+    {
+      "race_id": "20261117-38-07",
+      "source_page": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/3820261117/38202611170100/7/",
+      "source_groups": [
+        "prior_78"
+      ],
+      "fold": "earlier_training",
+      "B_leader_registration": "015785",
+      "B_car": 5,
+      "B_second": 3,
+      "corner_car": 5,
+      "corner_second": 4,
+      "published_B_car": 5,
+      "published_B_reference": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/3820261117/38202611170100/7/",
+      "B_basis": "visually_observed",
+      "corner_basis": "visually_observed",
+      "included_in_earlier_rider_fit": true,
+      "readable_B_to_corner": true,
+      "historical_purposive_win_loss_sample": false,
+      "issues": [],
+      "known_movement_reviews": 0,
+      "unknown_movement_reviews": 0,
+      "checkpoints": [
+        {
+          "phase": "home",
+          "seconds_in_digest": 37.471,
+          "first_car": 5,
+          "second_car": 3,
+          "basis": "archived_visual_witness",
+          "public_page": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/3820261117/38202611170100/7/"
+        },
+        {
+          "phase": "back",
+          "seconds_in_digest": 49.471,
+          "first_car": 5,
+          "second_car": 3,
+          "basis": "archived_visual_witness",
+          "public_page": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/3820261117/38202611170100/7/"
+        },
+        {
+          "phase": "corner",
+          "seconds_in_digest": 58.471,
+          "first_car": 5,
+          "second_car": 4,
+          "basis": "archived_visual_witness",
+          "public_page": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/3820261117/38202611170100/7/"
+        }
+      ]
+    },
+    {
+      "race_id": "20261117-73-01",
+      "source_page": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/7320261116/73202611160200/1/",
+      "source_groups": [
+        "current_viewing"
+      ],
+      "fold": "earlier_training",
+      "B_leader_registration": "015848",
+      "B_car": 3,
+      "B_second": null,
+      "corner_car": 3,
+      "corner_second": null,
+      "published_B_car": 3,
+      "published_B_reference": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/7320261116/73202611160200/1/",
+      "B_basis": "visually_observed",
+      "corner_basis": "visually_observed",
+      "included_in_earlier_rider_fit": true,
+      "readable_B_to_corner": true,
+      "historical_purposive_win_loss_sample": false,
+      "issues": [],
+      "known_movement_reviews": 0,
+      "unknown_movement_reviews": 0,
+      "checkpoints": [
+        {
+          "phase": "back",
+          "seconds_in_digest": 63.5,
+          "first_car": 3,
+          "second_car": null,
+          "basis": "current_viewing",
+          "public_page": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/7320261116/73202611160200/1/"
+        },
+        {
+          "phase": "corner",
+          "seconds_in_digest": 72.0,
+          "first_car": 3,
+          "second_car": null,
+          "basis": "current_viewing",
+          "public_page": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/7320261116/73202611160200/1/"
+        }
+      ]
+    },
+    {
+      "race_id": "20261117-73-02",
+      "source_page": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/7320261116/73202611160200/2/",
+      "source_groups": [
+        "current_viewing"
+      ],
+      "fold": "earlier_training",
+      "B_leader_registration": "016010",
+      "B_car": 1,
+      "B_second": 7,
+      "corner_car": 1,
+      "corner_second": 4,
+      "published_B_car": 1,
+      "published_B_reference": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/7320261116/73202611160200/2/",
+      "B_basis": "visually_observed",
+      "corner_basis": "visually_observed",
+      "included_in_earlier_rider_fit": true,
+      "readable_B_to_corner": true,
+      "historical_purposive_win_loss_sample": false,
+      "issues": [],
+      "known_movement_reviews": 0,
+      "unknown_movement_reviews": 0,
+      "checkpoints": [
+        {
+          "phase": "back",
+          "seconds_in_digest": 62.2,
+          "first_car": 1,
+          "second_car": 7,
+          "basis": "current_viewing",
+          "public_page": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/7320261116/73202611160200/2/"
+        },
+        {
+          "phase": "corner",
+          "seconds_in_digest": 70.9,
+          "first_car": 1,
+          "second_car": 4,
+          "basis": "current_viewing",
+          "public_page": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/7320261116/73202611160200/2/"
+        }
+      ]
+    },
+    {
+      "race_id": "20261117-73-03",
+      "source_page": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/7320261116/73202611160200/3/",
+      "source_groups": [
+        "current_viewing"
+      ],
+      "fold": "earlier_training",
+      "B_leader_registration": "014257",
+      "B_car": 3,
+      "B_second": null,
+      "corner_car": 3,
+      "corner_second": 6,
+      "published_B_car": 3,
+      "published_B_reference": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/7320261116/73202611160200/3/",
+      "B_basis": "visually_observed",
+      "corner_basis": "visually_observed",
+      "included_in_earlier_rider_fit": true,
+      "readable_B_to_corner": true,
+      "historical_purposive_win_loss_sample": false,
+      "issues": [],
+      "known_movement_reviews": 0,
+      "unknown_movement_reviews": 0,
+      "checkpoints": [
+        {
+          "phase": "back",
+          "seconds_in_digest": 61.94,
+          "first_car": 3,
+          "second_car": null,
+          "basis": "current_viewing",
+          "public_page": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/7320261116/73202611160200/3/"
+        },
+        {
+          "phase": "corner",
+          "seconds_in_digest": 70.94,
+          "first_car": 3,
+          "second_car": 6,
+          "basis": "current_viewing",
+          "public_page": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/7320261116/73202611160200/3/"
+        }
+      ]
+    },
+    {
+      "race_id": "20261117-73-04",
+      "source_page": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/7320261116/73202611160200/4/",
+      "source_groups": [
+        "current_viewing"
+      ],
+      "fold": "earlier_training",
+      "B_leader_registration": "015973",
+      "B_car": 3,
+      "B_second": 2,
+      "corner_car": 2,
+      "corner_second": null,
+      "published_B_car": 3,
+      "published_B_reference": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/7320261116/73202611160200/4/",
+      "B_basis": "visually_observed",
+      "corner_basis": "visually_observed",
+      "included_in_earlier_rider_fit": true,
+      "readable_B_to_corner": true,
+      "historical_purposive_win_loss_sample": false,
+      "issues": [],
+      "known_movement_reviews": 0,
+      "unknown_movement_reviews": 0,
+      "checkpoints": [
+        {
+          "phase": "back",
+          "seconds_in_digest": 55.45,
+          "first_car": 3,
+          "second_car": 2,
+          "basis": "current_viewing",
+          "public_page": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/7320261116/73202611160200/4/"
+        },
+        {
+          "phase": "corner",
+          "seconds_in_digest": 64.45,
+          "first_car": 2,
+          "second_car": null,
+          "basis": "current_viewing",
+          "public_page": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/7320261116/73202611160200/4/"
+        }
+      ]
+    },
+    {
+      "race_id": "20261117-73-05",
+      "source_page": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/7320261116/73202611160200/5/",
+      "source_groups": [
+        "prior_78"
+      ],
+      "fold": "unresolved",
+      "B_leader_registration": null,
+      "B_car": null,
+      "B_second": null,
+      "corner_car": null,
+      "corner_second": null,
+      "published_B_car": 1,
+      "published_B_reference": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/7320261116/73202611160200/5/",
+      "B_basis": null,
+      "corner_basis": null,
+      "included_in_earlier_rider_fit": false,
+      "readable_B_to_corner": false,
+      "historical_purposive_win_loss_sample": false,
+      "issues": [],
+      "known_movement_reviews": 0,
+      "unknown_movement_reviews": 0,
+      "checkpoints": []
+    },
+    {
+      "race_id": "20261117-73-06",
+      "source_page": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/7320261116/73202611160200/6/",
+      "source_groups": [
+        "current_viewing"
+      ],
+      "fold": "earlier_training",
+      "B_leader_registration": "015933",
+      "B_car": 4,
+      "B_second": 1,
+      "corner_car": 4,
+      "corner_second": 1,
+      "published_B_car": 4,
+      "published_B_reference": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/7320261116/73202611160200/6/",
+      "B_basis": "visually_observed",
+      "corner_basis": "visually_observed",
+      "included_in_earlier_rider_fit": true,
+      "readable_B_to_corner": true,
+      "historical_purposive_win_loss_sample": false,
+      "issues": [],
+      "known_movement_reviews": 0,
+      "unknown_movement_reviews": 0,
+      "checkpoints": [
+        {
+          "phase": "back",
+          "seconds_in_digest": 57.86,
+          "first_car": 4,
+          "second_car": 1,
+          "basis": "current_viewing",
+          "public_page": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/7320261116/73202611160200/6/"
+        },
+        {
+          "phase": "corner",
+          "seconds_in_digest": 66.86,
+          "first_car": 4,
+          "second_car": 1,
+          "basis": "current_viewing",
+          "public_page": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/7320261116/73202611160200/6/"
+        }
+      ]
+    },
+    {
+      "race_id": "20261117-74-05",
+      "source_page": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/7420261117/74202611170100/5/",
+      "source_groups": [
+        "prior_78"
+      ],
+      "fold": "earlier_training",
+      "B_leader_registration": "014951",
+      "B_car": 3,
+      "B_second": 1,
+      "corner_car": 3,
+      "corner_second": 1,
+      "published_B_car": 3,
+      "published_B_reference": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/7420261117/74202611170100/5/",
+      "B_basis": "visually_observed",
+      "corner_basis": "visually_observed",
+      "included_in_earlier_rider_fit": true,
+      "readable_B_to_corner": true,
+      "historical_purposive_win_loss_sample": false,
+      "issues": [],
+      "known_movement_reviews": 0,
+      "unknown_movement_reviews": 0,
+      "checkpoints": [
+        {
+          "phase": "home",
+          "seconds_in_digest": 58.264,
+          "first_car": 6,
+          "second_car": 3,
+          "basis": "archived_visual_witness",
+          "public_page": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/7420261117/74202611170100/5/"
+        },
+        {
+          "phase": "back",
+          "seconds_in_digest": 73.264,
+          "first_car": 3,
+          "second_car": 1,
+          "basis": "archived_visual_witness",
+          "public_page": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/7420261117/74202611170100/5/"
+        },
+        {
+          "phase": "corner",
+          "seconds_in_digest": 85.264,
+          "first_car": 3,
+          "second_car": 1,
+          "basis": "archived_visual_witness",
+          "public_page": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/7420261117/74202611170100/5/"
+        }
+      ]
+    },
+    {
+      "race_id": "20261117-75-04",
+      "source_page": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/7520261117/75202611170100/4/",
+      "source_groups": [
+        "prior_78"
+      ],
+      "fold": "earlier_training",
+      "B_leader_registration": "014340",
+      "B_car": 7,
+      "B_second": 2,
+      "corner_car": 7,
+      "corner_second": 2,
+      "published_B_car": 7,
+      "published_B_reference": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/7520261117/75202611170100/4/",
+      "B_basis": "visually_observed",
+      "corner_basis": "visually_observed",
+      "included_in_earlier_rider_fit": true,
+      "readable_B_to_corner": true,
+      "historical_purposive_win_loss_sample": false,
+      "issues": [],
+      "known_movement_reviews": 0,
+      "unknown_movement_reviews": 0,
+      "checkpoints": [
+        {
+          "phase": "back",
+          "seconds_in_digest": 63.072,
+          "first_car": 7,
+          "second_car": 2,
+          "basis": "archived_visual_witness",
+          "public_page": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/7520261117/75202611170100/4/"
+        },
+        {
+          "phase": "corner",
+          "seconds_in_digest": 69.072,
+          "first_car": 7,
+          "second_car": 2,
+          "basis": "archived_visual_witness",
+          "public_page": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/7520261117/75202611170100/4/"
+        }
+      ]
+    },
+    {
+      "race_id": "20261118-26-03",
+      "source_page": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/2620261118/26202611180100/3/",
+      "source_groups": [
+        "prior_78"
+      ],
+      "fold": "unresolved",
+      "B_leader_registration": null,
+      "B_car": null,
+      "B_second": null,
+      "corner_car": null,
+      "corner_second": null,
+      "published_B_car": 5,
+      "published_B_reference": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/2620261118/26202611180100/3/",
+      "B_basis": null,
+      "corner_basis": null,
+      "included_in_earlier_rider_fit": false,
+      "readable_B_to_corner": false,
+      "historical_purposive_win_loss_sample": false,
+      "issues": [],
+      "known_movement_reviews": 0,
+      "unknown_movement_reviews": 0,
+      "checkpoints": []
+    },
+    {
+      "race_id": "20261118-38-11",
+      "source_page": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/3820261117/38202611170200/11/",
+      "source_groups": [
+        "prior_78"
+      ],
+      "fold": "earlier_training",
+      "B_leader_registration": "015982",
+      "B_car": 2,
+      "B_second": null,
+      "corner_car": 2,
+      "corner_second": null,
+      "published_B_car": 2,
+      "published_B_reference": "https://keirin.jp/sp/racerracentrecord?snum=015982",
+      "B_basis": "visually_observed",
+      "corner_basis": "visually_observed",
+      "included_in_earlier_rider_fit": true,
+      "readable_B_to_corner": true,
+      "historical_purposive_win_loss_sample": true,
+      "issues": [],
+      "known_movement_reviews": 0,
+      "unknown_movement_reviews": 0,
+      "checkpoints": [
+        {
+          "phase": "back",
+          "seconds_in_digest": 50.302,
+          "first_car": 2,
+          "second_car": null,
+          "basis": "archived_visual_witness",
+          "public_page": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/3820261117/38202611170200/11/"
+        },
+        {
+          "phase": "corner",
+          "seconds_in_digest": 56.302,
+          "first_car": 2,
+          "second_car": null,
+          "basis": "archived_visual_witness",
+          "public_page": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/3820261117/38202611170200/11/"
+        }
+      ]
+    },
+    {
+      "race_id": "20261118-44-06",
+      "source_page": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/4420261118/44202611180100/6/",
+      "source_groups": [
+        "prior_78"
+      ],
+      "fold": "unresolved",
+      "B_leader_registration": "015784",
+      "B_car": 3,
+      "B_second": 6,
+      "corner_car": null,
+      "corner_second": null,
+      "published_B_car": 3,
+      "published_B_reference": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/4420261118/44202611180100/6/",
+      "B_basis": "visually_observed",
+      "corner_basis": null,
+      "included_in_earlier_rider_fit": false,
+      "readable_B_to_corner": false,
+      "historical_purposive_win_loss_sample": false,
+      "issues": [],
+      "known_movement_reviews": 0,
+      "unknown_movement_reviews": 0,
+      "checkpoints": [
+        {
+          "phase": "home",
+          "seconds_in_digest": 37.131,
+          "first_car": 3,
+          "second_car": 6,
+          "basis": "archived_visual_witness",
+          "public_page": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/4420261118/44202611180100/6/"
+        },
+        {
+          "phase": "back",
+          "seconds_in_digest": 45.131,
+          "first_car": 3,
+          "second_car": 6,
+          "basis": "archived_visual_witness",
+          "public_page": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/4420261118/44202611180100/6/"
+        },
+        {
+          "phase": "back",
+          "seconds_in_digest": 49.131,
+          "first_car": 3,
+          "second_car": 6,
+          "basis": "archived_visual_witness",
+          "public_page": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/4420261118/44202611180100/6/"
+        },
+        {
+          "phase": "back",
+          "seconds_in_digest": 45.131,
+          "first_car": 3,
+          "second_car": 6,
+          "basis": "first_review_visual",
+          "public_page": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/4420261118/44202611180100/6/"
+        }
+      ]
+    },
+    {
+      "race_id": "20261118-73-04",
+      "source_page": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/7320261116/73202611160300/4/",
+      "source_groups": [
+        "previous_10"
+      ],
+      "fold": "earlier_training",
+      "B_leader_registration": "015973",
+      "B_car": 1,
+      "B_second": null,
+      "corner_car": 1,
+      "corner_second": 6,
+      "published_B_car": 1,
+      "published_B_reference": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/7320261116/73202611160300/4/",
+      "B_basis": "visually_observed",
+      "corner_basis": "visually_observed",
+      "included_in_earlier_rider_fit": true,
+      "readable_B_to_corner": true,
+      "historical_purposive_win_loss_sample": false,
+      "issues": [],
+      "known_movement_reviews": 0,
+      "unknown_movement_reviews": 0,
+      "checkpoints": [
+        {
+          "phase": "back",
+          "seconds_in_digest": 56.2,
+          "first_car": 1,
+          "second_car": null,
+          "basis": "previous_10",
+          "public_page": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/7320261116/73202611160300/4/"
+        },
+        {
+          "phase": "corner",
+          "seconds_in_digest": 67.8,
+          "first_car": 1,
+          "second_car": 6,
+          "basis": "previous_10",
+          "public_page": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/7320261116/73202611160300/4/"
+        }
+      ]
+    },
+    {
+      "race_id": "20261118-81-04",
+      "source_page": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/8120261118/81202611180100/4/",
+      "source_groups": [
+        "prior_78"
+      ],
+      "fold": "unresolved",
+      "B_leader_registration": null,
+      "B_car": null,
+      "B_second": null,
+      "corner_car": null,
+      "corner_second": null,
+      "published_B_car": 2,
+      "published_B_reference": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/8120261118/81202611180100/4/",
+      "B_basis": null,
+      "corner_basis": null,
+      "included_in_earlier_rider_fit": false,
+      "readable_B_to_corner": false,
+      "historical_purposive_win_loss_sample": false,
+      "issues": [],
+      "known_movement_reviews": 0,
+      "unknown_movement_reviews": 0,
+      "checkpoints": []
+    },
+    {
+      "race_id": "20261118-81-08",
+      "source_page": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/8120261118/81202611180100/8/",
+      "source_groups": [
+        "prior_78"
+      ],
+      "fold": "unresolved",
+      "B_leader_registration": null,
+      "B_car": null,
+      "B_second": null,
+      "corner_car": null,
+      "corner_second": null,
+      "published_B_car": 1,
+      "published_B_reference": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/8120261118/81202611180100/8/",
+      "B_basis": null,
+      "corner_basis": null,
+      "included_in_earlier_rider_fit": false,
+      "readable_B_to_corner": false,
+      "historical_purposive_win_loss_sample": false,
+      "issues": [],
+      "known_movement_reviews": 0,
+      "unknown_movement_reviews": 0,
+      "checkpoints": []
+    },
+    {
+      "race_id": "20261118-81-11",
+      "source_page": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/8120261118/81202611180100/11/",
+      "source_groups": [
+        "prior_78"
+      ],
+      "fold": "unresolved",
+      "B_leader_registration": "015061",
+      "B_car": 7,
+      "B_second": 5,
+      "corner_car": null,
+      "corner_second": null,
+      "published_B_car": 7,
+      "published_B_reference": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/8120261118/81202611180100/11/",
+      "B_basis": "visually_observed",
+      "corner_basis": null,
+      "included_in_earlier_rider_fit": false,
+      "readable_B_to_corner": false,
+      "historical_purposive_win_loss_sample": false,
+      "issues": [],
+      "known_movement_reviews": 3,
+      "unknown_movement_reviews": 0,
+      "checkpoints": [
+        {
+          "phase": "home",
+          "seconds_in_digest": 39.866,
+          "first_car": 5,
+          "second_car": 8,
+          "basis": "archived_visual_witness",
+          "public_page": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/8120261118/81202611180100/11/"
+        },
+        {
+          "phase": "back",
+          "seconds_in_digest": 52.5,
+          "first_car": 7,
+          "second_car": 5,
+          "basis": "archived_visual_witness",
+          "public_page": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/8120261118/81202611180100/11/"
+        },
+        {
+          "phase": "back",
+          "seconds_in_digest": 53.25,
+          "first_car": 7,
+          "second_car": 5,
+          "basis": "archived_visual_witness",
+          "public_page": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/8120261118/81202611180100/11/"
+        },
+        {
+          "phase": "back",
+          "seconds_in_digest": 52.5,
+          "first_car": 7,
+          "second_car": 5,
+          "basis": "first_review_visual",
+          "public_page": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/8120261118/81202611180100/11/"
+        }
+      ]
+    },
+    {
+      "race_id": "20261118-81-12",
+      "source_page": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/8120261118/81202611180100/12/",
+      "source_groups": [
+        "prior_78"
+      ],
+      "fold": "unresolved",
+      "B_leader_registration": "015779",
+      "B_car": 2,
+      "B_second": 7,
+      "corner_car": null,
+      "corner_second": null,
+      "published_B_car": 2,
+      "published_B_reference": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/8120261118/81202611180100/12/",
+      "B_basis": "visually_observed",
+      "corner_basis": null,
+      "included_in_earlier_rider_fit": false,
+      "readable_B_to_corner": false,
+      "historical_purposive_win_loss_sample": false,
+      "issues": [],
+      "known_movement_reviews": 1,
+      "unknown_movement_reviews": 0,
+      "checkpoints": [
+        {
+          "phase": "home",
+          "seconds_in_digest": 38.671,
+          "first_car": 2,
+          "second_car": 7,
+          "basis": "archived_visual_witness",
+          "public_page": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/8120261118/81202611180100/12/"
+        },
+        {
+          "phase": "back",
+          "seconds_in_digest": 45.671,
+          "first_car": 2,
+          "second_car": 7,
+          "basis": "archived_visual_witness",
+          "public_page": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/8120261118/81202611180100/12/"
+        },
+        {
+          "phase": "back",
+          "seconds_in_digest": 49.171,
+          "first_car": 2,
+          "second_car": 7,
+          "basis": "archived_visual_witness",
+          "public_page": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/8120261118/81202611180100/12/"
+        },
+        {
+          "phase": "back",
+          "seconds_in_digest": 45.671,
+          "first_car": 2,
+          "second_car": 7,
+          "basis": "first_review_visual",
+          "public_page": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/8120261118/81202611180100/12/"
+        }
+      ]
+    },
+    {
+      "race_id": "20261119-26-03",
+      "source_page": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/2620261118/26202611180200/3/",
+      "source_groups": [
+        "prior_78"
+      ],
+      "fold": "unresolved",
+      "B_leader_registration": "015795",
+      "B_car": 2,
+      "B_second": 5,
+      "corner_car": null,
+      "corner_second": null,
+      "published_B_car": 2,
+      "published_B_reference": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/2620261118/26202611180200/3/",
+      "B_basis": "visually_observed",
+      "corner_basis": null,
+      "included_in_earlier_rider_fit": false,
+      "readable_B_to_corner": false,
+      "historical_purposive_win_loss_sample": false,
+      "issues": [],
+      "known_movement_reviews": 0,
+      "unknown_movement_reviews": 0,
+      "checkpoints": [
+        {
+          "phase": "home",
+          "seconds_in_digest": 36.843,
+          "first_car": 2,
+          "second_car": 5,
+          "basis": "archived_visual_witness",
+          "public_page": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/2620261118/26202611180200/3/"
+        },
+        {
+          "phase": "back",
+          "seconds_in_digest": 44.843,
+          "first_car": 2,
+          "second_car": 5,
+          "basis": "archived_visual_witness",
+          "public_page": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/2620261118/26202611180200/3/"
+        },
+        {
+          "phase": "back",
+          "seconds_in_digest": 48.843,
+          "first_car": 2,
+          "second_car": 5,
+          "basis": "archived_visual_witness",
+          "public_page": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/2620261118/26202611180200/3/"
+        },
+        {
+          "phase": "back",
+          "seconds_in_digest": 44.843,
+          "first_car": 2,
+          "second_car": 5,
+          "basis": "first_review_visual",
+          "public_page": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/2620261118/26202611180200/3/"
+        }
+      ]
+    },
+    {
+      "race_id": "20261119-51-05",
+      "source_page": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/5120261119/51202611190100/5/",
+      "source_groups": [
+        "prior_78"
+      ],
+      "fold": "earlier_training",
+      "B_leader_registration": "015992",
+      "B_car": 7,
+      "B_second": 1,
+      "corner_car": 5,
+      "corner_second": 7,
+      "published_B_car": 7,
+      "published_B_reference": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/5120261119/51202611190100/5/",
+      "B_basis": "visually_observed",
+      "corner_basis": "visually_observed",
+      "included_in_earlier_rider_fit": true,
+      "readable_B_to_corner": true,
+      "historical_purposive_win_loss_sample": false,
+      "issues": [],
+      "known_movement_reviews": 0,
+      "unknown_movement_reviews": 0,
+      "checkpoints": [
+        {
+          "phase": "home",
+          "seconds_in_digest": 41.658,
+          "first_car": 7,
+          "second_car": 1,
+          "basis": "archived_visual_witness",
+          "public_page": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/5120261119/51202611190100/5/"
+        },
+        {
+          "phase": "back",
+          "seconds_in_digest": 45.658,
+          "first_car": 7,
+          "second_car": 1,
+          "basis": "archived_visual_witness",
+          "public_page": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/5120261119/51202611190100/5/"
+        },
+        {
+          "phase": "back",
+          "seconds_in_digest": 49.658,
+          "first_car": 7,
+          "second_car": 1,
+          "basis": "archived_visual_witness",
+          "public_page": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/5120261119/51202611190100/5/"
+        },
+        {
+          "phase": "back",
+          "seconds_in_digest": 45.658,
+          "first_car": 7,
+          "second_car": 1,
+          "basis": "first_review_visual",
+          "public_page": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/5120261119/51202611190100/5/"
+        },
+        {
+          "phase": "corner",
+          "seconds_in_digest": 61.658,
+          "first_car": 5,
+          "second_car": 7,
+          "basis": "archived_visual_witness",
+          "public_page": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/5120261119/51202611190100/5/"
+        }
+      ]
+    },
+    {
+      "race_id": "20261119-81-02",
+      "source_page": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/8120261118/81202611180200/2/",
+      "source_groups": [
+        "previous_10"
+      ],
+      "fold": "earlier_training",
+      "B_leader_registration": "015596",
+      "B_car": 3,
+      "B_second": 7,
+      "corner_car": 3,
+      "corner_second": 7,
+      "published_B_car": 3,
+      "published_B_reference": null,
+      "B_basis": "visually_observed",
+      "corner_basis": "visually_observed",
+      "included_in_earlier_rider_fit": true,
+      "readable_B_to_corner": true,
+      "historical_purposive_win_loss_sample": false,
+      "issues": [],
+      "known_movement_reviews": 0,
+      "unknown_movement_reviews": 0,
+      "checkpoints": [
+        {
+          "phase": "back",
+          "seconds_in_digest": 49.5,
+          "first_car": 3,
+          "second_car": 7,
+          "basis": "previous_10",
+          "public_page": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/8120261118/81202611180200/2/"
+        },
+        {
+          "phase": "corner",
+          "seconds_in_digest": 58.3,
+          "first_car": 3,
+          "second_car": 7,
+          "basis": "previous_10",
+          "public_page": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/8120261118/81202611180200/2/"
+        }
+      ]
+    },
+    {
+      "race_id": "20261119-81-03",
+      "source_page": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/8120261118/81202611180200/3/",
+      "source_groups": [
+        "previous_10"
+      ],
+      "fold": "earlier_training",
+      "B_leader_registration": "014534",
+      "B_car": 7,
+      "B_second": 1,
+      "corner_car": 7,
+      "corner_second": 1,
+      "published_B_car": 7,
+      "published_B_reference": null,
+      "B_basis": "visually_observed",
+      "corner_basis": "visually_observed",
+      "included_in_earlier_rider_fit": true,
+      "readable_B_to_corner": true,
+      "historical_purposive_win_loss_sample": false,
+      "issues": [],
+      "known_movement_reviews": 0,
+      "unknown_movement_reviews": 0,
+      "checkpoints": [
+        {
+          "phase": "back",
+          "seconds_in_digest": 51.4,
+          "first_car": 7,
+          "second_car": 1,
+          "basis": "previous_10",
+          "public_page": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/8120261118/81202611180200/3/"
+        },
+        {
+          "phase": "corner",
+          "seconds_in_digest": 59.5,
+          "first_car": 7,
+          "second_car": 1,
+          "basis": "previous_10",
+          "public_page": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/8120261118/81202611180200/3/"
+        }
+      ]
+    },
+    {
+      "race_id": "20261119-81-04",
+      "source_page": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/8120261118/81202611180200/4/",
+      "source_groups": [
+        "prior_78"
+      ],
+      "fold": "earlier_training",
+      "B_leader_registration": "014484",
+      "B_car": 5,
+      "B_second": 7,
+      "corner_car": 2,
+      "corner_second": 9,
+      "published_B_car": 5,
+      "published_B_reference": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/8120261118/81202611180200/4/",
+      "B_basis": "visually_observed",
+      "corner_basis": "visually_observed",
+      "included_in_earlier_rider_fit": true,
+      "readable_B_to_corner": true,
+      "historical_purposive_win_loss_sample": false,
+      "issues": [],
+      "known_movement_reviews": 0,
+      "unknown_movement_reviews": 0,
+      "checkpoints": [
+        {
+          "phase": "home",
+          "seconds_in_digest": 40.655,
+          "first_car": 7,
+          "second_car": 1,
+          "basis": "archived_visual_witness",
+          "public_page": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/8120261118/81202611180200/4/"
+        },
+        {
+          "phase": "back",
+          "seconds_in_digest": 51.0,
+          "first_car": 5,
+          "second_car": 7,
+          "basis": "archived_visual_witness",
+          "public_page": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/8120261118/81202611180200/4/"
+        },
+        {
+          "phase": "back",
+          "seconds_in_digest": 51.75,
+          "first_car": 5,
+          "second_car": 7,
+          "basis": "archived_visual_witness",
+          "public_page": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/8120261118/81202611180200/4/"
+        },
+        {
+          "phase": "back",
+          "seconds_in_digest": 51,
+          "first_car": 5,
+          "second_car": 7,
+          "basis": "first_review_visual",
+          "public_page": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/8120261118/81202611180200/4/"
+        },
+        {
+          "phase": "corner",
+          "seconds_in_digest": 56.655,
+          "first_car": 2,
+          "second_car": 9,
+          "basis": "archived_visual_witness",
+          "public_page": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/8120261118/81202611180200/4/"
+        }
+      ]
+    },
+    {
+      "race_id": "20261119-81-08",
+      "source_page": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/8120261118/81202611180200/8/",
+      "source_groups": [
+        "prior_78"
+      ],
+      "fold": "earlier_training",
+      "B_leader_registration": "015242",
+      "B_car": 2,
+      "B_second": 5,
+      "corner_car": 2,
+      "corner_second": 5,
+      "published_B_car": 2,
+      "published_B_reference": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/8120261118/81202611180200/8/",
+      "B_basis": "visually_observed",
+      "corner_basis": "visually_observed",
+      "included_in_earlier_rider_fit": true,
+      "readable_B_to_corner": true,
+      "historical_purposive_win_loss_sample": false,
+      "issues": [],
+      "known_movement_reviews": 0,
+      "unknown_movement_reviews": 0,
+      "checkpoints": [
+        {
+          "phase": "home",
+          "seconds_in_digest": 38.756,
+          "first_car": 7,
+          "second_car": 1,
+          "basis": "archived_visual_witness",
+          "public_page": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/8120261118/81202611180200/8/"
+        },
+        {
+          "phase": "back",
+          "seconds_in_digest": 50.756,
+          "first_car": 2,
+          "second_car": 5,
+          "basis": "archived_visual_witness",
+          "public_page": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/8120261118/81202611180200/8/"
+        },
+        {
+          "phase": "back",
+          "seconds_in_digest": 54.756,
+          "first_car": 2,
+          "second_car": 5,
+          "basis": "archived_visual_witness",
+          "public_page": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/8120261118/81202611180200/8/"
+        },
+        {
+          "phase": "back",
+          "seconds_in_digest": 50.756,
+          "first_car": 2,
+          "second_car": 5,
+          "basis": "first_review_visual",
+          "public_page": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/8120261118/81202611180200/8/"
+        },
+        {
+          "phase": "corner",
+          "seconds_in_digest": 58.756,
+          "first_car": 2,
+          "second_car": 5,
+          "basis": "archived_visual_witness",
+          "public_page": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/8120261118/81202611180200/8/"
+        }
+      ]
+    },
+    {
+      "race_id": "20261120-22-03",
+      "source_page": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/2220261120/22202611200100/3/",
+      "source_groups": [
+        "prior_78"
+      ],
+      "fold": "earlier_training",
+      "B_leader_registration": "016023",
+      "B_car": 1,
+      "B_second": 2,
+      "corner_car": 1,
+      "corner_second": 2,
+      "published_B_car": 1,
+      "published_B_reference": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/2220261120/22202611200100/3/",
+      "B_basis": "visually_observed",
+      "corner_basis": "visually_observed",
+      "included_in_earlier_rider_fit": true,
+      "readable_B_to_corner": true,
+      "historical_purposive_win_loss_sample": false,
+      "issues": [],
+      "known_movement_reviews": 0,
+      "unknown_movement_reviews": 0,
+      "checkpoints": [
+        {
+          "phase": "home",
+          "seconds_in_digest": 40.436,
+          "first_car": 1,
+          "second_car": 2,
+          "basis": "archived_visual_witness",
+          "public_page": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/2220261120/22202611200100/3/"
+        },
+        {
+          "phase": "back",
+          "seconds_in_digest": 48.436,
+          "first_car": 1,
+          "second_car": 2,
+          "basis": "archived_visual_witness",
+          "public_page": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/2220261120/22202611200100/3/"
+        },
+        {
+          "phase": "back",
+          "seconds_in_digest": 52.436,
+          "first_car": 1,
+          "second_car": 2,
+          "basis": "archived_visual_witness",
+          "public_page": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/2220261120/22202611200100/3/"
+        },
+        {
+          "phase": "back",
+          "seconds_in_digest": 48.436,
+          "first_car": 1,
+          "second_car": 2,
+          "basis": "first_review_visual",
+          "public_page": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/2220261120/22202611200100/3/"
+        },
+        {
+          "phase": "corner",
+          "seconds_in_digest": 56.436,
+          "first_car": 1,
+          "second_car": 2,
+          "basis": "archived_visual_witness",
+          "public_page": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/2220261120/22202611200100/3/"
+        }
+      ]
+    },
+    {
+      "race_id": "20261120-42-06",
+      "source_page": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/4220261120/42202611200100/6/",
+      "source_groups": [
+        "prior_78"
+      ],
+      "fold": "earlier_training",
+      "B_leader_registration": "014674",
+      "B_car": 4,
+      "B_second": 3,
+      "corner_car": 4,
+      "corner_second": 3,
+      "published_B_car": 4,
+      "published_B_reference": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/4220261120/42202611200100/6/",
+      "B_basis": "visually_observed",
+      "corner_basis": "visually_observed",
+      "included_in_earlier_rider_fit": true,
+      "readable_B_to_corner": true,
+      "historical_purposive_win_loss_sample": false,
+      "issues": [],
+      "known_movement_reviews": 0,
+      "unknown_movement_reviews": 0,
+      "checkpoints": [
+        {
+          "phase": "back",
+          "seconds_in_digest": 44.334,
+          "first_car": 4,
+          "second_car": 3,
+          "basis": "archived_visual_witness",
+          "public_page": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/4220261120/42202611200100/6/"
+        },
+        {
+          "phase": "back",
+          "seconds_in_digest": 48.334,
+          "first_car": 4,
+          "second_car": 3,
+          "basis": "archived_visual_witness",
+          "public_page": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/4220261120/42202611200100/6/"
+        },
+        {
+          "phase": "back",
+          "seconds_in_digest": 44.334,
+          "first_car": 4,
+          "second_car": 3,
+          "basis": "first_review_visual",
+          "public_page": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/4220261120/42202611200100/6/"
+        },
+        {
+          "phase": "corner",
+          "seconds_in_digest": 56.334,
+          "first_car": 4,
+          "second_car": 3,
+          "basis": "archived_visual_witness",
+          "public_page": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/4220261120/42202611200100/6/"
+        }
+      ]
+    },
+    {
+      "race_id": "20261120-81-02",
+      "source_page": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/8120261118/81202611180300/2/",
+      "source_groups": [
+        "prior_78"
+      ],
+      "fold": "earlier_training",
+      "B_leader_registration": "014534",
+      "B_car": 2,
+      "B_second": null,
+      "corner_car": 2,
+      "corner_second": null,
+      "published_B_car": 2,
+      "published_B_reference": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/8120261118/81202611180300/2/",
+      "B_basis": "visually_observed",
+      "corner_basis": "visually_observed",
+      "included_in_earlier_rider_fit": true,
+      "readable_B_to_corner": true,
+      "historical_purposive_win_loss_sample": false,
+      "issues": [],
+      "known_movement_reviews": 11,
+      "unknown_movement_reviews": 25,
+      "checkpoints": [
+        {
+          "phase": "back",
+          "seconds_in_digest": 51.988,
+          "first_car": 2,
+          "second_car": null,
+          "basis": "archived_visual_witness",
+          "public_page": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/8120261118/81202611180300/2/"
+        },
+        {
+          "phase": "corner",
+          "seconds_in_digest": 57.988,
+          "first_car": 2,
+          "second_car": null,
+          "basis": "archived_visual_witness",
+          "public_page": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/8120261118/81202611180300/2/"
+        }
+      ]
+    },
+    {
+      "race_id": "20261120-81-04",
+      "source_page": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/8120261118/81202611180300/4/",
+      "source_groups": [
+        "prior_78"
+      ],
+      "fold": "unresolved",
+      "B_leader_registration": "015213",
+      "B_car": 7,
+      "B_second": 1,
+      "corner_car": null,
+      "corner_second": null,
+      "published_B_car": 7,
+      "published_B_reference": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/8120261118/81202611180300/4/",
+      "B_basis": "visually_observed",
+      "corner_basis": null,
+      "included_in_earlier_rider_fit": false,
+      "readable_B_to_corner": false,
+      "historical_purposive_win_loss_sample": false,
+      "issues": [],
+      "known_movement_reviews": 0,
+      "unknown_movement_reviews": 0,
+      "checkpoints": [
+        {
+          "phase": "home",
+          "seconds_in_digest": 37.37,
+          "first_car": 7,
+          "second_car": 1,
+          "basis": "archived_visual_witness",
+          "public_page": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/8120261118/81202611180300/4/"
+        },
+        {
+          "phase": "back",
+          "seconds_in_digest": 45.37,
+          "first_car": 7,
+          "second_car": 1,
+          "basis": "archived_visual_witness",
+          "public_page": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/8120261118/81202611180300/4/"
+        },
+        {
+          "phase": "back",
+          "seconds_in_digest": 49.37,
+          "first_car": 7,
+          "second_car": 1,
+          "basis": "archived_visual_witness",
+          "public_page": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/8120261118/81202611180300/4/"
+        },
+        {
+          "phase": "back",
+          "seconds_in_digest": 45.37,
+          "first_car": 7,
+          "second_car": 1,
+          "basis": "first_review_visual",
+          "public_page": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/8120261118/81202611180300/4/"
+        }
+      ]
+    },
+    {
+      "race_id": "20261120-81-08",
+      "source_page": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/8120261118/81202611180300/8/",
+      "source_groups": [
+        "prior_78"
+      ],
+      "fold": "earlier_training",
+      "B_leader_registration": "015789",
+      "B_car": 9,
+      "B_second": 3,
+      "corner_car": 8,
+      "corner_second": 5,
+      "published_B_car": 9,
+      "published_B_reference": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/8120261118/81202611180300/8/",
+      "B_basis": "visually_observed",
+      "corner_basis": "visually_observed",
+      "included_in_earlier_rider_fit": true,
+      "readable_B_to_corner": true,
+      "historical_purposive_win_loss_sample": false,
+      "issues": [],
+      "known_movement_reviews": 0,
+      "unknown_movement_reviews": 0,
+      "checkpoints": [
+        {
+          "phase": "home",
+          "seconds_in_digest": 43.012,
+          "first_car": 9,
+          "second_car": 3,
+          "basis": "archived_visual_witness",
+          "public_page": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/8120261118/81202611180300/8/"
+        },
+        {
+          "phase": "back",
+          "seconds_in_digest": 47.012,
+          "first_car": 9,
+          "second_car": 3,
+          "basis": "archived_visual_witness",
+          "public_page": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/8120261118/81202611180300/8/"
+        },
+        {
+          "phase": "back",
+          "seconds_in_digest": 51.012,
+          "first_car": 9,
+          "second_car": 3,
+          "basis": "archived_visual_witness",
+          "public_page": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/8120261118/81202611180300/8/"
+        },
+        {
+          "phase": "back",
+          "seconds_in_digest": 47.012,
+          "first_car": 9,
+          "second_car": 3,
+          "basis": "first_review_visual",
+          "public_page": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/8120261118/81202611180300/8/"
+        },
+        {
+          "phase": "corner",
+          "seconds_in_digest": 59.012,
+          "first_car": 8,
+          "second_car": 5,
+          "basis": "archived_visual_witness",
+          "public_page": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/8120261118/81202611180300/8/"
+        }
+      ]
+    },
+    {
+      "race_id": "20261121-22-05",
+      "source_page": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/2220261120/22202611200200/5/",
+      "source_groups": [
+        "prior_78"
+      ],
+      "fold": "previous_13",
+      "B_leader_registration": "014366",
+      "B_car": 7,
+      "B_second": 6,
+      "corner_car": 1,
+      "corner_second": 5,
+      "published_B_car": 7,
+      "published_B_reference": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/2220261120/22202611200200/5/",
+      "B_basis": "visually_observed",
+      "corner_basis": "visually_observed",
+      "included_in_earlier_rider_fit": false,
+      "readable_B_to_corner": true,
+      "historical_purposive_win_loss_sample": false,
+      "issues": [],
+      "known_movement_reviews": 0,
+      "unknown_movement_reviews": 0,
+      "checkpoints": [
+        {
+          "phase": "home",
+          "seconds_in_digest": 42.618,
+          "first_car": 7,
+          "second_car": 6,
+          "basis": "archived_visual_witness",
+          "public_page": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/2220261120/22202611200200/5/"
+        },
+        {
+          "phase": "back",
+          "seconds_in_digest": 51.618,
+          "first_car": 7,
+          "second_car": 6,
+          "basis": "archived_visual_witness",
+          "public_page": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/2220261120/22202611200200/5/"
+        },
+        {
+          "phase": "corner",
+          "seconds_in_digest": 62.0,
+          "first_car": 1,
+          "second_car": 5,
+          "basis": "archived_visual_witness",
+          "public_page": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/2220261120/22202611200200/5/"
+        }
+      ]
+    },
+    {
+      "race_id": "20261121-36-05",
+      "source_page": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/3620261121/36202611210100/5/",
+      "source_groups": [
+        "prior_78"
+      ],
+      "fold": "previous_13",
+      "B_leader_registration": "014658",
+      "B_car": 3,
+      "B_second": 7,
+      "corner_car": 5,
+      "corner_second": 2,
+      "published_B_car": 3,
+      "published_B_reference": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/3620261121/36202611210100/5/",
+      "B_basis": "visually_observed",
+      "corner_basis": "visually_observed",
+      "included_in_earlier_rider_fit": false,
+      "readable_B_to_corner": true,
+      "historical_purposive_win_loss_sample": false,
+      "issues": [],
+      "known_movement_reviews": 0,
+      "unknown_movement_reviews": 0,
+      "checkpoints": [
+        {
+          "phase": "home",
+          "seconds_in_digest": 51.872,
+          "first_car": 4,
+          "second_car": 3,
+          "basis": "archived_visual_witness",
+          "public_page": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/3620261121/36202611210100/5/"
+        },
+        {
+          "phase": "back",
+          "seconds_in_digest": 59.872,
+          "first_car": 3,
+          "second_car": 7,
+          "basis": "archived_visual_witness",
+          "public_page": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/3620261121/36202611210100/5/"
+        },
+        {
+          "phase": "back",
+          "seconds_in_digest": 63.872,
+          "first_car": 3,
+          "second_car": 7,
+          "basis": "archived_visual_witness",
+          "public_page": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/3620261121/36202611210100/5/"
+        },
+        {
+          "phase": "back",
+          "seconds_in_digest": 59.872,
+          "first_car": 3,
+          "second_car": 7,
+          "basis": "first_review_visual",
+          "public_page": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/3620261121/36202611210100/5/"
+        },
+        {
+          "phase": "corner",
+          "seconds_in_digest": 71.872,
+          "first_car": 5,
+          "second_car": 2,
+          "basis": "archived_visual_witness",
+          "public_page": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/3620261121/36202611210100/5/"
+        }
+      ]
+    },
+    {
+      "race_id": "20261121-42-04",
+      "source_page": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/4220261120/42202611200200/4/",
+      "source_groups": [
+        "prior_78"
+      ],
+      "fold": "previous_13",
+      "B_leader_registration": "016001",
+      "B_car": 1,
+      "B_second": 2,
+      "corner_car": 1,
+      "corner_second": 2,
+      "published_B_car": 1,
+      "published_B_reference": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/4220261120/42202611200200/4/",
+      "B_basis": "visually_observed",
+      "corner_basis": "visually_observed",
+      "included_in_earlier_rider_fit": false,
+      "readable_B_to_corner": true,
+      "historical_purposive_win_loss_sample": false,
+      "issues": [],
+      "known_movement_reviews": 0,
+      "unknown_movement_reviews": 0,
+      "checkpoints": [
+        {
+          "phase": "home",
+          "seconds_in_digest": 36.0,
+          "first_car": 1,
+          "second_car": 2,
+          "basis": "archived_visual_witness",
+          "public_page": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/4220261120/42202611200200/4/"
+        },
+        {
+          "phase": "back",
+          "seconds_in_digest": 49.84,
+          "first_car": 1,
+          "second_car": 2,
+          "basis": "archived_visual_witness",
+          "public_page": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/4220261120/42202611200200/4/"
+        },
+        {
+          "phase": "corner",
+          "seconds_in_digest": 58.84,
+          "first_car": 1,
+          "second_car": 2,
+          "basis": "archived_visual_witness",
+          "public_page": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/4220261120/42202611200200/4/"
+        }
+      ]
+    },
+    {
+      "race_id": "20261121-45-07",
+      "source_page": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/4520261121/45202611210100/7/",
+      "source_groups": [
+        "prior_78"
+      ],
+      "fold": "previous_13",
+      "B_leader_registration": "015613",
+      "B_car": 1,
+      "B_second": 5,
+      "corner_car": 1,
+      "corner_second": 5,
+      "published_B_car": 1,
+      "published_B_reference": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/4520261121/45202611210100/7/",
+      "B_basis": "visually_observed",
+      "corner_basis": "visually_observed",
+      "included_in_earlier_rider_fit": false,
+      "readable_B_to_corner": true,
+      "historical_purposive_win_loss_sample": false,
+      "issues": [],
+      "known_movement_reviews": 0,
+      "unknown_movement_reviews": 0,
+      "checkpoints": [
+        {
+          "phase": "home",
+          "seconds_in_digest": 37.006,
+          "first_car": 1,
+          "second_car": 5,
+          "basis": "archived_visual_witness",
+          "public_page": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/4520261121/45202611210100/7/"
+        },
+        {
+          "phase": "back",
+          "seconds_in_digest": 48.0,
+          "first_car": 1,
+          "second_car": 5,
+          "basis": "archived_visual_witness",
+          "public_page": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/4520261121/45202611210100/7/"
+        },
+        {
+          "phase": "back",
+          "seconds_in_digest": 50.0,
+          "first_car": 1,
+          "second_car": 5,
+          "basis": "archived_visual_witness",
+          "public_page": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/4520261121/45202611210100/7/"
+        },
+        {
+          "phase": "back",
+          "seconds_in_digest": 48,
+          "first_car": 1,
+          "second_car": 5,
+          "basis": "first_review_visual",
+          "public_page": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/4520261121/45202611210100/7/"
+        },
+        {
+          "phase": "corner",
+          "seconds_in_digest": 57.006,
+          "first_car": 1,
+          "second_car": 5,
+          "basis": "archived_visual_witness",
+          "public_page": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/4520261121/45202611210100/7/"
+        }
+      ]
+    },
+    {
+      "race_id": "20261121-81-04",
+      "source_page": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/8120261118/81202611180400/4/",
+      "source_groups": [
+        "prior_78"
+      ],
+      "fold": "previous_13",
+      "B_leader_registration": "015436",
+      "B_car": 9,
+      "B_second": 3,
+      "corner_car": 9,
+      "corner_second": 3,
+      "published_B_car": 9,
+      "published_B_reference": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/8120261118/81202611180400/4/",
+      "B_basis": "visually_observed",
+      "corner_basis": "visually_observed",
+      "included_in_earlier_rider_fit": false,
+      "readable_B_to_corner": true,
+      "historical_purposive_win_loss_sample": false,
+      "issues": [],
+      "known_movement_reviews": 1,
+      "unknown_movement_reviews": 0,
+      "checkpoints": [
+        {
+          "phase": "home",
+          "seconds_in_digest": 38.031,
+          "first_car": 9,
+          "second_car": 3,
+          "basis": "archived_visual_witness",
+          "public_page": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/8120261118/81202611180400/4/"
+        },
+        {
+          "phase": "back",
+          "seconds_in_digest": 46.031,
+          "first_car": 9,
+          "second_car": 3,
+          "basis": "archived_visual_witness",
+          "public_page": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/8120261118/81202611180400/4/"
+        },
+        {
+          "phase": "back",
+          "seconds_in_digest": 50.031,
+          "first_car": 9,
+          "second_car": 3,
+          "basis": "archived_visual_witness",
+          "public_page": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/8120261118/81202611180400/4/"
+        },
+        {
+          "phase": "back",
+          "seconds_in_digest": 46.031,
+          "first_car": 9,
+          "second_car": 3,
+          "basis": "first_review_visual",
+          "public_page": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/8120261118/81202611180400/4/"
+        },
+        {
+          "phase": "corner",
+          "seconds_in_digest": 58.031,
+          "first_car": 9,
+          "second_car": 3,
+          "basis": "archived_visual_witness",
+          "public_page": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/8120261118/81202611180400/4/"
+        }
+      ]
+    },
+    {
+      "race_id": "20261121-81-08",
+      "source_page": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/8120261118/81202611180400/8/",
+      "source_groups": [
+        "prior_78"
+      ],
+      "fold": "previous_13",
+      "B_leader_registration": "015596",
+      "B_car": 7,
+      "B_second": 2,
+      "corner_car": 7,
+      "corner_second": 2,
+      "published_B_car": 7,
+      "published_B_reference": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/8120261118/81202611180400/8/",
+      "B_basis": "visually_observed",
+      "corner_basis": "visually_observed",
+      "included_in_earlier_rider_fit": false,
+      "readable_B_to_corner": true,
+      "historical_purposive_win_loss_sample": false,
+      "issues": [],
+      "known_movement_reviews": 1,
+      "unknown_movement_reviews": 0,
+      "checkpoints": [
+        {
+          "phase": "back",
+          "seconds_in_digest": 46.735,
+          "first_car": 7,
+          "second_car": 2,
+          "basis": "archived_visual_witness",
+          "public_page": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/8120261118/81202611180400/8/"
+        },
+        {
+          "phase": "back",
+          "seconds_in_digest": 50.735,
+          "first_car": 7,
+          "second_car": 2,
+          "basis": "archived_visual_witness",
+          "public_page": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/8120261118/81202611180400/8/"
+        },
+        {
+          "phase": "back",
+          "seconds_in_digest": 46.735,
+          "first_car": 7,
+          "second_car": 2,
+          "basis": "first_review_visual",
+          "public_page": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/8120261118/81202611180400/8/"
+        },
+        {
+          "phase": "corner",
+          "seconds_in_digest": 58.735,
+          "first_car": 7,
+          "second_car": 2,
+          "basis": "archived_visual_witness",
+          "public_page": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/8120261118/81202611180400/8/"
+        }
+      ]
+    },
+    {
+      "race_id": "20261122-36-05",
+      "source_page": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/3620261121/36202611210200/5/",
+      "source_groups": [
+        "prior_78"
+      ],
+      "fold": "unresolved",
+      "B_leader_registration": null,
+      "B_car": null,
+      "B_second": null,
+      "corner_car": null,
+      "corner_second": null,
+      "published_B_car": 3,
+      "published_B_reference": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/3620261121/36202611210200/5/",
+      "B_basis": null,
+      "corner_basis": null,
+      "included_in_earlier_rider_fit": false,
+      "readable_B_to_corner": false,
+      "historical_purposive_win_loss_sample": false,
+      "issues": [],
+      "known_movement_reviews": 0,
+      "unknown_movement_reviews": 0,
+      "checkpoints": []
+    },
+    {
+      "race_id": "20261122-42-06",
+      "source_page": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/4220261120/42202611200300/6/",
+      "source_groups": [
+        "prior_78"
+      ],
+      "fold": "unresolved",
+      "B_leader_registration": "014674",
+      "B_car": 1,
+      "B_second": 2,
+      "corner_car": null,
+      "corner_second": null,
+      "published_B_car": 1,
+      "published_B_reference": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/4220261120/42202611200300/6/",
+      "B_basis": "visually_observed",
+      "corner_basis": null,
+      "included_in_earlier_rider_fit": false,
+      "readable_B_to_corner": false,
+      "historical_purposive_win_loss_sample": false,
+      "issues": [],
+      "known_movement_reviews": 0,
+      "unknown_movement_reviews": 0,
+      "checkpoints": [
+        {
+          "phase": "back",
+          "seconds_in_digest": 48,
+          "first_car": 1,
+          "second_car": 2,
+          "basis": "first_review_visual",
+          "public_page": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/4220261120/42202611200300/6/"
+        }
+      ]
+    },
+    {
+      "race_id": "20261122-45-04",
+      "source_page": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/4520261121/45202611210200/4/",
+      "source_groups": [
+        "prior_78"
+      ],
+      "fold": "previous_13",
+      "B_leader_registration": "014728",
+      "B_car": 2,
+      "B_second": 6,
+      "corner_car": 3,
+      "corner_second": 4,
+      "published_B_car": 2,
+      "published_B_reference": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/4520261121/45202611210200/4/",
+      "B_basis": "visually_observed",
+      "corner_basis": "visually_observed",
+      "included_in_earlier_rider_fit": false,
+      "readable_B_to_corner": true,
+      "historical_purposive_win_loss_sample": false,
+      "issues": [],
+      "known_movement_reviews": 0,
+      "unknown_movement_reviews": 0,
+      "checkpoints": [
+        {
+          "phase": "home",
+          "seconds_in_digest": 39.709,
+          "first_car": 6,
+          "second_car": 2,
+          "basis": "archived_visual_witness",
+          "public_page": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/4520261121/45202611210200/4/"
+        },
+        {
+          "phase": "back",
+          "seconds_in_digest": 52.5,
+          "first_car": 2,
+          "second_car": 6,
+          "basis": "archived_visual_witness",
+          "public_page": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/4520261121/45202611210200/4/"
+        },
+        {
+          "phase": "corner",
+          "seconds_in_digest": 60.709,
+          "first_car": 3,
+          "second_car": 4,
+          "basis": "archived_visual_witness",
+          "public_page": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/4520261121/45202611210200/4/"
+        }
+      ]
+    },
+    {
+      "race_id": "20261122-53-04",
+      "source_page": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/5320261122/53202611220100/4/",
+      "source_groups": [
+        "prior_78"
+      ],
+      "fold": "previous_13",
+      "B_leader_registration": "015973",
+      "B_car": 7,
+      "B_second": 2,
+      "corner_car": 7,
+      "corner_second": 2,
+      "published_B_car": 7,
+      "published_B_reference": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/5320261122/53202611220100/4/",
+      "B_basis": "visually_observed",
+      "corner_basis": "visually_observed",
+      "included_in_earlier_rider_fit": false,
+      "readable_B_to_corner": true,
+      "historical_purposive_win_loss_sample": false,
+      "issues": [],
+      "known_movement_reviews": 0,
+      "unknown_movement_reviews": 0,
+      "checkpoints": [
+        {
+          "phase": "home",
+          "seconds_in_digest": 37.834,
+          "first_car": 7,
+          "second_car": 2,
+          "basis": "archived_visual_witness",
+          "public_page": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/5320261122/53202611220100/4/"
+        },
+        {
+          "phase": "back",
+          "seconds_in_digest": 45.834,
+          "first_car": 7,
+          "second_car": 2,
+          "basis": "archived_visual_witness",
+          "public_page": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/5320261122/53202611220100/4/"
+        },
+        {
+          "phase": "back",
+          "seconds_in_digest": 49.834,
+          "first_car": 7,
+          "second_car": 2,
+          "basis": "archived_visual_witness",
+          "public_page": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/5320261122/53202611220100/4/"
+        },
+        {
+          "phase": "back",
+          "seconds_in_digest": 45.834,
+          "first_car": 7,
+          "second_car": 2,
+          "basis": "first_review_visual",
+          "public_page": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/5320261122/53202611220100/4/"
+        },
+        {
+          "phase": "corner",
+          "seconds_in_digest": 57.834,
+          "first_car": 7,
+          "second_car": 2,
+          "basis": "archived_visual_witness",
+          "public_page": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/5320261122/53202611220100/4/"
+        }
+      ]
+    },
+    {
+      "race_id": "20261122-62-07",
+      "source_page": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/6220261122/62202611220100/7/",
+      "source_groups": [
+        "previous_separate_5"
+      ],
+      "fold": "previous_separate_3",
+      "B_leader_registration": "015791",
+      "B_car": 4,
+      "B_second": 3,
+      "corner_car": 7,
+      "corner_second": null,
+      "published_B_car": 4,
+      "published_B_reference": null,
+      "B_basis": "visually_observed",
+      "corner_basis": "visually_observed",
+      "included_in_earlier_rider_fit": false,
+      "readable_B_to_corner": true,
+      "historical_purposive_win_loss_sample": false,
+      "issues": [],
+      "known_movement_reviews": 0,
+      "unknown_movement_reviews": 0,
+      "checkpoints": [
+        {
+          "phase": "back",
+          "seconds_in_digest": 63.7,
+          "first_car": 4,
+          "second_car": 3,
+          "basis": "previous_separate_5",
+          "public_page": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/6220261122/62202611220100/7/"
+        },
+        {
+          "phase": "corner",
+          "seconds_in_digest": 72.4,
+          "first_car": 7,
+          "second_car": null,
+          "basis": "previous_separate_5",
+          "public_page": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/6220261122/62202611220100/7/"
+        }
+      ]
+    },
+    {
+      "race_id": "20261122-81-05",
+      "source_page": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/8120261118/81202611180500/5/",
+      "source_groups": [
+        "prior_78"
+      ],
+      "fold": "unresolved",
+      "B_leader_registration": null,
+      "B_car": null,
+      "B_second": null,
+      "corner_car": null,
+      "corner_second": null,
+      "published_B_car": 9,
+      "published_B_reference": null,
+      "B_basis": null,
+      "corner_basis": null,
+      "included_in_earlier_rider_fit": false,
+      "readable_B_to_corner": false,
+      "historical_purposive_win_loss_sample": false,
+      "issues": [],
+      "known_movement_reviews": 0,
+      "unknown_movement_reviews": 0,
+      "checkpoints": []
+    },
+    {
+      "race_id": "20261122-81-08",
+      "source_page": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/8120261118/81202611180500/8/",
+      "source_groups": [
+        "prior_78"
+      ],
+      "fold": "unresolved",
+      "B_leader_registration": "014396",
+      "B_car": 5,
+      "B_second": 9,
+      "corner_car": null,
+      "corner_second": null,
+      "published_B_car": 5,
+      "published_B_reference": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/8120261118/81202611180500/8/",
+      "B_basis": "visually_observed",
+      "corner_basis": null,
+      "included_in_earlier_rider_fit": false,
+      "readable_B_to_corner": false,
+      "historical_purposive_win_loss_sample": false,
+      "issues": [],
+      "known_movement_reviews": 0,
+      "unknown_movement_reviews": 0,
+      "checkpoints": [
+        {
+          "phase": "home",
+          "seconds_in_digest": 38.266,
+          "first_car": 9,
+          "second_car": 4,
+          "basis": "archived_visual_witness",
+          "public_page": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/8120261118/81202611180500/8/"
+        },
+        {
+          "phase": "back",
+          "seconds_in_digest": 49.5,
+          "first_car": 5,
+          "second_car": 9,
+          "basis": "archived_visual_witness",
+          "public_page": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/8120261118/81202611180500/8/"
+        },
+        {
+          "phase": "back",
+          "seconds_in_digest": 50.5,
+          "first_car": 5,
+          "second_car": 9,
+          "basis": "archived_visual_witness",
+          "public_page": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/8120261118/81202611180500/8/"
+        },
+        {
+          "phase": "back",
+          "seconds_in_digest": 49.5,
+          "first_car": 5,
+          "second_car": 9,
+          "basis": "first_review_visual",
+          "public_page": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/8120261118/81202611180500/8/"
+        }
+      ]
+    },
+    {
+      "race_id": "20261122-81-09",
+      "source_page": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/8120261118/81202611180500/9/",
+      "source_groups": [
+        "previous_separate_5"
+      ],
+      "fold": "previous_separate_3",
+      "B_leader_registration": "015596",
+      "B_car": 3,
+      "B_second": 1,
+      "corner_car": 1,
+      "corner_second": 8,
+      "published_B_car": 3,
+      "published_B_reference": null,
+      "B_basis": "visually_observed",
+      "corner_basis": "visually_observed",
+      "included_in_earlier_rider_fit": false,
+      "readable_B_to_corner": true,
+      "historical_purposive_win_loss_sample": false,
+      "issues": [],
+      "known_movement_reviews": 0,
+      "unknown_movement_reviews": 0,
+      "checkpoints": [
+        {
+          "phase": "back",
+          "seconds_in_digest": 49.0,
+          "first_car": 3,
+          "second_car": 1,
+          "basis": "previous_separate_5",
+          "public_page": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/8120261118/81202611180500/9/"
+        },
+        {
+          "phase": "corner",
+          "seconds_in_digest": 56.5,
+          "first_car": 1,
+          "second_car": 8,
+          "basis": "previous_separate_5",
+          "public_page": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/8120261118/81202611180500/9/"
+        }
+      ]
+    },
+    {
+      "race_id": "20261122-81-11",
+      "source_page": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/8120261118/81202611180500/11/",
+      "source_groups": [
+        "previous_separate_5"
+      ],
+      "fold": "previous_separate_3",
+      "B_leader_registration": "014534",
+      "B_car": 7,
+      "B_second": 1,
+      "corner_car": 7,
+      "corner_second": 1,
+      "published_B_car": 7,
+      "published_B_reference": null,
+      "B_basis": "visually_observed",
+      "corner_basis": "visually_observed",
+      "included_in_earlier_rider_fit": false,
+      "readable_B_to_corner": true,
+      "historical_purposive_win_loss_sample": false,
+      "issues": [],
+      "known_movement_reviews": 0,
+      "unknown_movement_reviews": 0,
+      "checkpoints": [
+        {
+          "phase": "back",
+          "seconds_in_digest": 48.32,
+          "first_car": 7,
+          "second_car": 1,
+          "basis": "previous_separate_5",
+          "public_page": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/8120261118/81202611180500/11/"
+        },
+        {
+          "phase": "corner",
+          "seconds_in_digest": 57.0,
+          "first_car": 7,
+          "second_car": 1,
+          "basis": "previous_separate_5",
+          "public_page": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/8120261118/81202611180500/11/"
+        }
+      ]
+    },
+    {
+      "race_id": "20261123-26-03",
+      "source_page": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/2620261123/26202611230100/3/",
+      "source_groups": [
+        "prior_78"
+      ],
+      "fold": "previous_13",
+      "B_leader_registration": "015257",
+      "B_car": 7,
+      "B_second": 1,
+      "corner_car": 7,
+      "corner_second": 1,
+      "published_B_car": 7,
+      "published_B_reference": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/2620261123/26202611230100/3/",
+      "B_basis": "visually_observed",
+      "corner_basis": "visually_observed",
+      "included_in_earlier_rider_fit": false,
+      "readable_B_to_corner": true,
+      "historical_purposive_win_loss_sample": false,
+      "issues": [],
+      "known_movement_reviews": 0,
+      "unknown_movement_reviews": 0,
+      "checkpoints": [
+        {
+          "phase": "home",
+          "seconds_in_digest": 38.155,
+          "first_car": 7,
+          "second_car": 1,
+          "basis": "archived_visual_witness",
+          "public_page": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/2620261123/26202611230100/3/"
+        },
+        {
+          "phase": "back",
+          "seconds_in_digest": 46.155,
+          "first_car": 7,
+          "second_car": 1,
+          "basis": "archived_visual_witness",
+          "public_page": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/2620261123/26202611230100/3/"
+        },
+        {
+          "phase": "back",
+          "seconds_in_digest": 50.155,
+          "first_car": 7,
+          "second_car": 1,
+          "basis": "archived_visual_witness",
+          "public_page": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/2620261123/26202611230100/3/"
+        },
+        {
+          "phase": "back",
+          "seconds_in_digest": 46.155,
+          "first_car": 7,
+          "second_car": 1,
+          "basis": "first_review_visual",
+          "public_page": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/2620261123/26202611230100/3/"
+        },
+        {
+          "phase": "corner",
+          "seconds_in_digest": 58.155,
+          "first_car": 7,
+          "second_car": 1,
+          "basis": "archived_visual_witness",
+          "public_page": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/2620261123/26202611230100/3/"
+        }
+      ]
+    },
+    {
+      "race_id": "20261123-26-07",
+      "source_page": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/2620261123/26202611230100/7/",
+      "source_groups": [
+        "prior_78"
+      ],
+      "fold": "unresolved",
+      "B_leader_registration": null,
+      "B_car": null,
+      "B_second": null,
+      "corner_car": null,
+      "corner_second": null,
+      "published_B_car": 3,
+      "published_B_reference": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/2620261123/26202611230100/7/",
+      "B_basis": null,
+      "corner_basis": null,
+      "included_in_earlier_rider_fit": false,
+      "readable_B_to_corner": false,
+      "historical_purposive_win_loss_sample": false,
+      "issues": [],
+      "known_movement_reviews": 0,
+      "unknown_movement_reviews": 0,
+      "checkpoints": []
+    },
+    {
+      "race_id": "20261123-53-08",
+      "source_page": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/5320261122/53202611220200/8/",
+      "source_groups": [
+        "prior_78"
+      ],
+      "fold": "previous_13",
+      "B_leader_registration": "015557",
+      "B_car": 3,
+      "B_second": 1,
+      "corner_car": 3,
+      "corner_second": 4,
+      "published_B_car": 3,
+      "published_B_reference": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/5320261122/53202611220200/8/",
+      "B_basis": "visually_observed",
+      "corner_basis": "visually_observed",
+      "included_in_earlier_rider_fit": false,
+      "readable_B_to_corner": true,
+      "historical_purposive_win_loss_sample": false,
+      "issues": [],
+      "known_movement_reviews": 0,
+      "unknown_movement_reviews": 0,
+      "checkpoints": [
+        {
+          "phase": "home",
+          "seconds_in_digest": 48.86,
+          "first_car": 3,
+          "second_car": 1,
+          "basis": "archived_visual_witness",
+          "public_page": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/5320261122/53202611220200/8/"
+        },
+        {
+          "phase": "back",
+          "seconds_in_digest": 57.86,
+          "first_car": 3,
+          "second_car": 1,
+          "basis": "archived_visual_witness",
+          "public_page": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/5320261122/53202611220200/8/"
+        },
+        {
+          "phase": "corner",
+          "seconds_in_digest": 67.9,
+          "first_car": 3,
+          "second_car": 4,
+          "basis": "archived_visual_witness",
+          "public_page": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/5320261122/53202611220200/8/"
+        }
+      ]
+    },
+    {
+      "race_id": "20261123-61-06",
+      "source_page": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/6120261123/61202611230100/6/",
+      "source_groups": [
+        "prior_78"
+      ],
+      "fold": "additional_archived",
+      "B_leader_registration": "015875",
+      "B_car": 1,
+      "B_second": null,
+      "corner_car": 1,
+      "corner_second": 2,
+      "published_B_car": 1,
+      "published_B_reference": "https://keirin.jp/sp/racerracentrecord?snum=015875",
+      "B_basis": "visually_observed",
+      "corner_basis": "visually_observed",
+      "included_in_earlier_rider_fit": false,
+      "readable_B_to_corner": true,
+      "historical_purposive_win_loss_sample": true,
+      "issues": [],
+      "known_movement_reviews": 0,
+      "unknown_movement_reviews": 0,
+      "checkpoints": [
+        {
+          "phase": "back",
+          "seconds_in_digest": 64.248,
+          "first_car": 1,
+          "second_car": null,
+          "basis": "archived_visual_witness",
+          "public_page": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/6120261123/61202611230100/6/"
+        },
+        {
+          "phase": "corner",
+          "seconds_in_digest": 70.248,
+          "first_car": 1,
+          "second_car": 2,
+          "basis": "archived_visual_witness",
+          "public_page": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/6120261123/61202611230100/6/"
+        }
+      ]
+    },
+    {
+      "race_id": "20261123-62-05",
+      "source_page": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/6220261122/62202611220200/5/",
+      "source_groups": [
+        "prior_78"
+      ],
+      "fold": "previous_13",
+      "B_leader_registration": "015791",
+      "B_car": 5,
+      "B_second": 2,
+      "corner_car": 5,
+      "corner_second": 2,
+      "published_B_car": 5,
+      "published_B_reference": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/6220261122/62202611220200/5/",
+      "B_basis": "visually_observed",
+      "corner_basis": "visually_observed",
+      "included_in_earlier_rider_fit": false,
+      "readable_B_to_corner": true,
+      "historical_purposive_win_loss_sample": false,
+      "issues": [],
+      "known_movement_reviews": 0,
+      "unknown_movement_reviews": 0,
+      "checkpoints": [
+        {
+          "phase": "home",
+          "seconds_in_digest": 47.712,
+          "first_car": 5,
+          "second_car": 2,
+          "basis": "archived_visual_witness",
+          "public_page": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/6220261122/62202611220200/5/"
+        },
+        {
+          "phase": "back",
+          "seconds_in_digest": 55.712,
+          "first_car": 5,
+          "second_car": 2,
+          "basis": "archived_visual_witness",
+          "public_page": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/6220261122/62202611220200/5/"
+        },
+        {
+          "phase": "back",
+          "seconds_in_digest": 59.712,
+          "first_car": 5,
+          "second_car": 2,
+          "basis": "archived_visual_witness",
+          "public_page": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/6220261122/62202611220200/5/"
+        },
+        {
+          "phase": "back",
+          "seconds_in_digest": 55.712,
+          "first_car": 5,
+          "second_car": 2,
+          "basis": "first_review_visual",
+          "public_page": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/6220261122/62202611220200/5/"
+        },
+        {
+          "phase": "corner",
+          "seconds_in_digest": 67.712,
+          "first_car": 5,
+          "second_car": 2,
+          "basis": "archived_visual_witness",
+          "public_page": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/6220261122/62202611220200/5/"
+        }
+      ]
+    },
+    {
+      "race_id": "20261123-81-04",
+      "source_page": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/8120261118/81202611180600/4/",
+      "source_groups": [
+        "prior_78"
+      ],
+      "fold": "previous_13",
+      "B_leader_registration": "015037",
+      "B_car": 2,
+      "B_second": 6,
+      "corner_car": 2,
+      "corner_second": 1,
+      "published_B_car": 2,
+      "published_B_reference": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/8120261118/81202611180600/4/",
+      "B_basis": "visually_observed",
+      "corner_basis": "visually_observed",
+      "included_in_earlier_rider_fit": false,
+      "readable_B_to_corner": true,
+      "historical_purposive_win_loss_sample": false,
+      "issues": [],
+      "known_movement_reviews": 0,
+      "unknown_movement_reviews": 0,
+      "checkpoints": [
+        {
+          "phase": "home",
+          "seconds_in_digest": 42.063,
+          "first_car": 2,
+          "second_car": 6,
+          "basis": "archived_visual_witness",
+          "public_page": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/8120261118/81202611180600/4/"
+        },
+        {
+          "phase": "back",
+          "seconds_in_digest": 50.063,
+          "first_car": 2,
+          "second_car": 6,
+          "basis": "archived_visual_witness",
+          "public_page": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/8120261118/81202611180600/4/"
+        },
+        {
+          "phase": "back",
+          "seconds_in_digest": 54.063,
+          "first_car": 2,
+          "second_car": 6,
+          "basis": "archived_visual_witness",
+          "public_page": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/8120261118/81202611180600/4/"
+        },
+        {
+          "phase": "back",
+          "seconds_in_digest": 50.063,
+          "first_car": 2,
+          "second_car": 6,
+          "basis": "first_review_visual",
+          "public_page": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/8120261118/81202611180600/4/"
+        },
+        {
+          "phase": "corner",
+          "seconds_in_digest": 62.063,
+          "first_car": 2,
+          "second_car": 1,
+          "basis": "archived_visual_witness",
+          "public_page": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/8120261118/81202611180600/4/"
+        }
+      ]
+    },
+    {
+      "race_id": "20261123-81-08",
+      "source_page": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/8120261118/81202611180600/8/",
+      "source_groups": [
+        "prior_78"
+      ],
+      "fold": "previous_13",
+      "B_leader_registration": "014534",
+      "B_car": 3,
+      "B_second": 9,
+      "corner_car": 3,
+      "corner_second": 9,
+      "published_B_car": 3,
+      "published_B_reference": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/8120261118/81202611180600/8/",
+      "B_basis": "visually_observed",
+      "corner_basis": "visually_observed",
+      "included_in_earlier_rider_fit": false,
+      "readable_B_to_corner": true,
+      "historical_purposive_win_loss_sample": false,
+      "issues": [],
+      "known_movement_reviews": 0,
+      "unknown_movement_reviews": 0,
+      "checkpoints": [
+        {
+          "phase": "back",
+          "seconds_in_digest": 52.122,
+          "first_car": 3,
+          "second_car": 9,
+          "basis": "archived_visual_witness",
+          "public_page": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/8120261118/81202611180600/8/"
+        },
+        {
+          "phase": "back",
+          "seconds_in_digest": 56.122,
+          "first_car": 3,
+          "second_car": 9,
+          "basis": "archived_visual_witness",
+          "public_page": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/8120261118/81202611180600/8/"
+        },
+        {
+          "phase": "back",
+          "seconds_in_digest": 52.122,
+          "first_car": 3,
+          "second_car": 9,
+          "basis": "first_review_visual",
+          "public_page": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/8120261118/81202611180600/8/"
+        },
+        {
+          "phase": "corner",
+          "seconds_in_digest": 56.122,
+          "first_car": 3,
+          "second_car": 9,
+          "basis": "archived_visual_witness",
+          "public_page": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/8120261118/81202611180600/8/"
+        }
+      ]
+    },
+    {
+      "race_id": "20261124-26-03",
+      "source_page": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/2620261123/26202611230200/3/",
+      "source_groups": [
+        "previous_separate_5"
+      ],
+      "fold": "unresolved",
+      "B_leader_registration": null,
+      "B_car": null,
+      "B_second": null,
+      "corner_car": 5,
+      "corner_second": 2,
+      "published_B_car": null,
+      "published_B_reference": null,
+      "B_basis": null,
+      "corner_basis": "visually_observed",
+      "included_in_earlier_rider_fit": false,
+      "readable_B_to_corner": false,
+      "historical_purposive_win_loss_sample": false,
+      "issues": [],
+      "known_movement_reviews": 0,
+      "unknown_movement_reviews": 0,
+      "checkpoints": [
+        {
+          "phase": "corner",
+          "seconds_in_digest": 57.3,
+          "first_car": 5,
+          "second_car": 2,
+          "basis": "previous_separate_5",
+          "public_page": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/2620261123/26202611230200/3/"
+        }
+      ]
+    },
+    {
+      "race_id": "20261124-53-04",
+      "source_page": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/5320261122/53202611220300/4/",
+      "source_groups": [
+        "previous_separate_5"
+      ],
+      "fold": "unresolved",
+      "B_leader_registration": "015973",
+      "B_car": 1,
+      "B_second": 5,
+      "corner_car": null,
+      "corner_second": null,
+      "published_B_car": null,
+      "published_B_reference": null,
+      "B_basis": "visually_observed",
+      "corner_basis": null,
+      "included_in_earlier_rider_fit": false,
+      "readable_B_to_corner": false,
+      "historical_purposive_win_loss_sample": false,
+      "issues": [],
+      "known_movement_reviews": 0,
+      "unknown_movement_reviews": 0,
+      "checkpoints": [
+        {
+          "phase": "back",
+          "seconds_in_digest": 49.4,
+          "first_car": 1,
+          "second_car": 5,
+          "basis": "previous_separate_5",
+          "public_page": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/5320261122/53202611220300/4/"
+        }
+      ]
+    }
+  ]
+}

@@ -70,3 +70,109 @@ python -m scripts.keirin_video_corpus --db "$VIDEO_WORK/corpus.sqlite" status
 `ingest` は複数の名簿・映像・観察ファイルを取り込み、1回分をまとめて確定する。同じ入力を再度渡しても出走数や観察数は増えない。過去の判読不能記録は履歴に保管する。対象車・追走相手・映像時刻・画像または動画のハッシュと対応した観察を学習に渡す。学習は日付順で、ある日を採点する際に使う記録はその前日まで。`study --before YYYY-MM-DD` で指定日より前だけを利用できる。全登録選手を保存し、未観測の選手には観測数を付け足さない。出力する確率は選手の動きの推定用で、三連単の的中率は別の締切前予想と結果で採点する。
 
 境界を記録する必要のない短い観察だけを取り込む回は、コマンドの `--bounds` を省略できる。研究の映像・原票・個人別ファイルは非公開の作業先で扱う。既存ドラフトにはコード、テスト、集計を保存する。[今回の実測](analysis.md)
+
+## 公開プレーヤーで追加した32レースを再現する
+
+2023年11月24日いわき平の7レース、2024年6月11日岸和田の12レース、2025年9月16日函館の8レース、2026年11月17日小松島の5レースが今回の追加分。各行の `public_page` を開き、ダイジェストの時計を `back_seconds` と `corner_seconds` に合わせ、前後の場面で進行方向・車番・車輪の前後を照合する。各秒は映像の再生位置で、レースの公式計時とは異なる。32レースのうち、先頭が両地点で判読できた29件は維持24・交代5。ほか3件は4角の先頭を確定できなかった。結果票のBは別欄に残している。[新32レースの時刻・車番・公開ページ](public-new32.json)・[過去分を含む観測点](public-race-observations.json)
+
+### 3年分の台帳への取り込みと再開
+
+リポジトリのルートから、上記で作った `VIDEO_WORK` のコーパスを使う。次の例は新32件をCLI用のJSONLに変換し、過去3年の全行を含む進捗表を書き出す。月別・年別の開催件数と映像を実際に確認した件数は別々に集計する。
+
+```bash
+EVIDENCE_DIR=docs/evidence/keirin-video-corpus-20261124
+python - "$EVIDENCE_DIR/public-new32.json" "$VIDEO_WORK/watched-32.jsonl" <<'PY'
+import json
+import sys
+
+with open(sys.argv[1], encoding="utf-8") as src:
+    races = json.load(src)["races"]
+assert len({r["race_id"] for r in races}) == len(races) == 32
+with open(sys.argv[2], "w", encoding="utf-8") as out:
+    for race in races:
+        row = {k: race[k] for k in (
+            "race_id", "back_car", "back_second_car", "back_seconds",
+            "corner_car", "corner_second_car", "corner_seconds", "observation",
+        )}
+        row["source_url"] = race["public_page"]
+        out.write(json.dumps(row, ensure_ascii=False) + "\n")
+PY
+
+python -m scripts.keirin_public_replay_progress --help
+python -m scripts.keirin_public_replay_progress \
+  --corpus "$VIDEO_WORK/corpus.sqlite" \
+  --state "$VIDEO_WORK/public-player-progress.sqlite" \
+  --observations "$VIDEO_WORK/watched-32.jsonl" \
+  --output "$VIDEO_WORK/public-player-progress.jsonl"
+```
+
+引き続き同じ `--state` を使い、`--observations` に追加の観察ファイルを渡すと、同一の観察原票を重複登録せずに再開できる。公開資料から作成済みの索引を反映する場合は `--archive-index` に `keirin_video_archive_index` のJSONLまたはJSONL.GZを渡す。旧コーパスの映像ハッシュと観測点を対応させたメディア目録がある場合は `--checkpoints` にその目録を渡す。再出力時にも同じ索引・目録を指定する。CLIはコーパスを読み取り専用で開く。通常プレーヤーを試して失敗した記録には `status=failed` と理由を残す。再生だけ確認した場合は `playback_only`、再生できても車番が読めなかった場合は `unreadable` とし、学習用の車番は空欄にする。
+
+### 先頭維持の検証を再計算する
+
+公開観測表には125レースがあり、3年台帳の最終日である2026年11月23日までが123件、翌日の比較用観測が2件。登録番号、最終Bの先頭、4角の先頭がそろった95件を使う。期間を固定した検証では11月20日までの78件を学習、11月21日以降の17件を採点に使った。78件の内訳は従来45件、新たに回収した旧映像4件、今回の29件。旧4件は特定選手の勝ち・負けを選んだ標本で、今回の開催抽出とは選び方が違う。後日17件は前回の13件、当時は予測を固定してから映像を確認した別の3件、旧映像1件。今回はすべて過去の再採点になる。[固定した比較の集計](public-aggregate.json)
+
+別の検証では、95件を39の日本開催日ごとにまとめ、早い日から処理した。同じ日の全レースの確率を先に計算し、その日のすべてを採点してから履歴を更新する。最終Bで先頭だった選手を条件に、その選手が4角でも先頭なら1、交代なら0とする。集団の維持確率は `(維持回数 + 1) / (観測数 + 2)`。選手別は `(その選手の維持回数 + 4 × 集団の維持確率) / (その選手の観測数 + 4)`。下記は公開表だけで両方の比較を再現する例。
+
+```bash
+python - "$EVIDENCE_DIR/public-race-observations.json" <<'PY'
+import json
+import sys
+from collections import defaultdict
+from itertools import groupby
+from statistics import mean
+
+with open(sys.argv[1], encoding="utf-8") as source:
+    observed = json.load(source)["races"]
+rows = sorted((r for r in observed if r["readable_B_to_corner"]),
+              key=lambda r: r["race_id"])
+
+def held(row):
+    return int(row["B_car"] == row["corner_car"])
+
+def predict(earlier, rider):
+    population = (1 + sum(map(held, earlier))) / (2 + len(earlier))
+    individual = [r for r in earlier if r["B_leader_registration"] == rider]
+    probability = (4 * population + sum(map(held, individual))) / (4 + len(individual))
+    return population, probability
+
+train = [r for r in rows if r["included_in_earlier_rider_fit"]]
+test = [r for r in rows if r["race_id"][:8] > "20261120"]
+previous = [r for r in train if "current_viewing" not in r["source_groups"]
+            and not r["historical_purposive_win_loss_sample"]]
+assert (len(previous), len(train), len(test)) == (45, 78, 17)
+for history in (previous, train):
+    errors = [(predict(history, r["B_leader_registration"])[1] - held(r)) ** 2
+              for r in test]
+    print(len(history), len(test), round(mean(errors), 6))
+
+past, errors = [], defaultdict(list)
+days = 0
+for _, batch in groupby(rows, key=lambda r: r["race_id"][:8]):
+    today = list(batch)
+    predictions = [predict(past, r["B_leader_registration"]) for r in today]
+    for r, probabilities in zip(today, predictions):
+        for version, p in enumerate(probabilities):
+            errors[version].append((p - held(r)) ** 2)
+    past.extend(today)
+    days += 1
+assert (days, len(past)) == (39, 95)
+print(days, len(past), round(mean(errors[0]), 6), round(mean(errors[1]), 6))
+PY
+```
+
+固定した17件の選手別ブライアスコアは45件学習で0.190405、78件学習で0.197273。39日逐次の95件では集団0.177873、選手別0.177254。値が小さいほど予測誤差が小さい。逐次検証では同じ選手の過去観測を利用できたのは28件で、67件は集団確率を使った。二つの検証は対象・学習日・比較基準が異なる。いずれも実際のB先頭が既知の条件付き予測で、締切前の三連単は別に評価する。
+
+### 締切前の三連単との対応
+
+11月21〜23日の同じ211レースで、通常の予想入力から全てのBの前2車の組に確率を割り当て、4角での各組の位置変化と、その先の1・2着を平均する。各レースの実B・実4角・最終着順を候補作成に渡さず、1・4・8点の順位を固定した。その後に確定結果を開き、照合できた207件を同じ点数で比較する。過去映像のうち、当時の締切前入力と両地点の前2車がそろう学習例は16件から18件に増えた。この更新の前後はいずれも26・69・93件的中。比較用に、各仮想B先頭が4角に残る確率を今回の選手別確率で置き換えると25・69・92件だった。維持する場合と交代する場合の各グループ内では既存の相対確率を保ち、既存の25%混合を使った。[旧方式と比較条件](../keirin-video-transitions-20261124/analysis.md)・[今回の同一レース比較](public-aggregate.json)
+
+公開観測表からは映像ラベルと日付別の条件付き採点を再計算できる。三連単の順位をゼロから再構築するには、当時の締切前出走表・特徴量、既存方式の凍結モデルおよび入力原本が必要になる。集計にある `frozen_forecast_hashes` で研究時の保存物と照合できる。これらのレースは過去にも採点され、一部の映像は後日のB先頭選手や過去の勝敗を手がかりに選んでいる。将来の的中率は、その後の対象レースを締切前に固定し、結果判明後に採点して確かめる。
+
+### 公開CSVから未確認レースを特定する
+
+[3年分の開催日・場・レース番号](three-year-replay-calendar.csv) は、1行が日本開催日 `date_jst` と競輪場の2桁コード `venue_code` の組。番号の欄では空欄が0件、`1-3 5` は1・2・3・5Rを表す。レースIDは、開催日を8桁にし、場コード、2桁のレース番号の順にハイフンで結ぶ。例として2023年11月24日のいわき平8Rは `20231124-13-08`。
+
+`all_races` は全掲載番号、`cancelled_races` は中止番号、`visually_checked_races` は実際に映像を確認した番号、`positions_or_rider_events_races` はそのうち選手の位置または動きを具体的に確認した番号。`all_races` から中止と映像確認済みを引くと、未確認の全番号が得られる。その中で過去資料に該当レースの映像ボタンが載っていた番号が `pending_with_replay_button_races`。ボタンの掲載は当時の記録で、現在再生できるかは各レースの確認時に記録する。
+
+CSVを展開し、1,096日・8,289開催日場の全レースIDと各区分を元台帳に照合した。掲載82,774件、うち中止7件。対象82,767件のうち映像確認済み123件、具体的な位置・動きを確認したもの111件。未確認82,644件の内訳は、過去の映像ボタンを確認できた12,797件と、開催詳細までの69,847件。
