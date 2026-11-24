@@ -1,0 +1,191 @@
+{
+  "scope_jst": [
+    "2026-07-01",
+    "2026-11-23"
+  ],
+  "primary_source": "KEIRIN.JP recent official individual results",
+  "phase_definition": "B means the leader at the final back line. B plus rank 1 compares those two checkpoints.",
+  "usual_rule_filter": "Excludes 2026-08-07 to 2026-08-09 Sasebo KEIRIN ADVANCE starts.",
+  "riders": [
+    {
+      "name": "中村嶺央",
+      "url": "https://keirin.jp/sp/racerracentrecord?snum=015982",
+      "retrieved_html_sha256": "71b9a6e3e03f0d336f96367b64c84b9ac96317b1a10d6ad7c7de570417bfe855",
+      "summary": {
+        "starts": 30,
+        "back": 24,
+        "wins": 26,
+        "wins_from_back": 23,
+        "without_back_wins": 3,
+        "back_share": 0.8,
+        "win_given_back": 0.9583333333333334
+      },
+      "usual_rule_summary": {
+        "starts": 27,
+        "back": 23,
+        "wins": 25,
+        "wins_from_back": 23,
+        "without_back_wins": 2,
+        "back_share": 0.8518518518518519,
+        "win_given_back": 1.0
+      },
+      "crosscheck": {
+        "date_and_rank_matches": 30,
+        "history_source": "https://keirin.netkeiba.com/db/player_result/result_summary.html?id=15982",
+        "netkeirin_html_sha256": "c2ef8c40c96018ffb9f9250ee45fe96e487069cf1942c828d4235d1386aa692e"
+      },
+      "prior_archive_b_flag_matches": 20,
+      "a2_after_special_promotion": {
+        "starts": 12,
+        "back": 11,
+        "wins": 11,
+        "wins_from_back": 11,
+        "without_back_wins": 0,
+        "back_share": 0.9166666666666666,
+        "win_given_back": 1.0
+      },
+      "a2_promotion_date_jst": "2026-09-10",
+      "s2_promotion_date_jst": "2026-11-20",
+      "s2_observed_starts_in_scope": 0,
+      "class_history_source": "https://keirin.jp/pc/racerprofile?snum=015982"
+    },
+    {
+      "name": "邊見竜馬",
+      "url": "https://keirin.jp/sp/racerracentrecord?snum=015875",
+      "retrieved_html_sha256": "ea371927b54e85126f530d274aef88e6f4b8bd7f4c28c62f86a2d11935e93f1a",
+      "summary": {
+        "starts": 34,
+        "back": 26,
+        "wins": 26,
+        "wins_from_back": 22,
+        "without_back_wins": 4,
+        "back_share": 0.7647058823529411,
+        "win_given_back": 0.8461538461538461
+      },
+      "usual_rule_summary": {
+        "starts": 34,
+        "back": 26,
+        "wins": 26,
+        "wins_from_back": 22,
+        "without_back_wins": 4,
+        "back_share": 0.7647058823529411,
+        "win_given_back": 0.8461538461538461
+      },
+      "crosscheck": {
+        "date_and_rank_matches": 34,
+        "history_source": "https://keirin.netkeiba.com/db/player_result/result_summary.html?id=15875",
+        "netkeirin_html_sha256": "cf8e83c3bcb5aa2ead50aa8e7aa32feffbf8195a4c7a79efc8238ddf257ab823"
+      },
+      "prior_archive_b_flag_matches": 23
+    },
+    {
+      "name": "沢田桂太郎",
+      "url": "https://keirin.jp/sp/racerracentrecord?snum=016019",
+      "retrieved_html_sha256": "4cfc0f1ef96929998cb033af42002f165eb43bc204e32c9fec5dc0a154a459e1",
+      "summary": {
+        "starts": 34,
+        "back": 28,
+        "wins": 27,
+        "wins_from_back": 23,
+        "without_back_wins": 4,
+        "back_share": 0.8235294117647058,
+        "win_given_back": 0.8214285714285714
+      },
+      "usual_rule_summary": {
+        "starts": 31,
+        "back": 27,
+        "wins": 25,
+        "wins_from_back": 23,
+        "without_back_wins": 2,
+        "back_share": 0.8709677419354839,
+        "win_given_back": 0.8518518518518519
+      },
+      "crosscheck": {
+        "date_and_rank_matches": 34,
+        "history_source": "https://keirin.netkeiba.com/db/player_result/result_summary.html?id=16019",
+        "netkeirin_html_sha256": "36eebbd98fb27b1efc61ddf9e369e8989f3005eec9ee53d27240d4bc90fd171a"
+      },
+      "prior_archive_b_flag_matches": 27
+    }
+  ],
+  "film_observations": [
+    {
+      "race": "202611183811",
+      "url": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/3820261117/38202611170200/11/",
+      "rider": "中村嶺央",
+      "car": 2,
+      "rank": 1,
+      "winner": "中村嶺央",
+      "winner_car": 2,
+      "winning_method": "逃",
+      "back_seconds": 50.302,
+      "corner_seconds": 56.302,
+      "observed_movement": "4角で後ろを離して先頭を維持。"
+    },
+    {
+      "race": "202611236106",
+      "url": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/6120261123/61202611230100/6/",
+      "rider": "邊見竜馬",
+      "car": 1,
+      "rank": 1,
+      "winner": "邊見竜馬",
+      "winner_car": 1,
+      "winning_method": "逃",
+      "back_seconds": 64.248,
+      "corner_seconds": 70.248,
+      "observed_movement": "4角でも先頭で、後ろの2番が追走。"
+    },
+    {
+      "race": "202611068609",
+      "url": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/8620261104/86202611040300/9/",
+      "rider": "沢田桂太郎",
+      "car": 1,
+      "rank": 1,
+      "winner": "沢田桂太郎",
+      "winner_car": 1,
+      "winning_method": "逃",
+      "back_seconds": 50.203,
+      "corner_seconds": 56.203,
+      "observed_movement": "4角から直線まで1番が先頭。"
+    },
+    {
+      "race": "202608078501",
+      "url": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/8520260807/85202608070100/1/",
+      "rider": "中村嶺央",
+      "car": 1,
+      "rank": 2,
+      "winner": "沢田桂太郎",
+      "winner_car": 3,
+      "winning_method": "捲",
+      "back_seconds": 49.234,
+      "corner_seconds": 54.2,
+      "observed_movement": "4角付近で外の3番に並ばれ、直線で交わされた。"
+    },
+    {
+      "race": "202610173809",
+      "url": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/3820261015/38202610150300/9/",
+      "rider": "邊見竜馬",
+      "car": 2,
+      "rank": 2,
+      "winner": "真船圭一郎",
+      "winner_car": 3,
+      "winning_method": "差",
+      "back_seconds": 52.504,
+      "corner_seconds": 58.504,
+      "observed_movement": "4角付近まで先頭。予定ラインの番手3番が直線で差した。"
+    },
+    {
+      "race": "202609188407",
+      "url": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/8420260916/84202609160300/7/",
+      "rider": "沢田桂太郎",
+      "car": 5,
+      "rank": 3,
+      "winner": "松本悠平",
+      "winner_car": 2,
+      "winning_method": "差",
+      "back_seconds": 46.608,
+      "corner_seconds": 52.608,
+      "observed_movement": "4角付近まで先頭。最後に2番・4番が先着。"
+    }
+  ]
+}
