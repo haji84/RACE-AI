@@ -1,0 +1,48 @@
+{
+  "archive_freeze_readback": "Original frozen rankings reproduced byte for byte on 211 prior races. New private inputs and rankings were separately read back and hash-checked before any target deadline.",
+  "archived_211_ranking_sha256": "e1823f711aa94d263e42cca5f00eb5d0298aa9c80bbe274f5167b9f448f424c3",
+  "caps": [
+    1,
+    4,
+    8
+  ],
+  "captured_utc": "2026-11-24T18:17:22.878878+00:00",
+  "comparison": "Frozen incumbent B-to-corner/corner-to-finish (20,22 training observations) against updated (27,30) on the same 60 race inputs. Baseline and updated rankings agree by construction for the eight individual-position races.",
+  "coverage": "All 60 unique IDs in the already saved pre-deadline feed for this date. The source does not certify the national race universe.",
+  "day_jst": "2026-11-25",
+  "different_ticket_sets_between_phase_models": {
+    "1": 2,
+    "4": 3,
+    "8": 4
+  },
+  "earliest_deadline": "2026-11-25T08:45:00+09:00",
+  "frozen_utc": "2026-11-24T22:25:45.736228+00:00",
+  "inference_counts": {
+    "archived_individual_position_fallback": 8,
+    "paired_phase_inference": 52
+  },
+  "inputs_sha256": "fccd91e7e7caa3cda753ee76ab5de4bf11f5a2eea0cca8ba86f849519062b27d",
+  "latest_deadline": "2026-11-25T22:58:00+09:00",
+  "nationwide_universe_verified": false,
+  "opponent_form_through": "20261122",
+  "original_phase_training_last_date": "20261120",
+  "original_singleton_fallback_forecasts_verified": 14,
+  "prediction_sha256": "a9226f6e6ccb5189665f4c3b16802400b9eb60b5b2506b9d1d6cde8fdf4998bb",
+  "previous_fit": [
+    20,
+    22
+  ],
+  "races": 60,
+  "rider_entries": 415,
+  "rider_identities_verified": 415,
+  "roster_source_commit": "5f32a11393992447c79c5f631aeaf0939215f25c",
+  "scored": 0,
+  "scoring_rule": "Evaluate the top 1, 4 and 8 as exact three-place ordered tickets against official paid trifecta orders. An eligible race is a hit if any listed order is in the authoritative settlement. Track cancellations, unavailable records and unresolved results separately; show each denominator. Use every forecast, including races on which the two models agree.",
+  "seconds_before_first_listed_deadline": 4754.263772,
+  "type": "LOCAL_PREDEADLINE_PAIRED_RESEARCH_COMMITMENT",
+  "updated_fit": [
+    27,
+    30
+  ],
+  "venue_count": 8
+}

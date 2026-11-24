@@ -1,0 +1,1229 @@
+{
+  "field": "keirin",
+  "historical_video": {
+    "prediction_sha256": "e1823f711aa94d263e42cca5f00eb5d0298aa9c80bbe274f5167b9f448f424c3",
+    "settled_sha256": "ec587c9ef32db994f88c1ad2801806cc082e1ba4ae98b93b5d2e3c4031d333f9",
+    "hits_by_cap": {
+      "1": {
+        "first": 100,
+        "pair": 56,
+        "set": 50,
+        "hit": 27
+      },
+      "4": {
+        "first": 148,
+        "pair": 97,
+        "set": 89,
+        "hit": 70
+      },
+      "8": {
+        "first": 163,
+        "pair": 119,
+        "set": 118,
+        "hit": 93
+      }
+    },
+    "miss_partition": {
+      "winner_in_first_wrong_second": 44,
+      "hit": 93,
+      "right_pair_third_missed": 26,
+      "winner_absent_from_first": 44
+    },
+    "miss_order_in_first_two": {
+      "neither": 79,
+      "ordered_present": 26,
+      "reversed_only": 9
+    },
+    "mapped_races": 193,
+    "same_line": {
+      "n": 106,
+      "hit": 74,
+      "true_pair_included": 91,
+      "correct_1_included": 94,
+      "cross_tickets": 143,
+      "true_pair_cross": 0
+    },
+    "different_lines": {
+      "n": 87,
+      "hit": 14,
+      "true_pair_included": 20,
+      "correct_1_included": 58,
+      "cross_tickets": 178,
+      "true_pair_cross": 87
+    },
+    "different_multirider_lines_including_second_rider": {
+      "n": 41,
+      "hit": 2,
+      "matched_pair": 4
+    },
+    "b_leader_sensitivity": {
+      "n": 186,
+      "B_correct": 118,
+      "B_in_top2": 160,
+      "by_mode": {
+        "reference": {
+          "hits": [
+            25,
+            67,
+            86
+          ],
+          "gained_vs_reference": [
+            0,
+            0,
+            0
+          ],
+          "lost_vs_reference": [
+            0,
+            0,
+            0
+          ],
+          "different_sets": [
+            0,
+            0,
+            0
+          ],
+          "total_slots_replaced": [
+            0,
+            0,
+            0
+          ],
+          "mean_truth_probability": 0.04031242059137647
+        },
+        "actual_B_leader": {
+          "hits": [
+            25,
+            67,
+            87
+          ],
+          "gained_vs_reference": [
+            0,
+            1,
+            1
+          ],
+          "lost_vs_reference": [
+            0,
+            1,
+            0
+          ],
+          "different_sets": [
+            3,
+            22,
+            38
+          ],
+          "total_slots_replaced": [
+            3,
+            22,
+            38
+          ],
+          "mean_truth_probability": 0.04059843863889275
+        },
+        "full_scenario_predicted_B": {
+          "hits": [
+            22,
+            64,
+            82
+          ],
+          "gained_vs_reference": [
+            2,
+            0,
+            4
+          ],
+          "lost_vs_reference": [
+            5,
+            3,
+            8
+          ],
+          "different_sets": [
+            35,
+            95,
+            145
+          ],
+          "total_slots_replaced": [
+            35,
+            122,
+            208
+          ],
+          "mean_truth_probability": 0.04106214267331725
+        },
+        "full_scenario_actual_B": {
+          "hits": [
+            24,
+            60,
+            80
+          ],
+          "gained_vs_reference": [
+            5,
+            3,
+            5
+          ],
+          "lost_vs_reference": [
+            6,
+            10,
+            11
+          ],
+          "different_sets": [
+            47,
+            105,
+            155
+          ],
+          "total_slots_replaced": [
+            47,
+            142,
+            242
+          ],
+          "mean_truth_probability": 0.042206214863382344
+        }
+      }
+    }
+  },
+  "three_year_one_reserved_ticket": {
+    "design": {
+      "source": "Previously frozen three-year phase forecasts, five chronological folds, existing weights only",
+      "motivation": "In the already inspected Nov 21-23 panel, pairs from different lines including a planned second rider are rarely represented. This panel is used for diagnosis. Also report dates strictly before Nov 21 and the dated pre-cutoff subset.",
+      "one_rule": "For complete planned lines, when the joint probability of the first two being on different lines is at least 0.5 and none of the eight tickets contains a cross-line first-two pair in which both lines have at least two riders and one of the two riders is in planned second position, replace ticket 8 with the highest-scored ticket with that pattern. Retain tickets 1-7. Same eight-ticket budget.",
+      "confidence": "On unchanged probabilities, also tabulate all raced keys by top-eight probability mass: below .3, .3 to .5, .5 to .7, .7 to .8 and at least .8. These bands are descriptive only.",
+      "outcome": "No race skipped; compare complete ordered three-car hits, with paired gains/losses. Freeze rankings before reading outcome arrays in a separate score process. Do not tune or change after score."
+    },
+    "freeze": {
+      "plan": "1bfe215e46694f230df20198ee82e3bee8b1b094e0c5247b5f8a9e9279d2a8d8",
+      "predictions": "a3338780561b41505b7f7ddaccfa7eaa3413f1d948025946cd3d0ef50b22939d",
+      "prior": "ac1cbdde2dd98cc291cf99e84f310988b50ce44c0994e533a612398b7884c505",
+      "n": 63487,
+      "changed": 3586
+    },
+    "all": {
+      "races": 63487,
+      "base": 20635,
+      "trial": 20604,
+      "changed": 3586,
+      "gained": 43,
+      "lost": 74,
+      "paired_day_bootstrap_95_pp": [
+        -0.08322980705723598,
+        -0.015777033604743976
+      ],
+      "days": 908
+    },
+    "cutoff_saved": {
+      "races": 516,
+      "base": 206,
+      "trial": 205,
+      "changed": 88,
+      "gained": 1,
+      "lost": 2,
+      "paired_day_bootstrap_95_pp": [
+        -0.8114446529080676,
+        0.40080160320641284
+      ],
+      "days": 8
+    }
+  },
+  "ordered_pair_fit": {
+    "design": {
+      "baseline": "frozen three-year chronological existing phase model; preserve every individual baseline third-place conditional probability given first and second",
+      "fit": "use prequential predictions on completed 2024-05-24 through 2026-05-23 with complete planned lineup and native car mapping. Outcome is ordered finishing first two. Test 2026-05-24 through 2026-11-20 inclusive; no diagnostic dates 2026-11-21 through 23. Unusable lineup uses original ranks.",
+      "score": "conditional multinomial logit over all ordered pairs with log baseline pair probability as the offset, ridge 0.002 on mean conditional negative log loss, baseline at coefficient zero. One fit no tuning. Learn ten features: different line, three non-solo cross-line lead/second, second/lead, second/second indicators, each times difference in clipped log win probabilities between planned line leaders; and own versus line leader win probability (clipped +/-3) for the participating follower in lead/second, second/lead, second/second. For second/second last feature is the signed difference of the respective follower-vs-leader log ratios. Other roles unchanged except through different-line and normalization. Recombine learned pair ratio with untouched conditional third. Fixed 1/4/8 counts for all, complete, documented cutoff and actual cross-line-with-second subsets. Pair hit in top 8 and pair conditional log loss for validation. Paired race-day bootstrap with 2000 resamples, seed 1837, primary is all races 8 tickets."
+    },
+    "freeze": {
+      "fitted": 16023,
+      "applied": 10867,
+      "test_n": 12234,
+      "predictions": "36db6484f98f7f90aee49c810c26a091ebe9569b648a4bf0c124f81dfbe5755b",
+      "spec": "0e588c0e9b30a1e450980ef5f6ec987dae682e93207c0603723a7dcc815644ad",
+      "source": "e4ef996b32e004dda340005899505e352d189749db1d37a785607d397fe3e196",
+      "coefficients": [
+        -0.2674002175527714,
+        0.05849054871161729,
+        -0.05288442190034174,
+        -0.14213586601675168,
+        -0.21291306923096057,
+        0.1902873073638833,
+        0.09496803368698754,
+        0.12574005098993477,
+        0.016903053892585406,
+        -0.0018258970912485683
+      ]
+    },
+    "metrics": {
+      "all": {
+        "n": 12234,
+        "hits_gained_lost": {
+          "1": [
+            1248,
+            1255,
+            21,
+            14
+          ],
+          "4": [
+            3234,
+            3249,
+            104,
+            89
+          ],
+          "8": [
+            4583,
+            4616,
+            166,
+            133
+          ]
+        },
+        "correct_pair_in_eight": [
+          6327,
+          6239
+        ],
+        "pair_mean_logloss_complete": [
+          2.848466396331787,
+          2.8461763858795166
+        ],
+        "bootstrap95_pp_for_8": [
+          -0.016247383090339178,
+          0.5317995858584157
+        ],
+        "days": 175
+      },
+      "complete": {
+        "n": 10867,
+        "hits_gained_lost": {
+          "1": [
+            1180,
+            1187,
+            21,
+            14
+          ],
+          "4": [
+            2996,
+            3011,
+            104,
+            89
+          ],
+          "8": [
+            4197,
+            4230,
+            166,
+            133
+          ]
+        },
+        "correct_pair_in_eight": [
+          5697,
+          5609
+        ],
+        "pair_mean_logloss_complete": [
+          2.848466396331787,
+          2.8461763858795166
+        ],
+        "bootstrap95_pp_for_8": [
+          0.009213893723574321,
+          0.6067417381048547
+        ],
+        "days": 156
+      },
+      "cutoff": {
+        "n": 321,
+        "hits_gained_lost": {
+          "1": [
+            38,
+            39,
+            1,
+            0
+          ],
+          "4": [
+            84,
+            85,
+            3,
+            2
+          ],
+          "8": [
+            119,
+            116,
+            2,
+            5
+          ]
+        },
+        "correct_pair_in_eight": [
+          164,
+          162
+        ],
+        "pair_mean_logloss_complete": [
+          2.8123972415924072,
+          2.8061861991882324
+        ],
+        "bootstrap95_pp_for_8": [
+          -2.8125,
+          0.7017543859649122
+        ],
+        "days": 5
+      },
+      "actual_cross_second": {
+        "n": 2072,
+        "hits_gained_lost": {
+          "1": [
+            5,
+            1,
+            0,
+            4
+          ],
+          "4": [
+            57,
+            15,
+            0,
+            42
+          ],
+          "8": [
+            162,
+            90,
+            1,
+            73
+          ]
+        },
+        "correct_pair_in_eight": [
+          372,
+          209
+        ],
+        "pair_mean_logloss_complete": [
+          3.8014190196990967,
+          4.013000011444092
+        ],
+        "bootstrap95_pp_for_8": [
+          -4.225352112676056,
+          -2.6987603183700966
+        ],
+        "days": 156
+      },
+      "actual_cross": {
+        "n": 5206,
+        "hits_gained_lost": {
+          "1": [
+            141,
+            127,
+            0,
+            14
+          ],
+          "4": [
+            546,
+            458,
+            1,
+            89
+          ],
+          "8": [
+            987,
+            860,
+            6,
+            133
+          ]
+        },
+        "correct_pair_in_eight": [
+          1638,
+          1385
+        ],
+        "pair_mean_logloss_complete": [
+          3.4618427753448486,
+          3.5931849479675293
+        ],
+        "bootstrap95_pp_for_8": [
+          -2.8736419461502125,
+          -2.0053219317254882
+        ],
+        "days": 156
+      },
+      "actual_same": {
+        "n": 5661,
+        "hits_gained_lost": {
+          "1": [
+            1039,
+            1060,
+            21,
+            0
+          ],
+          "4": [
+            2450,
+            2553,
+            103,
+            0
+          ],
+          "8": [
+            3210,
+            3370,
+            160,
+            0
+          ]
+        },
+        "correct_pair_in_eight": [
+          4059,
+          4224
+        ],
+        "pair_mean_logloss_complete": [
+          2.2843899726867676,
+          2.159207820892334
+        ],
+        "bootstrap95_pp_for_8": [
+          2.3779976686379922,
+          3.2766778656424425
+        ],
+        "days": 156
+      },
+      "cutoff_cross_second": {
+        "n": 50,
+        "hits_gained_lost": {
+          "1": [
+            0,
+            0,
+            0,
+            0
+          ],
+          "4": [
+            0,
+            0,
+            0,
+            0
+          ],
+          "8": [
+            3,
+            0,
+            0,
+            3
+          ]
+        },
+        "correct_pair_in_eight": [
+          5,
+          2
+        ],
+        "pair_mean_logloss_complete": [
+          3.781240940093994,
+          4.003299236297607
+        ],
+        "bootstrap95_pp_for_8": [
+          -10.0,
+          -1.694915254237288
+        ],
+        "days": 5
+      }
+    },
+    "conditional_diagnosis": {
+      "valid": 10867,
+      "actual_event_count": 2072,
+      "mean_assigned_event_probability": [
+        0.209241010075029,
+        0.16451195597780943
+      ],
+      "mean_event_probability_actual_event": [
+        0.28894362285280145,
+        0.2311181967815521
+      ],
+      "within_event_conditional_pair_logloss": [
+        2.462727249042638,
+        2.4362663307935577
+      ],
+      "correct_ordered_pair_among_top1_within_event": [
+        469,
+        485
+      ],
+      "correct_ordered_pair_among_top3_within_event": [
+        974,
+        1008
+      ],
+      "mean_pair_rank_within_event": [
+        5.5,
+        5.41554054054054
+      ]
+    }
+  },
+  "hold_scenario_mass": {
+    "design": {
+      "scope": "Exploratory after the earlier fit was scored. Keep the existing baseline's total probability of A = two finishers from different non-solo planned lines with at least one planned second rider. Keep all pair probabilities outside A, all conditional third-rider probabilities, all earlier stage weights, original 1/4/8 caps; inside A use the already fitted pair conditional ranking, rescaled to the original total. No new coefficient or tuning. One deterministic comparison.",
+      "freeze": "Use existing stored pre-race feature pack and unchanged prior 10 coefficients fitted on 2024-05-24 to 2026-05-23. Freeze all new ranks, including 2026-11-21 to 23, before querying outcomes for this comparison. 2026-05-24 to 11-20 is reused development backtest. At least part of Nov 21-23 informed the original diagnostic, so score that entire dated window as an extra retrospective panel, not prospective blind replication. Incomplete line => baseline.",
+      "score": "All/complete/dated/actual A and dated actual A, 1/4/8, pair support; report primary 8 paired changes and same JST day bootstrap 95%, RNG1837. No use of actual last-back, corner or finish in features."
+    },
+    "freeze": {
+      "source": "659e6a6411cd9d077532a38146c664874d51605c9e3bd0d80b0bdc637be52a2b",
+      "predictions_sha256": "f5844878d5d7a5ad2ceb771422abbfc6168ea0f35747f4044f68454aba5e1c73",
+      "fitted_state_sha256": "8b636f7a1ef99b404418e5c77d0d16817783998d60ba1ac273c0b0f8b4c53db8",
+      "plan_sha256": "84822958427568e27e265d5b87909518adfab88ba3e466c675b685145b184c6f",
+      "races_frozen": 12431,
+      "from_20261121_n": 197
+    },
+    "scores": {
+      "reused_to_11_20": {
+        "all": {
+          "n": 12234,
+          "hits": {
+            "1": [
+              1248,
+              1250
+            ],
+            "4": [
+              3234,
+              3229
+            ],
+            "8": [
+              4583,
+              4599
+            ]
+          },
+          "gain_loss": {
+            "1": [
+              3,
+              1
+            ],
+            "4": [
+              9,
+              14
+            ],
+            "8": [
+              40,
+              24
+            ]
+          },
+          "correct_pair_in_8": [
+            6327,
+            6332
+          ],
+          "days": 175,
+          "paired_day_bootstrap95_points_8": [
+            0.008122718070910827,
+            0.25292134682819245
+          ]
+        },
+        "complete": {
+          "n": 10867,
+          "hits": {
+            "1": [
+              1180,
+              1182
+            ],
+            "4": [
+              2996,
+              2991
+            ],
+            "8": [
+              4197,
+              4213
+            ]
+          },
+          "gain_loss": {
+            "1": [
+              3,
+              1
+            ],
+            "4": [
+              9,
+              14
+            ],
+            "8": [
+              40,
+              24
+            ]
+          },
+          "correct_pair_in_8": [
+            5697,
+            5702
+          ],
+          "days": 156,
+          "paired_day_bootstrap95_points_8": [
+            0.01812044447662606,
+            0.28470079037397333
+          ]
+        },
+        "dated": {
+          "n": 321,
+          "hits": {
+            "1": [
+              38,
+              38
+            ],
+            "4": [
+              84,
+              85
+            ],
+            "8": [
+              119,
+              120
+            ]
+          },
+          "gain_loss": {
+            "1": [
+              0,
+              0
+            ],
+            "4": [
+              1,
+              0
+            ],
+            "8": [
+              2,
+              1
+            ]
+          },
+          "correct_pair_in_8": [
+            164,
+            166
+          ],
+          "days": 5,
+          "paired_day_bootstrap95_points_8": [
+            -0.8823529411764706,
+            1.829268292682927
+          ]
+        },
+        "actual_cross_second": {
+          "n": 2072,
+          "hits": {
+            "1": [
+              5,
+              4
+            ],
+            "4": [
+              57,
+              50
+            ],
+            "8": [
+              162,
+              154
+            ]
+          },
+          "gain_loss": {
+            "1": [
+              0,
+              1
+            ],
+            "4": [
+              4,
+              11
+            ],
+            "8": [
+              13,
+              21
+            ]
+          },
+          "correct_pair_in_8": [
+            372,
+            349
+          ],
+          "days": 156,
+          "paired_day_bootstrap95_points_8": [
+            -0.9439986787353488,
+            0.14593043535286518
+          ],
+          "within_A_top3": [
+            974,
+            1008
+          ]
+        },
+        "dated_actual_cross_second": {
+          "n": 50,
+          "hits": {
+            "1": [
+              0,
+              0
+            ],
+            "4": [
+              0,
+              0
+            ],
+            "8": [
+              3,
+              4
+            ]
+          },
+          "gain_loss": {
+            "1": [
+              0,
+              0
+            ],
+            "4": [
+              0,
+              0
+            ],
+            "8": [
+              2,
+              1
+            ]
+          },
+          "correct_pair_in_8": [
+            5,
+            7
+          ],
+          "days": 5,
+          "paired_day_bootstrap95_points_8": [
+            -6.382978723404255,
+            10.714285714285714
+          ]
+        },
+        "actual_cross": {
+          "n": 5206,
+          "hits": {
+            "1": [
+              141,
+              140
+            ],
+            "4": [
+              546,
+              538
+            ],
+            "8": [
+              987,
+              981
+            ]
+          },
+          "gain_loss": {
+            "1": [
+              0,
+              1
+            ],
+            "4": [
+              4,
+              12
+            ],
+            "8": [
+              15,
+              21
+            ]
+          },
+          "correct_pair_in_8": [
+            1638,
+            1622
+          ],
+          "days": 156,
+          "paired_day_bootstrap95_points_8": [
+            -0.3347270404082466,
+            0.09760001597872572
+          ]
+        },
+        "same_line": {
+          "n": 5661,
+          "hits": {
+            "1": [
+              1039,
+              1042
+            ],
+            "4": [
+              2450,
+              2453
+            ],
+            "8": [
+              3210,
+              3232
+            ]
+          },
+          "gain_loss": {
+            "1": [
+              3,
+              0
+            ],
+            "4": [
+              5,
+              2
+            ],
+            "8": [
+              25,
+              3
+            ]
+          },
+          "correct_pair_in_8": [
+            4059,
+            4080
+          ],
+          "days": 156,
+          "paired_day_bootstrap95_points_8": [
+            0.2294236123619874,
+            0.5701178205373555
+          ]
+        }
+      },
+      "extra_11_21_to_23": {
+        "all": {
+          "n": 197,
+          "hits": {
+            "1": [
+              24,
+              24
+            ],
+            "4": [
+              64,
+              65
+            ],
+            "8": [
+              87,
+              87
+            ]
+          },
+          "gain_loss": {
+            "1": [
+              0,
+              0
+            ],
+            "4": [
+              1,
+              0
+            ],
+            "8": [
+              0,
+              0
+            ]
+          },
+          "correct_pair_in_8": [
+            110,
+            111
+          ],
+          "days": 3,
+          "paired_day_bootstrap95_points_8": [
+            0.0,
+            0.0
+          ]
+        },
+        "complete": {
+          "n": 197,
+          "hits": {
+            "1": [
+              24,
+              24
+            ],
+            "4": [
+              64,
+              65
+            ],
+            "8": [
+              87,
+              87
+            ]
+          },
+          "gain_loss": {
+            "1": [
+              0,
+              0
+            ],
+            "4": [
+              1,
+              0
+            ],
+            "8": [
+              0,
+              0
+            ]
+          },
+          "correct_pair_in_8": [
+            110,
+            111
+          ],
+          "days": 3,
+          "paired_day_bootstrap95_points_8": [
+            0.0,
+            0.0
+          ]
+        },
+        "dated": {
+          "n": 195,
+          "hits": {
+            "1": [
+              24,
+              24
+            ],
+            "4": [
+              64,
+              65
+            ],
+            "8": [
+              87,
+              87
+            ]
+          },
+          "gain_loss": {
+            "1": [
+              0,
+              0
+            ],
+            "4": [
+              1,
+              0
+            ],
+            "8": [
+              0,
+              0
+            ]
+          },
+          "correct_pair_in_8": [
+            109,
+            110
+          ],
+          "days": 3,
+          "paired_day_bootstrap95_points_8": [
+            0.0,
+            0.0
+          ]
+        },
+        "actual_cross_second": {
+          "n": 38,
+          "hits": {
+            "1": [
+              0,
+              0
+            ],
+            "4": [
+              1,
+              1
+            ],
+            "8": [
+              3,
+              3
+            ]
+          },
+          "gain_loss": {
+            "1": [
+              0,
+              0
+            ],
+            "4": [
+              0,
+              0
+            ],
+            "8": [
+              0,
+              0
+            ]
+          },
+          "correct_pair_in_8": [
+            5,
+            5
+          ],
+          "days": 3,
+          "paired_day_bootstrap95_points_8": [
+            0.0,
+            0.0
+          ],
+          "within_A_top3": [
+            20,
+            22
+          ]
+        },
+        "dated_actual_cross_second": {
+          "n": 38,
+          "hits": {
+            "1": [
+              0,
+              0
+            ],
+            "4": [
+              1,
+              1
+            ],
+            "8": [
+              3,
+              3
+            ]
+          },
+          "gain_loss": {
+            "1": [
+              0,
+              0
+            ],
+            "4": [
+              0,
+              0
+            ],
+            "8": [
+              0,
+              0
+            ]
+          },
+          "correct_pair_in_8": [
+            5,
+            5
+          ],
+          "days": 3,
+          "paired_day_bootstrap95_points_8": [
+            0.0,
+            0.0
+          ]
+        },
+        "actual_cross": {
+          "n": 97,
+          "hits": {
+            "1": [
+              1,
+              1
+            ],
+            "4": [
+              12,
+              12
+            ],
+            "8": [
+              20,
+              20
+            ]
+          },
+          "gain_loss": {
+            "1": [
+              0,
+              0
+            ],
+            "4": [
+              0,
+              0
+            ],
+            "8": [
+              0,
+              0
+            ]
+          },
+          "correct_pair_in_8": [
+            29,
+            30
+          ],
+          "days": 3,
+          "paired_day_bootstrap95_points_8": [
+            0.0,
+            0.0
+          ]
+        },
+        "same_line": {
+          "n": 100,
+          "hits": {
+            "1": [
+              23,
+              23
+            ],
+            "4": [
+              52,
+              53
+            ],
+            "8": [
+              67,
+              67
+            ]
+          },
+          "gain_loss": {
+            "1": [
+              0,
+              0
+            ],
+            "4": [
+              1,
+              0
+            ],
+            "8": [
+              0,
+              0
+            ]
+          },
+          "correct_pair_in_8": [
+            81,
+            81
+          ],
+          "days": 3,
+          "paired_day_bootstrap95_points_8": [
+            0.0,
+            0.0
+          ]
+        }
+      }
+    }
+  },
+  "prospective_nov24": {
+    "commitment": {
+      "public_commitment_path": "docs/evidence/keirin-ordered-ticket-20261124/forward-commitment.json",
+      "verified_forecast_digest": "42126e4785b1bd2cd2a11db6a26f0d306a25e8af7a4b77e1cb977ae7992ad7f4",
+      "private_file_bytes_sha256": "42126e4785b1bd2cd2a11db6a26f0d306a25e8af7a4b77e1cb977ae7992ad7f4",
+      "private_canonical_json_sha256": "42126e4785b1bd2cd2a11db6a26f0d306a25e8af7a4b77e1cb977ae7992ad7f4",
+      "freeze_utc": "2026-11-23T22:11:56.691748+00:00",
+      "earliest_cutoff": "2026-11-24T08:45:00+09:00",
+      "last_cutoff": "2026-11-24T21:16:00+09:00",
+      "locked_before_earliest_by_seconds": 5583.308252,
+      "all_locked_before_cutoff": true,
+      "count": 66,
+      "public_commitment_sha256": "50e4dc00be8b1b091273780311fccfe00093d244177645b5aed54462a3f89451"
+    },
+    "matched_sources": "All 66 predictions dated 2026-11-24 JST, all first-party linked Kdreams venue/result tables for the day plus individual public netkeirin payouts. Match race keys and require identical nonempty sets of paid trifecta orders. Closing-market hit counts use source rank agreement.",
+    "score": {
+      "committed": 66,
+      "matched": 66,
+      "held": {},
+      "by_arm": {
+        "baseline": {
+          "1": 6,
+          "4": 13,
+          "8": 21
+        },
+        "pair_and_third": {
+          "1": 7,
+          "4": 17,
+          "8": 24
+        }
+      },
+      "market_rank_hits_when_sources_equal": {
+        "1": 9,
+        "4": 18,
+        "8": 26
+      },
+      "gains_losses": {
+        "1": {
+          "gain": 3,
+          "loss": 2
+        },
+        "4": {
+          "gain": 6,
+          "loss": 2
+        },
+        "8": {
+          "gain": 5,
+          "loss": 2
+        }
+      }
+    }
+  },
+  "market_nov23": {
+    "complete_board": {
+      "n": 26,
+      "ranges": {
+        "capture_before": [
+          4.53,
+          119.07,
+          650.54
+        ],
+        "update_before": [
+          6.0,
+          120.0,
+          652.0
+        ],
+        "model_card_before": [
+          268.43,
+          384.93,
+          918.43
+        ],
+        "common_before": [
+          4.53,
+          119.07,
+          650.54
+        ]
+      },
+      "1": {
+        "market_hits": 5,
+        "model_hits": 4,
+        "both": 4,
+        "only_market": 1,
+        "only_model": 0,
+        "neither": 21,
+        "cutoff_price_has_tie": 0,
+        "identical_ticket_sets": 14
+      },
+      "4": {
+        "market_hits": 8,
+        "model_hits": 9,
+        "both": 8,
+        "only_market": 0,
+        "only_model": 1,
+        "neither": 17,
+        "cutoff_price_has_tie": 1,
+        "identical_ticket_sets": 4
+      },
+      "8": {
+        "market_hits": 12,
+        "model_hits": 12,
+        "both": 11,
+        "only_market": 1,
+        "only_model": 1,
+        "neither": 13,
+        "cutoff_price_has_tie": 1,
+        "identical_ticket_sets": 1
+      }
+    },
+    "both_observed_t10_t15": 0
+  }
+}
