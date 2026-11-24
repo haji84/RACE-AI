@@ -1,0 +1,33 @@
+{
+  "all": {
+    "admitted": 90,
+    "complete_numeric_boards": 30,
+    "capture_minutes_left_median": 331.589,
+    "source_update_minutes_left_median": 333.0,
+    "capture_t10_t15_count": 1,
+    "capture_and_update_t10_t15_count": 0,
+    "source_update_minutes_left_when_captured_t10_t15": [
+      18.0
+    ]
+  },
+  "2026-11-20": {
+    "admitted": 7,
+    "complete_numeric_boards": 4,
+    "capture_minutes_left_median": 92.983,
+    "source_update_minutes_left_median": 95.0,
+    "capture_t10_t15_count": 0,
+    "capture_and_update_t10_t15_count": 0,
+    "source_update_minutes_left_when_captured_t10_t15": []
+  },
+  "2026-11-23": {
+    "admitted": 83,
+    "complete_numeric_boards": 26,
+    "capture_minutes_left_median": 360.584,
+    "source_update_minutes_left_median": 362.0,
+    "capture_t10_t15_count": 1,
+    "capture_and_update_t10_t15_count": 0,
+    "source_update_minutes_left_when_captured_t10_t15": [
+      18.0
+    ]
+  }
+}
