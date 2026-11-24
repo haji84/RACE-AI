@@ -21,18 +21,30 @@ python -m scripts.keirin_video_corpus --db "$VIDEO_WORK/corpus.sqlite" ingest \
 
 ## 映像の収集と検証
 
+手元にある、研究利用が認められた映像は `--manifest` から検証・取り込みできる。
+
 ```bash
-python -m scripts.keirin_video_corpus --db "$VIDEO_WORK/corpus.sqlite" queue \
-  --stage continuous --out "$VIDEO_WORK/to-capture.jsonl"
-python -m scripts.keirin_video_sources --queue "$VIDEO_WORK/to-capture.jsonl" \
-  --continuous --out "$VIDEO_WORK/digests" --limit 2
-python -m scripts.keirin_video_media inventory --root "$VIDEO_WORK/digests" \
+python -m scripts.keirin_video_media inventory --manifest "$VIDEO_WORK/owner-films.jsonl" \
   --db "$VIDEO_WORK/media.sqlite" --out "$VIDEO_WORK/verified.jsonl"
 python -m scripts.keirin_video_corpus --db "$VIDEO_WORK/corpus.sqlite" ingest \
   --media "$VIDEO_WORK/verified.jsonl"
 ```
 
-収集は日別一覧からたどる通常の公開プレーヤーを使う。1回の処理件数を分けても、全件台帳から続行できる。画面の録画時間とプレーヤーの再生時間を確認し、取得・再生できなかった理由を記録する。通常アクセスで拒否や利用制限を受けた回は停止する。取得済み映像はハッシュを照合して再利用する。静止画を使う場合は `--continuous` を外し、別の収集ディレクトリを使う。`inventory` にすべての保存先を `--root` で渡す。手元の利用可能な全編は `--manifest` で取り込める。動画の復号に成功した範囲と、映像内で実際に選手が見えた範囲は個別に記録する。
+Kドリームスはサイト掲載コンテンツの無断複製に関する条件を設けている。映像を通常視聴できることと、機械取得・録画・研究利用の許諾は個別に確認する。提供元の許諾原本を確認し、対象のレースと用途を確認者が記録した場合に限って、次のコマンドで対象範囲を収集する。[サイトの利用条件](https://keirin.kdreams.jp/info/sitepolicy/)
+
+```bash
+python -m scripts.keirin_video_corpus --db "$VIDEO_WORK/corpus.sqlite" queue \
+  --stage continuous --out "$VIDEO_WORK/to-capture.jsonl"
+python -m scripts.keirin_video_sources --queue "$VIDEO_WORK/to-capture.jsonl" \
+  --source-approval "$VIDEO_WORK/reviewed-source-approval.json" \
+  --continuous --out "$VIDEO_WORK/digests" --limit 2
+python -m scripts.keirin_video_media inventory --root "$VIDEO_WORK/digests" \
+  --db "$VIDEO_WORK/media.sqlite" --out "$VIDEO_WORK/verified.jsonl"
+```
+
+`--source-approval` は確認者が許諾の範囲をまとめた非公開の JSON ファイル。`source_host` は `keirin.kdreams.jp`、`reviewer` は確認者、`rights_ref` は実際に確認した許諾原本のローカルパス、`rights_sha256` はその SHA-256 とする。発行元の許諾書式は変更せず、照合に使う原本を参照する。対象は `race_ids` または両端を含む `first_race_date`・`last_race_date` で指定する。両方を指定した場合は両方に該当するレースに適用する。利用期限が定められている場合は `valid_until` にタイムゾーン付きの期限を記録する。
+
+`allowed_uses` には許諾を確認した用途を記載する。この収集で必要な用途は `automated_fetch`（自動取得）、`private_retention`（非公開での保存）、`history_analysis`（選手別の研究・学習）、および `video_recording`（録画）または `frame_capture`（静止画）となる。静止画の場合は `--continuous` を外し、別の保存先を指定する。新規に取得した資料には許諾確認記録と原本のハッシュを添える。取得・再生できなかった理由も台帳に残す。`inventory` に複数の保存先や許諾済み既存ファイルをまとめて渡し、復号・検証した資料を前述の `ingest` で取り込む。
 
 ## 選手別の動きを確認する
 

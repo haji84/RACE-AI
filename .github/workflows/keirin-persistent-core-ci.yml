@@ -50,6 +50,6 @@ jobs:
           runner_python="$RUNNER_TEMP/keirin-rider-profile-tests/bin/python"
           "$runner_python" -m pip install --disable-pip-version-check beautifulsoup4==4.13.4 lxml==6.0.2 pillow==12.1.1
           "$runner_python" -m unittest \
-            tests.test_keirin_video_census tests.test_keirin_video_sources \
+            tests.test_keirin_video_census tests.test_keirin_video_archive_index tests.test_keirin_video_sources \
             tests.test_keirin_video_media tests.test_keirin_video_review \
             tests.test_keirin_video_corpus tests.test_keirin_video_rider_learning -v

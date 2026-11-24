@@ -1,7 +1,8 @@
 """Capture review frames from the ordinary visible KDreams race-detail player.
 
 The JSONL queue uses race_id (YYYYMMDD-VV-RR), race_date (ISO) and
-race_detail_url from the dated calendar. The default captures discrete frames.
+race_detail_url from the dated calendar. Network capture requires a private
+operator-reviewed source approval covering the race and the requested uses.
 --continuous records the normal rendered digest with a visible player clock
 using the browser recorder from the existing GitHub-only video workflow.
 keirin_video_media verifies the resulting private images and clips.
@@ -10,9 +11,12 @@ from __future__ import annotations
 
 import argparse
 from collections import Counter
+from contextlib import ExitStack
+from dataclasses import dataclass
 from datetime import date, datetime, timezone
 import fcntl
 from hashlib import file_digest, sha256
+from itertools import chain
 import json
 import math
 import os
@@ -137,7 +141,8 @@ def open_player(page, key, url):
     return video, title, refused_media
 
 
-def capture(page, key, url, directory, interval):
+def capture(page, key, url, directory, interval, *, approval=None):
+    require_capture_scope(approval, key, url, continuous=False)
     video, title, refused_media = open_player(page, key, url)
     duration = video.evaluate('v => v.duration')
     video.evaluate("""v => {
@@ -183,8 +188,9 @@ def recording_bounds(path):
     return times[selected[0]], times[selected[-1]]
 
 
-def record_digest(browser, key, url, directory):
+def record_digest(browser, key, url, directory, *, approval=None):
     """Record the rendered viewport and retain only normal, uninterrupted playback."""
+    require_capture_scope(approval, key, url, continuous=True)
     context = browser.new_context(locale='ja-JP', timezone_id='Asia/Tokyo',
                                   viewport={'width': 1280, 'height': 720},
                                   record_video_dir=str(directory),
@@ -281,26 +287,113 @@ def failed_attempts(log):
     return {pair for pair, value in latest.items() if value != 'captured'}
 
 
-def run(queue, output, *, interval, pause, limit, executable, retry_failed=False, continuous=False):
-    from playwright.sync_api import Error, TimeoutError as PlaywrightTimeout, sync_playwright
+@dataclass(frozen=True)
+class SourceApproval:
+    rights_sha256: str
+    decision_sha256: str
+    first: date | None
+    last: date | None
+    race_ids: frozenset[str] | None
+    valid_until: datetime | None
+    continuous: bool
 
+    def covers(self, row):
+        if self.valid_until and datetime.now(timezone.utc) >= self.valid_until:
+            raise ValueError('source approval expired')
+        day = date.fromisoformat(row['race_date'])
+        if self.first is not None and not self.first <= day <= self.last:
+            return False
+        return self.race_ids is None or row['race_id'] in self.race_ids
+
+
+def load_source_approval(path, continuous):
+    """Read the operator's scope assessment and verify its referenced permission bytes."""
+    if path is None:
+        raise ValueError('network capture requires an operator-reviewed source approval')
+    path = Path(path)
+    raw = path.read_bytes()
+    doc = json.loads(raw)
+    if not isinstance(doc, dict) or doc.get('source_host') != HOST:
+        raise ValueError('source approval does not cover the KDreams replay host')
+    for field in ('reviewer', 'rights_ref', 'rights_sha256'):
+        if not isinstance(doc.get(field), str) or not doc[field].strip():
+            raise ValueError('source approval missing reviewer or permission evidence')
+    uses = doc.get('allowed_uses')
+    mode = 'video_recording' if continuous else 'frame_capture'
+    if (not isinstance(uses, list) or not all(isinstance(use, str) for use in uses)
+            or not {'automated_fetch', 'private_retention', 'history_analysis', mode}.issubset(uses)):
+        raise ValueError('source approval does not cover the requested uses')
+    evidence = path.parent / doc['rights_ref']
+    if not evidence.is_file() or evidence.samefile(path) or evidence.stat().st_size == 0:
+        raise ValueError('underlying source permission evidence is missing or self-referential')
+    with evidence.open('rb') as stream:
+        actual = file_digest(stream, 'sha256').hexdigest()
+    if actual != doc['rights_sha256']:
+        raise ValueError('source permission evidence digest mismatch')
+    first = last = None
+    if 'first_race_date' in doc or 'last_race_date' in doc:
+        first = date.fromisoformat(doc['first_race_date'])
+        last = date.fromisoformat(doc['last_race_date'])
+        if first > last:
+            raise ValueError('invalid permitted race date range')
+    races = doc.get('race_ids')
+    if races is not None:
+        if (not isinstance(races, list) or not races or
+                not all(isinstance(race, str) and RACE.fullmatch(race) for race in races)):
+            raise ValueError('invalid permitted race IDs')
+        races = frozenset(races)
+    if first is None and races is None:
+        raise ValueError('source approval must identify permitted race dates or race IDs')
+    expiry = doc.get('valid_until')
+    if expiry is not None:
+        expiry = datetime.fromisoformat(expiry)
+        if expiry.tzinfo is None or expiry <= datetime.now(timezone.utc):
+            raise ValueError('source approval expiry is invalid or past')
+    return SourceApproval(actual, sha256(raw).hexdigest(), first, last, races, expiry, continuous)
+
+
+def require_capture_scope(approval, key, url, *, continuous):
+    if not isinstance(approval, SourceApproval) or continuous != approval.continuous:
+        raise ValueError('source approval for this capture mode is required')
+    row = {'race_id': f'{key[:8]}-{key[8:10]}-{key[10:]}', 'race_date': date.fromisoformat(key[:8]).isoformat(),
+           'race_detail_url': url}
+    if target(row)[0] != key or not approval.covers(row):
+        raise ValueError('race outside approved capture scope')
+
+
+def run(queue, output, *, interval, pause, limit, executable, retry_failed=False, continuous=False,
+        source_approval=None):
+    approval = load_source_approval(source_approval, continuous)
     tally = Counter()
     attempted = 0
-    output.mkdir(parents=True, exist_ok=True, mode=0o700)
-    os.chmod(output, 0o700)
-    with (output / '.capture.lock').open('a') as lock, sync_playwright() as engine:
+
+    def permitted_rows(source):
+        for line in source:
+            row = json.loads(line)
+            if not row.get('race_detail_url'):
+                tally['no_listed_url'] += 1
+                continue
+            key, url = target(row)
+            if approval.covers(row):
+                yield row, key, url
+            else:
+                tally['outside_approved_scope'] += 1
+
+    with ExitStack() as stack:
+        rows = permitted_rows(stack.enter_context(queue.open()))
+        first = next(rows, None)
+        if first is None:
+            return tally
+        output.mkdir(parents=True, exist_ok=True, mode=0o700)
+        os.chmod(output, 0o700)
+        lock = stack.enter_context((output / '.capture.lock').open('a'))
         fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
         attempt_log = output / 'attempts.jsonl'
         failed = failed_attempts(attempt_log)
-        browser = engine.chromium.launch(executable_path=executable)
+        browser = None
         try:
-            with queue.open() as source, attempt_log.open('a') as attempts:
-                for line in source:
-                    row = json.loads(line)
-                    if not row.get('race_detail_url'):
-                        tally['no_listed_url'] += 1
-                        continue
-                    key, url = target(row)
+            with attempt_log.open('a') as attempts:
+                for row, key, url in chain((first,), rows):
                     folder = output / key
                     if folder.exists():
                         (check_clip if continuous else validate_receipt)(folder, key, url)
@@ -312,6 +405,11 @@ def run(queue, output, *, interval, pause, limit, executable, retry_failed=False
                         continue
                     if limit is not None and attempted >= limit:
                         break
+                    if browser is None:
+                        from playwright.sync_api import Error, TimeoutError as PlaywrightTimeout, sync_playwright
+
+                        engine = stack.enter_context(sync_playwright())
+                        browser = engine.chromium.launch(executable_path=executable)
                     attempted += 1
                     status = 'captured'
                     try:
@@ -319,16 +417,20 @@ def run(queue, output, *, interval, pause, limit, executable, retry_failed=False
                             tmp = Path(stage) / key
                             tmp.mkdir()
                             if continuous:
-                                record_digest(browser, key, url, tmp)
+                                record_digest(browser, key, url, tmp, approval=approval)
                                 check_clip(tmp, key, url)
                             else:
                                 page = browser.new_page(locale='ja-JP', timezone_id='Asia/Tokyo',
                                                         viewport={'width': 1360, 'height': 860})
                                 try:
-                                    capture(page, key, url, tmp, interval)
+                                    capture(page, key, url, tmp, interval, approval=approval)
                                     validate_receipt(tmp, key, url)
                                 finally:
                                     page.close()
+                            with (tmp / 'source-approval.json').open('x') as receipt:
+                                json.dump({'decision_sha256': approval.decision_sha256,
+                                           'rights_sha256': approval.rights_sha256,
+                                           'race_id': row['race_id'], 'source_ref': url}, receipt)
                             tmp.rename(folder)
                     except AccessDenied as exc:
                         status = str(exc)
@@ -349,7 +451,8 @@ def run(queue, output, *, interval, pause, limit, executable, retry_failed=False
                         break
                     sleep(pause)
         finally:
-            browser.close()
+            if browser is not None:
+                browser.close()
     return tally
 
 
@@ -357,6 +460,8 @@ def main():
     cli = argparse.ArgumentParser(description=__doc__)
     cli.add_argument('--continuous', action='store_true',
                      help='save rendered digest movies, using a separate output directory')
+    cli.add_argument('--source-approval', type=Path, required=True,
+                     help='private operator-reviewed KDreams capture and research permission record')
     cli.add_argument('--queue', type=Path, required=True)
     cli.add_argument('--out', type=Path, required=True)
     cli.add_argument('--interval', type=float, default=3, help='seconds between visible digest frames')
@@ -369,9 +474,12 @@ def main():
             or args.interval < 0.1 or (args.limit is not None and args.limit < 1)):
         cli.error('invalid interval, pause or limit')
     os.umask(0o077)
-    tally = run(args.queue, args.out, interval=args.interval, pause=args.pause,
-                limit=args.limit, executable=args.chromium, retry_failed=args.retry_failed,
-                continuous=args.continuous)
+    try:
+        tally = run(args.queue, args.out, interval=args.interval, pause=args.pause,
+                    limit=args.limit, executable=args.chromium, retry_failed=args.retry_failed,
+                    continuous=args.continuous, source_approval=args.source_approval)
+    except (KeyError, ValueError, TypeError, OSError) as exc:
+        cli.exit(1, f'capture stopped: {exc}\n')
     print(json.dumps(tally, sort_keys=True))
     if any(status not in ('reused', 'captured', 'no_listed_url') for status in tally):
         raise SystemExit(1)
