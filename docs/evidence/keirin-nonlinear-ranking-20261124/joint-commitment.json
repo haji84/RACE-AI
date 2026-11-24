@@ -1,0 +1,25 @@
+{
+  "schema": "KEIRIN_JOINT_ORDERED_PAIR_STUDY_V1",
+  "source_model_sha256": "2b836d60e807172f453de4e636fdab8f8ed099ca68367d9ec396306ce93afa1f",
+  "driver_sha256": "60af00c80d17fb6aa37e0ff6b98dbe86e794032ef72335d51399ecdd0579401c",
+  "sequential_candidate_anchor_sha256": "e361879e36f1a591941abc1a8fdd68b8c4a6e43be23653de4de970e78e4777e2",
+  "fits": {
+    "earlier": {
+      "settings_sha256": "fbc816d3be24bc22fa3ba9b4ca1adc92ccbd00c4db945cde43d80c3a4fea2d29",
+      "trees_sha256": "b50a91ffd9fd550ad630319866e5b87db8b2fc11488f3479326d96128973f23d"
+    },
+    "recent": {
+      "settings_sha256": "e6f610f0210bf716b82bd7b3e7194afdd12998fb7d7bb55807a977f2cae378d4",
+      "trees_sha256": "22b0b7e0070d4c9589fb7dbfe8113917f7b56b208ffa13239ed56696c8583c90"
+    }
+  },
+  "forecasts": {
+    "april_may": "6545c6a9be0d868854b945d988610ae3badacf5e31236b61255d7ac4fb050fa5",
+    "june_july": "aa0a482c22605fd81ea409534c22ec549726f183176a70b0dfa700c9fcc09ce2",
+    "oct_nov": "86d4e501705d1532faf4f3ab8b502f95f861e4da4455188350d69302344bab1f",
+    "reconstructed": "f258ad0282a092c347a8c813cb01ee777e48644b64a05bcc17051d54c8c4416e"
+  },
+  "private_cipher_sha256": "9c0efe0803df15c05bfa474439699a0e16df336637cbdb0bb205ad91e03ce10a",
+  "private_model_cipher_sha256": "fbcee092449bb54aad786e7b1e22f412ee1fea5898e5839b87898cd48add339b",
+  "fixed_at": "2026-11-24T00:26:01.634881+00:00"
+}
