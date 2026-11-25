@@ -1,0 +1,1509 @@
+{
+  "scope": "Research only. Distinct race IDs with an unambiguous recorded three-place payout. Frozen pre-cutoff entries replayed after racing; Nov21-23 previously examined for model selection. Not a forward evaluation.",
+  "period": [
+    "2026-11-21",
+    "2026-11-24"
+  ],
+  "outcome_and_ranking_hashes": {
+    "gold": "c56f46a2e981787d43af4b1623ff8da88423901ac7d411ab66aebea3985ab23e",
+    "rankings": "2694aba006671653466d9376f659f60f4e9658757e0f3a034c8e11e8be5bbaac"
+  },
+  "same_budget_independent_recount": {
+    "all": {
+      "n": 287,
+      "hits": 93,
+      "at4": 91,
+      "at8": 127,
+      "rank9_or_below": 160,
+      "three_place_correct_on_next_four": 34,
+      "tickets": 1236,
+      "misses": 194,
+      "ordered_pair_missing": 159,
+      "both_orders_missing": 148,
+      "oracle_reassign_at_fixed_daily_budget": 109,
+      "median_rank_among_misses": 28.0
+    },
+    "Nov21-23": {
+      "n": 207,
+      "hits": 71,
+      "at4": 70,
+      "at8": 93,
+      "rank9_or_below": 114,
+      "three_place_correct_on_next_four": 22,
+      "tickets": 848,
+      "misses": 136,
+      "ordered_pair_missing": 109,
+      "both_orders_missing": 101,
+      "oracle_reassign_at_fixed_daily_budget": 75,
+      "median_rank_among_misses": 27.0
+    },
+    "Nov24": {
+      "n": 80,
+      "hits": 22,
+      "at4": 21,
+      "at8": 34,
+      "rank9_or_below": 46,
+      "three_place_correct_on_next_four": 12,
+      "tickets": 388,
+      "misses": 58,
+      "ordered_pair_missing": 50,
+      "both_orders_missing": 47,
+      "oracle_reassign_at_fixed_daily_budget": 34,
+      "median_rank_among_misses": 33.0
+    }
+  },
+  "width": {
+    "all": {
+      "n": 287,
+      "cap_bins": {
+        "4": {
+          "n": 265,
+          "top4": 81,
+          "ranks5to8": 34,
+          "outside": 150
+        },
+        "8": {
+          "n": 22,
+          "top4": 10,
+          "ranks5to8": 2,
+          "outside": 10
+        }
+      },
+      "uniform4": 91,
+      "uniform8": 127,
+      "published": 93,
+      "trial": 93,
+      "published_tickets": 1236,
+      "trial_tickets": 1236,
+      "gains": 1,
+      "losses": 1,
+      "daily_budget_oracle": 109
+    },
+    "diagnostic": {
+      "n": 207,
+      "cap_bins": {
+        "4": {
+          "n": 202,
+          "top4": 68,
+          "ranks5to8": 22,
+          "outside": 112
+        },
+        "8": {
+          "n": 5,
+          "top4": 2,
+          "ranks5to8": 1,
+          "outside": 2
+        }
+      },
+      "uniform4": 70,
+      "uniform8": 93,
+      "published": 71,
+      "trial": 71,
+      "published_tickets": 848,
+      "trial_tickets": 848,
+      "gains": 1,
+      "losses": 1,
+      "daily_budget_oracle": 75
+    }
+  },
+  "reveal_actual_line_group_after_racing": {
+    "Nov21-23": {
+      "all": {
+        "n": 193,
+        "same_budget_oracles": {
+          "unchanged": 68,
+          "same_or_cross": 84,
+          "two_lines_unordered": 111,
+          "two_lines_ordered": 122,
+          "first_two_cars_unordered": 143,
+          "first_two_cars_ordered": 179
+        },
+        "always_select_more_likely_class": 54
+      },
+      "same": {
+        "n": 106,
+        "same_budget_oracles": {
+          "unchanged": 60,
+          "same_or_cross": 64,
+          "two_lines_unordered": 74,
+          "two_lines_ordered": 74,
+          "first_two_cars_unordered": 83,
+          "first_two_cars_ordered": 103
+        },
+        "always_select_more_likely_class": 42
+      },
+      "different": {
+        "n": 87,
+        "same_budget_oracles": {
+          "unchanged": 8,
+          "same_or_cross": 20,
+          "two_lines_unordered": 37,
+          "two_lines_ordered": 48,
+          "first_two_cars_unordered": 60,
+          "first_two_cars_ordered": 76
+        },
+        "always_select_more_likely_class": 12
+      }
+    },
+    "Nov24": {
+      "all": {
+        "n": 56,
+        "same_budget_oracles": {
+          "unchanged": 14,
+          "same_or_cross": 24,
+          "two_lines_unordered": 31,
+          "two_lines_ordered": 35,
+          "first_two_cars_unordered": 40,
+          "first_two_cars_ordered": 55
+        },
+        "always_select_more_likely_class": 12
+      },
+      "same": {
+        "n": 25,
+        "same_budget_oracles": {
+          "unchanged": 13,
+          "same_or_cross": 13,
+          "two_lines_unordered": 19,
+          "two_lines_ordered": 19,
+          "first_two_cars_unordered": 22,
+          "first_two_cars_ordered": 24
+        },
+        "always_select_more_likely_class": 11
+      },
+      "different": {
+        "n": 31,
+        "same_budget_oracles": {
+          "unchanged": 1,
+          "same_or_cross": 11,
+          "two_lines_unordered": 12,
+          "two_lines_ordered": 16,
+          "first_two_cars_unordered": 18,
+          "first_two_cars_ordered": 31
+        },
+        "always_select_more_likely_class": 1
+      }
+    }
+  },
+  "third_rider_only": {
+    "all": {
+      "hits": [
+        93,
+        90
+      ],
+      "correct_pair_included": [
+        128,
+        128
+      ],
+      "changed": 96,
+      "gained": 2,
+      "lost": 5
+    },
+    "nov21_to_23": {
+      "hits": [
+        71,
+        68
+      ],
+      "correct_pair_included": [
+        98,
+        97
+      ],
+      "changed": 81,
+      "gained": 2,
+      "lost": 5
+    },
+    "nov24": {
+      "hits": [
+        22,
+        22
+      ],
+      "correct_pair_included": [
+        30,
+        31
+      ],
+      "changed": 15,
+      "gained": 0,
+      "lost": 0
+    }
+  },
+  "repeated_leader_follower_residual_on_older_model": {
+    "all": {
+      "n": 12234,
+      "hits_baseline_trial_gain_loss": {
+        "1": [
+          1248,
+          1246,
+          7,
+          9
+        ],
+        "4": [
+          3234,
+          3233,
+          12,
+          13
+        ],
+        "8": [
+          4583,
+          4585,
+          22,
+          20
+        ]
+      },
+      "min_and_max_date": [
+        "20260524",
+        "20261120"
+      ],
+      "changed_8": 882
+    },
+    "dated": {
+      "n": 321,
+      "hits_baseline_trial_gain_loss": {
+        "1": [
+          38,
+          39,
+          1,
+          0
+        ],
+        "4": [
+          84,
+          84,
+          0,
+          0
+        ],
+        "8": [
+          119,
+          119,
+          0,
+          0
+        ]
+      },
+      "min_and_max_date": [
+        "20261116",
+        "20261120"
+      ],
+      "changed_8": 36
+    },
+    "at_least_3": {
+      "n": 1514,
+      "hits_baseline_trial_gain_loss": {
+        "1": [
+          146,
+          146,
+          3,
+          3
+        ],
+        "4": [
+          400,
+          399,
+          5,
+          6
+        ],
+        "8": [
+          597,
+          598,
+          8,
+          7
+        ]
+      },
+      "min_and_max_date": [
+        "20260524",
+        "20261120"
+      ],
+      "changed_8": 320
+    }
+  },
+  "bank_performance_residual": {
+    "historic": {
+      "races": 24707,
+      "days": 356,
+      "results": {
+        "1": {
+          "base": 2656,
+          "trial": 2658,
+          "gained": 21,
+          "lost": 19,
+          "ci95pp": [
+            -0.04024120762606074,
+            0.059395107301852046
+          ]
+        },
+        "4": {
+          "base": 6672,
+          "trial": 6684,
+          "gained": 43,
+          "lost": 31,
+          "ci95pp": [
+            -0.024383305563457552,
+            0.1218691079038182
+          ]
+        },
+        "8": {
+          "base": 9445,
+          "trial": 9430,
+          "gained": 46,
+          "lost": 61,
+          "ci95pp": [
+            -0.14029040608063773,
+            0.020362935204032834
+          ]
+        }
+      }
+    },
+    "dated_historic": {
+      "races": 321,
+      "days": 5,
+      "results": {
+        "1": {
+          "base": 38,
+          "trial": 38,
+          "gained": 1,
+          "lost": 1,
+          "ci95pp": [
+            0.0,
+            0.0
+          ]
+        },
+        "4": {
+          "base": 84,
+          "trial": 83,
+          "gained": 0,
+          "lost": 1,
+          "ci95pp": [
+            -1.0714285714285714,
+            0.0
+          ]
+        },
+        "8": {
+          "base": 119,
+          "trial": 119,
+          "gained": 0,
+          "lost": 0,
+          "ci95pp": [
+            0.0,
+            0.0
+          ]
+        }
+      }
+    },
+    "published_caps_all": {
+      "races": 287,
+      "days": 4,
+      "results": {
+        "1": {
+          "base": 32,
+          "trial": 32,
+          "gained": 0,
+          "lost": 0,
+          "ci95pp": [
+            0.0,
+            0.0
+          ]
+        },
+        "4": {
+          "base": 91,
+          "trial": 91,
+          "gained": 1,
+          "lost": 1,
+          "ci95pp": [
+            -0.9202453987730062,
+            1.2096774193548387
+          ]
+        },
+        "8": {
+          "base": 127,
+          "trial": 128,
+          "gained": 1,
+          "lost": 0,
+          "ci95pp": [
+            0.0,
+            0.9771986970684039
+          ]
+        },
+        "displayed": {
+          "base": 93,
+          "trial": 93,
+          "gained": 1,
+          "lost": 1,
+          "ci95pp": [
+            -0.9202453987730062,
+            1.2096774193548387
+          ]
+        }
+      }
+    },
+    "nov21_23": {
+      "races": 207,
+      "days": 3,
+      "results": {
+        "1": {
+          "base": 27,
+          "trial": 27,
+          "gained": 0,
+          "lost": 0,
+          "ci95pp": [
+            0.0,
+            0.0
+          ]
+        },
+        "4": {
+          "base": 70,
+          "trial": 71,
+          "gained": 1,
+          "lost": 0,
+          "ci95pp": [
+            0.0,
+            1.8518518518518519
+          ]
+        },
+        "8": {
+          "base": 93,
+          "trial": 93,
+          "gained": 0,
+          "lost": 0,
+          "ci95pp": [
+            0.0,
+            0.0
+          ]
+        },
+        "displayed": {
+          "base": 71,
+          "trial": 72,
+          "gained": 1,
+          "lost": 0,
+          "ci95pp": [
+            0.0,
+            1.8518518518518519
+          ]
+        }
+      }
+    },
+    "nov24": {
+      "races": 80,
+      "days": 1,
+      "results": {
+        "1": {
+          "base": 5,
+          "trial": 5,
+          "gained": 0,
+          "lost": 0,
+          "ci95pp": [
+            0.0,
+            0.0
+          ]
+        },
+        "4": {
+          "base": 21,
+          "trial": 20,
+          "gained": 0,
+          "lost": 1,
+          "ci95pp": [
+            -1.25,
+            -1.25
+          ]
+        },
+        "8": {
+          "base": 34,
+          "trial": 35,
+          "gained": 1,
+          "lost": 0,
+          "ci95pp": [
+            1.25,
+            1.25
+          ]
+        },
+        "displayed": {
+          "base": 22,
+          "trial": 21,
+          "gained": 0,
+          "lost": 1,
+          "ci95pp": [
+            -1.25,
+            -1.25
+          ]
+        }
+      }
+    }
+  },
+  "ordered_line_mass": {
+    "historical": {
+      "all": {
+        "n": 12234,
+        "hits": {
+          "1": {
+            "hits": [
+              1248,
+              1275
+            ],
+            "gained": 50,
+            "lost": 23
+          },
+          "4": {
+            "hits": [
+              3234,
+              3268
+            ],
+            "gained": 157,
+            "lost": 123
+          },
+          "8": {
+            "hits": [
+              4583,
+              4649
+            ],
+            "gained": 239,
+            "lost": 173
+          }
+        },
+        "line_top1": [
+          4138,
+          4211
+        ],
+        "line_metrics_denominator": 9857
+      },
+      "dated": {
+        "n": 321,
+        "hits": {
+          "1": {
+            "hits": [
+              38,
+              40
+            ],
+            "gained": 3,
+            "lost": 1
+          },
+          "4": {
+            "hits": [
+              84,
+              85
+            ],
+            "gained": 5,
+            "lost": 4
+          },
+          "8": {
+            "hits": [
+              119,
+              120
+            ],
+            "gained": 6,
+            "lost": 5
+          }
+        },
+        "line_top1": [
+          117,
+          123
+        ],
+        "line_metrics_denominator": 292
+      },
+      "actual_same": {
+        "n": 5661,
+        "hits": {
+          "1": {
+            "hits": [
+              1039,
+              1082
+            ],
+            "gained": 50,
+            "lost": 7
+          },
+          "4": {
+            "hits": [
+              2450,
+              2574
+            ],
+            "gained": 156,
+            "lost": 32
+          },
+          "8": {
+            "hits": [
+              3210,
+              3411
+            ],
+            "gained": 233,
+            "lost": 32
+          }
+        },
+        "line_top1": [
+          4013,
+          4179
+        ],
+        "line_metrics_denominator": 5661
+      },
+      "actual_cross": {
+        "n": 4196,
+        "hits": {
+          "1": {
+            "hits": [
+              25,
+              9
+            ],
+            "gained": 0,
+            "lost": 16
+          },
+          "4": {
+            "hits": [
+              192,
+              102
+            ],
+            "gained": 1,
+            "lost": 91
+          },
+          "8": {
+            "hits": [
+              490,
+              355
+            ],
+            "gained": 6,
+            "lost": 141
+          }
+        },
+        "line_top1": [
+          125,
+          32
+        ],
+        "line_metrics_denominator": 4196
+      }
+    },
+    "current_207": {
+      "all": {
+        "n": 207,
+        "hits": {
+          "1": {
+            "hits": [
+              27,
+              26
+            ],
+            "gained": 0,
+            "lost": 1
+          },
+          "4": {
+            "hits": [
+              70,
+              66
+            ],
+            "gained": 3,
+            "lost": 7
+          },
+          "8": {
+            "hits": [
+              93,
+              91
+            ],
+            "gained": 1,
+            "lost": 3
+          },
+          "published": {
+            "hits": [
+              71,
+              67
+            ],
+            "gained": 3,
+            "lost": 7
+          }
+        },
+        "line_top1": [
+          82,
+          84
+        ],
+        "line_metrics_denominator": 193
+      },
+      "dated": {
+        "n": 207,
+        "hits": {
+          "1": {
+            "hits": [
+              27,
+              26
+            ],
+            "gained": 0,
+            "lost": 1
+          },
+          "4": {
+            "hits": [
+              70,
+              66
+            ],
+            "gained": 3,
+            "lost": 7
+          },
+          "8": {
+            "hits": [
+              93,
+              91
+            ],
+            "gained": 1,
+            "lost": 3
+          },
+          "published": {
+            "hits": [
+              71,
+              67
+            ],
+            "gained": 3,
+            "lost": 7
+          }
+        },
+        "line_top1": [
+          82,
+          84
+        ],
+        "line_metrics_denominator": 193
+      },
+      "actual_same": {
+        "n": 106,
+        "hits": {
+          "1": {
+            "hits": [
+              24,
+              24
+            ],
+            "gained": 0,
+            "lost": 0
+          },
+          "4": {
+            "hits": [
+              60,
+              62
+            ],
+            "gained": 3,
+            "lost": 1
+          },
+          "8": {
+            "hits": [
+              74,
+              75
+            ],
+            "gained": 1,
+            "lost": 0
+          },
+          "published": {
+            "hits": [
+              60,
+              62
+            ],
+            "gained": 3,
+            "lost": 1
+          }
+        },
+        "line_top1": [
+          81,
+          83
+        ],
+        "line_metrics_denominator": 106
+      },
+      "actual_cross": {
+        "n": 87,
+        "hits": {
+          "1": {
+            "hits": [
+              2,
+              1
+            ],
+            "gained": 0,
+            "lost": 1
+          },
+          "4": {
+            "hits": [
+              8,
+              2
+            ],
+            "gained": 0,
+            "lost": 6
+          },
+          "8": {
+            "hits": [
+              14,
+              11
+            ],
+            "gained": 0,
+            "lost": 3
+          },
+          "published": {
+            "hits": [
+              8,
+              2
+            ],
+            "gained": 0,
+            "lost": 6
+          }
+        },
+        "line_top1": [
+          1,
+          1
+        ],
+        "line_metrics_denominator": 87
+      }
+    },
+    "nov24": {
+      "all": {
+        "n": 80,
+        "hits": {
+          "1": {
+            "hits": [
+              5,
+              6
+            ],
+            "gained": 1,
+            "lost": 0
+          },
+          "4": {
+            "hits": [
+              21,
+              22
+            ],
+            "gained": 1,
+            "lost": 0
+          },
+          "8": {
+            "hits": [
+              34,
+              32
+            ],
+            "gained": 2,
+            "lost": 4
+          },
+          "published": {
+            "hits": [
+              22,
+              22
+            ],
+            "gained": 1,
+            "lost": 1
+          }
+        },
+        "line_top1": [
+          16,
+          17
+        ],
+        "line_metrics_denominator": 56
+      },
+      "dated": {
+        "n": 80,
+        "hits": {
+          "1": {
+            "hits": [
+              5,
+              6
+            ],
+            "gained": 1,
+            "lost": 0
+          },
+          "4": {
+            "hits": [
+              21,
+              22
+            ],
+            "gained": 1,
+            "lost": 0
+          },
+          "8": {
+            "hits": [
+              34,
+              32
+            ],
+            "gained": 2,
+            "lost": 4
+          },
+          "published": {
+            "hits": [
+              22,
+              22
+            ],
+            "gained": 1,
+            "lost": 1
+          }
+        },
+        "line_top1": [
+          16,
+          17
+        ],
+        "line_metrics_denominator": 56
+      },
+      "actual_same": {
+        "n": 25,
+        "hits": {
+          "1": {
+            "hits": [
+              4,
+              5
+            ],
+            "gained": 1,
+            "lost": 0
+          },
+          "4": {
+            "hits": [
+              13,
+              14
+            ],
+            "gained": 1,
+            "lost": 0
+          },
+          "8": {
+            "hits": [
+              16,
+              18
+            ],
+            "gained": 2,
+            "lost": 0
+          },
+          "published": {
+            "hits": [
+              13,
+              14
+            ],
+            "gained": 1,
+            "lost": 0
+          }
+        },
+        "line_top1": [
+          16,
+          17
+        ],
+        "line_metrics_denominator": 25
+      },
+      "actual_cross": {
+        "n": 31,
+        "hits": {
+          "1": {
+            "hits": [
+              0,
+              0
+            ],
+            "gained": 0,
+            "lost": 0
+          },
+          "4": {
+            "hits": [
+              0,
+              0
+            ],
+            "gained": 0,
+            "lost": 0
+          },
+          "8": {
+            "hits": [
+              5,
+              1
+            ],
+            "gained": 0,
+            "lost": 4
+          },
+          "published": {
+            "hits": [
+              1,
+              0
+            ],
+            "gained": 0,
+            "lost": 1
+          }
+        },
+        "line_top1": [
+          0,
+          0
+        ],
+        "line_metrics_denominator": 31
+      }
+    }
+  },
+  "published_size_blend": {
+    "Nov21-23": {
+      "a": 71,
+      "b": 67,
+      "blend": 69,
+      "both_ab_miss": 131,
+      "blend_rescues_both_miss": 0,
+      "ab_both_hit": 62,
+      "a_only_hit": 9,
+      "b_only_hit": 5,
+      "blend_gain_vs_a": 2,
+      "blend_loss_vs_a": 4,
+      "blend_ticket_count": 848
+    },
+    "Nov24": {
+      "a": 22,
+      "b": 23,
+      "blend": 21,
+      "both_ab_miss": 56,
+      "blend_rescues_both_miss": 0,
+      "ab_both_hit": 21,
+      "a_only_hit": 1,
+      "b_only_hit": 2,
+      "blend_gain_vs_a": 0,
+      "blend_loss_vs_a": 1,
+      "blend_ticket_count": 388
+    }
+  },
+  "source_examples": [
+    {
+      "id": "202611228105",
+      "source": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/8120261118/81202611180500/5/",
+      "replay": {
+        "cap": 4,
+        "actual_trifecta_rank": 56,
+        "possible_tickets": 504,
+        "actual_ordered_pair_rank": 6
+      }
+    },
+    {
+      "id": "202611238104",
+      "source": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/8120261118/81202611180600/4/",
+      "replay": {
+        "cap": 4,
+        "actual_trifecta_rank": 430,
+        "possible_tickets": 504,
+        "actual_ordered_pair_rank": 67
+      }
+    },
+    {
+      "id": "202611236106",
+      "source": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/6120261123/61202611230100/6/",
+      "replay": {
+        "cap": 4,
+        "actual_trifecta_rank": 1,
+        "possible_tickets": 210,
+        "actual_ordered_pair_rank": 1
+      }
+    }
+  ],
+  "prospective_receipts": {
+    "third_rider_only": {
+      "schema": "KEIRIN_THIRD_RIDER_CONDITIONAL_COMPARISON",
+      "frozen_utc": "2026-11-25T00:07:16.450622+00:00",
+      "verified_utc": "2026-11-25T00:07:16.452445+00:00",
+      "prediction_sha256": "4c475aed916a562b749809e994a541728b01d0624051085ae3b3aa0c947d8041",
+      "site_forecast_sha256": "2a62f3a6cf7f2a12d62b5b49b4d9a620db49309b0522814ed904c11c942e3d35",
+      "config_sha256": "60e88f53496f934cb968706e38291d8d68fc664429a3356de617cc0e634c9a47",
+      "design_sha256": "01da1f2ff2a798c9346ce8041a72587b59de491ac8a1e178c5d8f73b5ccb6d8e",
+      "races": 73,
+      "calendar": 75,
+      "excluded_since_cutoff": 2,
+      "earliest_included_cutoff": "2026-11-25T09:26:00+09:00",
+      "changed": 18,
+      "scored": 0
+    },
+    "width": {
+      "frozen_utc": "2026-11-25T00:09:17.515419+00:00",
+      "frozen_jst": "2026-11-25T09:09:17.515419+09:00",
+      "earliest_included_deadline": "2026-11-25T09:26:00+09:00",
+      "eligible_rows": 73,
+      "eight_slots_for_each_arm": 14,
+      "common_point_total": 348,
+      "races_changed": 18,
+      "cap_assignment_sha256": "ef4cfc39a777ee317a8ff921ba3e684f4c12b5d3dc2ccde7799e2016dc277afa",
+      "original_forecast_payload_sha256": "2a62f3a6cf7f2a12d62b5b49b4d9a620db49309b0522814ed904c11c942e3d35",
+      "research_only": true
+    },
+    "recent_relative_last_half_lap": {
+      "date": "20261125",
+      "frozen_utc": "2026-11-25T00:20:39.516598+00:00",
+      "verified_utc": "2026-11-25T00:20:39.524834+00:00",
+      "earliest_cutoff": "2026-11-25T09:26:00+09:00",
+      "latest_cutoff": "2026-11-25T23:25:00+09:00",
+      "total_public": 75,
+      "included": 73,
+      "excluded_closed": 2,
+      "registrations_complete": 73,
+      "riders": 504,
+      "riders_with_speed": 504,
+      "ticket_set_changes": 4,
+      "baseline_coeff": 0.5769491114192311,
+      "sha256": "72f3929fe26a371fb733406f8cf090bbb64c1095ea0ec58800fe5c4019acf089",
+      "script_sha256": "522ef86b380e3e22e06656f04597eec85edb6727513335b18050c0e3177b14b3",
+      "freeze_sha256": "5ac97eeb34ff7bb71a0c34ee9a84015a7b0e35c1ab0b60f6157884e145daa73f",
+      "site_sha256": "2a62f3a6cf7f2a12d62b5b49b4d9a620db49309b0522814ed904c11c942e3d35",
+      "observed_outcomes": 0
+    }
+  },
+  "live_snapshot_separate_from_replay": {
+    "at_jst": "2026-11-25T09:17:03.885190+09:00",
+    "forecast_sha256": "2a62f3a6cf7f2a12d62b5b49b4d9a620db49309b0522814ed904c11c942e3d35",
+    "published_rows": 75,
+    "cutoff_elapsed": 2,
+    "states": {
+      "matched": 2
+    },
+    "by_market": {
+      "3t": {
+        "hits": 2,
+        "scored": 2
+      },
+      "2t": {
+        "hits": 2,
+        "scored": 2
+      }
+    }
+  },
+  "four_day_race_reports": {
+    "scope": "All 295 published race-detail links in K Dreams daily result indices for 2026-11-21 to 2026-11-24. The model was scored in the independently saved 287-race 4/8-ticket retrospective replay; 8 other races have no model outcome. Source text is a post-race label, not a pre-race input.",
+    "indices": [
+      "https://keirin.kdreams.jp/raceresult/2026/11/21/",
+      "https://keirin.kdreams.jp/raceresult/2026/11/22/",
+      "https://keirin.kdreams.jp/raceresult/2026/11/23/",
+      "https://keirin.kdreams.jp/raceresult/2026/11/24/"
+    ],
+    "annotation": "Terms examined only in participant-specific 勝敗因. Roles distinguish the rider whose row carries the note from the rider performing the action; unknown remains unknown. Ambiguous passive 番手捲られ is recorded separately and does not establish the counterattacking rider. Position-based phrases such as ３番手捲り and７番手捲り do not identify an attack launched by a designated second. 離れ気味 and 千切る are not coded as a dropped follower. Switching mentions, including unsuccessful subsequent moves, do not establish the new wheel. Category counts overlap. Non-mentions are unlabelled rather than true negatives. Rates are conditional on actually reported facts after the race and not prospective rates.",
+    "row_counts": {
+      "identified_rider_rows": 2114,
+      "with_report_remarks": 594,
+      "positive_label_instances": 61,
+      "label_rows_with_identity": 68,
+      "ambiguous_counterattack_phrases": 7
+    },
+    "cohorts": {
+      "all_listed": {
+        "races": 295,
+        "scored_replay": 287,
+        "hits": 93,
+        "misses": 194,
+        "hit_percent": 32.4
+      },
+      "with_any_rider_notes": {
+        "races": 78,
+        "scored_replay": 78,
+        "hits": 22,
+        "misses": 56,
+        "hit_percent": 28.21
+      },
+      "mentions_target": {
+        "races": 40,
+        "scored_replay": 40,
+        "hits": 10,
+        "misses": 30,
+        "hit_percent": 25.0
+      },
+      "notes_without_target_mentions": {
+        "races": 38,
+        "scored_replay": 38,
+        "hits": 12,
+        "misses": 26,
+        "hit_percent": 31.58
+      },
+      "notes_empty": {
+        "races": 217,
+        "scored_replay": 209,
+        "hits": 71,
+        "misses": 138,
+        "hit_percent": 33.97
+      },
+      "switch": {
+        "races": 21,
+        "scored_replay": 21,
+        "hits": 4,
+        "misses": 17,
+        "hit_percent": 19.05
+      },
+      "second_wheel_counterattack": {
+        "races": 2,
+        "scored_replay": 2,
+        "hits": 0,
+        "misses": 2,
+        "hit_percent": 0.0
+      },
+      "lost_or_blocked_follow": {
+        "races": 26,
+        "scored_replay": 26,
+        "hits": 6,
+        "misses": 20,
+        "hit_percent": 23.08
+      },
+      "unresolved_bante_makurare_wording": {
+        "races": 7,
+        "scored_replay": 7,
+        "hits": 1,
+        "misses": 6,
+        "hit_percent": 14.29
+      }
+    },
+    "days_and_venues_with_comments": 7,
+    "days_and_venues": 32,
+    "observed_movement_file": "race-movement-labels.jsonl",
+    "observed_movement_sha256": "217d342e6e38f9155ea52ca5f337766cd598fbff0a5851109c8ed55ceebc10c0"
+  },
+  "full_premarket_ticket_comparison": {
+    "scope": "all outlets, entire roster permutation board numeric, quotes available before cutoff, verified original HTML hash and provider update timestamp. Ties at cutoff broken by ticket numeric lexicographic order.",
+    "dates": [
+      "20261123"
+    ],
+    "time": {
+      "capture_before": [
+        4.53,
+        119.07,
+        650.54
+      ],
+      "update_before": [
+        6.0,
+        120.0,
+        652.0
+      ],
+      "model_card_before": [
+        268.43,
+        384.93,
+        918.43
+      ],
+      "common_before": [
+        4.53,
+        119.07,
+        650.54
+      ]
+    },
+    "published": {
+      "tally": {
+        "n": 26,
+        "market": 9,
+        "model": 9,
+        "both": 9,
+        "market_only": 0,
+        "model_only": 0,
+        "neither": 17,
+        "tied_at_cap": 1
+      },
+      "caps": {
+        "4": 22,
+        "8": 4
+      }
+    },
+    "excluding_ties": {
+      "tally": {
+        "n": 25,
+        "market": 8,
+        "model": 8,
+        "both": 8,
+        "market_only": 0,
+        "model_only": 0,
+        "neither": 17,
+        "tied_at_cap": 0
+      },
+      "caps": {
+        "4": 22,
+        "8": 3
+      }
+    },
+    "four": {
+      "tally": {
+        "n": 26,
+        "market": 8,
+        "model": 9,
+        "both": 8,
+        "market_only": 0,
+        "model_only": 1,
+        "neither": 17,
+        "tied_at_cap": 1
+      },
+      "caps": {
+        "4": 26
+      }
+    },
+    "eight": {
+      "tally": {
+        "n": 26,
+        "market": 12,
+        "model": 12,
+        "both": 11,
+        "market_only": 1,
+        "model_only": 1,
+        "neither": 13,
+        "tied_at_cap": 1
+      },
+      "caps": {
+        "8": 26
+      }
+    },
+    "complete_with_both_t10_t15": 0,
+    "prior_receipt_sha256": "23fe250ce0f783dea7f788e99a8f44f2ab485254d6dbbe46bdfdbaf7b325e216"
+  },
+  "recent_relative_last_half_lap": {
+    "history": {
+      "monthly_races_with_split": 70956,
+      "monthly_valid_split_entries": 493959,
+      "sqlite_races_with_split": 30648,
+      "sqlite_valid_split_entries": 213962,
+      "monthly_processing": {
+        "conflicting_races": 0
+      },
+      "counts": {
+        "usable_races": 75910,
+        "usable_registered_splits": 509526,
+        "from_monthly": 47530,
+        "from_sql": 28380
+      },
+      "registrations": 2405,
+      "source_first": "20231124",
+      "source_last": "20261122"
+    },
+    "scores": {
+      "historical_complete": {
+        "n": 10867,
+        "total_starts": 77112,
+        "with_speed_history": 76644,
+        "metrics": {
+          "1": {
+            "baseline": 1180,
+            "trial": 1186,
+            "gained": 12,
+            "lost": 6,
+            "day_bootstrap95_change_pp": [
+              -0.018652849804025286,
+              0.136972936570457
+            ]
+          },
+          "4": {
+            "baseline": 2996,
+            "trial": 2990,
+            "gained": 9,
+            "lost": 15,
+            "day_bootstrap95_change_pp": [
+              -0.1395250780958153,
+              0.027925387441252874
+            ]
+          },
+          "8": {
+            "baseline": 4197,
+            "trial": 4198,
+            "gained": 19,
+            "lost": 18,
+            "day_bootstrap95_change_pp": [
+              -0.10114152764935583,
+              0.11096550891976023
+            ]
+          }
+        }
+      },
+      "historical_cutoff": {
+        "n": 321,
+        "total_starts": 2276,
+        "with_speed_history": 2272,
+        "metrics": {
+          "1": {
+            "baseline": 38,
+            "trial": 38,
+            "gained": 0,
+            "lost": 0
+          },
+          "4": {
+            "baseline": 84,
+            "trial": 83,
+            "gained": 0,
+            "lost": 1
+          },
+          "8": {
+            "baseline": 119,
+            "trial": 119,
+            "gained": 0,
+            "lost": 0
+          }
+        }
+      },
+      "published_all": {
+        "n": 287,
+        "reg_bound_races": 286,
+        "n_prior": 2058,
+        "starters": 2060,
+        "metrics": {
+          "1": {
+            "baseline": 32,
+            "trial": 32,
+            "gained": 0,
+            "lost": 0
+          },
+          "4": {
+            "baseline": 91,
+            "trial": 91,
+            "gained": 2,
+            "lost": 2
+          },
+          "8": {
+            "baseline": 127,
+            "trial": 130,
+            "gained": 3,
+            "lost": 0
+          },
+          "published": {
+            "baseline": 93,
+            "trial": 93,
+            "gained": 2,
+            "lost": 2
+          }
+        }
+      },
+      "published_nov21_23": {
+        "n": 207,
+        "reg_bound_races": 206,
+        "n_prior": 1507,
+        "starters": 1509,
+        "metrics": {
+          "1": {
+            "baseline": 27,
+            "trial": 27,
+            "gained": 0,
+            "lost": 0
+          },
+          "4": {
+            "baseline": 70,
+            "trial": 70,
+            "gained": 1,
+            "lost": 1
+          },
+          "8": {
+            "baseline": 93,
+            "trial": 93,
+            "gained": 0,
+            "lost": 0
+          },
+          "published": {
+            "baseline": 71,
+            "trial": 71,
+            "gained": 1,
+            "lost": 1
+          }
+        }
+      },
+      "published_nov24": {
+        "n": 80,
+        "reg_bound_races": 80,
+        "n_prior": 551,
+        "starters": 551,
+        "metrics": {
+          "1": {
+            "baseline": 5,
+            "trial": 5,
+            "gained": 0,
+            "lost": 0
+          },
+          "4": {
+            "baseline": 21,
+            "trial": 21,
+            "gained": 1,
+            "lost": 1
+          },
+          "8": {
+            "baseline": 34,
+            "trial": 37,
+            "gained": 3,
+            "lost": 0
+          },
+          "published": {
+            "baseline": 22,
+            "trial": 22,
+            "gained": 1,
+            "lost": 1
+          }
+        }
+      }
+    },
+    "freeze": {
+      "training_complete_races": 16023,
+      "coefficient": 0.5769491114192311,
+      "test_complete_races": 10867,
+      "public_n": 287,
+      "source_sha256": "8fa59dbce677649dd3bb3913c0ad61dd994d8f4345ba5d50b5530c48fb436bca",
+      "design_sha256": "143e75fd76c1b306d3c7c43c49bee269217ef009d357be3484549c061d67ab26",
+      "historical_sha256": "dfe2eb9f06fa0c0ea6c593381d1ec58491ca7c519af5e16fd4f2430f0146bd81",
+      "public_sha256": "5dabb78b42efade27ac6945875ca652bc2c8cc9e563c9879975410f8a4dee300",
+      "features_sha256": "6795ed2c47470198de8e1803b642c4ff542ce74b611ca50ff2ad29414eea38e1"
+    },
+    "definition": {
+      "regular_keirin": "Final back straight line through finish line, a half lap. The distance is 200 m on a 400 m track and 250 m on a 500 m track.",
+      "official_rule": "https://keirin.jp/pc/dfw/portal/guest/guide/question/race.html",
+      "regulation": "https://www.keirin-autorace.or.jp/documents/www/regulation/keirin/yoryo_shinpan.pdf",
+      "250_keirin": "Different timing rule, measured from the final 200 m line."
+    }
+  }
+}
