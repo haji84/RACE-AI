@@ -412,7 +412,7 @@ def audit_window(root, since, *, clock=_now):
     directory = _private_root(_private_root(root)/'ticks')
     start = since.astimezone(timezone.utc).strftime('%Y%m%dT%H%M%S%f')
     ticks, counts = {}, {'new_recordings': 0, 'new_tracks': 0, 'new_candidate_fits': 0}
-    shadow_states = {}
+    stages = {name: {} for name in ('shadow_result', 'shadow_replay', 'shadow_publication')}
     for path in sorted(directory.glob('*.json')):
         if path.name < start:
             continue
@@ -431,9 +431,10 @@ def audit_window(root, since, *, clock=_now):
         counts['new_recordings'] += video.get('recorded', 0)
         counts['new_tracks'] += video.get('tracking', {}).get('state') == 'TRACKS_GENERATED'
         counts['new_candidate_fits'] += video.get('model_state') == 'TRIAL_PROFILE_FITTED'
-        if 'shadow_result' in report:
-            state = report['shadow_result']['state']
-            shadow_states[state] = shadow_states.get(state, 0) + 1
+        for name, states in stages.items():
+            if name in report:
+                state = report[name]['state']
+                states[state] = states.get(state, 0) + 1
     ordered = sorted(ticks)
     intervals = [(end-begin).total_seconds() for begin, end in zip(ordered, ordered[1:])]
     idle = [max(0, gap-ticks[begin]) for begin, gap in zip(ordered, intervals)]
@@ -449,7 +450,8 @@ def audit_window(root, since, *, clock=_now):
                 intervals_over_16_minutes=sum(gap > 960 for gap in intervals),
                 longest_idle_seconds=longest_idle, idle_intervals_over_16_minutes=sum(gap > 960 for gap in idle),
                 seconds_since_last_tick=last_age, seconds_since_last_completion=since_completion,
-                shadow_states=shadow_states,
+                shadow_states=stages['shadow_result'], shadow_replay_states=stages['shadow_replay'],
+                shadow_publication_states=stages['shadow_publication'],
                 full_24h_local_cadence=span >= 86400 and longest_idle <= 960 and since_completion <= 960, **counts)
 
 
@@ -488,6 +490,8 @@ def run_cycle(root, *, census=None, manifest=None, bounds=None, reviewed=None, s
                     replay_state = 'HOLD_REPLAY_EVIDENCE_OR_RUNTIME'
                 result['shadow_replay'] = dict(state=replay_state,
                     tracking_state='HOLD_REPLAY_LAYOUT_CALIBRATION')
+            from scripts import keirin_mac_shadow_publication
+            result['shadow_publication'] = keirin_mac_shadow_publication.run(root, shadow_request, clock=clock)
         result['duration_ms'] = round(1000*(monotonic()-start))
         _save_tick(root, now, result)
         with corpus.output_file(root/'cycle-report.json') as report:
