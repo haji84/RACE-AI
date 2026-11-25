@@ -1,0 +1,430 @@
+{
+  "old_archive_availability": {
+    "n": 519,
+    "true_pre_cutoff_tactic_receipt": 0,
+    "gold_join": 428,
+    "winner_method_recorded": 428,
+    "b_recorded": 310,
+    "h_recorded": 14
+  },
+  "dated_eligible": 119,
+  "dated_exclusions": {},
+  "dated_all": {
+    "totals": {
+      "n": 119,
+      "baseline_hits": 44,
+      "winner_method_known": 119,
+      "unique_H": 119,
+      "unique_B": 119,
+      "method_double_source_True": 112,
+      "B_double_source_True": 112,
+      "method_double_source_None": 7,
+      "B_double_source_None": 7
+    },
+    "car_tactic_to_actual": {
+      "先行": {
+        "starts": 92,
+        "H_known_starts": 92,
+        "B_known_starts": 92,
+        "H": 45,
+        "B": 49,
+        "wins": 28,
+        "win_捲り": 9,
+        "win_逃げ": 17,
+        "win_差し": 2
+      },
+      "追込": {
+        "starts": 429,
+        "H_known_starts": 429,
+        "B_known_starts": 429,
+        "H": 0,
+        "B": 2,
+        "wins": 39,
+        "win_差し": 37,
+        "win_捲り": 2
+      },
+      "追上": {
+        "starts": 42,
+        "H_known_starts": 42,
+        "B_known_starts": 42,
+        "H": 1,
+        "B": 0,
+        "wins": 1,
+        "win_差し": 1
+      },
+      "押え先": {
+        "starts": 157,
+        "H_known_starts": 157,
+        "B_known_starts": 157,
+        "H": 56,
+        "B": 51,
+        "wins": 30,
+        "win_差し": 4,
+        "win_捲り": 12,
+        "win_逃げ": 14
+      },
+      "自在": {
+        "starts": 144,
+        "H_known_starts": 144,
+        "B_known_starts": 144,
+        "H": 15,
+        "B": 14,
+        "wins": 18,
+        "win_捲り": 12,
+        "win_差し": 6
+      },
+      "まくり": {
+        "starts": 2,
+        "H_known_starts": 2,
+        "B_known_starts": 2,
+        "H": 0,
+        "B": 1,
+        "wins": 1,
+        "win_捲り": 1
+      },
+      "カマシ": {
+        "starts": 5,
+        "H_known_starts": 5,
+        "B_known_starts": 5,
+        "H": 2,
+        "B": 2,
+        "wins": 2,
+        "win_捲り": 1,
+        "win_逃げ": 1
+      }
+    },
+    "checkpoint_groups": {
+      "B_held_by_initiative_tag": {
+        "n": 102,
+        "baseline_hits": 40,
+        "baseline_misses": 62
+      },
+      "B_held_by_initiative_tag_n_candidates_3": {
+        "n": 36,
+        "baseline_hits": 12,
+        "baseline_misses": 24
+      },
+      "B_held_by_initiative_tag_n_candidates_2": {
+        "n": 47,
+        "baseline_hits": 23,
+        "baseline_misses": 24
+      },
+      "B_held_by_other_tag": {
+        "n": 12,
+        "baseline_hits": 3,
+        "baseline_misses": 9
+      },
+      "B_held_by_other_tag_n_candidates_2": {
+        "n": 9,
+        "baseline_hits": 3,
+        "baseline_misses": 6
+      },
+      "B_held_by_initiative_tag_n_candidates_1": {
+        "n": 16,
+        "baseline_hits": 4,
+        "baseline_misses": 12
+      },
+      "B_held_by_initiative_tag_n_candidates_4": {
+        "n": 3,
+        "baseline_hits": 1,
+        "baseline_misses": 2
+      },
+      "B_held_by_other_tag_n_candidates_1": {
+        "n": 2,
+        "baseline_hits": 0,
+        "baseline_misses": 2
+      },
+      "no_initiative_tag": {
+        "n": 5,
+        "baseline_hits": 1,
+        "baseline_misses": 4
+      },
+      "no_initiative_tag_n_candidates_0": {
+        "n": 5,
+        "baseline_hits": 1,
+        "baseline_misses": 4
+      },
+      "B_held_by_other_tag_n_candidates_4": {
+        "n": 1,
+        "baseline_hits": 0,
+        "baseline_misses": 1
+      }
+    },
+    "hb_transition": {
+      "H_to_B_leader_changed": 30,
+      "n_with_both_HB": 119,
+      "H_to_B_changed_baseline_misses": 18,
+      "H_to_B_same_baseline_misses": 57
+    }
+  },
+  "dated_by_day": {
+    "20261121": {
+      "totals": {
+        "n": 37,
+        "baseline_hits": 12,
+        "winner_method_known": 37,
+        "unique_H": 37,
+        "unique_B": 37,
+        "method_double_source_True": 34,
+        "B_double_source_True": 34,
+        "method_double_source_None": 3,
+        "B_double_source_None": 3
+      },
+      "car_tactic_to_actual": {
+        "先行": {
+          "starts": 28,
+          "H_known_starts": 28,
+          "B_known_starts": 28,
+          "H": 13,
+          "B": 12,
+          "wins": 7,
+          "win_捲り": 4,
+          "win_逃げ": 3
+        },
+        "追込": {
+          "starts": 145,
+          "H_known_starts": 145,
+          "B_known_starts": 145,
+          "H": 0,
+          "B": 0,
+          "wins": 15,
+          "win_差し": 15
+        },
+        "追上": {
+          "starts": 6,
+          "H_known_starts": 6,
+          "B_known_starts": 6,
+          "H": 0,
+          "B": 0,
+          "wins": 0
+        },
+        "押え先": {
+          "starts": 57,
+          "H_known_starts": 57,
+          "B_known_starts": 57,
+          "H": 19,
+          "B": 22,
+          "wins": 10,
+          "win_差し": 2,
+          "win_捲り": 6,
+          "win_逃げ": 2
+        },
+        "自在": {
+          "starts": 46,
+          "H_known_starts": 46,
+          "B_known_starts": 46,
+          "H": 5,
+          "B": 3,
+          "wins": 5,
+          "win_捲り": 5
+        },
+        "まくり": {
+          "starts": 1,
+          "H_known_starts": true,
+          "B_known_starts": true,
+          "H": false,
+          "B": false,
+          "wins": false
+        }
+      },
+      "checkpoint_groups": {
+        "B_held_by_initiative_tag": {
+          "n": 34,
+          "baseline_hits": 12,
+          "baseline_misses": 22
+        },
+        "B_held_by_initiative_tag_n_candidates_3": {
+          "n": 10,
+          "baseline_hits": 2,
+          "baseline_misses": 8
+        },
+        "B_held_by_initiative_tag_n_candidates_2": {
+          "n": 19,
+          "baseline_hits": 9,
+          "baseline_misses": 10
+        },
+        "B_held_by_other_tag": {
+          "n": 3,
+          "baseline_hits": 0,
+          "baseline_misses": 3
+        },
+        "B_held_by_other_tag_n_candidates_2": {
+          "n": 3,
+          "baseline_hits": 0,
+          "baseline_misses": 3
+        },
+        "B_held_by_initiative_tag_n_candidates_1": {
+          "n": 3,
+          "baseline_hits": 0,
+          "baseline_misses": 3
+        },
+        "B_held_by_initiative_tag_n_candidates_4": {
+          "n": 2,
+          "baseline_hits": 1,
+          "baseline_misses": 1
+        }
+      },
+      "hb_transition": {
+        "H_to_B_leader_changed": 10,
+        "n_with_both_HB": 37,
+        "H_to_B_changed_baseline_misses": 7,
+        "H_to_B_same_baseline_misses": 18
+      }
+    },
+    "20261123": {
+      "totals": {
+        "n": 82,
+        "baseline_hits": 32,
+        "winner_method_known": 82,
+        "unique_H": 82,
+        "unique_B": 82,
+        "method_double_source_None": 4,
+        "B_double_source_None": 4,
+        "method_double_source_True": 78,
+        "B_double_source_True": 78
+      },
+      "car_tactic_to_actual": {
+        "先行": {
+          "starts": 64,
+          "H_known_starts": 64,
+          "B_known_starts": 64,
+          "H": 32,
+          "B": 37,
+          "wins": 21,
+          "win_捲り": 5,
+          "win_逃げ": 14,
+          "win_差し": 2
+        },
+        "追込": {
+          "starts": 284,
+          "H_known_starts": 284,
+          "B_known_starts": 284,
+          "H": 0,
+          "B": 2,
+          "wins": 24,
+          "win_差し": 22,
+          "win_捲り": 2
+        },
+        "自在": {
+          "starts": 98,
+          "H_known_starts": 98,
+          "B_known_starts": 98,
+          "H": 10,
+          "B": 11,
+          "wins": 13,
+          "win_差し": 6,
+          "win_捲り": 7
+        },
+        "追上": {
+          "starts": 36,
+          "H_known_starts": 36,
+          "B_known_starts": 36,
+          "H": 1,
+          "B": 0,
+          "wins": 1,
+          "win_差し": 1
+        },
+        "押え先": {
+          "starts": 100,
+          "H_known_starts": 100,
+          "B_known_starts": 100,
+          "H": 37,
+          "B": 29,
+          "wins": 20,
+          "win_逃げ": 12,
+          "win_差し": 2,
+          "win_捲り": 6
+        },
+        "カマシ": {
+          "starts": 5,
+          "H_known_starts": 5,
+          "B_known_starts": 5,
+          "H": 2,
+          "B": 2,
+          "wins": 2,
+          "win_捲り": 1,
+          "win_逃げ": 1
+        },
+        "まくり": {
+          "starts": 1,
+          "H_known_starts": true,
+          "B_known_starts": true,
+          "H": false,
+          "B": true,
+          "wins": true,
+          "win_捲り": 1
+        }
+      },
+      "checkpoint_groups": {
+        "B_held_by_other_tag": {
+          "n": 9,
+          "baseline_hits": 3,
+          "baseline_misses": 6
+        },
+        "B_held_by_other_tag_n_candidates_1": {
+          "n": 2,
+          "baseline_hits": 0,
+          "baseline_misses": 2
+        },
+        "B_held_by_initiative_tag": {
+          "n": 68,
+          "baseline_hits": 28,
+          "baseline_misses": 40
+        },
+        "B_held_by_initiative_tag_n_candidates_2": {
+          "n": 28,
+          "baseline_hits": 14,
+          "baseline_misses": 14
+        },
+        "B_held_by_initiative_tag_n_candidates_3": {
+          "n": 26,
+          "baseline_hits": 10,
+          "baseline_misses": 16
+        },
+        "no_initiative_tag": {
+          "n": 5,
+          "baseline_hits": 1,
+          "baseline_misses": 4
+        },
+        "no_initiative_tag_n_candidates_0": {
+          "n": 5,
+          "baseline_hits": 1,
+          "baseline_misses": 4
+        },
+        "B_held_by_initiative_tag_n_candidates_1": {
+          "n": 13,
+          "baseline_hits": 4,
+          "baseline_misses": 9
+        },
+        "B_held_by_other_tag_n_candidates_2": {
+          "n": 6,
+          "baseline_hits": 3,
+          "baseline_misses": 3
+        },
+        "B_held_by_other_tag_n_candidates_4": {
+          "n": 1,
+          "baseline_hits": 0,
+          "baseline_misses": 1
+        },
+        "B_held_by_initiative_tag_n_candidates_4": {
+          "n": 1,
+          "baseline_hits": 0,
+          "baseline_misses": 1
+        }
+      },
+      "hb_transition": {
+        "H_to_B_leader_changed": 20,
+        "n_with_both_HB": 82,
+        "H_to_B_same_baseline_misses": 39,
+        "H_to_B_changed_baseline_misses": 11
+      }
+    }
+  },
+  "authenticated_local_joins_sha256": {
+    "official-fetch.json": "077fcfddaafba1e8a6a95557495c1984f0c1ecf7ec2f2455c1096974115a8de8",
+    "realized-actions-joined.json": "75d8b960e761b6ac548dd4daa8c85807715f0d8fa3af6fe896fa243fd6eb300f",
+    "realized_actions.py": "57c29f7bbe4f75772269499a15f0ba85f017f56b2a834121247febc53e41ad7a",
+    "timed-inputs.json": "3847b83427ee2082cca4a80cae2afad74f0e845586c9d017befe41afd251a7d4",
+    "recent-predictions.json": "7d90afcd2763642c9e2a2cc5ce64355351d312eb2d1e1f5d10995a52d8b1f81e"
+  }
+}
