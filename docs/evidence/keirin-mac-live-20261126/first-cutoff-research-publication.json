@@ -1,0 +1,26 @@
+{
+  "archive_kind": "archive",
+  "cipher_sha256": "c07954c44c461774d8d7eb479ec06a1940a0586a0b44edc88d119c14f05d647f",
+  "conservative_pre_cutoff_git_readback": true,
+  "cutoffs": {
+    "202611267301": "2026-11-26T08:45:00+09:00"
+  },
+  "generated_at": "2026-11-25T18:42:10.057372+00:00",
+  "input_sha256": "b583b804d12bd3faad952f3b7765d8e6516121920c019d0603d18850d0533925",
+  "model_sha256": "d393bbb129470e9d14aaac28bc79a5b7565035a5d1eaf7f832a56b89ccb13c02",
+  "official_cutoff_at": "2026-11-26T08:47:00+09:00",
+  "original_sha256": "0cc6b4c04c9c61cfbc73b2f44210500d045f6e681fe2d719b3f14461246e1300",
+  "production_weights_promoted": false,
+  "publication": {
+    "git_readback_at": "2026-11-25T18:47:18.158723+00:00",
+    "parent_commit": "3e728cb3756026199b04ac3d5548a1fa281f848c",
+    "previous_cipher_blobs_unchanged": 161,
+    "private_plaintext_uploaded": false,
+    "source_commit": "48d8d65d16ee88236e6c1492a912448ec813b66a"
+  },
+  "recipient_id": "b36fb7cd8bcd861ab503065a12ae50e10c5232cbc479d1fc339f9170aaa99381",
+  "schema": "KEIRIN_MAC_PROSPECTIVE_ARCHIVE_RECEIPT_V1",
+  "scope": "PERSONAL_PROSPECTIVE_COMPARISON",
+  "site_display_promoted": false,
+  "takeo_video_features_used": false
+}

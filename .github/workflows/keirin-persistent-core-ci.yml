@@ -94,39 +94,53 @@ jobs:
           import hashlib, json, urllib.request
           from datetime import datetime, timezone
           from pathlib import Path
-          path = Path('docs/evidence/keirin-live-accuracy-closure-20261125/prospective-publication.json')
-          if not path.exists():
-              raise SystemExit('No joint comparison receipt on this source revision')
-          receipt = json.loads(path.read_bytes())
-          commit = receipt['publication']['source_commit']
-          cipher = receipt['cipher_sha256']
-          assert len(commit) == 40 and all(c in '0123456789abcdef' for c in commit)
-          assert len(cipher) == 64 and all(c in '0123456789abcdef' for c in cipher)
-          base = 'https://raw.githubusercontent.com/haji84/RACE-AI/' + commit + '/'
-          def read(name, bound):
-              with urllib.request.urlopen(base + name, timeout=60) as response:
+          import os
+
+          def read(commit, name, bound):
+              base = 'https://raw.githubusercontent.com/haji84/RACE-AI/' + commit + '/'
+              with urllib.request.urlopen(base + name, timeout=30) as response:
                   assert response.status == 200
                   raw = response.read(bound + 1)
               assert 0 < len(raw) <= bound
               return raw
-          index = json.loads(read('index.json', 2000000))
-          assert index['recipient_id'] == receipt['recipient_id']
-          entry = [x for x in index['entries'] if x['cipher_sha256'] == cipher]
-          assert len(entry) == 1 and entry[0]['kind'] == 'research'
-          raw = read('views/' + cipher + '.json', 90000000)
-          assert hashlib.sha256(raw).hexdigest() == cipher
-          doc = json.loads(raw)
-          assert doc['header']['source_content_sha256'] == entry[0]['source_content_sha256']
-          now = datetime.now(timezone.utc)
-          future = sum(now < datetime.fromisoformat(cutoff) for cutoff in receipt['cutoffs'].values())
-          safe = dict(state='INDEPENDENT_RUNNER_CIPHER_SHA_READBACK_VERIFIED',
-              cipher_sha256=cipher, cipher_bytes=len(raw), archive_commit=commit,
-              observed_at=now.isoformat(), still_pre_cutoff_races=future,
-              registered_comparison_races=len(receipt['cutoffs']),
-              source_pages_requested=0, private_key_used=False, plaintext_decrypted=False,
-              formal_pre_cutoff_original_authenticated=False, accuracy_improvement_proven=False)
-          import os
+
+          def verify(path, kind):
+              receipt = json.loads(path.read_bytes())
+              commit = receipt['publication']['source_commit']
+              cipher = receipt['cipher_sha256']
+              assert len(commit) == 40 and all(c in '0123456789abcdef' for c in commit)
+              assert len(cipher) == 64 and all(c in '0123456789abcdef' for c in cipher)
+              index = json.loads(read(commit, 'index.json', 2000000))
+              assert index['recipient_id'] == receipt['recipient_id']
+              entry = [x for x in index['entries'] if x['cipher_sha256'] == cipher]
+              assert len(entry) == 1 and entry[0]['kind'] == kind
+              raw = read(commit, 'views/' + cipher + '.json', 90000000)
+              assert hashlib.sha256(raw).hexdigest() == cipher
+              doc = json.loads(raw)
+              assert doc['header']['source_content_sha256'] == entry[0]['source_content_sha256']
+              now = datetime.now(timezone.utc)
+              cutoffs = [datetime.fromisoformat(value) for value in receipt['cutoffs'].values()]
+              if kind == 'archive':
+                  assert receipt['schema'] == 'KEIRIN_MAC_PROSPECTIVE_ARCHIVE_RECEIPT_V1'
+                  assert len(cutoffs) == 1
+                  assert not entry[0]['captured_race_ids'] and not entry[0]['priority_window_race_ids']
+                  assert datetime.fromisoformat(receipt['generated_at']) <= datetime.fromisoformat(
+                      entry[0]['created_at']) <= datetime.fromisoformat(receipt['publication']['git_readback_at']) < cutoffs[0]
+              return dict(state='INDEPENDENT_RUNNER_CIPHER_SHA_READBACK_VERIFIED', archive_kind=kind,
+                  cipher_sha256=cipher, cipher_bytes=len(raw), archive_commit=commit,
+                  observed_at=now.isoformat(), still_pre_cutoff_races=sum(now < cutoff for cutoff in cutoffs),
+                  registered_comparison_races=len(cutoffs),
+                  source_pages_requested=0, private_key_used=False, plaintext_decrypted=False,
+                  formal_pre_cutoff_original_authenticated=False, accuracy_improvement_proven=False)
+
+          paths = (
+              ('docs/evidence/keirin-live-accuracy-closure-20261125/prospective-publication.json', 'research'),
+              ('docs/evidence/keirin-mac-live-20261126/first-cutoff-research-publication.json', 'archive'),
+          )
           with open(os.environ['GITHUB_STEP_SUMMARY'], 'a') as report:
-              report.write(json.dumps(safe, sort_keys=True) + '\n')
-          print(json.dumps(safe, sort_keys=True))
+              for path, kind in paths:
+                  if Path(path).exists():
+                      safe = json.dumps(verify(Path(path), kind), sort_keys=True)
+                      report.write(safe + '\n')
+                      print(safe)
           PY
