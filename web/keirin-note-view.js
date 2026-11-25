@@ -358,7 +358,8 @@
       ['S',num(rider.S)],['H',num(rider.H)],['B',num(rider.B)]];
     const recent=Array.isArray(rider.recent_meets)?rider.recent_meets:Array.isArray(rider.recent_meetings)?rider.recent_meetings:Object.values(rider.recent_meetings||{});
     const forecast=jointRiderForecast(row,number);
-    $('kn-rider-facts').innerHTML=forecast.html+(forecast.admitted?comparisonRiderFacts(row,rider):'')+'<h3>保存した出走表の掲載値</h3><dl class="kn-rider-stats kn-rider-source-stats">'+stats.map(([label,value])=>'<div><dt>'+label+'</dt><dd>'+value+'</dd></div>').join('')+'</dl>'+
+    const history=window.RaceKeirinRiderHistory?.render(row,number)||'<p class="kn-small">長期・直近の着順履歴は未取得です。</p>';
+    $('kn-rider-facts').innerHTML=forecast.html+(forecast.admitted?comparisonRiderFacts(row,rider):'')+'<h3>保存した出走表の掲載値</h3><dl class="kn-rider-stats kn-rider-source-stats">'+stats.map(([label,value])=>'<div><dt>'+label+'</dt><dd>'+value+'</dd></div>').join('')+'</dl>'+history+
       '<p class="kn-small">成績の集計期間：'+esc(row.raw.source_data_period||'掲載資料の期間未確認')+'。掲載率と今回の予測確率は別の値です。</p>'+
       '<details class="kn-details"><summary>コメント・近況・出典</summary><p>コメント：'+esc(rider.comment||'未取得')+'</p><p>近況：'+esc(recent.filter(value=>typeof value==='string'&&value).join(' / ')||'未取得')+'</p>'+fieldProvenance(rider)+
       '<p class="kn-small">出走表の取得 '+stamp(row.raw.source_as_of||row.raw.fetched_at)+'<br>'+sourceLink(row.sourceUrl,'掲載した出走表')+'</p></details>'+
