@@ -44,5 +44,32 @@ class OpponentFormTests(unittest.TestCase):
             book.observe(race, (1, 2, 3, 4, 5))
 
 
+class DynamicHeadToHeadTests(unittest.TestCase):
+    def test_freezes_all_same_day_features_before_observing_the_day(self):
+        day = 900
+        race = (('000001', '000002'), (80, 80), (0, 1), (1, 2))
+        book = study.DynamicHeadToHead()
+        other = study.DynamicHeadToHead()
+        np.testing.assert_array_equal(book.features(day, race[0]), np.zeros((2, 2)))
+        book.observe_day(day, [race, race])
+        other.observe_day(day, [race])
+        np.testing.assert_allclose(book.features(day + 1, race[0]), other.features(day + 1, race[0]))
+        np.testing.assert_allclose(book.features(day + 60, race[0])[:, 0], [0.06, -0.06])
+        with self.assertRaisesRegex(ValueError, 'earlier days'):
+            book.features(day, race[0])
+        with self.assertRaisesRegex(ValueError, 'increasing'):
+            book.observe_day(day, [race])
+
+    def test_missing_identity_and_single_line_have_no_cross_line_comparisons(self):
+        book = study.DynamicHeadToHead()
+        entries = ('000001', '000002', None)
+        book.observe_day(20, [(entries, (80, 80, 90), (0, 0, 1), (2, 3, 1))])
+        observed = book.features(21, entries)
+        self.assertGreater(observed[0, 0], 0)
+        self.assertLess(observed[1, 0], 0)
+        np.testing.assert_array_equal(observed[:, 1], np.zeros(3))
+        np.testing.assert_array_equal(observed[2], np.zeros(2))
+
+
 if __name__ == '__main__':
     unittest.main()

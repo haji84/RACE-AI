@@ -94,3 +94,68 @@ class OpponentForm:
                 result[index,column:column+n] = rates[selected].sum(axis=0)/(seen+shrinkage)
                 result[index,column+n:column+2*n] = seen/(seen+shrinkage)
         return result
+
+
+class DynamicHeadToHead:
+    """Research ratings from full orders, with each day learned simultaneously."""
+
+    def __init__(self):
+        self.last_day = None
+        self.ratings = {}
+
+    def _before_day(self, registration, day):
+        if registration not in self.ratings:
+            return np.zeros(2), False
+        recorded_day, deviation, has_cross_line_history = self.ratings[registration]
+        return deviation * np.exp2((recorded_day - day) / 60), has_cross_line_history
+
+    def features(self, day, registrations):
+        if self.last_day is not None and day <= self.last_day:
+            raise ValueError('Forecast history must end on earlier days.')
+        snapshot = [self._before_day(registration, day) for registration in registrations]
+        return np.array([[rate[0], rate[1] - rate[0] if cross else 0.]
+                         for rate, cross in snapshot]).reshape(-1, 2)
+
+    def observe_day(self, day, races):
+        """Update from (registrations, competition points, line groups, finishing places).
+
+        Unknown line memberships use -1. The result for one race can only affect
+        ratings supplied on a subsequent JST day.
+        """
+        if self.last_day is not None and day <= self.last_day:
+            raise ValueError('Observations require increasing dates.')
+        shifts = defaultdict(lambda: (np.zeros(2), np.zeros(2)))
+        for registrations, points, groups, places in races:
+            if not len(registrations) == len(points) == len(groups) == len(places):
+                raise ValueError('Mismatched observed field lengths.')
+            known_identities = [r for r in registrations if r]
+            if len(set(known_identities)) != len(known_identities) or len(set(places)) != len(places):
+                raise ValueError('Duplicate registration or placing.')
+            if not registrations:
+                continue
+            points = np.array([value or 0 for value in points], dtype=float)
+            groups = np.asarray(groups)
+            places = np.asarray(places)
+            known = np.array([bool(r) for r in registrations]) & np.isfinite(points) & (points > 0)
+            same_field = known[:, None] & known[None, :] & ~np.eye(len(points), dtype=bool)
+            cross = same_field & (groups[:, None] >= 0) & (groups[None, :] >= 0) & (groups[:, None] != groups[None, :])
+            previous = np.array([self._before_day(reg, day)[0] for reg in registrations])
+            points = np.where(known, points, 0)
+            offset = (points[:, None] - points[None, :]) / 6
+            earlier_finish = places[:, None] < places[None, :]
+            for column, eligible in enumerate((same_field, cross)):
+                deviation = previous[:, column]
+                expected = expit(offset + deviation[:, None] - deviation[None, :])
+                samples = eligible.sum(1)
+                errors = (earlier_finish - expected) * eligible
+                mean = np.divide(errors.sum(1), samples, out=np.zeros(len(points)), where=samples > 0)
+                for reg, count, error in zip(registrations, samples, mean, strict=True):
+                    if count:
+                        total, starts = shifts[reg]
+                        total[column] += error
+                        starts[column] += 1
+        for reg, (total, starts) in shifts.items():
+            prior, cross = self._before_day(reg, day)
+            step = np.divide(total, starts, out=np.zeros_like(total), where=starts > 0)
+            self.ratings[reg] = (day, prior + .24 * step, cross or starts[1] > 0)
+        self.last_day = day

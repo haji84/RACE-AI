@@ -1,0 +1,2486 @@
+{
+  "historical_and_current": {
+    "trio": {
+      "authority": "Private research comparing the identical race rows and 1/4/8 budget on each candidate. Earliest archive chronological, not prospective. Nov21–24 current model full-distribution replay. True today forward separate.",
+      "diagnosis": {
+        "respected_conditional_order_max_probability_difference": 6.106226635438361e-16,
+        "n": 287,
+        "negative_log_loss": [
+          [
+            2.7055460645823586,
+            4.146795069902875
+          ],
+          [
+            2.712532051495046,
+            4.153781056815562
+          ]
+        ],
+        "log_loss_columns": [
+          "truth_unordered_set",
+          "truth_ordered"
+        ],
+        "exact_order_was_highest_if_true_set_known_post_hoc": 124,
+        "published_budget_transitions": {
+          "set_missing=>set_missing": 156,
+          "hit=>hit": 86,
+          "set_missing=>correct_set_wrong_order": 3,
+          "hit=>correct_set_wrong_order": 3,
+          "correct_set_wrong_order=>correct_set_wrong_order": 24,
+          "hit=>set_missing": 4,
+          "set_missing=>hit": 4,
+          "correct_set_wrong_order=>set_missing": 5,
+          "correct_set_wrong_order=>hit": 2
+        },
+        "published_budget_changed_transitions": {
+          "hit=>hit": 29,
+          "set_missing=>set_missing": 61,
+          "set_missing=>correct_set_wrong_order": 3,
+          "hit=>correct_set_wrong_order": 3,
+          "correct_set_wrong_order=>correct_set_wrong_order": 8,
+          "hit=>set_missing": 4,
+          "set_missing=>hit": 4,
+          "correct_set_wrong_order=>set_missing": 5,
+          "correct_set_wrong_order=>hit": 2
+        }
+      },
+      "same_set_diagnostic": {
+        "races": 287,
+        "posthoc_diagnostic": "Correct 3-rider set supplied after outcome only; compare each conditional exact order within 6 permutations. The forecast model did not observe this input.",
+        "conditioned_order_rank_histogram": {
+          "1": 124,
+          "2": 65,
+          "3": 38,
+          "4": 37,
+          "5": 16,
+          "6": 7
+        },
+        "covered_with_correct_set_given": {
+          "1": 124,
+          "2": 189,
+          "3": 227,
+          "4": 264,
+          "5": 280,
+          "6": 287
+        },
+        "needed_for_95": 273,
+        "remaining_with_perfect_set_given_and_top4_orders": 9
+      },
+      "archival_baseline": {
+        "1": {
+          "exact_3t": [
+            1248,
+            1269
+          ],
+          "unordered_3": [
+            2799,
+            2799
+          ],
+          "ordered_pair": [
+            2710,
+            2722
+          ],
+          "winner": [
+            5217,
+            5243
+          ],
+          "unique_sets": [
+            12234,
+            12234
+          ],
+          "exact_3t_new": 83,
+          "exact_3t_lost": 62,
+          "unordered_3_new": 165,
+          "unordered_3_lost": 165,
+          "ordered_pair_new": 73,
+          "ordered_pair_lost": 61,
+          "winner_new": 124,
+          "winner_lost": 98,
+          "size": 12234,
+          "days": 175,
+          "date": [
+            "20260524",
+            "20261120"
+          ],
+          "need_95": 11623,
+          "paired_95ci_day_exact_change": [
+            -0.024489995900368964,
+            0.3714615732712579
+          ]
+        },
+        "4": {
+          "exact_3t": [
+            3234,
+            3272
+          ],
+          "unordered_3": [
+            5260,
+            5129
+          ],
+          "ordered_pair": [
+            4946,
+            5154
+          ],
+          "winner": [
+            7768,
+            8101
+          ],
+          "unique_sets": [
+            33982,
+            32270
+          ],
+          "exact_3t_new": 210,
+          "exact_3t_lost": 172,
+          "unordered_3_new": 161,
+          "unordered_3_lost": 292,
+          "ordered_pair_new": 328,
+          "ordered_pair_lost": 120,
+          "winner_new": 407,
+          "winner_lost": 74,
+          "size": 12234,
+          "days": 175,
+          "date": [
+            "20260524",
+            "20261120"
+          ],
+          "need_95": 11623,
+          "paired_95ci_day_exact_change": [
+            -0.016404974593374283,
+            0.6162347282337148
+          ]
+        },
+        "8": {
+          "exact_3t": [
+            4583,
+            4634
+          ],
+          "unordered_3": [
+            6798,
+            6740
+          ],
+          "ordered_pair": [
+            6327,
+            6528
+          ],
+          "winner": [
+            9021,
+            9286
+          ],
+          "unique_sets": [
+            56170,
+            54719
+          ],
+          "exact_3t_new": 193,
+          "exact_3t_lost": 142,
+          "unordered_3_new": 155,
+          "unordered_3_lost": 213,
+          "ordered_pair_new": 315,
+          "ordered_pair_lost": 114,
+          "winner_new": 329,
+          "winner_lost": 64,
+          "size": 12234,
+          "days": 175,
+          "date": [
+            "20260524",
+            "20261120"
+          ],
+          "need_95": 11623,
+          "paired_95ci_day_exact_change": [
+            0.14672954379410558,
+            0.6714352401228536
+          ]
+        }
+      },
+      "archival_pre_cutoff_input": {
+        "1": {
+          "exact_3t": [
+            35,
+            35
+          ],
+          "unordered_3": [
+            73,
+            73
+          ],
+          "ordered_pair": [
+            61,
+            62
+          ],
+          "winner": [
+            117,
+            116
+          ],
+          "unique_sets": [
+            292,
+            292
+          ],
+          "exact_3t_new": 2,
+          "exact_3t_lost": 2,
+          "unordered_3_new": 5,
+          "unordered_3_lost": 5,
+          "ordered_pair_new": 1,
+          "ordered_pair_lost": 0,
+          "winner_new": 2,
+          "winner_lost": 3,
+          "size": 292,
+          "days": 5,
+          "date": [
+            "20261116",
+            "20261120"
+          ],
+          "need_95": 278,
+          "paired_95ci_day_exact_change": [
+            -0.9933774834437086,
+            0.9346524532710283
+          ]
+        },
+        "4": {
+          "exact_3t": [
+            80,
+            80
+          ],
+          "unordered_3": [
+            138,
+            132
+          ],
+          "ordered_pair": [
+            118,
+            121
+          ],
+          "winner": [
+            180,
+            189
+          ],
+          "unique_sets": [
+            820,
+            766
+          ],
+          "exact_3t_new": 4,
+          "exact_3t_lost": 4,
+          "unordered_3_new": 5,
+          "unordered_3_lost": 11,
+          "ordered_pair_new": 9,
+          "ordered_pair_lost": 6,
+          "winner_new": 10,
+          "winner_lost": 1,
+          "size": 292,
+          "days": 5,
+          "date": [
+            "20261116",
+            "20261120"
+          ],
+          "need_95": 278,
+          "paired_95ci_day_exact_change": [
+            -1.7361111111111112,
+            1.492537313432836
+          ]
+        },
+        "8": {
+          "exact_3t": [
+            111,
+            112
+          ],
+          "unordered_3": [
+            171,
+            175
+          ],
+          "ordered_pair": [
+            151,
+            161
+          ],
+          "winner": [
+            218,
+            233
+          ],
+          "unique_sets": [
+            1393,
+            1341
+          ],
+          "exact_3t_new": 5,
+          "exact_3t_lost": 4,
+          "unordered_3_new": 8,
+          "unordered_3_lost": 4,
+          "ordered_pair_new": 11,
+          "ordered_pair_lost": 1,
+          "winner_new": 17,
+          "winner_lost": 2,
+          "size": 292,
+          "days": 5,
+          "date": [
+            "20261116",
+            "20261120"
+          ],
+          "need_95": 278,
+          "paired_95ci_day_exact_change": [
+            -1.6501650165016502,
+            2.3904382470119523
+          ]
+        }
+      },
+      "related_baseline": {
+        "1": {
+          "exact_3t": [
+            1302,
+            1303
+          ],
+          "unordered_3": [
+            2675,
+            2666
+          ],
+          "ordered_pair": [
+            2660,
+            2663
+          ],
+          "winner": [
+            4951,
+            4936
+          ],
+          "unique_sets": [
+            10867,
+            10867
+          ],
+          "exact_3t_new": 81,
+          "exact_3t_lost": 80,
+          "unordered_3_new": 169,
+          "unordered_3_lost": 178,
+          "ordered_pair_new": 66,
+          "ordered_pair_lost": 63,
+          "winner_new": 94,
+          "winner_lost": 109,
+          "size": 10867,
+          "days": 156,
+          "date": [
+            "20260524",
+            "20261120"
+          ],
+          "need_95": 10324,
+          "paired_95ci_day_exact_change": [
+            -0.2108172947264593,
+            0.22998502198078793
+          ]
+        },
+        "4": {
+          "exact_3t": [
+            3181,
+            3194
+          ],
+          "unordered_3": [
+            4869,
+            4746
+          ],
+          "ordered_pair": [
+            4708,
+            4891
+          ],
+          "winner": [
+            7276,
+            7552
+          ],
+          "unique_sets": [
+            30156,
+            28435
+          ],
+          "exact_3t_new": 165,
+          "exact_3t_lost": 152,
+          "unordered_3_new": 156,
+          "unordered_3_lost": 279,
+          "ordered_pair_new": 267,
+          "ordered_pair_lost": 84,
+          "winner_new": 339,
+          "winner_lost": 63,
+          "size": 10867,
+          "days": 156,
+          "date": [
+            "20260524",
+            "20261120"
+          ],
+          "need_95": 10324,
+          "paired_95ci_day_exact_change": [
+            -0.23105720737436572,
+            0.4679575768766691
+          ]
+        },
+        "8": {
+          "exact_3t": [
+            4451,
+            4467
+          ],
+          "unordered_3": [
+            6352,
+            6264
+          ],
+          "ordered_pair": [
+            5935,
+            6112
+          ],
+          "winner": [
+            8372,
+            8622
+          ],
+          "unique_sets": [
+            49821,
+            48439
+          ],
+          "exact_3t_new": 172,
+          "exact_3t_lost": 156,
+          "unordered_3_new": 129,
+          "unordered_3_lost": 217,
+          "ordered_pair_new": 281,
+          "ordered_pair_lost": 104,
+          "winner_new": 307,
+          "winner_lost": 57,
+          "size": 10867,
+          "days": 156,
+          "date": [
+            "20260524",
+            "20261120"
+          ],
+          "need_95": 10324,
+          "paired_95ci_day_exact_change": [
+            -0.19350394589955539,
+            0.47434722606302887
+          ]
+        }
+      },
+      "older_related_pre_cutoff_input": {
+        "1": {
+          "exact_3t": [
+            43,
+            40
+          ],
+          "unordered_3": [
+            84,
+            79
+          ],
+          "ordered_pair": [
+            77,
+            74
+          ],
+          "winner": [
+            141,
+            138
+          ],
+          "unique_sets": [
+            322,
+            322
+          ],
+          "exact_3t_new": 0,
+          "exact_3t_lost": 3,
+          "unordered_3_new": 3,
+          "unordered_3_lost": 8,
+          "ordered_pair_new": 1,
+          "ordered_pair_lost": 4,
+          "winner_new": 2,
+          "winner_lost": 5,
+          "size": 322,
+          "days": 5,
+          "date": [
+            "20261116",
+            "20261120"
+          ],
+          "need_95": 306,
+          "paired_95ci_day_exact_change": [
+            -1.639344262295082,
+            -0.2949852507374631
+          ]
+        },
+        "4": {
+          "exact_3t": [
+            93,
+            95
+          ],
+          "unordered_3": [
+            144,
+            142
+          ],
+          "ordered_pair": [
+            145,
+            153
+          ],
+          "winner": [
+            228,
+            243
+          ],
+          "unique_sets": [
+            865,
+            793
+          ],
+          "exact_3t_new": 6,
+          "exact_3t_lost": 4,
+          "unordered_3_new": 9,
+          "unordered_3_lost": 11,
+          "ordered_pair_new": 10,
+          "ordered_pair_lost": 2,
+          "winner_new": 16,
+          "winner_lost": 1,
+          "size": 322,
+          "days": 5,
+          "date": [
+            "20261116",
+            "20261120"
+          ],
+          "need_95": 306,
+          "paired_95ci_day_exact_change": [
+            -1.1594202898550725,
+            2.6755852842809364
+          ]
+        },
+        "8": {
+          "exact_3t": [
+            124,
+            129
+          ],
+          "unordered_3": [
+            188,
+            186
+          ],
+          "ordered_pair": [
+            177,
+            186
+          ],
+          "winner": [
+            263,
+            272
+          ],
+          "unique_sets": [
+            1500,
+            1425
+          ],
+          "exact_3t_new": 9,
+          "exact_3t_lost": 4,
+          "unordered_3_new": 7,
+          "unordered_3_lost": 9,
+          "ordered_pair_new": 12,
+          "ordered_pair_lost": 3,
+          "winner_new": 9,
+          "winner_lost": 0,
+          "size": 322,
+          "days": 5,
+          "date": [
+            "20261116",
+            "20261120"
+          ],
+          "need_95": 306,
+          "paired_95ci_day_exact_change": [
+            0.7220216606498195,
+            2.3391812865497075
+          ]
+        }
+      },
+      "current": {
+        "1": {
+          "exact_3t": [
+            32,
+            33
+          ],
+          "unordered_3": [
+            63,
+            62
+          ],
+          "ordered_pair": [
+            72,
+            70
+          ],
+          "winner": [
+            131,
+            129
+          ],
+          "unique_sets": [
+            287,
+            287
+          ],
+          "exact_3t_new": 3,
+          "exact_3t_lost": 2,
+          "unordered_3_new": 3,
+          "unordered_3_lost": 4,
+          "ordered_pair_new": 1,
+          "ordered_pair_lost": 3,
+          "winner_new": 3,
+          "winner_lost": 5,
+          "size": 287,
+          "days": 4,
+          "date": [
+            "20261121",
+            "20261124"
+          ],
+          "need_95": 273,
+          "paired_95ci_day_exact_change": [
+            0.0,
+            0.9771986970684039
+          ]
+        },
+        "4": {
+          "exact_3t": [
+            91,
+            90
+          ],
+          "unordered_3": [
+            122,
+            120
+          ],
+          "ordered_pair": [
+            126,
+            131
+          ],
+          "winner": [
+            199,
+            207
+          ],
+          "unique_sets": [
+            769,
+            722
+          ],
+          "exact_3t_new": 6,
+          "exact_3t_lost": 7,
+          "unordered_3_new": 8,
+          "unordered_3_lost": 10,
+          "ordered_pair_new": 7,
+          "ordered_pair_lost": 2,
+          "winner_new": 10,
+          "winner_lost": 2,
+          "size": 287,
+          "days": 4,
+          "date": [
+            "20261121",
+            "20261124"
+          ],
+          "need_95": 273,
+          "paired_95ci_day_exact_change": [
+            -1.2396694214876034,
+            0.0
+          ]
+        },
+        "8": {
+          "exact_3t": [
+            127,
+            123
+          ],
+          "unordered_3": [
+            161,
+            159
+          ],
+          "ordered_pair": [
+            160,
+            162
+          ],
+          "winner": [
+            222,
+            226
+          ],
+          "unique_sets": [
+            1290,
+            1225
+          ],
+          "exact_3t_new": 4,
+          "exact_3t_lost": 8,
+          "unordered_3_new": 2,
+          "unordered_3_lost": 4,
+          "ordered_pair_new": 7,
+          "ordered_pair_lost": 5,
+          "winner_new": 7,
+          "winner_lost": 3,
+          "size": 287,
+          "days": 4,
+          "date": [
+            "20261121",
+            "20261124"
+          ],
+          "need_95": 273,
+          "paired_95ci_day_exact_change": [
+            -3.2679738562091503,
+            1.7467248908296944
+          ]
+        },
+        "displayed": {
+          "exact_3t": [
+            93,
+            92
+          ],
+          "unordered_3": [
+            124,
+            122
+          ],
+          "ordered_pair": [
+            128,
+            133
+          ],
+          "winner": [
+            201,
+            209
+          ],
+          "unique_sets": [
+            804,
+            756
+          ],
+          "exact_3t_new": 6,
+          "exact_3t_lost": 7,
+          "unordered_3_new": 7,
+          "unordered_3_lost": 9,
+          "ordered_pair_new": 7,
+          "ordered_pair_lost": 2,
+          "winner_new": 10,
+          "winner_lost": 2,
+          "size": 287,
+          "days": 4,
+          "date": [
+            "20261121",
+            "20261124"
+          ],
+          "need_95": 273,
+          "paired_95ci_day_exact_change": [
+            -1.2396694214876034,
+            0.0
+          ]
+        }
+      },
+      "fit": {
+        "fit_rows": 14469,
+        "rolling_training_rows": 51056,
+        "n_cross_payout_where_stored": 3252,
+        "through": "20260523",
+        "coefficients": [
+          -0.2431236711898148,
+          0.08104006958421933,
+          -0.2622383582985946,
+          0.07879122230274052,
+          -0.009706789087744942,
+          1.6536427995795437,
+          0.18512132468816264
+        ],
+        "feature_residual_scale": [
+          0.10080774532640073,
+          0.3024277819219387,
+          0.10312191125908135,
+          0.27568329009869597,
+          0.20566381864119512,
+          0.10493662860885936,
+          0.18905383539578677
+        ],
+        "feature_names": [
+          "same_line",
+          "two_lines",
+          "all_heads",
+          "two_heads_two_lines",
+          "two_heads_three_lines",
+          "line_first_three",
+          "represented_heads_included"
+        ],
+        "training_objective": [
+          -5.785528789600995e-18,
+          -0.017727246677256663
+        ],
+        "design_sha256": "5a6888f00c5b85998c7389e8113b4fb6f984e47cc9b535208f7acc1869651671",
+        "archive_sha256": "5a2235b92a872a7938d47b6e2cc09174d71b3276e5eff9c03f37861fd0e5d768"
+      },
+      "forward": {
+        "registered": 28,
+        "applicable": 7,
+        "earliest": "2026-11-25T19:03:00+09:00",
+        "latest": "2026-11-25T23:25:00+09:00",
+        "frozen_at": "2026-11-25T10:00:28.821909+00:00",
+        "forecast_sha256": "51e753cf10648646d5af3c88b017fdc55980323a7e1cae010aa975f004cb88e6",
+        "fit_sha256": "24615799a9d970fe0eb4fc50c6dd56e3f6cdab97f0af1471f4aa315ec24e3dd3",
+        "published_sha256": "51a98f0a048d4831eeb8c85533e28f789b17dc55ca59a7cb0cf0c920d7e4eb9e",
+        "design_sha256": "5a6888f00c5b85998c7389e8113b4fb6f984e47cc9b535208f7acc1869651671",
+        "changed_at_published_caps": 1,
+        "github_timestamp_proof": "c74254f43",
+        "only_cutoff_with_changed_displayed_set": "2026-11-25T19:56:00+09:00"
+      },
+      "source_digests": {
+        "design.json": "5a6888f00c5b85998c7389e8113b4fb6f984e47cc9b535208f7acc1869651671",
+        "fit.json": "24615799a9d970fe0eb4fc50c6dd56e3f6cdab97f0af1471f4aa315ec24e3dd3",
+        "results.json": "ee53f67589fa110dc9644d20fd26d8f3669f17c15d512f0f4f4154f8feed98a7",
+        "transfer-results.json": "71776e91fca3e47c4452e4a367ab663e6d5e26e3a1ad437c1ff77ed8ebb7e032",
+        "diagnostics.json": "34f8f01563a6708b159000ec3871f4b11d75bb373c491d473288f83d900f4d9c",
+        "known-set-order-diagnostic.json": "e309c337b890fec6da40fa5ac098c9e147ff88edae99c6445f449252acaa86db",
+        "forward-freeze.json": "f1cb2152a5b086af6ef6ac0dd20702a2b20e755d1c79fd7773c5f1d73a6a03b9",
+        "trial.py": "2f42de2b84063ddddd902dbc2373401d7bca2fb0203dcc2acfb8b73747e4b3f7",
+        "scoring.py": "14af76fe139ea849956a63f5d3cc0a42ab681e29395e46a494390b84f2497e14",
+        "transfer.py": "d84844a71d84ae49466f83363ba13ec0a31df1b6253e158f14033ec69e5f625d",
+        "transfer_score.py": "516fcc2c96b42f8ba157ce145994cac4bdf410e25607100a8a29c54db9995bdb",
+        "diagnose.py": "59c93fa76b222148eb85e1f476ff12decd5c218cb31ca9f6f9da94580675e97e"
+      }
+    },
+    "dynamic_head_to_head": {
+      "historic": {
+        "races": 12234,
+        "days": 175,
+        "scores": {
+          "1": {
+            "base": 1248,
+            "candidate": 1283,
+            "gained": 100,
+            "lost": 65,
+            "pct_ci95": [
+              0.08184880972722228,
+              0.4899429594100804
+            ],
+            "winner": [
+              5217,
+              5280
+            ],
+            "pair": [
+              2710,
+              2738
+            ]
+          },
+          "4": {
+            "base": 3234,
+            "candidate": 3236,
+            "gained": 153,
+            "lost": 151,
+            "pct_ci95": [
+              -0.27618588750511,
+              0.3000392523052784
+            ],
+            "winner": [
+              7768,
+              7778
+            ],
+            "pair": [
+              4946,
+              4963
+            ]
+          },
+          "8": {
+            "base": 4583,
+            "candidate": 4635,
+            "gained": 211,
+            "lost": 159,
+            "pct_ci95": [
+              0.12478137265773917,
+              0.7312569256234146
+            ],
+            "winner": [
+              9021,
+              9063
+            ],
+            "pair": [
+              6327,
+              6375
+            ]
+          }
+        }
+      },
+      "current": {
+        "races": 287,
+        "days": 4,
+        "scores": {
+          "1": {
+            "base": 32,
+            "candidate": 31,
+            "gained": 1,
+            "lost": 2,
+            "pct_ci95": [
+              -1.3937282229965158,
+              0.8733624454148472
+            ],
+            "winner": [
+              131,
+              126
+            ],
+            "pair": [
+              72,
+              69
+            ]
+          },
+          "4": {
+            "base": 91,
+            "candidate": 91,
+            "gained": 2,
+            "lost": 2,
+            "pct_ci95": [
+              -1.0452961672473868,
+              0.9202453987730062
+            ],
+            "winner": [
+              199,
+              199
+            ],
+            "pair": [
+              126,
+              127
+            ]
+          },
+          "8": {
+            "base": 127,
+            "candidate": 127,
+            "gained": 5,
+            "lost": 5,
+            "pct_ci95": [
+              -2.4390243902439024,
+              2.2388059701492535
+            ],
+            "winner": [
+              222,
+              222
+            ],
+            "pair": [
+              160,
+              159
+            ]
+          },
+          "displayed": {
+            "base": 93,
+            "candidate": 93,
+            "gained": 2,
+            "lost": 2,
+            "pct_ci95": [
+              -1.0452961672473868,
+              0.9202453987730062
+            ],
+            "winner": [
+              201,
+              200
+            ],
+            "pair": [
+              128,
+              129
+            ]
+          }
+        }
+      },
+      "current_with_matching_features": 276,
+      "features_model_receipt": {
+        "source": {
+          "scope_jst": [
+            "20231124",
+            "20261123"
+          ],
+          "month_counts": {
+            "202311": {
+              "races": 483,
+              "starts": 3422,
+              "registered_starts": 3072,
+              "phase_s": 0,
+              "phase_h": 0,
+              "phase_b": 0,
+              "valid_lines": 0,
+              "lines_and_back": 0,
+              "dated_pre_cutoff": 0,
+              "known_finish_method": 966,
+              "field_with_known_points": 483,
+              "incomplete_finished_field": 44
+            },
+            "202312": {
+              "races": 2143,
+              "starts": 15186,
+              "registered_starts": 13516,
+              "phase_s": 0,
+              "phase_h": 0,
+              "phase_b": 0,
+              "valid_lines": 0,
+              "lines_and_back": 0,
+              "dated_pre_cutoff": 0,
+              "known_finish_method": 4286,
+              "field_with_known_points": 2143,
+              "incomplete_finished_field": 164
+            },
+            "202401": {
+              "races": 2090,
+              "starts": 14719,
+              "registered_starts": 13359,
+              "phase_s": 1,
+              "phase_h": 1,
+              "phase_b": 1,
+              "valid_lines": 1,
+              "lines_and_back": 1,
+              "dated_pre_cutoff": 0,
+              "known_finish_method": 4180,
+              "field_with_known_points": 2090,
+              "incomplete_finished_field": 193
+            },
+            "202402": {
+              "races": 1987,
+              "starts": 14096,
+              "registered_starts": 12758,
+              "phase_s": 1,
+              "phase_h": 1,
+              "phase_b": 1,
+              "valid_lines": 1,
+              "lines_and_back": 1,
+              "dated_pre_cutoff": 0,
+              "known_finish_method": 3974,
+              "field_with_known_points": 1987,
+              "incomplete_finished_field": 201
+            },
+            "202403": {
+              "races": 2118,
+              "starts": 15054,
+              "registered_starts": 13657,
+              "phase_s": 0,
+              "phase_h": 1,
+              "phase_b": 1,
+              "valid_lines": 1,
+              "lines_and_back": 1,
+              "dated_pre_cutoff": 0,
+              "known_finish_method": 4236,
+              "field_with_known_points": 2118,
+              "incomplete_finished_field": 180
+            },
+            "202404": {
+              "races": 2111,
+              "starts": 14879,
+              "registered_starts": 13554,
+              "phase_s": 1,
+              "phase_h": 1,
+              "phase_b": 1,
+              "valid_lines": 1,
+              "lines_and_back": 1,
+              "dated_pre_cutoff": 0,
+              "known_finish_method": 4222,
+              "field_with_known_points": 2111,
+              "incomplete_finished_field": 177
+            },
+            "202405": {
+              "races": 2189,
+              "starts": 15441,
+              "registered_starts": 14058,
+              "phase_s": 1,
+              "phase_h": 1,
+              "phase_b": 1,
+              "valid_lines": 1,
+              "lines_and_back": 1,
+              "dated_pre_cutoff": 0,
+              "known_finish_method": 4378,
+              "field_with_known_points": 2168,
+              "incomplete_finished_field": 185
+            },
+            "202406": {
+              "races": 2148,
+              "starts": 15333,
+              "registered_starts": 14006,
+              "phase_s": 0,
+              "phase_h": 0,
+              "phase_b": 0,
+              "valid_lines": 0,
+              "lines_and_back": 0,
+              "dated_pre_cutoff": 0,
+              "known_finish_method": 4296,
+              "field_with_known_points": 2148,
+              "incomplete_finished_field": 169
+            },
+            "202407": {
+              "races": 2271,
+              "starts": 16044,
+              "registered_starts": 14869,
+              "phase_s": 1,
+              "phase_h": 1,
+              "phase_b": 1,
+              "valid_lines": 1,
+              "lines_and_back": 1,
+              "dated_pre_cutoff": 0,
+              "known_finish_method": 4542,
+              "field_with_known_points": 2271,
+              "incomplete_finished_field": 171
+            },
+            "202408": {
+              "races": 2184,
+              "starts": 15434,
+              "registered_starts": 14346,
+              "phase_s": 1,
+              "phase_h": 1,
+              "phase_b": 1,
+              "valid_lines": 1,
+              "lines_and_back": 1,
+              "dated_pre_cutoff": 0,
+              "known_finish_method": 4368,
+              "field_with_known_points": 2184,
+              "incomplete_finished_field": 203
+            },
+            "202409": {
+              "races": 2165,
+              "starts": 15350,
+              "registered_starts": 14304,
+              "phase_s": 0,
+              "phase_h": 0,
+              "phase_b": 0,
+              "valid_lines": 0,
+              "lines_and_back": 0,
+              "dated_pre_cutoff": 0,
+              "known_finish_method": 4330,
+              "field_with_known_points": 2165,
+              "incomplete_finished_field": 166
+            },
+            "202410": {
+              "races": 2185,
+              "starts": 15534,
+              "registered_starts": 14455,
+              "phase_s": 1,
+              "phase_h": 1,
+              "phase_b": 1,
+              "valid_lines": 1,
+              "lines_and_back": 1,
+              "dated_pre_cutoff": 0,
+              "known_finish_method": 4370,
+              "field_with_known_points": 2185,
+              "incomplete_finished_field": 151
+            },
+            "202411": {
+              "races": 2086,
+              "starts": 14834,
+              "registered_starts": 13874,
+              "phase_s": 0,
+              "phase_h": 0,
+              "phase_b": 0,
+              "valid_lines": 0,
+              "lines_and_back": 0,
+              "dated_pre_cutoff": 0,
+              "known_finish_method": 4172,
+              "field_with_known_points": 2086,
+              "incomplete_finished_field": 182
+            },
+            "202412": {
+              "races": 2082,
+              "starts": 14710,
+              "registered_starts": 13722,
+              "phase_s": 1,
+              "phase_h": 1,
+              "phase_b": 1,
+              "valid_lines": 1,
+              "lines_and_back": 1,
+              "dated_pre_cutoff": 0,
+              "known_finish_method": 4164,
+              "field_with_known_points": 2082,
+              "incomplete_finished_field": 177
+            },
+            "202501": {
+              "incomplete_finished_field": 162,
+              "races": 2198,
+              "starts": 15417,
+              "registered_starts": 14613,
+              "phase_s": 0,
+              "phase_h": 0,
+              "phase_b": 0,
+              "valid_lines": 0,
+              "lines_and_back": 0,
+              "dated_pre_cutoff": 0,
+              "known_finish_method": 4396,
+              "field_with_known_points": 2198
+            },
+            "202502": {
+              "races": 1974,
+              "starts": 14002,
+              "registered_starts": 13258,
+              "phase_s": 0,
+              "phase_h": 0,
+              "phase_b": 0,
+              "valid_lines": 0,
+              "lines_and_back": 0,
+              "dated_pre_cutoff": 0,
+              "known_finish_method": 3948,
+              "field_with_known_points": 1974,
+              "incomplete_finished_field": 159
+            },
+            "202503": {
+              "races": 2092,
+              "starts": 15002,
+              "registered_starts": 14233,
+              "phase_s": 1,
+              "phase_h": 1,
+              "phase_b": 1,
+              "valid_lines": 1,
+              "lines_and_back": 1,
+              "dated_pre_cutoff": 0,
+              "known_finish_method": 4184,
+              "field_with_known_points": 2092,
+              "incomplete_finished_field": 200
+            },
+            "202504": {
+              "races": 2010,
+              "starts": 14216,
+              "registered_starts": 13452,
+              "phase_s": 0,
+              "phase_h": 0,
+              "phase_b": 0,
+              "valid_lines": 0,
+              "lines_and_back": 0,
+              "dated_pre_cutoff": 0,
+              "known_finish_method": 4020,
+              "field_with_known_points": 2010,
+              "incomplete_finished_field": 167
+            },
+            "202505": {
+              "races": 2159,
+              "starts": 15287,
+              "registered_starts": 14517,
+              "phase_s": 0,
+              "phase_h": 1,
+              "phase_b": 1,
+              "valid_lines": 1,
+              "lines_and_back": 1,
+              "dated_pre_cutoff": 0,
+              "known_finish_method": 4318,
+              "field_with_known_points": 2138,
+              "incomplete_finished_field": 171
+            },
+            "202506": {
+              "races": 2132,
+              "starts": 15201,
+              "registered_starts": 14353,
+              "phase_s": 1,
+              "phase_h": 1,
+              "phase_b": 1,
+              "valid_lines": 1,
+              "lines_and_back": 1,
+              "dated_pre_cutoff": 0,
+              "known_finish_method": 4264,
+              "field_with_known_points": 2132,
+              "incomplete_finished_field": 162
+            },
+            "202507": {
+              "races": 2255,
+              "starts": 15964,
+              "registered_starts": 15311,
+              "phase_s": 0,
+              "phase_h": 0,
+              "phase_b": 0,
+              "valid_lines": 0,
+              "lines_and_back": 0,
+              "dated_pre_cutoff": 0,
+              "known_finish_method": 4510,
+              "field_with_known_points": 2255,
+              "incomplete_finished_field": 175
+            },
+            "202508": {
+              "races": 2136,
+              "starts": 15195,
+              "registered_starts": 14612,
+              "phase_s": 1,
+              "phase_h": 1,
+              "phase_b": 1,
+              "valid_lines": 1,
+              "lines_and_back": 1,
+              "dated_pre_cutoff": 0,
+              "known_finish_method": 4272,
+              "field_with_known_points": 2136,
+              "incomplete_finished_field": 166
+            },
+            "202509": {
+              "races": 2176,
+              "starts": 15394,
+              "registered_starts": 14745,
+              "phase_s": 1,
+              "phase_h": 1,
+              "phase_b": 1,
+              "valid_lines": 1,
+              "lines_and_back": 1,
+              "dated_pre_cutoff": 0,
+              "known_finish_method": 4352,
+              "field_with_known_points": 2176,
+              "incomplete_finished_field": 172
+            },
+            "202510": {
+              "races": 2117,
+              "starts": 15101,
+              "registered_starts": 14522,
+              "phase_s": 1992,
+              "phase_h": 14,
+              "phase_b": 2117,
+              "valid_lines": 2117,
+              "lines_and_back": 2117,
+              "dated_pre_cutoff": 0,
+              "known_finish_method": 4234,
+              "field_with_known_points": 2117,
+              "incomplete_finished_field": 180
+            },
+            "202511": {
+              "races": 2061,
+              "starts": 14641,
+              "registered_starts": 14096,
+              "phase_s": 1762,
+              "phase_h": 14,
+              "phase_b": 1894,
+              "valid_lines": 1894,
+              "lines_and_back": 1894,
+              "dated_pre_cutoff": 0,
+              "known_finish_method": 4122,
+              "field_with_known_points": 2061,
+              "incomplete_finished_field": 161
+            },
+            "202512": {
+              "races": 2115,
+              "starts": 14951,
+              "registered_starts": 14407,
+              "phase_s": 1970,
+              "phase_h": 15,
+              "phase_b": 2115,
+              "valid_lines": 2115,
+              "lines_and_back": 2115,
+              "dated_pre_cutoff": 0,
+              "known_finish_method": 4230,
+              "field_with_known_points": 2115,
+              "incomplete_finished_field": 132
+            },
+            "202601": {
+              "races": 2142,
+              "starts": 15257,
+              "registered_starts": 14910,
+              "phase_s": 2007,
+              "phase_h": 16,
+              "phase_b": 2142,
+              "valid_lines": 2142,
+              "lines_and_back": 2142,
+              "dated_pre_cutoff": 0,
+              "known_finish_method": 4284,
+              "field_with_known_points": 2142,
+              "incomplete_finished_field": 163
+            },
+            "202602": {
+              "races": 1979,
+              "starts": 14019,
+              "registered_starts": 13689,
+              "phase_s": 1847,
+              "phase_h": 12,
+              "phase_b": 1979,
+              "valid_lines": 1979,
+              "lines_and_back": 1979,
+              "dated_pre_cutoff": 0,
+              "known_finish_method": 3958,
+              "field_with_known_points": 1979,
+              "incomplete_finished_field": 179
+            },
+            "202603": {
+              "races": 2045,
+              "starts": 14612,
+              "registered_starts": 14318,
+              "phase_s": 1939,
+              "phase_h": 18,
+              "phase_b": 2045,
+              "valid_lines": 2045,
+              "lines_and_back": 2045,
+              "dated_pre_cutoff": 0,
+              "known_finish_method": 4079,
+              "field_with_known_points": 2045,
+              "incomplete_finished_field": 229
+            },
+            "202604": {
+              "races": 2171,
+              "starts": 15311,
+              "registered_starts": 15051,
+              "phase_s": 2050,
+              "phase_h": 17,
+              "phase_b": 2171,
+              "valid_lines": 2171,
+              "lines_and_back": 2171,
+              "dated_pre_cutoff": 0,
+              "known_finish_method": 4176,
+              "field_with_known_points": 2171,
+              "incomplete_finished_field": 170
+            },
+            "202605": {
+              "incomplete_finished_field": 177,
+              "races": 2135,
+              "starts": 15146,
+              "registered_starts": 14884,
+              "phase_s": 2039,
+              "phase_h": 15,
+              "phase_b": 2135,
+              "valid_lines": 2116,
+              "lines_and_back": 2116,
+              "dated_pre_cutoff": 0,
+              "known_finish_method": 3087,
+              "field_with_known_points": 2116
+            },
+            "202606": {
+              "incomplete_finished_field": 180,
+              "races": 2094,
+              "starts": 14865,
+              "registered_starts": 14638,
+              "phase_s": 1959,
+              "phase_h": 15,
+              "phase_b": 2094,
+              "valid_lines": 2094,
+              "lines_and_back": 2094,
+              "dated_pre_cutoff": 0,
+              "known_finish_method": 2509,
+              "field_with_known_points": 2094
+            },
+            "202607": {
+              "races": 2249,
+              "starts": 15903,
+              "registered_starts": 15845,
+              "phase_s": 2117,
+              "phase_h": 18,
+              "phase_b": 2249,
+              "valid_lines": 2249,
+              "lines_and_back": 2249,
+              "dated_pre_cutoff": 0,
+              "known_finish_method": 3293,
+              "field_with_known_points": 2249,
+              "incomplete_finished_field": 167
+            },
+            "202608": {
+              "races": 2170,
+              "starts": 15458,
+              "registered_starts": 15417,
+              "phase_s": 2057,
+              "phase_h": 18,
+              "phase_b": 2168,
+              "valid_lines": 1831,
+              "lines_and_back": 1831,
+              "dated_pre_cutoff": 0,
+              "known_finish_method": 3592,
+              "field_with_known_points": 2170,
+              "incomplete_finished_field": 182
+            },
+            "202609": {
+              "races": 2025,
+              "starts": 14373,
+              "registered_starts": 14368,
+              "phase_s": 1929,
+              "phase_h": 19,
+              "phase_b": 2025,
+              "valid_lines": 997,
+              "lines_and_back": 997,
+              "dated_pre_cutoff": 0,
+              "known_finish_method": 2047,
+              "field_with_known_points": 2025,
+              "incomplete_finished_field": 240
+            },
+            "202610": {
+              "races": 1733,
+              "starts": 12302,
+              "registered_starts": 12302,
+              "phase_s": 1683,
+              "phase_h": 23,
+              "phase_b": 1733,
+              "valid_lines": 1733,
+              "lines_and_back": 1733,
+              "dated_pre_cutoff": 0,
+              "known_finish_method": 1733,
+              "field_with_known_points": 1733,
+              "incomplete_finished_field": 207
+            },
+            "202611": {
+              "races": 1595,
+              "starts": 11385,
+              "registered_starts": 11385,
+              "phase_s": 1527,
+              "phase_h": 22,
+              "phase_b": 1595,
+              "valid_lines": 1595,
+              "lines_and_back": 1595,
+              "dated_pre_cutoff": 516,
+              "known_finish_method": 1677,
+              "field_with_known_points": 1595,
+              "incomplete_finished_field": 219,
+              "timed_field_mismatch": 2
+            }
+          },
+          "accepted_races": 76005,
+          "programme_sha256": "afd1a3814c92b6172d17c5d02ce7a261945372ea945352c933c6e6ebc498db01",
+          "outcomes_sha256": "68d4c89c5630e3254f9265a5abc7d32acd73af29fa8ed76fa9de983014b20449",
+          "monthly_inventory": 80388,
+          "calendar_blocks": [
+            "20240524",
+            "20241124",
+            "20250524",
+            "20251124",
+            "20260524",
+            "20261124"
+          ],
+          "accepted_days": 1090,
+          "previously_verified_official_checkpoints_merged": {
+            "excluded_roster_mismatch": 23,
+            "added_s": 12,
+            "added_early_s": 12,
+            "added_h": 14,
+            "added_early_h": 14,
+            "added_b": 14,
+            "added_early_b": 14,
+            "added_planned_line": 14
+          },
+          "last_day": {
+            "date": "20261123",
+            "source_listing": "https://keirin.kdreams.jp/raceresult/2026/11/23/",
+            "date_index_races": 89,
+            "versioned_programmes": 88,
+            "readable_valid_results": {
+              "races": 82,
+              "dated_pre_cutoff": 82,
+              "starts": 588,
+              "registered_starts": 588,
+              "valid_lines": 82,
+              "phase_s": 75,
+              "phase_h": 0,
+              "phase_b": 82,
+              "lines_and_back": 82,
+              "known_finish_method": 164,
+              "field_with_known_points": 82
+            },
+            "exclusion_counts": {
+              "no_verified_paid_order": 2,
+              "special_result": 4
+            },
+            "listing_races_without_dated_programme": 1,
+            "source_binding_receipt_sha256": "1709c8e014f6a18d47dc0b3a71d95efde32b2b76176f45686c41f05d76cfaf8a"
+          },
+          "previous_source_audit_sha256": "9266d47e01e726ce5431bc45efdf8282530254861277e659be3985e706eef9f7"
+        },
+        "registered_riders": 2405,
+        "games": 76005,
+        "last_historical_day": "20261123",
+        "saved_features_sha256": "73569127b792db5291ca4c05173ee35dd81d4015c75421da6a1003dd91593436",
+        "recent-proof": "6675a576ecc53f362cfda3201ea686c7a58a9c740a5f46583c8a9353db618389"
+      },
+      "fit": {
+        "weight": [
+          [
+            0.9063999787819096,
+            -0.041557044398037826
+          ],
+          [
+            0.6271077481215149,
+            -0.010364574558436184
+          ],
+          [
+            0.4124925528929014,
+            -0.026758081601795936
+          ]
+        ],
+        "training_rows": 51056,
+        "training_end": "20260523",
+        "design_sha256": "9fb61f74f1c420871b0dfc7c57d46334c620c56b5e7363cc692dc2aca9db2bb8"
+      }
+    },
+    "fixed_budget_loss": {
+      "historical": {
+        "n": 12234,
+        "days": 175,
+        "scores": {
+          "1": {
+            "before": 1248,
+            "after": 1165,
+            "gained": 160,
+            "lost": 243,
+            "pair": [
+              2710,
+              2430
+            ],
+            "winner": [
+              5217,
+              5099
+            ],
+            "pp_ci95": [
+              -1.0006048958021172,
+              -0.36191377881323467
+            ]
+          },
+          "4": {
+            "before": 3234,
+            "after": 2910,
+            "gained": 424,
+            "lost": 748,
+            "pair": [
+              4946,
+              5510
+            ],
+            "winner": [
+              7768,
+              8449
+            ],
+            "pp_ci95": [
+              -3.1963242462300525,
+              -2.0692801749702654
+            ]
+          },
+          "8": {
+            "before": 4583,
+            "after": 4113,
+            "gained": 553,
+            "lost": 1023,
+            "pair": [
+              6327,
+              7380
+            ],
+            "winner": [
+              9021,
+              9959
+            ],
+            "pp_ci95": [
+              -4.480776952711516,
+              -3.245934154090955
+            ]
+          }
+        }
+      },
+      "current": {
+        "n": 287,
+        "days": 4,
+        "scores": {
+          "1": {
+            "before": 32,
+            "after": 34,
+            "gained": 4,
+            "lost": 2,
+            "pair": [
+              72,
+              64
+            ],
+            "winner": [
+              131,
+              121
+            ],
+            "pp_ci95": [
+              -0.6535947712418301,
+              2.8925619834710745
+            ]
+          },
+          "4": {
+            "before": 91,
+            "after": 69,
+            "gained": 12,
+            "lost": 34,
+            "pair": [
+              126,
+              135
+            ],
+            "winner": [
+              199,
+              208
+            ],
+            "pp_ci95": [
+              -11.983471074380166,
+              -4.57516339869281
+            ]
+          },
+          "8": {
+            "before": 127,
+            "after": 104,
+            "gained": 7,
+            "lost": 30,
+            "pair": [
+              160,
+              172
+            ],
+            "winner": [
+              222,
+              247
+            ],
+            "pp_ci95": [
+              -11.726384364820847,
+              -5.098039215686274
+            ]
+          },
+          "published": {
+            "before": 93,
+            "after": 74,
+            "gained": 12,
+            "lost": 31,
+            "pair": [
+              128,
+              138
+            ],
+            "winner": [
+              201,
+              209
+            ],
+            "pp_ci95": [
+              -10.743801652892563,
+              -4.57516339869281
+            ]
+          }
+        }
+      },
+      "current_empirical_95_coverage": {
+        "required_races": 273,
+        "old_points": 120,
+        "new_points": 146
+      }
+    },
+    "weather_airport": {
+      "historic_RJTT": {
+        "1": {
+          "n": 111,
+          "days": 11,
+          "old": 13,
+          "new": 9,
+          "gains": 2,
+          "losses": 6,
+          "delta95pp": [
+            -7.017543859649122,
+            0.8928571428571429
+          ]
+        },
+        "4": {
+          "n": 111,
+          "days": 11,
+          "old": 28,
+          "new": 26,
+          "gains": 4,
+          "losses": 6,
+          "delta95pp": [
+            -6.863590263691683,
+            2.913335237007427
+          ]
+        },
+        "8": {
+          "n": 111,
+          "days": 11,
+          "old": 40,
+          "new": 43,
+          "gains": 6,
+          "losses": 3,
+          "delta95pp": [
+            -3.2793659395745833,
+            8.411214953271028
+          ]
+        }
+      },
+      "recent_all": {
+        "1": {
+          "n": 287,
+          "days": 4,
+          "old": 32,
+          "new": 31,
+          "gains": 0,
+          "losses": 1,
+          "delta95pp": [
+            -0.9230769230769231,
+            0.0
+          ]
+        },
+        "4": {
+          "n": 287,
+          "days": 4,
+          "old": 91,
+          "new": 90,
+          "gains": 0,
+          "losses": 1,
+          "delta95pp": [
+            -0.9230769230769231,
+            0.0
+          ]
+        },
+        "8": {
+          "n": 287,
+          "days": 4,
+          "old": 127,
+          "new": 125,
+          "gains": 0,
+          "losses": 2,
+          "delta95pp": [
+            -1.8461538461538463,
+            0.0
+          ]
+        },
+        "shown": {
+          "n": 287,
+          "days": 4,
+          "old": 93,
+          "new": 92,
+          "gains": 0,
+          "losses": 1,
+          "delta95pp": [
+            -0.9230769230769231,
+            0.0
+          ]
+        }
+      },
+      "coverage": {
+        "counts": {
+          "train": {
+            "all_rolling": 2445,
+            "no_valid_wind_or_location": 995,
+            "no_multirider_line": 1394,
+            "schedule_registration_mismatch": 12,
+            "eligible": 44,
+            "schedule_was_preserved_before_cutoff": 0
+          },
+          "test": {
+            "all_rolling": 3131,
+            "no_multirider_line": 271,
+            "no_valid_wind_or_location": 2749,
+            "eligible": 111,
+            "schedule_was_preserved_before_cutoff": 0
+          }
+        },
+        "weather_stations": {
+          "train:RJTT": 44,
+          "test:RJTT": 111
+        }
+      },
+      "recent_future_timed_eligibility": {
+        "as_of": "2026-11-25T10:06:37.186831+00:00",
+        "counts": {
+          "still_open": 27,
+          "no_station_with_train_observation": 6,
+          "individual": 6,
+          "no_public_lineup": 15
+        },
+        "public_payload_sha256": "51a98f0a048d4831eeb8c85533e28f789b17dc55ca59a7cb0cf0c920d7e4eb9e"
+      },
+      "current_coverage": {
+        "missing_wind": 187,
+        "missing_cutoff_or_field": 81,
+        "applied": 5,
+        "did_not_preserve_schedule_before_cutoff": 5,
+        "missing_line_or_individual": 14
+      },
+      "training_venues": [
+        "川崎"
+      ],
+      "method": "Full equal-point pooled-probability re-ranking with longitude and crosswise pre-cutoff airport winds, never race result weather. Schedule version saved after race in archive; future validation absent. One outdoor track and short periods.",
+      "source_noaa": "NOAA access index did not expose 2026 CSV. IEM ordinary API returned explicit HTTP 429; the valid Haneda archived METAR rows only were counted after rate limit. No alternate access to IEM attempted after observing 429.",
+      "inputs_sha256": {
+        "design.json": "c77fab30f81fdbd040e815bd483c97d5fef838b45847f91f793c548117d701d4",
+        "freeze.json": "ed4a41970353d963e7f66bd5b5df2aea7c12bea687f3d33d16d21bae96c294b6",
+        "fit.json": "4b86ada337ac9ccadbaa696450c33e1e0ea49a8c08cdd7553eb83db5da7eb9f6",
+        "geometry.json": "e06e960b538bf96fefbacb63cab51e221e2f39adb094259e56de9d43ce36a2b2",
+        "current-fixed.owner.json": "13b6af981e3e74225c9f38b38c9e17ba752c700c100fb40e66bfb66666a8e0e7"
+      },
+      "recent_only_wind": {
+        "1": {
+          "n": 5,
+          "days": 1,
+          "old": 1,
+          "new": 0,
+          "gains": 0,
+          "losses": 1,
+          "delta95pp": null
+        },
+        "4": {
+          "n": 5,
+          "days": 1,
+          "old": 3,
+          "new": 2,
+          "gains": 0,
+          "losses": 1,
+          "delta95pp": null
+        },
+        "8": {
+          "n": 5,
+          "days": 1,
+          "old": 5,
+          "new": 3,
+          "gains": 0,
+          "losses": 2,
+          "delta95pp": null
+        },
+        "shown": {
+          "n": 5,
+          "days": 1,
+          "old": 3,
+          "new": 2,
+          "gains": 0,
+          "losses": 1,
+          "delta95pp": null
+        }
+      }
+    },
+    "weather_jma": {
+      "scope": "Separate extension using only observed hourly JMA winds, no METAR pool. Archived race schedules and normalized payouts are retrospective, not prospective forecast commitments.",
+      "fit_n": 889,
+      "coverage": {
+        "counts": {
+          "train": {
+            "all_rolling": 2445,
+            "no_valid_wind_or_location": 150,
+            "no_multirider_line": 1394,
+            "eligible": 889,
+            "schedule_was_preserved_before_cutoff": 0,
+            "schedule_registration_mismatch": 12
+          },
+          "test": {
+            "all_rolling": 3131,
+            "no_multirider_line": 271,
+            "no_valid_wind_or_location": 469,
+            "eligible": 2391,
+            "schedule_was_preserved_before_cutoff": 0
+          }
+        },
+        "weather_stations": {
+          "train:s47632": 61,
+          "train:a0509": 22,
+          "train:s47780": 36,
+          "train:a0670": 31,
+          "train:s47893": 28,
+          "train:s47819": 26,
+          "train:s47598": 41,
+          "train:a1070": 17,
+          "train:a0371": 44,
+          "train:s47656": 24,
+          "train:s47684": 8,
+          "train:s47777": 4,
+          "train:a1521": 36,
+          "train:a0470": 9,
+          "train:a0775": 40,
+          "train:a0790": 22,
+          "train:a1133": 51,
+          "train:s47668": 33,
+          "train:a0606": 37,
+          "train:a0830": 49,
+          "train:a1237": 49,
+          "train:s47895": 43,
+          "train:a0524": 53,
+          "train:s47607": 30,
+          "train:s47812": 26,
+          "train:a0363": 19,
+          "train:a0496": 26,
+          "train:a1443": 24,
+          "test:a0363": 129,
+          "test:a0371": 111,
+          "test:a0509": 63,
+          "test:s47780": 172,
+          "test:a0775": 62,
+          "test:a0790": 84,
+          "test:s47812": 57,
+          "test:a1236": 81,
+          "test:a1443": 35,
+          "test:s47895": 62,
+          "test:a0830": 150,
+          "test:s47598": 45,
+          "test:a1521": 75,
+          "test:a0496": 75,
+          "test:s47656": 84,
+          "test:s47684": 137,
+          "test:s47893": 109,
+          "test:a0524": 96,
+          "test:s47632": 59,
+          "test:s47607": 113,
+          "test:s47819": 72,
+          "test:a0670": 66,
+          "test:a1237": 102,
+          "test:a0470": 46,
+          "test:a0376": 38,
+          "test:a1008": 57,
+          "test:s47636": 57,
+          "test:s47777": 15,
+          "test:a1070": 40,
+          "test:s47616": 55,
+          "test:a1133": 44
+        }
+      },
+      "historical_JMA": {
+        "1": {
+          "n": 2391,
+          "days": 46,
+          "old": 288,
+          "new": 288,
+          "gains": 9,
+          "losses": 9,
+          "delta95pp": [
+            -0.29024882874258445,
+            0.2954958203075847
+          ]
+        },
+        "4": {
+          "n": 2391,
+          "days": 46,
+          "old": 657,
+          "new": 652,
+          "gains": 12,
+          "losses": 17,
+          "delta95pp": [
+            -0.5970276657684688,
+            0.20187138679903702
+          ]
+        },
+        "8": {
+          "n": 2391,
+          "days": 46,
+          "old": 926,
+          "new": 931,
+          "gains": 18,
+          "losses": 13,
+          "delta95pp": [
+            -0.21395408927604434,
+            0.6359405282197067
+          ]
+        }
+      },
+      "recent_all": {
+        "1": {
+          "n": 287,
+          "days": 4,
+          "old": 32,
+          "new": 32,
+          "gains": 2,
+          "losses": 2,
+          "delta95pp": [
+            -0.9202453987730062,
+            1.2096774193548387
+          ]
+        },
+        "4": {
+          "n": 287,
+          "days": 4,
+          "old": 91,
+          "new": 85,
+          "gains": 0,
+          "losses": 6,
+          "delta95pp": [
+            -2.7450980392156863,
+            -1.3605442176870748
+          ]
+        },
+        "8": {
+          "n": 287,
+          "days": 4,
+          "old": 127,
+          "new": 127,
+          "gains": 3,
+          "losses": 3,
+          "delta95pp": [
+            -1.3071895424836601,
+            1.492537313432836
+          ]
+        },
+        "shown": {
+          "n": 287,
+          "days": 4,
+          "old": 93,
+          "new": 89,
+          "gains": 0,
+          "losses": 4,
+          "delta95pp": [
+            -2.479338842975207,
+            -0.3401360544217687
+          ]
+        }
+      },
+      "current_source_claim": {
+        "excluded_nearby_wind": 74,
+        "input_confirmed_pre_cutoff": 175,
+        "excluded_individual_or_no_line": 38
+      },
+      "source_geo_station_max_km": 25,
+      "source_wind_station_count": 33,
+      "official_hourly_observations": 72019,
+      "jma_live": {
+        "frozen_at": "2026-11-25T10:09:36.069551+00:00",
+        "registered": 6,
+        "earliest": "2026-11-25T19:16:00+09:00",
+        "latest": "2026-11-25T20:25:00+09:00",
+        "coverage": {
+          "still_open": 27,
+          "changed": 1,
+          "no_multi_line_published": 21,
+          "published_sha256": "51a98f0a048d4831eeb8c85533e28f789b17dc55ca59a7cb0cf0c920d7e4eb9e"
+        },
+        "prediction_sha256": "0ca650024dc1e556fbf895abebaf6ec75a99c1db24a5fc91ef5b6e60eb2e2221",
+        "source_sha256": "ed6f0adf0a7583ecb973a5f8ffc1dca0c46be9735649a9e3d7f891377b9aa3e3",
+        "fit_sha256": "4ddb152040f22566aab5eb94d8e491080ae6b6431ecd0201dfb22a2cb881ea37",
+        "prototype_sha256": "749fd0fd1d32d189deafca7d955331bb0bbfb4aa4ec730a65e20e4314d261d83"
+      },
+      "hashes": {
+        "jma-extension.json": "749fd0fd1d32d189deafca7d955331bb0bbfb4aa4ec730a65e20e4314d261d83",
+        "jma-winds.owner.json": "6ae39daab4070874c0d60ee9f47f49a5505b5b292f3f8adcf332a5b48459a168",
+        "jma-fixed.owner.json": "c406d8943025a82a4e51b091b11cd1541ce4c55afdf91de765b112ebc5caec2e",
+        "jma-geometry.json": "a1a5e65b5fad83cb649914d3a5ad2b6d044b7f1092a48050cb931361caac2acd",
+        "jma-fit.json": "4ddb152040f22566aab5eb94d8e491080ae6b6431ecd0201dfb22a2cb881ea37",
+        "jma-current-fixed.owner.json": "8c333ace6d10ee5409ae11ff2ac8e3fa0c2d9a9ef96d8d05ba6d45fbd0871cff",
+        "jma-station-receipts.json": "85bb2f4a288c155392ff2c70c09b3a0b696c2ced353944161f1e13ac4aa68e5c",
+        "jma-live-commitment.json": "360911a85523ac0e9b6d0adebc69b8aafcec29155764ea73ab88cb052b278f54"
+      },
+      "input_confirmed_pre_cutoff": {
+        "1": {
+          "n": 175,
+          "days": 4,
+          "old": 22,
+          "new": 22,
+          "gains": 2,
+          "losses": 2,
+          "delta95pp": [
+            -1.4705882352941178,
+            2.0
+          ]
+        },
+        "4": {
+          "n": 175,
+          "days": 4,
+          "old": 65,
+          "new": 59,
+          "gains": 0,
+          "losses": 6,
+          "delta95pp": [
+            -4.678362573099415,
+            -2.247191011235955
+          ]
+        },
+        "8": {
+          "n": 175,
+          "days": 4,
+          "old": 88,
+          "new": 88,
+          "gains": 3,
+          "losses": 3,
+          "delta95pp": [
+            -2.1052631578947367,
+            2.5
+          ]
+        },
+        "shown": {
+          "n": 175,
+          "days": 4,
+          "old": 66,
+          "new": 62,
+          "gains": 0,
+          "losses": 4,
+          "delta95pp": [
+            -4.3478260869565215,
+            -0.5617977528089888
+          ]
+        }
+      }
+    }
+  },
+  "portable_dynamic_features": {
+    "independent_programmes": 76005,
+    "rider_registrations": 2405,
+    "feature_sha256": "73569127b792db5291ca4c05173ee35dd81d4015c75421da6a1003dd91593436",
+    "portable_source_sha256": "0147f653192d0280e352002cb9c8f12a7cae0042ce8d8450f5ad6e54aa498194",
+    "same_feature_bytes_all_rows": true
+  },
+  "extended_dynamic_input": {
+    "initial_current_transfer": {
+      "races": 287,
+      "days": 4,
+      "scores": {
+        "1": {
+          "base": 32,
+          "candidate": 31,
+          "gained": 1,
+          "lost": 2,
+          "pct_ci95": [
+            -1.3937282229965158,
+            0.8733624454148472
+          ],
+          "winner": [
+            131,
+            125
+          ],
+          "pair": [
+            72,
+            69
+          ]
+        },
+        "4": {
+          "base": 91,
+          "candidate": 90,
+          "gained": 0,
+          "lost": 1,
+          "pct_ci95": [
+            -1.0676156583629892,
+            0.0
+          ],
+          "winner": [
+            199,
+            198
+          ],
+          "pair": [
+            126,
+            126
+          ]
+        },
+        "8": {
+          "base": 127,
+          "candidate": 126,
+          "gained": 2,
+          "lost": 3,
+          "pct_ci95": [
+            -2.4390243902439024,
+            2.0161290322580645
+          ],
+          "winner": [
+            222,
+            222
+          ],
+          "pair": [
+            160,
+            160
+          ]
+        },
+        "displayed": {
+          "base": 93,
+          "candidate": 92,
+          "gained": 0,
+          "lost": 1,
+          "pct_ci95": [
+            -1.0676156583629892,
+            0.0
+          ],
+          "winner": [
+            201,
+            200
+          ],
+          "pair": [
+            128,
+            128
+          ]
+        }
+      }
+    },
+    "added_nov24": 80,
+    "remaining_unbound": 11,
+    "digest": "18c4e6e95d4fbed9853d1ae246984f7cc8b370c67736a2ef3d10c3de70d1ed2c",
+    "programme_sha256": "26c3a2c61edee2f70d85823b7e3891aea6ba95145cd4e1cd12de005b4d8c73ec"
+  },
+  "fixed_budget_data": {
+    "design.json": "00a1b6b1e230107924a3500de7b13d24eb72bac7116bab451ef8a5e046c4bb69",
+    "run.py": "a265c6d25aa6d80b1863b83d465cc58b7a700afc257e4692e11c746959a013e2",
+    "weights.json": "7d42b525c760b180236171a7abbfd0c226996d1941ae21eb12e1bc3ec920578d",
+    "project.py": "9335902e2490962dc24d6b2f56146b133b3d78dbc5602e5b13e4067606bbc83e",
+    "study-freeze.json": "1980b85b1a6c801f17e4b5958d16d43c3ec8db3702d73aa43c59293360dae316",
+    "recent-freeze.json": "e6cc8606a6eda0d6281803c20f4cb071101532426343c46aa45056409cab29e8",
+    "score.py": "c503b3154bf0a8cdc2641f27ac8ae816bda2e9c45bdfcb88e2087831b25d8645"
+  },
+  "new_forecast_verification": {
+    "trio_and_budget": {
+      "candidates": {
+        "budget": {
+          "applicable": 28,
+          "caps": {
+            "4": 25,
+            "8": 3
+          },
+          "changed_at_cap": 25,
+          "first_cutoff": "2026-11-25T19:03:00+09:00",
+          "frozen_at": "2026-11-25T10:01:24.341917+00:00",
+          "git_commit": "a933f80a5696a044fecd4773e90f8bfc01227b3c",
+          "git_commit_time": "2026-11-25T10:01:36Z",
+          "last_cutoff": "2026-11-25T23:25:00+09:00",
+          "normalized_sha256": "ebf9d42a42f7e1346c5fdfbaaf805b18b66c1781dc79e8158bee6c0c12bf2c4d",
+          "original_receipt_sha256": "8be7a87a9aa724647075bf7c575b0edb87a441c3a99b617efd6872bd39aa69ba",
+          "original_sha256": "7cab930917355c854e874684fb5e7af7b36218e9a6ddbbe6e708bc2b41aa7dfb",
+          "registered": 28
+        },
+        "trio": {
+          "applicable": 7,
+          "caps": {
+            "4": 25,
+            "8": 3
+          },
+          "changed_at_cap": 1,
+          "first_cutoff": "2026-11-25T19:03:00+09:00",
+          "frozen_at": "2026-11-25T10:00:28.821909+00:00",
+          "git_commit": "c74254f43b76630e77f9e8cfbc26df610275be4c",
+          "git_commit_time": "2026-11-25T10:00:57Z",
+          "last_cutoff": "2026-11-25T23:25:00+09:00",
+          "normalized_sha256": "57c1dba75cd77dd4853f7ee008da4a9dafd3dd56847ffcb4d8af37073cd53a70",
+          "original_receipt_sha256": "f1cb2152a5b086af6ef6ac0dd20702a2b20e755d1c79fd7773c5f1d73a6a03b9",
+          "original_sha256": "51e753cf10648646d5af3c88b017fdc55980323a7e1cae010aa975f004cb88e6",
+          "registered": 28
+        }
+      },
+      "cipher_sha256": "c41bfe9984de2fb06f0bd716d6eec2390214d8e024960f83ff88249f06074c88",
+      "files": 16,
+      "registered_distinct": 28,
+      "roundtrip_verified": "2026-11-25T10:04:00.817108+00:00"
+    },
+    "dynamic_head_to_head": {
+      "changed": 15,
+      "cipher_sha256": "bdc561f57bd2d98765e12c0b733fafe2115349e3fdb17c4a1f3f346eab1a4db6",
+      "comparators": {
+        "published": "site",
+        "trial": "dynamic_registered_pairwise"
+      },
+      "design_sha256": "9fb61f74f1c420871b0dfc7c57d46334c620c56b5e7363cc692dc2aca9db2bb8",
+      "earliest": "2026-11-25T19:16:00+09:00",
+      "files": 10,
+      "fit_sha256": "cdec1f2a8a3feb29b717dd95b628b07f0ae7220d98ce9e5bb113c3231030e390",
+      "frozen_at": "2026-11-25T10:06:39.559617+00:00",
+      "git": {
+        "commit": "f96004ede46c2e1062bd4305ad797d6a4d30da3a",
+        "commit_time": "2026-11-25T10:07:18Z",
+        "path": "docs/evidence/keirin-95-goal-20261125/elo-proof.json"
+      },
+      "initial_receipt_sha256": "43cd6e86b56e3ec0679b542d2b6dc9b8940cf8e8f118edce6f1700b68d3cf79a",
+      "initial_registration_commit": "d669c9e74",
+      "prediction_sha256": "8a6e3751137ed322cdca25ba9a51b632bdd10a9dc480c51f8efc53363fc7a900",
+      "published_asset_sha256": "51a98f0a048d4831eeb8c85533e28f789b17dc55ca59a7cb0cf0c920d7e4eb9e",
+      "readback_completed": "2026-11-25T10:08:51.061889+00:00",
+      "registered": 27,
+      "schema": "KEIRIN_FORWARD_RECEIPT_V1"
+    },
+    "weather": {
+      "cipher_sha256": "3f9f7f401e02b1c0bc59cd5636726c184a2994d28e7d47db631b043b58a46560",
+      "coverage": {
+        "changed": 1,
+        "no_multi_line_published": 21,
+        "published_sha256": "51a98f0a048d4831eeb8c85533e28f789b17dc55ca59a7cb0cf0c920d7e4eb9e",
+        "still_open": 27
+      },
+      "earliest": "2026-11-25T19:16:00+09:00",
+      "files": 19,
+      "fit_sha256": "4ddb152040f22566aab5eb94d8e491080ae6b6431ecd0201dfb22a2cb881ea37",
+      "frozen_at": "2026-11-25T10:09:36.069551+00:00",
+      "git": {
+        "commit": "f18746e543b37b9c24d59ff53295c7600aa0b7ec",
+        "commit_time": "2026-11-25T10:09:51Z",
+        "path": "docs/evidence/keirin-95-goal-20261125/wind-commitment.json"
+      },
+      "latest": "2026-11-25T20:25:00+09:00",
+      "prediction_sha256": "0ca650024dc1e556fbf895abebaf6ec75a99c1db24a5fc91ef5b6e60eb2e2221",
+      "prototype_sha256": "749fd0fd1d32d189deafca7d955331bb0bbfb4aa4ec730a65e20e4314d261d83",
+      "readback_completed": "2026-11-25T10:11:56.180339+00:00",
+      "registered": 6,
+      "source_sha256": "ed6f0adf0a7583ecb973a5f8ffc1dca0c46be9735649a9e3d7f891377b9aa3e3"
+    }
+  },
+  "existing_model_mixture": {
+    "older_replay": {
+      "races": 12234,
+      "days": 175,
+      "mean_mixture": [
+        0.28880957160050624,
+        0.3709423926952139,
+        0.3402480357042792
+      ],
+      "scores": {
+        "1": {
+          "old": 1248,
+          "new": 1252,
+          "gained": 65,
+          "lost": 61,
+          "paired_95_ci_pp": [
+            -0.17141562805014493,
+            0.22173176706672215
+          ]
+        },
+        "4": {
+          "old": 3234,
+          "new": 3194,
+          "gained": 96,
+          "lost": 136,
+          "paired_95_ci_pp": [
+            -0.5611706617318198,
+            -0.09814084708063317
+          ]
+        },
+        "8": {
+          "old": 4583,
+          "new": 4572,
+          "gained": 120,
+          "lost": 131,
+          "paired_95_ci_pp": [
+            -0.33011145129712127,
+            0.15686827399142042
+          ]
+        }
+      }
+    },
+    "dated_input_replay": {
+      "races": 321,
+      "days": 5,
+      "mean_mixture": [
+        0.29009595423733997,
+        0.3697019171754528,
+        0.340202128587207
+      ],
+      "scores": {
+        "1": {
+          "old": 38,
+          "new": 40,
+          "gained": 2,
+          "lost": 0,
+          "paired_95_ci_pp": [
+            0.0,
+            1.2121212121212122
+          ]
+        },
+        "4": {
+          "old": 84,
+          "new": 81,
+          "gained": 1,
+          "lost": 4,
+          "paired_95_ci_pp": [
+            -2.73972602739726,
+            0.5714285714285714
+          ]
+        },
+        "8": {
+          "old": 119,
+          "new": 116,
+          "gained": 2,
+          "lost": 5,
+          "paired_95_ci_pp": [
+            -2.380952380952381,
+            0.6734006734006734
+          ]
+        }
+      }
+    },
+    "later_rolling_only": {
+      "races": 197,
+      "days": 3,
+      "mean_mixture": [
+        0.2903882675063546,
+        0.36940846798367416,
+        0.34020326450997124
+      ],
+      "scores": {
+        "1": {
+          "old": 24,
+          "new": 22,
+          "gained": 0,
+          "lost": 2,
+          "paired_95_ci_pp": [
+            -1.9230769230769231,
+            0.0
+          ]
+        },
+        "4": {
+          "old": 64,
+          "new": 64,
+          "gained": 2,
+          "lost": 2,
+          "paired_95_ci_pp": [
+            -1.2195121951219512,
+            1.5873015873015872
+          ]
+        },
+        "8": {
+          "old": 87,
+          "new": 85,
+          "gained": 1,
+          "lost": 3,
+          "paired_95_ci_pp": [
+            -1.9230769230769231,
+            0.0
+          ]
+        }
+      }
+    },
+    "fit": {
+      "n": 51056,
+      "last_day": "20260523",
+      "weights": [
+        [
+          -0.18471617863049627,
+          0.10102781987632722
+        ],
+        [
+          0.003355315778109514,
+          -0.0033154002680489433
+        ],
+        [
+          0.04434571920728611,
+          -0.03010969168578512
+        ],
+        [
+          -0.034279677017861075,
+          0.018835710410541655
+        ],
+        [
+          0.06544320892523146,
+          -0.04233062494321182
+        ],
+        [
+          0.018926791176927273,
+          -0.010534811948855544
+        ]
+      ],
+      "design_sha256": "279262617f561acd6efb3a70645a93af1450bfa51fd8d4059b6161688a69c2fb"
+    },
+    "freeze": {
+      "n": 12431,
+      "sha256": "397aa26ec18e60f32b545e69d81121cb752b70fe2e7351789605fb7f84a4cc40",
+      "fit_sha256": "3f3f83b407f910d7f65ba367233778a76c61524d47f6f4743e7b192a5f589402"
+    }
+  },
+  "existing_model_mixture_sources": {
+    "design.json": "279262617f561acd6efb3a70645a93af1450bfa51fd8d4059b6161688a69c2fb",
+    "study.py": "94b3996c69ec1d43604e95af0a83f2ec6f330315678cbf7883ba32c1fa3274ec",
+    "score.py": "0bea3a9124bcd52c16b78034daebf9c800b3f2a85fb762b2ac7d563efaa375de"
+  }
+}

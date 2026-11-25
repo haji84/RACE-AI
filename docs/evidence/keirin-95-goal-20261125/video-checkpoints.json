@@ -1,0 +1,187 @@
+{
+  "results": {
+    "coverage": {
+      "frozen_at": "2026-11-25T10:01:58.565417+00:00",
+      "label_sha256": "3b858d0f421a572a568e4c53ad2e8518d5b59508bead1044ec77aff250dfb11b",
+      "study_design_sha256": "3b5400b24d051c2203909663164084626ba9de49394a2a4e2812164b2f4163aa",
+      "canonical_ledger_sha256": "5b94663ed835818baf26dd532f1ac92ecef74f1dbbd3e078e3634cc054863f07",
+      "candidate_input_sha256": "b660fbcf60b5b774268707f14581398e555f59ed4300ff169c74d7f6d8818bea",
+      "coverage_races": 125,
+      "canonical_4C_pair_rows": 66,
+      "source_receipted_local_rows": 28,
+      "observed_4C_trios": 12,
+      "plaintext_private": true,
+      "count_matched_payout": 12,
+      "bound_roster_and_payout": 12
+    },
+    "exclusions": {},
+    "result_by_scope": {
+      "all": {
+        "races": 12,
+        "forecastable_prestart_labels_for_actual_4C": 0,
+        "same_three_in_any_order": 7,
+        "identical_trifecta": 4,
+        "third_still_third": 6,
+        "third_finishes_in_podium": 8,
+        "same_ordered_top2": 6,
+        "same_unordered_top2": 8,
+        "third_retained_given_same_unordered_top2": 5
+      },
+      "through_20261120": {
+        "races": 8,
+        "forecastable_prestart_labels_for_actual_4C": 0,
+        "same_three_in_any_order": 3,
+        "identical_trifecta": 1,
+        "third_still_third": 3,
+        "third_finishes_in_podium": 4,
+        "same_ordered_top2": 3,
+        "same_unordered_top2": 5,
+        "third_retained_given_same_unordered_top2": 2
+      },
+      "from_20261121": {
+        "races": 4,
+        "forecastable_prestart_labels_for_actual_4C": 0,
+        "same_three_in_any_order": 4,
+        "identical_trifecta": 3,
+        "third_still_third": 3,
+        "third_finishes_in_podium": 4,
+        "same_ordered_top2": 3,
+        "same_unordered_top2": 3,
+        "third_retained_given_same_unordered_top2": 3
+      },
+      "where_third_same_planned_line": {
+        "races": 6,
+        "forecastable_prestart_labels_for_actual_4C": 0,
+        "same_three_in_any_order": 4,
+        "identical_trifecta": 2,
+        "third_still_third": 4,
+        "third_finishes_in_podium": 5,
+        "same_ordered_top2": 2,
+        "same_unordered_top2": 4,
+        "third_retained_given_same_unordered_top2": 3
+      },
+      "where_third_other_planned_line": {
+        "races": 6,
+        "forecastable_prestart_labels_for_actual_4C": 0,
+        "same_three_in_any_order": 3,
+        "identical_trifecta": 2,
+        "third_still_third": 2,
+        "third_finishes_in_podium": 3,
+        "same_ordered_top2": 4,
+        "same_unordered_top2": 4,
+        "third_retained_given_same_unordered_top2": 2
+      }
+    },
+    "source_sha": {
+      "phase_ledger": "5b94663ed835818baf26dd532f1ac92ecef74f1dbbd3e078e3634cc054863f07",
+      "transition_dataset": "a9cc6a260b2a5ed5201d497703574d5d7ed79350d8d7b773597915d690d1065e",
+      "archived_roster": "ebbd6f93469b064ab7be7920ab5fe9ed003af30b2efcc04aab10675909b91d70",
+      "source_parse": "66af072b05437b40fc2f0f2c7ac13efe540ed313b5b76bd4af8c8d7d18798579",
+      "result_join": "b0ceddae5235f19d244c8aea73b1b54e865b9cb582514ddd48726b767d52a8ae"
+    }
+  },
+  "back-corner-results": {
+    "races": 11,
+    "visual_B_frames_found": 11,
+    "source_B_disagreement": 0,
+    "same_three_at_B_and_4C": 7,
+    "same_order_at_B_and_4C": 7,
+    "same_ordered_B_4C_front_two": 9,
+    "front_two_held_but_third_changed": 2,
+    "back_third_in_final_3": 8,
+    "corner_third_in_final_3": 7,
+    "back_third_is_final_third": 6,
+    "corner_third_is_final_third": 5,
+    "rows_before_20261121": 7,
+    "rows_from_20261121": 4,
+    "labels_sha256": "634f5845470a2ec1dfd0903039498910f5f48b5eeb07808101f1bfca61358697",
+    "stored_readback_at": "2026-11-25T10:06:57.289846+00:00",
+    "design_sha256": "cf3fc4e1bb87d0eb0d7d5fd249a7de5c43ba29003ea7a6f914dc07fe337d2766",
+    "corner_dataset_sha256": "a9cc6a260b2a5ed5201d497703574d5d7ed79350d8d7b773597915d690d1065e"
+  },
+  "conditional-scores": {
+    "scope": "Post-race conditional diagnostic, actual 4C and actual winning pair supplied, trained through Nov20; no prestart corrections.",
+    "n": 4,
+    "active": 3,
+    "condition_fit": 5,
+    "third_retained_in_fit": 2,
+    "conditional_top1": [
+      3,
+      4
+    ],
+    "conditional_top2": [
+      4,
+      4
+    ],
+    "conditional_logloss": [
+      0.9703888719425455,
+      0.9320823962077938
+    ],
+    "normal_published_hits": 3,
+    "design_sha256": "1cef9ac4535f60b6730845decd110cf0264ad5b86a4f8b24a935efebc161f097",
+    "transition_sha256": "a9cc6a260b2a5ed5201d497703574d5d7ed79350d8d7b773597915d690d1065e"
+  },
+  "notes-audit": {
+    "source_repository": "Kenseimk/keirin-data",
+    "source_revision": "8ba8316329c145aea55b5ada529b0af7b0d94c48",
+    "monthly_segments": 37,
+    "counts": {
+      "all_4c_references": 1135,
+      "action_without_exact_third": 896,
+      "wheel_terms_without_full_order": 187,
+      "bell_turn_not_final_corner": 51,
+      "explicit_third": 1
+    },
+    "exact_third_without_verified_first_or_second": [
+      {
+        "source_id": "8520251029020011",
+        "venue": "sasebo",
+        "car": 5,
+        "phrase": "四角三番手"
+      }
+    ],
+    "admission": "One text assertion does not establish a full 4C trio or an independent video observation.",
+    "source_spec_sha256": "49e71ec8441bdf181ae7b02c79a05cdd41d2c7c66da1c6e2b71bf0cf49c676d7"
+  },
+  "recovery-receipt": {
+    "bytes_verified": 128724,
+    "cipher_sha256": "354c4457d0aaad93be17123bb482cfb0a78fef44456106f78c554cdcdb5e08ca",
+    "files_verified": 26,
+    "results_sha256": "0e2d06f5aa0b3ecef2f33d4a1fec2705d9e2cbc4ef947d760491368c22114d14",
+    "sealed_readback_utc": "2026-11-25T10:08:13.028060+00:00",
+    "source_scope": "Local research outputs, source capture digests and reconstructable paths. No material video or still image bytes included."
+  },
+  "cli_full_readback": {
+    "exclusive_race_day": "2026-11-24",
+    "scope": "historical_video_observations",
+    "counts": {
+      "observed": 12,
+      "same_corner_goal_order": 4,
+      "same_corner_goal_trio": 7,
+      "corner_third_at_goal_third": 6,
+      "corner_third_in_goal_trio": 8,
+      "same_ordered_corner_goal_pair": 6,
+      "same_corner_goal_pair": 8,
+      "same_corner_goal_pair_and_third": 5,
+      "both_checkpoints": 11,
+      "same_back_corner_order": 7,
+      "same_back_corner_trio": 7,
+      "same_ordered_back_corner_pair": 9,
+      "same_ordered_back_corner_pair_changed_third": 2
+    },
+    "excluded": {
+      "ambiguous_corner": 16
+    }
+  },
+  "cli_strict_before_nov24": {
+    "exclusive_race_day": "2026-11-24",
+    "scope": "historical_video_observations",
+    "counts": {},
+    "excluded": {
+      "not_available_before": 12,
+      "ambiguous_corner": 16
+    },
+    "exclusive_availability": "2026-11-24T00:00:00+09:00"
+  },
+  "cli_sha256": "6913cbca61b8e8d75cb8f042297988a9e8dbef7869233893f6b4e301e773a781"
+}
