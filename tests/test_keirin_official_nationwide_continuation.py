@@ -90,6 +90,51 @@ class RunnerTests(unittest.TestCase):
         self.assertEqual(out['new_A_B_git_archived'],0)
         self.assertFalse(any(r['kind']=='original' for r in store.saved))
 
+    def test_later_capture_uses_the_saved_queue_after_early_source_holds(self):
+        from tests.test_keirin_official_sp_receipt import AT, DAY, calendar_receipt, html, list_data
+
+        api=self.api()
+        cal=calendar_receipt()
+        raw=html(list_data())
+        listed=dict(venue_code=98,raw_bytes=raw,expected_sha256=sha256(raw).hexdigest(),
+                    observed_at=AT,http_status=200)
+        registry=extension.register_day(calendar_receipt=cal,list_sources=[listed],event_day=DAY,now=AT)
+        inventory=dict(registry=registry,calendar_receipt=cal,list_sources=[listed])
+        ids=sorted(registry['registered_race_ids'])
+        state=dict(race_id=ids[0],state='BASELINE_SOURCE_UNVERIFIED',condition_state='HISTORY_NOT_COLLECTED')
+        previous=dict(schema=api.records.DAY_SCHEMA,day_jst=DAY,observed_at=AT.isoformat(),registry=registry,
+            prior_race_ids=[],inventory=dict(calendar_receipt=cal,list_sources=[listed]),
+            states=[state]+[dict(state,race_id=rid,state='SOURCE_CAPTURE_BUDGET_PENDING') for rid in ids[1:]])
+        store=FakeStore('/synthetic',DAY)
+        store.index['registry']={'evidence_sha256':'b'*64}
+        attempted=[]
+        def collect(*, session, inventory, race, clock):
+            attempted.append(race['race_id'])
+            raise ValueError('CARD_LAYOUT_NOT_AVAILABLE')
+        session=Mock(halted=False,provider_denied=False,count=0,safe_diagnostics=[])
+        runtime=(Path('/synthetic'),Path('/private'),DAY,self.public,'a'*40)
+        with (patch.dict('os.environ',{'GITHUB_RUN_ID':'123456789','GITHUB_SHA':'a'*40}),
+              patch.object(store,'read',side_effect=lambda meta,key:previous if not store.saved else store.saved[-1]['payload'],
+                           create=True),
+              patch.object(api,'_runtime',return_value=runtime),
+              patch.object(api,'_begin_lease',return_value=FakeLease()),
+              patch.object(api,'_baseline_already_exists',return_value=False),
+              patch.object(api,'_label',return_value='S級一次予選1'),
+              patch.object(api.records,'RecordStore',return_value=store),
+              patch.object(api.capture_files,'_private_directory',return_value=Path('/private')),
+              patch.object(api.sources,'OfficialSourceSession',return_value=session),
+              patch.object(api.sources,'collect_candidate',side_effect=collect),
+              patch.object(extension,'collect_day_inventory',return_value=inventory),
+              patch('race_ai.keirin_official_class_evidence.collect_unknown_class_evidence',
+                    return_value={'safe_summary':[]})):
+            for _ in ids:
+                result=api.run_capture(repo='/synthetic',private_root='/private',owner_public_pem='/public',
+                    owner_private_pem=self.private,day=DAY,clock=lambda:AT,max_races=1)
+        self.assertEqual(attempted,ids[1:]+ids[:1])
+        latest=store.saved[-1]['payload']
+        self.assertEqual(latest['source_attempt_counts'],dict.fromkeys(ids,1)|{ids[0]:2})
+        self.assertEqual(result['new_A_B_git_archived'],0)
+
     def test_new_original_binds_the_same_confidence_in_source_bundle_and_both_cipher_arms(self):
         from race_ai import keirin_nationwide_auto_settlement as decrypt
         with tempfile.TemporaryDirectory() as folder:

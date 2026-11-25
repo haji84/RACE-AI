@@ -102,7 +102,7 @@ def _label(inventory,race):
     return sources.cards.receipt._norm(row['strSyumokuName']) if row else None
 
 
-def _save_registry(store,inventory,states,prior,public,clock):
+def _save_registry(store,inventory,states,source_attempts,prior,public,clock):
     registry=inventory['registry']
     need(registry is not None,'REGISTRY_NOT_CAPTURED')
     at=form._aware(clock()).isoformat()
@@ -111,6 +111,7 @@ def _save_registry(store,inventory,states,prior,public,clock):
         prior_race_ids=prior,registry=registry,
         inventory={key:inventory[key] for key in ('calendar_receipt','list_sources')},
         states=sorted(states.values(),key=lambda r:r['race_id']),
+        source_attempt_counts=source_attempts,
         safe_report=dict(day_jst=store.day,registered_races=len(registry['registered_race_ids'])))
     if 'unadmitted_class_evidence' in inventory:
         payload['unadmitted_class_evidence']=inventory['unadmitted_class_evidence']
@@ -188,9 +189,16 @@ def run_capture(*,repo,private_root,owner_public_pem,owner_private_pem,day=None,
     repo,root,day,public,commit=_runtime(repo=repo,private_root=private_root,owner_public_pem=owner_public_pem,
         owner_private_pem=owner_private_pem,day=day,clock=clock,mode='capture')
     need(type(max_races) is int and 1<=max_races<=8,'CAPTURE_RACE_BOUND')
-    report=_summary(day);store=records.RecordStore(repo,day);prior=[]
+    report=_summary(day);store=records.RecordStore(repo,day);prior=[];source_attempts={}
     if store.index['registry']:
-        prior=records.replay_registry(store.read(store.index['registry'],owner_private_pem))['registered_race_ids']
+        previous=store.read(store.index['registry'],owner_private_pem)
+        prior=records.replay_registry(previous)['registered_race_ids']
+        if 'source_attempt_counts' in previous:
+            source_attempts=dict(previous['source_attempt_counts'])
+        else:
+            # Older registries can establish an attempt for these final states.
+            attempted_states={'BASELINE_SOURCE_UNVERIFIED','CUTOFF_MARGIN_INSUFFICIENT','FROZEN_ARCHIVE_UNVERIFIED'}
+            source_attempts={r['race_id']:1 for r in previous['states'] if r['state'] in attempted_states}
     prior=sorted(set(prior)|set(store.index['originals']))
     lease=_begin_lease(repo,owner_private_pem,clock,commit)
     session=sources.OfficialSourceSession(repo=repo,private_root=capture_files._private_directory(root/'sources'),
@@ -209,9 +217,13 @@ def run_capture(*,repo,private_root,owner_public_pem,owner_private_pem,day=None,
                 for rid in registry['registered_race_ids']}
         report.update(registered_races=len(states),day_inventory_complete=registry['day_inventory_complete'])
         for rid in registry['disappeared_race_ids']:states[rid]['state']='RACE_DISAPPEARED_FROM_CURRENT_LIST'
-        _save_registry(store,inventory,states,prior,public,clock)
+        _save_registry(store,inventory,states,source_attempts,prior,public,clock)
         cohort=records.cohort(registry);attempted=0;earliest_frozen_cutoff=None
-        for race in sorted(registry['races'],key=lambda r:(r['race_no'],r['venue_code'])):
+        # Published list rows do not yet establish a cutoff. Keep the existing
+        # order for equal attempts and verify actual cutoff when opening a card.
+        ordered=sorted(registry['races'],key=lambda r:(
+            source_attempts.get(r['race_id'],0),r['race_no'],r['venue_code']))
+        for race in ordered:
             rid=race['race_id'];row=states[rid]
             if _baseline_already_exists(store,rid):row['state']='FROZEN_ORIGINAL_PRESERVED';continue
             if race['source_state']=='RESULT_PUBLISHED':row['state']='PUBLISHED_RESULT_NO_PRE_CUTOFF_ORIGINAL';continue
@@ -223,6 +235,7 @@ def run_capture(*,repo,private_root,owner_public_pem,owner_private_pem,day=None,
                 row['state']='SOURCE_CAPTURE_BUDGET_PENDING';continue
             if attempted>=max_races:row['state']='SOURCE_CAPTURE_BUDGET_PENDING';continue
             attempted+=1
+            source_attempts[rid]=source_attempts.get(rid,0)+1
             try:
                 candidate=sources.collect_candidate(session=session,inventory=inventory,race=race,clock=clock)
             except (ValueError,KeyError,TypeError,OSError) as exc:
@@ -251,7 +264,7 @@ def run_capture(*,repo,private_root,owner_public_pem,owner_private_pem,day=None,
                 row.update(state='A_B_ARCHIVED_AWAITING_INDEPENDENT_READBACK',condition_state=condition_state)
             except (ValueError,KeyError,TypeError,OSError):
                 row.update(state='FROZEN_ARCHIVE_UNVERIFIED',condition_state=condition_state)
-            _save_registry(store,inventory,states,prior,public,clock)
+            _save_registry(store,inventory,states,source_attempts,prior,public,clock)
         from race_ai.keirin_official_class_evidence import collect_unknown_class_evidence, LABEL
         if not session.halted and (earliest_frozen_cutoff is None or
                 form._aware(clock())<earliest_frozen_cutoff-timedelta(seconds=240)):
@@ -268,7 +281,7 @@ def run_capture(*,repo,private_root,owner_public_pem,owner_private_pem,day=None,
             classes.setdefault(label,Counter())[states[race['race_id']]['state']]+=1
         report['class_statuses']=[dict(class_label=label,statuses=dict(sorted(counts.items())))
                                   for label,counts in sorted(classes.items())]
-        _save_registry(store,inventory,states,prior,public,clock)
+        _save_registry(store,inventory,states,source_attempts,prior,public,clock)
         count=len(report['new_encrypted_originals'])
         report.update(new_A_B_sealed=count,new_A_B_git_archived=count,
             new_conditioned_A_B_git_archived=sum('conditioned_cipher_sha256' in row for row in report['new_encrypted_originals']),
