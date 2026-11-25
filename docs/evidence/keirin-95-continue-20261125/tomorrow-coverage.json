@@ -1,0 +1,251 @@
+{
+  "first_read": {
+    "date": "2026-11-26",
+    "declared_venues": {
+      "31": "松戸",
+      "38": "静岡",
+      "46": "富山",
+      "47": "松阪",
+      "51": "福井",
+      "73": "小松島",
+      "75": "松山",
+      "83": "久留米"
+    },
+    "race_count": 72,
+    "schedule_observed_at": "2026-11-25T10:29:32.312991+00:00",
+    "schedule_sha256": "8c13d69e320a393fe1798ec8ee796e281c178cb281061fdf0e19a161b654fb77",
+    "source_states": {
+      "OFFICIAL_SCHEDULE_IDENTITY_MISMATCH": 1,
+      "verified": 7
+    },
+    "states": {
+      "31": {
+        "deadlines": 9,
+        "races": 9,
+        "source_sha": "830d2b4e0068b2879ce4b7860aefaa4ce89c081cdf985962177aafabbf2c173d",
+        "state": "verified"
+      },
+      "38": {
+        "deadlines": 12,
+        "races": 12,
+        "source_sha": "5f1c3de425085a0c1263e30639fe91001eac14475d7e9448b4847342a2069fb9",
+        "state": "verified"
+      },
+      "46": {
+        "deadlines": 11,
+        "races": 11,
+        "source_sha": "114ccff0731bb86668da6a2bf641c81f4f6880ea8790a8149853844db696a107",
+        "state": "verified"
+      },
+      "47": {
+        "deadlines": 12,
+        "races": 12,
+        "source_sha": "3bd787a0f37b7c2cbfd384b037848d1e79da677692185eab572a899aba4fd003",
+        "state": "verified"
+      },
+      "51": {
+        "deadlines": 12,
+        "races": 12,
+        "source_sha": "50c415aa0f06f7e7f53f269cc1f7e844202ed7725a87f8be7702004c9274da84",
+        "state": "verified"
+      },
+      "73": {
+        "deadlines": 7,
+        "races": 7,
+        "source_sha": "df2ed1ab024c94971a5ef2b9565c1bae57ba4a6182caddc72b5f08c87a04c120",
+        "state": "verified"
+      },
+      "75": {
+        "published_display": 0,
+        "response_day": null,
+        "response_venue": null,
+        "source_requested_day": "20261126",
+        "source_requested_venue": "75",
+        "source_sha": "f258eab61a287fe2049b1cad347333db8fe99da5c700ba208c3ed2c7297d8a73",
+        "state": "OFFICIAL_SCHEDULE_IDENTITY_MISMATCH",
+        "target": "2026-11-26"
+      },
+      "83": {
+        "deadlines": 9,
+        "races": 9,
+        "source_sha": "8b10abb580b1bfdddd41a9910fe4f68c5ae27a2be7b5e4a71de10805b19e6a9d",
+        "state": "verified"
+      }
+    }
+  },
+  "initial": {
+    "date": "2026-11-26",
+    "earliest_conservative_cutoff": "2026-11-26T08:45:00+09:00",
+    "earliest_official_cutoff": "2026-11-26T08:47:00+09:00",
+    "existing_fallback_weight_sha256": "421747a5e8cf38158e98005dfd127626d57465bd1aadf16acbddb674de4d5ecd",
+    "fixed_point_caps": [
+      1,
+      4,
+      8
+    ],
+    "forecast_sha256": "4dfd19466281f226481e7232190bdf4b0a3aa816c5946c665eea7c8ee0658f9b",
+    "forecast_source": "Existing static coefficients. Kdreams scores, prior rates and style; check actual roster by name, registration, car and prefecture against official programme. Netkeirin not available; no line/H predictions claimed.",
+    "frozen_at": "2026-11-25T10:33:57.303985+00:00",
+    "had_nov26_result_inputs": 0,
+    "implementation_sha256": "65f032b62eaabe9b64511076b8f24a2fa998bfa25b779663ea29fa0b7c528c04",
+    "known_prestart_line_groups_available": 72,
+    "known_venues": 7,
+    "latest_conservative_cutoff": "2026-11-26T23:25:00+09:00",
+    "latest_official_cutoff": "2026-11-26T23:27:00+09:00",
+    "missing_known_count": 0,
+    "missing_reasons": {},
+    "national_universe_verified": false,
+    "new_public_site_forecasts": 0,
+    "official_source_receipt_sha256": "9795932d5ea51c43955d7c299c2fb05e86a9ec62e59a342ee8a18f3f47cb0ed5",
+    "paired_capture_sha256": "39151a2fb06577331ddf1ce694f455142873df757e32cac2930a3b11f856b64b",
+    "pending_race_ids": [],
+    "predictions_frozen": 72,
+    "readback_at": "2026-11-25T10:33:57.311505+00:00",
+    "registered_known_races": 72,
+    "roster_receipt_sha256": "8c7d33b0f87a91d269905909efb4eb3d59c196045a3536ef70d385f5399d1d33",
+    "schema": "KEIRIN_RESEARCH_COHORT_CONFIRMATION_V1",
+    "separately_listed_unresolved_venues": {
+      "75": "OFFICIAL_SCHEDULE_IDENTITY_MISMATCH"
+    }
+  },
+  "with_line": {
+    "baseline_model_receipt_sha256": "421747a5e8cf38158e98005dfd127626d57465bd1aadf16acbddb674de4d5ecd",
+    "changed_at_cap": {
+      "1": 44,
+      "4": 66,
+      "8": 68
+    },
+    "date": "2026-11-26",
+    "earliest": "2026-11-26T08:45:00+09:00",
+    "forecast_sha256": "75f82d0553e28fc73bca8ded4989cd604b8b0facd8d209648b862fd9abe48c86",
+    "frozen_at": "2026-11-25T10:36:51.869283+00:00",
+    "h_field_status": "not used in these stage coefficients",
+    "hit_evaluation": "AWAITING_RESULTS",
+    "implementation_sha256": "1c1608344a5f39c63968ee0233021cbe58e1fc89fff8b07c529a4f8756f11381",
+    "known_source_field_registration": 72,
+    "latest": "2026-11-26T23:25:00+09:00",
+    "line_coverage": {
+      "ambiguous_lines_kept_static": 3,
+      "line_input_used": 69
+    },
+    "model_receipt_sha256": "24c5ac653404aace3e8635256d06ec563f64a1737fe124940d49d0cee824facd",
+    "original_baseline_sha256": "4dfd19466281f226481e7232190bdf4b0a3aa816c5946c665eea7c8ee0658f9b",
+    "races": 72,
+    "readback": "2026-11-25T10:36:51.879880+00:00",
+    "schema": "KEIRIN_RESEARCH_COMPARISON_DAY_V1",
+    "stage": "published_line",
+    "unmatched_venue": {
+      "75": "OFFICIAL_SCHEDULE_IDENTITY_MISMATCH"
+    }
+  },
+  "with_phase_missing_H": {
+    "base_static_sha256": "4dfd19466281f226481e7232190bdf4b0a3aa816c5946c665eea7c8ee0658f9b",
+    "changed_by_point_count": {
+      "1": 54,
+      "4": 65,
+      "8": 67
+    },
+    "date": "2026-11-26",
+    "driver_sha256": "5ee114e9b92a7b521488de8943fa412ed3450b45056bccffa5d55dd19ab2d81e",
+    "earliest_cutoff": "2026-11-26T08:45:00+09:00",
+    "eligible_fixed_points": [
+      1,
+      4,
+      8
+    ],
+    "exact_rank_mode_counts": {
+      "existing_individual": 8,
+      "existing_phase_h_unavailable": 61,
+      "original_static_fallback": 3
+    },
+    "externally_started_before_next_day": true,
+    "fallback_reasons": {
+      "OFFICIAL_CONTESTED_POSITION": 3
+    },
+    "forecast_sha256": "7e3fd286a9459f8e15b5cf9315512ca0b2893598133c0b4b58e0e0c578c613fd",
+    "frozen_at": "2026-11-25T10:39:39.111087+00:00",
+    "known_h_used": 0,
+    "latest_cutoff": "2026-11-26T23:25:00+09:00",
+    "official_rider_registrations_used": 480,
+    "ongoing_national_roster_verification": false,
+    "phase_labels_training_through": "20261120",
+    "phase_model_receipt_sha256": "f2320760e6dff3dbd9ec4be1bb490d438e786d58cdc032e44abc10d7e9082722",
+    "pre_existing_history_last": "20261122",
+    "predictions_frozen": 72,
+    "readback": "2026-11-25T10:39:39.113205+00:00",
+    "scheduled_matsuyama_races_unknown": true,
+    "target_day_result_inputs": 0,
+    "weights_sha256": "1d474027b42c527aba4f1deccdc1dba786f373d07caf9a0a32582cb034411a6b"
+  },
+  "registration_readback": {
+    "schema": "KEIRIN_RESEARCH_COHORT_COUNTS_V1",
+    "date": "2026-11-26",
+    "original_registered": 72,
+    "witness": "local Git commit clock and native forecast digest",
+    "commitments": [
+      {
+        "method": "early_existing_static",
+        "git_commit": "293d048b0eacff16eae937c764120babb9811a9c",
+        "commit_time": "2026-11-25T10:34:51+00:00",
+        "frozen_at": "2026-11-25T10:33:57.303985+00:00",
+        "forecast_sha256": "4dfd19466281f226481e7232190bdf4b0a3aa816c5946c665eea7c8ee0658f9b",
+        "receipt_sha256": "747a77f505465065d5f9b57405e6911c748ed7ad005dfbff7e2e05bf8b451570",
+        "protocol_sha256": "65f032b62eaabe9b64511076b8f24a2fa998bfa25b779663ea29fa0b7c528c04"
+      },
+      {
+        "method": "existing_published_line",
+        "git_commit": "3d6248b67e2012e9c8683520c65a8401531ae844",
+        "commit_time": "2026-11-25T10:37:33+00:00",
+        "frozen_at": "2026-11-25T10:36:51.869283+00:00",
+        "forecast_sha256": "75f82d0553e28fc73bca8ded4989cd604b8b0facd8d209648b862fd9abe48c86",
+        "receipt_sha256": "046b18e42c7d398a533f4ae1972eef8cf243117389814cc1163dbff524a2ef78",
+        "protocol_sha256": "1c1608344a5f39c63968ee0233021cbe58e1fc89fff8b07c529a4f8756f11381"
+      },
+      {
+        "method": "existing_phase_h_unavailable",
+        "git_commit": "3821b3556a156940b709877ad88ef3a062a83c69",
+        "commit_time": "2026-11-25T10:39:55+00:00",
+        "frozen_at": "2026-11-25T10:39:39.111087+00:00",
+        "forecast_sha256": "7e3fd286a9459f8e15b5cf9315512ca0b2893598133c0b4b58e0e0c578c613fd",
+        "receipt_sha256": "19dcc7b6286c337f18b7eab4498850b5974f33051d896d4aedb0e000d504a8c2",
+        "protocol_sha256": "5ee114e9b92a7b521488de8943fa412ed3450b45056bccffa5d55dd19ab2d81e"
+      }
+    ],
+    "starter_evidence": "car_numbers_only",
+    "registered_without_publication": 72,
+    "status": "AWAITING_PUBLIC_ROSTER_AND_RESULTS",
+    "exclusions": {}
+  },
+  "encrypted_local_recovery": {
+    "cipher_sha256": "67a58c242fd179e0fa7ba55dfadad604d27c65042a29bf47eb7efc7a4ef2f501",
+    "original_forecast_hashes": {
+      "nov26-early-phase.owner.json": "7e3fd286a9459f8e15b5cf9315512ca0b2893598133c0b4b58e0e0c578c613fd",
+      "nov26-existing-line.owner.json": "75f82d0553e28fc73bca8ded4989cd604b8b0facd8d209648b862fd9abe48c86",
+      "nov26-initial.owner.json": "4dfd19466281f226481e7232190bdf4b0a3aa816c5946c665eea7c8ee0658f9b"
+    },
+    "plaintext_files_restored_on_disk": 0,
+    "projected_scoring_plan_sha256": "17c2c87a1192747d28fe6bb5ac3e8f9f84124d541b063efa9851d65ac0af16dd",
+    "races": 72,
+    "roundtrip_checked_utc": "2026-11-25T10:40:36.661154+00:00",
+    "roundtrip_file_count": 333,
+    "zip_sha256": "6ffe998124ce2aec15053a27c3a881a5600f371a56b17469c0c664cca173889e"
+  },
+  "matsuyama_recheck": {
+    "kdreams": {
+      "listed": false,
+      "observed_at": "2026-11-25T10:52:04.720964+00:00",
+      "sha256": "969da9c194ec05314bd7fb416a00d99fbf4faf02d625924a3ca375d3a2e050ef",
+      "venue_count": 7
+    },
+    "official": {
+      "card_sha256": "f258eab61a287fe2049b1cad347333db8fe99da5c700ba208c3ed2c7297d8a73",
+      "display": 0,
+      "listed": true,
+      "observed_at": "2026-11-25T10:52:03.825274+00:00",
+      "registry_sha256": "8c13d69e320a393fe1798ec8ee796e281c178cb281061fdf0e19a161b654fb77",
+      "state": "OFFICIAL_SCHEDULE_IDENTITY_MISMATCH"
+    },
+    "target": "2026-11-26",
+    "venue": "松山"
+  }
+}
