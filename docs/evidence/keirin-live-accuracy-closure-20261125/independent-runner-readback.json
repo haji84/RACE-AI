@@ -1,0 +1,17 @@
+{
+  "accuracy_improvement_proven": false,
+  "archive_commit": "54f713d386b936f2c0f8a494fa12fc68d67d2a05",
+  "cipher_bytes": 1414468,
+  "cipher_sha256": "e12d24ead30bef9f228cf22e6c47f2765a1d043c2a6c12673c1ed87f01bc8b51",
+  "formal_pre_cutoff_original_authenticated": false,
+  "observed_at": "2026-11-25T13:03:07.101889+00:00",
+  "plaintext_decrypted": false,
+  "private_key_used": false,
+  "registered_comparison_races": 10,
+  "source_pages_requested": 0,
+  "state": "INDEPENDENT_RUNNER_CIPHER_SHA_READBACK_VERIFIED",
+  "still_pre_cutoff_races": 10,
+  "action_run": 45619623103,
+  "job_id": 139223975384,
+  "source_commit": "fb8773c82da3879a2148d4764dab18252d8bff97"
+}

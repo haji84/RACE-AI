@@ -1,0 +1,23 @@
+{
+  "copy_is_new_pre_cutoff_forecast": false,
+  "earliest_cutoff": "2026-11-25T22:04:00+09:00",
+  "encryption_format_only_not_official_result": true,
+  "expected_original_created_at": "2026-11-25T12:59:58.981095+00:00",
+  "expected_original_git_readback_at": "2026-11-25T13:03:07.101889+00:00",
+  "formal_PR71_admission": false,
+  "original_archive_commit": "54f713d386b936f2c0f8a494fa12fc68d67d2a05",
+  "original_cipher_sha256": "e12d24ead30bef9f228cf22e6c47f2765a1d043c2a6c12673c1ed87f01bc8b51",
+  "original_note_sha256": "35265386cc63710e2c8d4cfb3417843e7ff80dee9f0f8fac17f6cb398457abd3",
+  "original_witness_job": 139223975384,
+  "original_witness_run": 45619623103,
+  "recovery_cipher_bytes": 1887930,
+  "recovery_cipher_sha256": "060ab7c74b25c968b47dfb126ffb71926e4d10fad2a5c928090583c69cd618cd",
+  "schema": "KEIRIN_JOINT_ORIGINAL_RECOVERY_RECEIPT_V1",
+  "recovery_archive_path": "state/keirin/research/joint-comparison/v1/2026-11-25/060ab7c74b25c968b47dfb126ffb71926e4d10fad2a5c928090583c69cd618cd.sealed.json",
+  "recovery_receipt_path": "state/keirin/research/joint-comparison/v1/2026-11-25/060ab7c74b25c968b47dfb126ffb71926e4d10fad2a5c928090583c69cd618cd.receipt.json",
+  "recovery_archive_commit": "0cac8de34e516553debcd804f0188a2302c10ac0",
+  "recovery_parent_commit": "2908ab5ec462912930322501e6a4db031213711c",
+  "recovery_git_readback_at": "2026-11-25T13:28:50.601871+00:00",
+  "private_plaintext_uploaded": false,
+  "original_cipher_rewritten": false
+}
