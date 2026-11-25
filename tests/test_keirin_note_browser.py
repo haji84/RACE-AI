@@ -15,6 +15,7 @@ import unittest
 from urllib.parse import urlsplit
 
 from race_ai.keirin_note_view import canonical
+from scripts.build_keirin_note_assets import build_note_view
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -166,7 +167,7 @@ class NoteBrowserTests(unittest.TestCase):
         bundle = (b'window.RaceNoteInitialFragment=location.hash;\n' + b'\n'.join(
             (ROOT/'web'/name).read_bytes() for name in components) +
             b'\nObject.assign(window.RaceKeirinNoteFeed,window.__noteFeedOverride||{});\n' +
-            (ROOT/'web/keirin-note-view.js').read_bytes())
+            build_note_view(ROOT))
         styles = (ROOT/'web/race-style-core.css').read_bytes() + b'\n' + (
             ROOT/'web/keirin-note.css').read_bytes()
         assets = {'/': (html, 'text/html; charset=utf-8'),
@@ -294,6 +295,52 @@ class NoteBrowserTests(unittest.TestCase):
                 self.page.locator('#kn-status').filter(has_text='開けませんでした').wait_for()
                 self.assertEqual(self.page.locator('.kn-race').count(), 0)
                 self.assertEqual(self.page.locator('#kn-days button').count(), 0)
+        self.assertEqual(self.external, [])
+
+    def test_growth_record_is_folded_and_restricted_to_an_open_note(self):
+        self.open('A'*43)
+        self.page.locator('#kn-status').filter(has_text='開けませんでした').wait_for()
+        growth = self.page.locator('#kn-growth')
+        self.assertEqual(growth.count(), 1)
+        self.assertFalse(growth.is_visible())
+        self.assertNotIn('3,201', growth.text_content())
+
+        self.page.goto('about:blank')
+        self.open()
+        self.loaded()
+        summary = growth.locator('summary')
+        self.assertEqual(summary.inner_text(), '成長記録')
+        self.assertFalse(growth.evaluate('(panel) => panel.open'))
+        summary.press('Enter')
+        self.assertTrue(growth.evaluate('(panel) => panel.open'))
+        historical = growth.get_by_role('region', name='既知期間の再現')
+        forward = growth.get_by_role('region', name='掲載締切前の保存原本')
+        self.assertIn('3,201件', historical.inner_text())
+        top4 = historical.get_by_role('row', name=re.compile('三連単4点')).inner_text()
+        for value in ('928件', '28.99%', '947件', '29.58%'):
+            self.assertIn(value, top4)
+        self.assertIn('10 / 10件', forward.inner_text())
+        self.assertRegex(forward.get_by_role('row', name=re.compile('三連単4点')).inner_text(),
+                         r'3件[\s\S]*4件[\s\S]*\+1件')
+        self.assertIn('主催者による締切・公式結果の認証は未確認', forward.inner_text())
+        self.assertIn('採用は保留', growth.inner_text())
+        for width in (320, 390, 1440):
+            self.page.set_viewport_size(dict(width=width, height=844))
+            self.assertTrue(growth.evaluate('''panel => {
+              const bounds = panel.getBoundingClientRect();
+              return bounds.left >= 0 && bounds.right <= innerWidth &&
+                panel.scrollWidth <= panel.clientWidth &&
+                [...panel.querySelectorAll('table')].every(table => {
+                  const rect=table.getBoundingClientRect();
+                  return rect.left >= bounds.left && rect.right <= bounds.right;
+                });
+            }'''), f'growth panel fits {width}px')
+
+        self.page.locator('#kn-clear').click()
+        self.assertFalse(growth.is_visible())
+        self.assertFalse(growth.evaluate('(panel) => panel.open'))
+        self.assertNotIn('3,201', growth.text_content())
+        self.assertEqual(self.errors, [])
         self.assertEqual(self.external, [])
 
     def test_clear_cancels_a_delayed_owner_link_load(self):
