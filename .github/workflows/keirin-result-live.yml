@@ -27,12 +27,14 @@ on:
       - 'race_ai/keirin_official_form_history.py'
       - 'race_ai/keirin_note_feed.py'
       - 'web/keirin-note-*.js'
+      - 'web/keirin-rider-history.js'
       - 'tests/test_keirin_result_*.py'
       - 'tests/test_keirin_saved_source_comparison.py'
       - 'tests/test_keirin_frozen_forecast_view.py'
       - 'tests/test_keirin_official_fetch_diagnostics.py'
       - 'tests/test_keirin_note_result_reader.py'
       - 'tests/keirin_note_*.test.cjs'
+      - 'tests/keirin_rider_history*.cjs'
   pull_request:
     paths:
       - '.github/workflows/keirin-result-live.yml'
@@ -59,6 +61,7 @@ on:
       - 'race_ai/keirin_official_form_history.py'
       - 'race_ai/keirin_note_feed.py'
       - 'web/keirin-note-*.js'
+      - 'web/keirin-rider-history.js'
       - 'web/app.js'
       - 'tests/test_keirin_result_*.py'
       - 'tests/test_keirin_saved_source_comparison.py'
@@ -68,6 +71,7 @@ on:
       - 'tests/test_keirin_official_form_canary.py'
       - 'tests/test_keirin_note_browser.py'
       - 'tests/keirin_note_*.test.cjs'
+      - 'tests/keirin_rider_history*.cjs'
   workflow_dispatch:
     inputs:
       mode:
@@ -137,6 +141,7 @@ jobs:
             tests.test_keirin_note_feed_cycle
           node --test tests/keirin_note_*.test.cjs
           node --test tests/keirin_joint*.test.cjs
+          node --test tests/keirin_rider_history.test.cjs
       - name: Verify the owner view refresh in Chromium using invented loopback data
         shell: bash
         run: |
