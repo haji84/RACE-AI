@@ -1,0 +1,836 @@
+{
+  "base_architecture": {
+    "archive": "Historical chronological rolling model with earlier coefficients. Retrospective inputs may have been archived after race. Never describe as production forecasts.",
+    "current": "Reconstruction of the currently used rankings for Nov 21–24, 287 cases, 1 known ordered trifecta from cross-source results per race. Validation days previously examined during research."
+  },
+  "cross_line_second": {
+    "description": "Keep total probability of cross-line seconds given the winner and conditional third places fixed. Reassign probabilities within those seconds according to prior rider, role and starts.",
+    "archive": {
+      "n": 12234,
+      "days": 175,
+      "tickets": {
+        "1": {
+          "exact_hits": [
+            1248,
+            1253
+          ],
+          "gained": 14,
+          "lost": 9,
+          "ordered_pair_covered": [
+            2710,
+            2710
+          ],
+          "changed_sets": 269,
+          "delta_points": 0.04086970737289521,
+          "day_bootstrap_95_points": [
+            -0.0405057549134518,
+            0.12178339613006275
+          ]
+        },
+        "4": {
+          "exact_hits": [
+            3234,
+            3230
+          ],
+          "gained": 48,
+          "lost": 52,
+          "ordered_pair_covered": [
+            4946,
+            4939
+          ],
+          "changed_sets": 1598,
+          "delta_points": -0.032695765898316166,
+          "day_bootstrap_95_points": [
+            -0.18681379293241185,
+            0.12189503469060918
+          ]
+        },
+        "8": {
+          "exact_hits": [
+            4583,
+            4607
+          ],
+          "gained": 99,
+          "lost": 75,
+          "ordered_pair_covered": [
+            6327,
+            6342
+          ],
+          "changed_sets": 3450,
+          "delta_points": 0.196174595389897,
+          "day_bootstrap_95_points": [
+            -0.007983822886227685,
+            0.4074531120033544
+          ]
+        }
+      },
+      "conditional_cross_occurrences": 4196,
+      "conditional_second_logloss": [
+        1.3677966608016199,
+        1.353475217838993
+      ],
+      "conditional_second_top1": [
+        1665,
+        1690
+      ],
+      "conditional_second_top2": [
+        2822,
+        2834
+      ]
+    },
+    "current": {
+      "n": 287,
+      "days": 4,
+      "tickets": {
+        "1": {
+          "exact_hits": [
+            32,
+            32
+          ],
+          "gained": 0,
+          "lost": 0,
+          "ordered_pair_covered": [
+            72,
+            72
+          ],
+          "changed_sets": 4,
+          "delta_points": 0.0,
+          "day_bootstrap_95_points": [
+            0.0,
+            0.0
+          ]
+        },
+        "4": {
+          "exact_hits": [
+            91,
+            88
+          ],
+          "gained": 0,
+          "lost": 3,
+          "ordered_pair_covered": [
+            126,
+            124
+          ],
+          "changed_sets": 32,
+          "delta_points": -1.0452961672473868,
+          "day_bootstrap_95_points": [
+            -2.769230769230769,
+            0.0
+          ]
+        },
+        "8": {
+          "exact_hits": [
+            127,
+            125
+          ],
+          "gained": 2,
+          "lost": 4,
+          "ordered_pair_covered": [
+            160,
+            158
+          ],
+          "changed_sets": 82,
+          "delta_points": -0.6968641114982579,
+          "day_bootstrap_95_points": [
+            -1.8461538461538463,
+            0.0
+          ]
+        },
+        "cap": {
+          "exact_hits": [
+            93,
+            90
+          ],
+          "gained": 0,
+          "lost": 3,
+          "ordered_pair_covered": [
+            128,
+            125
+          ],
+          "changed_sets": 35,
+          "delta_points": -1.0452961672473868,
+          "day_bootstrap_95_points": [
+            -2.769230769230769,
+            0.0
+          ]
+        }
+      },
+      "conditional_cross_occurrences": 118,
+      "conditional_second_logloss": [
+        1.4039450577702735,
+        1.4137030152551893
+      ],
+      "conditional_second_top1": [
+        45,
+        48
+      ],
+      "conditional_second_top2": [
+        73,
+        74
+      ]
+    },
+    "actual_cross_current": {
+      "n": 118,
+      "days": 4,
+      "tickets": {
+        "1": {
+          "exact_hits": [
+            2,
+            2
+          ],
+          "gained": 0,
+          "lost": 0,
+          "ordered_pair_covered": [
+            3,
+            3
+          ],
+          "changed_sets": 3,
+          "delta_points": 0.0,
+          "day_bootstrap_95_points": [
+            0.0,
+            0.0
+          ]
+        },
+        "4": {
+          "exact_hits": [
+            8,
+            6
+          ],
+          "gained": 0,
+          "lost": 2,
+          "ordered_pair_covered": [
+            12,
+            12
+          ],
+          "changed_sets": 21,
+          "delta_points": -1.694915254237288,
+          "day_bootstrap_95_points": [
+            -5.357142857142857,
+            0.0
+          ]
+        },
+        "8": {
+          "exact_hits": [
+            19,
+            17
+          ],
+          "gained": 1,
+          "lost": 3,
+          "ordered_pair_covered": [
+            26,
+            22
+          ],
+          "changed_sets": 43,
+          "delta_points": -1.694915254237288,
+          "day_bootstrap_95_points": [
+            -3.4482758620689653,
+            0.0
+          ]
+        },
+        "cap": {
+          "exact_hits": [
+            9,
+            7
+          ],
+          "gained": 0,
+          "lost": 2,
+          "ordered_pair_covered": [
+            13,
+            12
+          ],
+          "changed_sets": 23,
+          "delta_points": -1.694915254237288,
+          "day_bootstrap_95_points": [
+            -5.357142857142857,
+            0.0
+          ]
+        }
+      },
+      "conditional_cross_occurrences": 118,
+      "conditional_second_logloss": [
+        1.4039450577702735,
+        1.4137030152551893
+      ],
+      "conditional_second_top1": [
+        45,
+        48
+      ],
+      "conditional_second_top2": [
+        73,
+        74
+      ]
+    },
+    "files_sha256": {
+      "results.json": "a466e21e165e41f2a44a56c6dc8365edd40f6b94a40d99cbadf990373d446b87",
+      "swaps.json": "fbfe39662262d23ce76c6d89ff306963fce7e9c96642a40541984614a381bbfb",
+      "forward-freeze.json": "ec90b6884e2ecf06155531816c42e32cb476104d7ba21d5a9b7f3dcc1cea8034"
+    }
+  },
+  "second_wheel_win": {
+    "description": "Keep joint win probability of line leader and second rider fixed. Fit which wins using shrunk previous paired races, odds of the pass given the head leads at B and points difference.",
+    "archive": {
+      "n": 12234,
+      "days": 175,
+      "tickets": {
+        "1": {
+          "exact": [
+            1248,
+            1253
+          ],
+          "exact_gain": 32,
+          "exact_loss": 27,
+          "distinct_winner_hit": [
+            5217,
+            5249
+          ],
+          "winner_recovered": 118,
+          "winner_lost": 86,
+          "baseline_winner_only_in_second_or_third": 3618,
+          "rescued_of_these": 101,
+          "changed_sets": 332,
+          "delta_points": 0.04086970737289521,
+          "day_bootstrap_95_points": [
+            -0.08217821807612333,
+            0.16497600632944753
+          ]
+        },
+        "4": {
+          "exact": [
+            3234,
+            3207
+          ],
+          "exact_gain": 30,
+          "exact_loss": 57,
+          "distinct_winner_hit": [
+            7768,
+            7751
+          ],
+          "winner_recovered": 81,
+          "winner_lost": 98,
+          "baseline_winner_only_in_second_or_third": 3271,
+          "rescued_of_these": 70,
+          "changed_sets": 1207,
+          "delta_points": -0.2206964198136341,
+          "day_bootstrap_95_points": [
+            -0.3655772926797036,
+            -0.08188650122837378
+          ]
+        },
+        "8": {
+          "exact": [
+            4583,
+            4580
+          ],
+          "exact_gain": 48,
+          "exact_loss": 51,
+          "distinct_winner_hit": [
+            9021,
+            9028
+          ],
+          "winner_recovered": 75,
+          "winner_lost": 68,
+          "baseline_winner_only_in_second_or_third": 2716,
+          "rescued_of_these": 73,
+          "changed_sets": 2055,
+          "delta_points": -0.024521824423737126,
+          "day_bootstrap_95_points": [
+            -0.1891921906002392,
+            0.13213804182215275
+          ]
+        }
+      },
+      "head_second_win_n": 9088,
+      "within_pair_conditional_logloss": [
+        0.6127523723310979,
+        0.609075526903459
+      ],
+      "within_pair_first_choice": [
+        6128,
+        6164
+      ],
+      "win_logloss": [
+        1.5301788190985508,
+        1.5267888250591422
+      ]
+    },
+    "current": {
+      "n": 287,
+      "days": 4,
+      "tickets": {
+        "1": {
+          "exact": [
+            32,
+            30
+          ],
+          "exact_gain": 0,
+          "exact_loss": 2,
+          "distinct_winner_hit": [
+            131,
+            130
+          ],
+          "winner_recovered": 6,
+          "winner_lost": 7,
+          "baseline_winner_only_in_second_or_third": 72,
+          "rescued_of_these": 6,
+          "changed_sets": 18,
+          "delta_points": -0.6968641114982579,
+          "day_bootstrap_95_points": [
+            -1.3071895424836601,
+            0.0
+          ]
+        },
+        "4": {
+          "exact": [
+            91,
+            91
+          ],
+          "exact_gain": 1,
+          "exact_loss": 1,
+          "distinct_winner_hit": [
+            199,
+            196
+          ],
+          "winner_recovered": 2,
+          "winner_lost": 5,
+          "baseline_winner_only_in_second_or_third": 54,
+          "rescued_of_these": 2,
+          "changed_sets": 55,
+          "delta_points": 0.0,
+          "day_bootstrap_95_points": [
+            -0.9202453987730062,
+            1.2096774193548387
+          ]
+        },
+        "8": {
+          "exact": [
+            127,
+            128
+          ],
+          "exact_gain": 1,
+          "exact_loss": 0,
+          "distinct_winner_hit": [
+            222,
+            225
+          ],
+          "winner_recovered": 5,
+          "winner_lost": 2,
+          "baseline_winner_only_in_second_or_third": 54,
+          "rescued_of_these": 5,
+          "changed_sets": 79,
+          "delta_points": 0.34843205574912894,
+          "day_bootstrap_95_points": [
+            0.0,
+            0.9771986970684039
+          ]
+        },
+        "cap": {
+          "exact": [
+            93,
+            94
+          ],
+          "exact_gain": 1,
+          "exact_loss": 0,
+          "distinct_winner_hit": [
+            201,
+            199
+          ],
+          "winner_recovered": 2,
+          "winner_lost": 4,
+          "baseline_winner_only_in_second_or_third": 53,
+          "rescued_of_these": 2,
+          "changed_sets": 57,
+          "delta_points": 0.34843205574912894,
+          "day_bootstrap_95_points": [
+            0.0,
+            1.2396694214876034
+          ]
+        }
+      },
+      "head_second_win_n": 233,
+      "within_pair_conditional_logloss": [
+        0.5050718368368631,
+        0.5006486728378268
+      ],
+      "within_pair_first_choice": [
+        168,
+        177
+      ],
+      "win_logloss": [
+        1.413904857233926,
+        1.4097659126083233
+      ]
+    },
+    "files_sha256": {
+      "results.json": "0a4c5b3da69d05246863aaa7e6af5960a6afe0ffc1f12fe2c20c8ee34590ced6",
+      "changed-order.json": "1bbd91556b9f58079f6a16501a7b1731201d7c0e933c109c2d9fbec3e3ac18c3",
+      "forward-freeze.json": "5834112ec8d16d224cefa8ada230637ce7f3fba81da53030094a7f471edb05da"
+    }
+  },
+  "individual": {
+    "description": "All entrants verified L1. Record exact 1st,2nd,3rd by entrant using prior 180 days; official win, top-two and top-three rates available on the entry card.",
+    "historical_training": 4123,
+    "historical": {
+      "1": {
+        "n": 959,
+        "old": 116,
+        "new": 113,
+        "gain": 28,
+        "loss": 31,
+        "delta_pp": -0.313,
+        "paired_date_bootstrap_95pp": [
+          -1.897,
+          1.201
+        ]
+      },
+      "4": {
+        "n": 959,
+        "old": 343,
+        "new": 343,
+        "gain": 41,
+        "loss": 41,
+        "delta_pp": 0.0,
+        "paired_date_bootstrap_95pp": [
+          -1.686,
+          1.686
+        ]
+      },
+      "8": {
+        "n": 959,
+        "old": 478,
+        "new": 481,
+        "gain": 41,
+        "loss": 38,
+        "delta_pp": 0.313,
+        "paired_date_bootstrap_95pp": [
+          -1.354,
+          1.94
+        ]
+      }
+    },
+    "timed_subset": {
+      "1": {
+        "n": 29,
+        "old": 3,
+        "new": 2,
+        "gain": 0,
+        "loss": 1,
+        "delta_pp": -3.448
+      },
+      "4": {
+        "n": 29,
+        "old": 4,
+        "new": 3,
+        "gain": 0,
+        "loss": 1,
+        "delta_pp": -3.448
+      },
+      "8": {
+        "n": 29,
+        "old": 8,
+        "new": 4,
+        "gain": 0,
+        "loss": 4,
+        "delta_pp": -13.793
+      }
+    },
+    "current_l1": {
+      "1": {
+        "n": 24,
+        "old": 2,
+        "new": 2,
+        "gain": 0,
+        "loss": 0,
+        "delta_pp": 0.0
+      },
+      "4": {
+        "n": 24,
+        "old": 6,
+        "new": 7,
+        "gain": 1,
+        "loss": 0,
+        "delta_pp": 4.167
+      },
+      "8": {
+        "n": 24,
+        "old": 11,
+        "new": 12,
+        "gain": 1,
+        "loss": 0,
+        "delta_pp": 4.167
+      },
+      "published": {
+        "n": 24,
+        "old": 7,
+        "new": 8,
+        "gain": 1,
+        "loss": 0,
+        "delta_pp": 4.167
+      }
+    },
+    "all_current_fallback_elsewhere": {
+      "1": {
+        "n": 287,
+        "old": 32,
+        "new": 32,
+        "gain": 0,
+        "loss": 0,
+        "delta_pp": 0.0
+      },
+      "4": {
+        "n": 287,
+        "old": 91,
+        "new": 92,
+        "gain": 1,
+        "loss": 0,
+        "delta_pp": 0.348
+      },
+      "8": {
+        "n": 287,
+        "old": 127,
+        "new": 128,
+        "gain": 1,
+        "loss": 0,
+        "delta_pp": 0.348
+      },
+      "published": {
+        "n": 287,
+        "old": 93,
+        "new": 94,
+        "gain": 1,
+        "loss": 0,
+        "delta_pp": 0.348
+      }
+    },
+    "design_sha256": "96b3bb07e29aaf8a03c6f4e511513e7bbebbb9247c36aa059f4729f28eb1402a"
+  },
+  "market": {
+    "description": "Arithmetic mean of the normalized model and normalized full-board inverse odds; require every offered triple and pre-cutoff quotes.",
+    "nov23": {
+      "blend_changed_ticket_sets_against": {
+        "market": 19,
+        "model": 17
+      },
+      "blend_pairwise": {
+        "market": {
+          "added": 0,
+          "both": 9,
+          "lost": 0,
+          "neither": 17
+        },
+        "model": {
+          "added": 0,
+          "both": 9,
+          "lost": 0,
+          "neither": 17
+        }
+      },
+      "hit_at_least_first_two_in_same_order": {
+        "blend": 12,
+        "market": 11,
+        "model": 12
+      },
+      "hits": {
+        "blend": 9,
+        "market": 9,
+        "model": 9
+      },
+      "races": 26,
+      "ticket_cap_histogram": {
+        "4": 22,
+        "8": 4
+      }
+    },
+    "nov25_early_retro": {
+      "changed_tickets": {
+        "market": 6,
+        "model": 4
+      },
+      "closed": 33,
+      "complete": 6,
+      "day": "2026-11-25",
+      "frozen_predictions": "96055d3ca6287e41ace865266da9ded3129e70ceaff1f5525d84d0c6f9f99948",
+      "hits": {
+        "blend": 1,
+        "market": 1,
+        "model": 2
+      },
+      "matched": 6,
+      "outcome_snapshot_sha256": "44b691fb19a45a6e8282e09594047eb945176bcf64c618f5a8b01c2d436b4ef0",
+      "paired": {
+        "blend_gained_vs_market": 0,
+        "blend_gained_vs_model": 0,
+        "blend_lost_vs_market": 0,
+        "blend_lost_vs_model": 1
+      },
+      "published_caps": {
+        "4": 4,
+        "8": 2
+      },
+      "scope": "retrospective replay restricted to already-closed races at study registration",
+      "score_as_of": "2026-11-25T07:01:56.252373+00:00",
+      "venue": [
+        "武雄"
+      ]
+    },
+    "timing": "Do not mix six already closed Nov25 races with nineteen open races that were independently registered."
+  },
+  "contested_second": {
+    "input_archive_commit": "311a27ff38bde15378aabf29890208f2b6b5f8a6",
+    "archived_rosters": 7469,
+    "declared_contests": 96,
+    "eligible_unique": 46,
+    "terminal_single_contest": 22,
+    "named_follower_cases": 24,
+    "excluded_unassigned_named_follower": 48,
+    "excluded_roster_mismatch": 2,
+    "precutoff_archive_among_46": [
+      "202611178608",
+      "202611197401"
+    ],
+    "historical_page_data_access": "Kdreams declared line, bracket, paper marks, comments, score and last-four-month fields. netkeirin entry H. Program pages re-read after race for all 46. Scoring uses matched Kdreams and netkeirin ordered trifecta payouts after freezing each forecast cohort.",
+    "training_date_windows": {
+      "earlier": {
+        "training_end": "2026-01-31",
+        "tuning_end": "2026-03-31",
+        "type": "existing form/three-stage choice predictor; no filmed-phase transition layer"
+      },
+      "recent": {
+        "training_end": "2026-11-20",
+        "type": "same existing Nov 25 live model with filmed-phase transition; all 46 earlier than training cutoff; within-fit-period reconstruction"
+      }
+    },
+    "freeze_hashes": {
+      "retro": "56d323dad458b77bc4ad95374df12b9128263d6515872d24cc8089793367f762",
+      "named": "3912267f74dbf180ef0967048a0adedf891b94549f3e2ab4b2402a19cdf6c881"
+    },
+    "scores": {
+      "earlier": {
+        "1": {
+          "races": 46,
+          "both": 1,
+          "only_original": 1,
+          "only_split": 1,
+          "neither": 43,
+          "original": 2,
+          "split": 2,
+          "original_pair_covered": 7,
+          "split_pair_covered": 8,
+          "exact_paired_two_sided_p": 1.0
+        },
+        "4": {
+          "races": 46,
+          "both": 4,
+          "only_original": 1,
+          "only_split": 3,
+          "neither": 38,
+          "original": 5,
+          "split": 7,
+          "original_pair_covered": 12,
+          "split_pair_covered": 14,
+          "exact_paired_two_sided_p": 0.625
+        },
+        "8": {
+          "races": 46,
+          "both": 8,
+          "only_original": 1,
+          "only_split": 6,
+          "neither": 31,
+          "original": 9,
+          "split": 14,
+          "original_pair_covered": 19,
+          "split_pair_covered": 19,
+          "exact_paired_two_sided_p": 0.125
+        },
+        "case": {
+          "races": 46,
+          "both": 5,
+          "only_original": 0,
+          "only_split": 4,
+          "neither": 37,
+          "original": 5,
+          "split": 9,
+          "original_pair_covered": 13,
+          "split_pair_covered": 15,
+          "exact_paired_two_sided_p": 0.125
+        }
+      },
+      "recent": {
+        "1": {
+          "races": 46,
+          "both": 1,
+          "only_original": 1,
+          "only_split": 1,
+          "neither": 43,
+          "original": 2,
+          "split": 2,
+          "original_pair_covered": 7,
+          "split_pair_covered": 9,
+          "exact_paired_two_sided_p": 1.0
+        },
+        "4": {
+          "races": 46,
+          "both": 3,
+          "only_original": 3,
+          "only_split": 4,
+          "neither": 36,
+          "original": 6,
+          "split": 7,
+          "original_pair_covered": 11,
+          "split_pair_covered": 15,
+          "exact_paired_two_sided_p": 1.0
+        },
+        "8": {
+          "races": 46,
+          "both": 10,
+          "only_original": 2,
+          "only_split": 4,
+          "neither": 30,
+          "original": 12,
+          "split": 14,
+          "original_pair_covered": 20,
+          "split_pair_covered": 19,
+          "exact_paired_two_sided_p": 0.6875
+        },
+        "case": {
+          "races": 46,
+          "both": 6,
+          "only_original": 2,
+          "only_split": 4,
+          "neither": 34,
+          "original": 8,
+          "split": 10,
+          "original_pair_covered": 14,
+          "split_pair_covered": 16,
+          "exact_paired_two_sided_p": 0.6875
+        }
+      }
+    },
+    "paired_ticket_diagnosis": {
+      "earlier": {
+        "4": {
+          "gain_same_pair_changed_third": 1,
+          "gain_correct_pair_coverage_changed": 2,
+          "loss_same_pair_changed_third": 1
+        },
+        "8": {
+          "gain_correct_pair_coverage_changed": 3,
+          "gain_same_pair_changed_third": 3,
+          "loss_correct_pair_coverage_changed": 1
+        }
+      },
+      "recent": {
+        "4": {
+          "gain_same_pair_changed_third": 1,
+          "loss_correct_pair_coverage_changed": 1,
+          "loss_same_pair_changed_third": 2,
+          "gain_correct_pair_coverage_changed": 3
+        },
+        "8": {
+          "gain_same_pair_changed_third": 2,
+          "loss_correct_pair_coverage_changed": 2,
+          "gain_correct_pair_coverage_changed": 2
+        }
+      }
+    }
+  }
+}

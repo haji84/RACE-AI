@@ -1,0 +1,104 @@
+{
+  "training": {
+    "features_include_current_event_truth": false,
+    "fit_races": 16033,
+    "fit_first_date": "20251001",
+    "fit_last_date": "20260523",
+    "fit_test_overlapping_keys": 0,
+    "chrono_train_on_baseline_before_fold_start": true
+  },
+  "older_replay": {
+    "count": 12234,
+    "dates": [
+      "20260524",
+      "20261120"
+    ],
+    "older_ranking_exact_match": true,
+    "valid_mark_rows": 12232,
+    "baseline_arm": "three_year_phases",
+    "separate_current_model_count": 287
+  },
+  "sql_source": {
+    "database_checksums_verified": true,
+    "timezone": "entries.fetched_at from datetime.now().isoformat with no offset; published collector runs ubuntu-latest without TZ in daily/backfill, local task also supported; no timezone claimed at row level",
+    "database_events_in_fold": 12232,
+    "sql_snapshot_same_timestamp_as_a_result_snapshot": 12232,
+    "all_other_sample_races": 0,
+    "same_date_coverage": {
+      "later_calendar_day": 10263,
+      "same_calendar_day": 1969
+    },
+    "directly_verified_before_cutoff_from_sqlalone": 0,
+    "unresolved_sql_fetch_dates": []
+  },
+  "authenticated_timed_sources": {
+    "note_view": {
+      "valid_marked_capture": 33,
+      "same_race_in_old_frame": 26,
+      "same_marks_same_riders": 26,
+      "different_or_conflicting_mark_vector": 0
+    },
+    "nov20_zip": {
+      "valid_marked_capture": 57,
+      "same_race_in_old_frame": 48,
+      "same_marks_same_riders": 48,
+      "different_or_conflicting_mark_vector": 0
+    }
+  },
+  "source_notes": "Receipt timestamps explicitly UTC; cutoff same Kdreams racecard race date in JST (+09:00). Independently matching pre-cutoff inputs do not backdate estimator or historical tickets. Aggregate gold used after SHA verification only.",
+  "timed_marks_older_model": {
+    "races": 48,
+    "1": {
+      "old": 8,
+      "new": 8,
+      "gained": 0,
+      "lost": 0
+    },
+    "4": {
+      "old": 16,
+      "new": 14,
+      "gained": 0,
+      "lost": 2
+    },
+    "8": {
+      "old": 20,
+      "new": 22,
+      "gained": 2,
+      "lost": 0
+    }
+  },
+  "timed_marks_days": [
+    "20261120"
+  ],
+  "older_all_control": {
+    "races": 12234,
+    "1": {
+      "old": 1248,
+      "new": 1284,
+      "gained": 133,
+      "lost": 97
+    },
+    "4": {
+      "old": 3234,
+      "new": 3268,
+      "gained": 206,
+      "lost": 172
+    },
+    "8": {
+      "old": 4583,
+      "new": 4646,
+      "gained": 210,
+      "lost": 147
+    }
+  },
+  "rank_file_sha256": "bf6eadf4cb0b9b947b87b222cdcb66bb9c784e91aff4af38689f89dfdfdcc5ae",
+  "features_sha256": "5a2235b92a872a7938d47b6e2cc09174d71b3276e5eff9c03f37861fd0e5d768",
+  "marked_archive_sha256": "09bcafb1629c02de921b5a2649e626cdd64ef0e648562a86a43ae4f2967fa875",
+  "proof_input_zip_sha256": "e1fdf1c75738b394d369ea165d7dd96afd01297017f440470c74ff3e05c80581",
+  "script_sha256": "f8c3f7a1cb724797fcc67ee9bd9235ebe6c12064fc60abd186705891366f3182",
+  "H_overlap_old_model": {
+    "note_view": 26,
+    "nov20_zip": 48,
+    "nov19_original_source_metadata": 61
+  }
+}
