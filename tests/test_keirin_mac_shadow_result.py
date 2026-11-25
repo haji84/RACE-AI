@@ -11,9 +11,15 @@ from unittest.mock import patch
 from urllib.error import HTTPError
 
 from race_ai import keirin_official_public_source as official
+from scripts import keirin_capture_public_two_sources as capture
 from scripts import keirin_mac_shadow_result as shadow
 from scripts.keirin_official_day_pipeline import private_snapshot_json
 from tests.test_keirin_official_public_source import DAY, RACE, fixtures, transport
+from tests.test_keirin_public_site_results import kd_result, net_result
+
+
+KDREAMS = 'https://keirin.kdreams.jp/synthetic/racedetail/2620261002010001/'
+NETKEIRIN = 'https://keirin.netkeiba.com/race/result/?race_id=' + RACE
 
 
 def at(hour, minute):
@@ -39,7 +45,9 @@ class MacShadowResultTest(unittest.TestCase):
             race_id=RACE, generated_at=at(1, 40).isoformat(), score_cutoff_at=at(1, 46).isoformat(),
             official_cutoff_at=cuts['official_cutoff_at'], production_model_switched=False,
             selected_arm='all_96', input=dict(official_schedule_sha256=self.schedule_sha,
-                official_venue_source_sha256=cuts['source_sha256'], input=dict(race_id=RACE, riders=roster)),
+                official_venue_source_sha256=cuts['source_sha256'], input=dict(race_id=RACE, riders=roster),
+                source_url=KDREAMS, source_sha256='c' * 64, source_captured_at=at(1, 35).isoformat(),
+                provider_cutoff_at=at(1, 46).isoformat()),
             forecasts=self.forecasts())
         self.request = self.write_request()
         self.now = at(1, 43)
@@ -76,7 +84,7 @@ class MacShadowResultTest(unittest.TestCase):
         ref = 'a' * 40
         cutoff = self.original['score_cutoff_at']
         published = at(3, 5).isoformat()
-        source_url = 'https://keirin.kdreams.jp/synthetic/racedetail/2620261002010001/'
+        source_url = KDREAMS
         roster = dict(schema='KEIRIN_PUBLIC_RESULT_ROSTER_V1', date=DAY,
                       generated_at=at(1, 42).isoformat(), forecast_asset_sha256='b' * 64,
                       races=[dict(race_id=RACE, date=DAY, venue='架空場', race_no=1,
@@ -91,9 +99,174 @@ class MacShadowResultTest(unittest.TestCase):
                                      url='https://keirin.netkeiba.com/race/result/?race_id=' + RACE)])
         results = dict(schema='KEIRIN_PUBLISHED_RESULTS_V1', date=DAY, checked_at=published,
                        races=[dict(race_id=RACE, state='matched', comparison=outcome)])
-        return {'git/ref/heads/state/keirin-public-results': {'object': {'sha': ref}},
+        return {'git/ref/heads/state/keirin-public-results': {
+                    'ref': 'refs/heads/state/keirin-public-results', 'object': {'sha': ref, 'type': 'commit'}},
                 f'contents/rosters/{DAY}.json?ref={ref}': roster,
                 f'contents/results/{DAY}.json?ref={ref}': results}
+
+    def approve_secondary(self, **overrides):
+        request = json.loads(self.request.read_bytes())
+        approval = dict(schema='KEIRIN_MAC_SHADOW_SECONDARY_RESULT_APPROVAL_V1',
+                        scope='OWNER_PERSONAL_RESEARCH_ONLY', race_id=RACE, kdreams_url=KDREAMS,
+                        original_sha256=request['original_sha256'], schedule_sha256=request['schedule_sha256'])
+        approval.update(overrides)
+        return self.write('secondary-result-approval.json', approval)
+
+    def run_secondary(self, fetch, *, status=404, unexpected_url=False, wrong_ref=False, absent='rosters'):
+        public = self.public_fixture()
+        if wrong_ref:
+            public[shadow.GITHUB_REF]['ref'] = 'refs/heads/unrelated'
+        missing = shadow.GITHUB_REF if absent == 'ref' else f'contents/{absent}/{DAY}.json?ref={"a" * 40}'
+
+        def public_get(path, **_):
+            self.result_calls.append(path)
+            if path == missing:
+                url = shadow.GITHUB_API + (path if not unexpected_url else 'unexpected-not-found')
+                raise HTTPError(url, status, 'fixture', {}, None)
+            return public[path]
+
+        with patch.dict('os.environ', {'RACE_AI_KEIRIN_OFFICIAL_SOURCE_ENABLED': 'false'}):
+            with patch.object(capture, 'fetch_once', side_effect=fetch):
+                return self.run_shadow(fetcher=None, public_fetcher=public_get)
+
+    def site_page(self, url, *, podium='1-2-3'):
+        self.result_calls.append(url)
+        if url == KDREAMS + '?pageType=result':
+            page = kd_result().decode().replace('1-2-4', '1-2-3')
+        elif url == NETKEIRIN:
+            page = net_result(podium=podium).decode()
+        else:
+            self.fail(f'unexpected source request: {url}')
+        return page.replace('広島競輪 2026年11月23日', '架空場競輪 2026年10月2日').encode()
+
+    def test_exact_missing_roster_allows_the_approved_pair_and_reuses_the_saved_outcome(self):
+        self.approve_secondary()
+        self.result_calls = []
+        before = (self.root / 'original.json').read_bytes()
+        report = self.run_secondary(self.site_page)
+        self.assertEqual(report['state'], 'SHADOW_SECONDARY_PODIUM_SCORED')
+        self.assertEqual(report['scope'], 'TWO_SOURCE_MATCHED_PODIUM_ONLY')
+        self.assertEqual(report['official_state'], 'HOLD_OFFICIAL_AUTOMATED_SOURCE_NOT_ENABLED')
+        self.assertFalse(report['full_finish_verified'])
+        self.assertEqual(report['scores'], {'saved': {'top4_3t': 0, 'top2_2t': 0},
+                                           'challenger': {'top4_3t': 1, 'top2_2t': 1}})
+        self.assertEqual(self.run_secondary(self.site_page), report)
+        self.assertEqual(self.result_calls, [shadow.GITHUB_REF,
+                         f'contents/rosters/{DAY}.json?ref={"a" * 40}', KDREAMS + '?pageType=result', NETKEIRIN])
+        self.assertEqual((self.root / 'original.json').read_bytes(), before)
+        self.assertEqual(list(self.root.rglob('official-result.json')), [])
+
+    def test_an_approved_pair_still_waits_for_the_stored_start(self):
+        self.approve_secondary()
+        self.result_calls = []
+        self.now = at(1, 49)
+        report = self.run_secondary(self.site_page)
+        self.assertEqual(report['state'], 'WAITING_FOR_OFFICIAL_START')
+        self.assertEqual(self.result_calls, [])
+
+    def test_existing_archived_race_is_preferred_even_with_approval(self):
+        self.approve_secondary()
+        documents = self.public_fixture()
+        with patch.dict('os.environ', {'RACE_AI_KEIRIN_OFFICIAL_SOURCE_ENABLED': 'false'}):
+            with patch.object(capture, 'fetch_once', side_effect=AssertionError('fallback was requested')):
+                report = self.run_shadow(fetcher=None, public_fetcher=lambda path, **_: documents[path])
+        self.assertEqual(report['state'], 'SHADOW_PUBLIC_PODIUM_SCORED')
+
+    def test_missing_approval_keeps_the_github_wait(self):
+        self.result_calls = []
+        report = self.run_secondary(self.site_page)
+        self.assertEqual(report['state'], 'WAITING_FOR_GITHUB_PUBLIC_RESULT')
+        self.assertEqual(len(self.result_calls), 2)
+
+    def test_approval_cannot_substitute_a_different_race_source(self):
+        self.approve_secondary(kdreams_url=KDREAMS.replace('/synthetic/', '/unbound/'))
+        self.result_calls = []
+        report = self.run_secondary(self.site_page)
+        self.assertEqual(report['state'], 'HOLD_SECONDARY_RESULT_APPROVAL_INVALID')
+        self.assertNotIn('scores', report)
+        self.assertEqual(len(self.result_calls), 2)
+
+    def test_a_denied_or_unbound_github_response_cannot_trigger_secondary_requests(self):
+        self.approve_secondary()
+        cases = [
+            ({'status': 403}, 'HOLD_GITHUB_PUBLIC_RESULT_REFUSAL'),
+            ({'status': 503}, 'HOLD_GITHUB_PUBLIC_RESULT_UNAVAILABLE'),
+            ({'unexpected_url': True}, 'WAITING_FOR_GITHUB_PUBLIC_RESULT'),
+            ({'absent': 'ref'}, 'WAITING_FOR_GITHUB_PUBLIC_RESULT'),
+            ({'wrong_ref': True}, 'WAITING_FOR_GITHUB_PUBLIC_RESULT'),
+        ]
+        for options, expected in cases:
+            with self.subTest(options=options), TemporaryDirectory(dir=self.root) as folder:
+                # A fresh state namespace keeps the refusal and poll receipts isolated.
+                real_root, self.root = self.root, Path(folder)
+                try:
+                    self.result_calls = []
+                    after, self.now = self.now, at(1, 43)
+                    self.assertEqual(self.run_secondary(self.site_page)['state'], 'WAITING_FOR_OFFICIAL_START')
+                    self.now = after
+                    report = self.run_secondary(self.site_page, **options)
+                    self.assertEqual(report['state'], expected)
+                    self.assertTrue(all(path.startswith(('git/ref/', 'contents/')) for path in self.result_calls))
+                finally:
+                    self.root = real_root
+
+    def test_secondary_denial_is_persisted_before_touching_the_other_provider(self):
+        self.approve_secondary()
+        self.result_calls = []
+
+        def denied(url):
+            self.result_calls.append(url)
+            raise capture.SourceCaptureError('PUBLIC_PROVIDER_HTTP_ERROR_STOP', http_status=407)
+
+        report = self.run_secondary(denied, absent='results')
+        self.assertEqual(report['state'], 'HOLD_SECONDARY_RESULT_PROVIDER_REFUSAL')
+        self.now += timedelta(minutes=30)
+        self.assertEqual(self.run_secondary(self.site_page, absent='results'), report)
+        self.assertEqual(self.result_calls.count(KDREAMS + '?pageType=result'), 1)
+        self.assertNotIn(NETKEIRIN, self.result_calls)
+
+    def test_disagreement_cannot_score_the_shadow(self):
+        self.approve_secondary()
+        self.result_calls = []
+        report = self.run_secondary(lambda url: self.site_page(url, podium='1-2-4'))
+        self.assertEqual(report['state'], 'HOLD_SECONDARY_RESULT_DISAGREEMENT')
+        self.assertNotIn('scores', report)
+
+    def test_changed_raw_bytes_do_not_replay_a_matched_shadow(self):
+        self.approve_secondary()
+        self.result_calls = []
+        self.assertEqual(self.run_secondary(self.site_page)['state'], 'SHADOW_SECONDARY_PODIUM_SCORED')
+        saved_raw = next(self.root.rglob('*.html'))
+        saved_raw.write_bytes(b'changed')
+        self.assertEqual(self.run_secondary(self.site_page)['state'], 'HOLD_SECONDARY_RESULT_EVIDENCE_INVALID')
+        self.assertEqual(len(self.result_calls), 4)
+
+    def test_missing_actor_pin_does_not_recreate_a_previously_scored_result(self):
+        self.approve_secondary()
+        self.result_calls = []
+        self.assertEqual(self.run_secondary(self.site_page)['state'], 'SHADOW_SECONDARY_PODIUM_SCORED')
+        pin_path = next(self.root.rglob('actor-pin.json'))
+        pin_path.unlink()
+        self.assertEqual(self.run_secondary(self.site_page)['state'], 'HOLD_SECONDARY_RESULT_EVIDENCE_INVALID')
+        self.assertFalse(pin_path.exists())
+        self.assertEqual(len(self.result_calls), 4)
+
+    def test_secondary_capture_can_resume_later_in_the_existing_public_result_window(self):
+        self.approve_secondary()
+        self.result_calls = []
+        self.now = at(5, 20)
+        self.assertEqual(self.run_secondary(self.site_page)['state'], 'SHADOW_SECONDARY_PODIUM_SCORED')
+
+    def test_a_missing_parser_dependency_returns_a_hold_without_contacting_either_provider(self):
+        self.approve_secondary()
+        self.result_calls = []
+        with patch.object(shadow, 'observe', side_effect=ModuleNotFoundError('fixture parser dependency')):
+            try:
+                report = self.run_secondary(self.site_page)
+            except ImportError:
+                self.fail('missing parser escaped the fallback instead of returning a hold')
+        self.assertEqual(report['state'], 'HOLD_SECONDARY_RESULT_PARSER_UNAVAILABLE')
+        self.assertEqual(len(self.result_calls), 2)
 
     def test_waits_for_official_start_even_after_the_scoring_cutoff(self):
         self.now = at(1, 49)
