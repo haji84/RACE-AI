@@ -1,0 +1,518 @@
+{
+  "all_forecast_clocks_seconds_min_median_max": {
+    "generation_to_note_seal": [
+      0.062,
+      11.553,
+      27.475
+    ],
+    "run_start_to_capture": [
+      38.028,
+      80.879,
+      127.603
+    ],
+    "run_start_to_generation": [
+      39.047,
+      173.665,
+      196.719
+    ],
+    "source_asof_to_generation": [
+      0.821,
+      87.77,
+      127.634
+    ]
+  },
+  "archive_clock_readbacks": [
+    {
+      "decoded_forecast_records": 1,
+      "note_archive_view_sha256": "d97dd84438602570fd7fd237ca468a0dab6da10ebea8691512ee54fe42592b1c",
+      "note_sealed_at": "2026-11-22T01:45:11.664303+00:00",
+      "priority_records": 1,
+      "run_id": 44972848385,
+      "run_start_to_generation_s_min_median_max": [
+        39.047,
+        39.047,
+        39.047
+      ],
+      "run_start_to_note_seal_s": 53.664303,
+      "run_started_at": "2026-11-22T01:44:18Z",
+      "run_updated_at": "2026-11-22T01:50:00Z",
+      "source_asof_to_generation_s_min_median_max": [
+        1.019,
+        1.019,
+        1.019
+      ]
+    },
+    {
+      "decoded_forecast_records": 87,
+      "note_archive_view_sha256": "be7ea0dcfe19ecc9cf80a1516147d5154f13da88fdfd83e57e93b0bad5a62803",
+      "note_sealed_at": "2026-11-22T16:53:41.222777+00:00",
+      "priority_records": 0,
+      "run_id": 45046049582,
+      "run_start_to_generation_s_min_median_max": [
+        170.747,
+        183.026,
+        196.719
+      ],
+      "run_start_to_note_seal_s": 198.222777,
+      "run_started_at": "2026-11-22T16:50:23Z",
+      "run_updated_at": "2026-11-22T17:00:41Z",
+      "source_asof_to_generation_s_min_median_max": [
+        69.117,
+        99.815,
+        127.634
+      ]
+    },
+    {
+      "decoded_forecast_records": 1,
+      "note_archive_view_sha256": "1916c59838288851c6e33eed04794749ec52790e0ed369dfad972d933e93cf9c",
+      "note_sealed_at": "2026-11-23T03:54:47.428907+00:00",
+      "priority_records": 1,
+      "run_id": 45108637263,
+      "run_start_to_generation_s_min_median_max": [
+        50.361,
+        50.361,
+        50.361
+      ],
+      "run_start_to_note_seal_s": 50.428907,
+      "run_started_at": "2026-11-23T03:53:57Z",
+      "run_updated_at": "2026-11-23T03:59:33Z",
+      "source_asof_to_generation_s_min_median_max": [
+        1.006,
+        1.006,
+        1.006
+      ]
+    },
+    {
+      "decoded_forecast_records": 1,
+      "note_archive_view_sha256": "55828ae1a49a3ef9e9d2828d4c92a1d56eccc62afa5f96fb85b631b29b131ad2",
+      "note_sealed_at": "2026-11-23T11:22:25.454368+00:00",
+      "priority_records": 1,
+      "run_id": 45164463641,
+      "run_start_to_generation_s_min_median_max": [
+        56.388,
+        56.388,
+        56.388
+      ],
+      "run_start_to_note_seal_s": 56.454368,
+      "run_started_at": "2026-11-23T11:21:29Z",
+      "run_updated_at": "2026-11-23T11:28:01Z",
+      "source_asof_to_generation_s_min_median_max": [
+        0.821,
+        0.821,
+        0.821
+      ]
+    },
+    {
+      "decoded_forecast_records": 66,
+      "note_archive_view_sha256": "ea7f43d687eeed8d189df007fddf973c4860521694e26bed557d91927e3bc181",
+      "note_sealed_at": "2026-11-23T22:49:51.346689+00:00",
+      "priority_records": 0,
+      "run_id": 45282887847,
+      "run_start_to_generation_s_min_median_max": [
+        161.63,
+        172.136,
+        182.948
+      ],
+      "run_start_to_note_seal_s": 184.346689,
+      "run_started_at": "2026-11-23T22:46:47Z",
+      "run_updated_at": "2026-11-23T22:56:55Z",
+      "source_asof_to_generation_s_min_median_max": [
+        69.025,
+        89.642,
+        108.983
+      ]
+    },
+    {
+      "decoded_forecast_records": 1,
+      "note_archive_view_sha256": "95b211623dea51c01fea39cd90bd027adf8dd633f60e698a5687c5f48f04f9ab",
+      "note_sealed_at": "2026-11-24T01:49:14.886240+00:00",
+      "priority_records": 1,
+      "run_id": 45307718115,
+      "run_start_to_generation_s_min_median_max": [
+        52.638,
+        52.638,
+        52.638
+      ],
+      "run_start_to_note_seal_s": 65.88624,
+      "run_started_at": "2026-11-24T01:48:09Z",
+      "run_updated_at": "2026-11-24T01:58:15Z",
+      "source_asof_to_generation_s_min_median_max": [
+        1.014,
+        1.014,
+        1.014
+      ]
+    },
+    {
+      "decoded_forecast_records": 15,
+      "note_archive_view_sha256": "b9c4156379eec9bbf27646e2698f4c33346085b745006ab8be96f8668d634c8e",
+      "note_sealed_at": "2026-11-24T06:32:32.101427+00:00",
+      "priority_records": 0,
+      "run_id": 45341016400,
+      "run_start_to_generation_s_min_median_max": [
+        91.351,
+        94.48,
+        97.738
+      ],
+      "run_start_to_note_seal_s": 98.101427,
+      "run_started_at": "2026-11-24T06:30:54Z",
+      "run_updated_at": "2026-11-24T06:36:40Z",
+      "source_asof_to_generation_s_min_median_max": [
+        18.97,
+        24.342,
+        28.348
+      ]
+    },
+    {
+      "decoded_forecast_records": 1,
+      "note_archive_view_sha256": "c4a6336e80e9333db836ff67896f8b41cf503bca55e15f6e0766b1702d9c4db3",
+      "note_sealed_at": "2026-11-24T12:05:31.717219+00:00",
+      "priority_records": 1,
+      "run_id": 45390016865,
+      "run_start_to_generation_s_min_median_max": [
+        62.652,
+        62.652,
+        62.652
+      ],
+      "run_start_to_note_seal_s": 62.717219,
+      "run_started_at": "2026-11-24T12:04:29Z",
+      "run_updated_at": "2026-11-24T12:09:07Z",
+      "source_asof_to_generation_s_min_median_max": [
+        0.966,
+        0.966,
+        0.966
+      ]
+    },
+    {
+      "decoded_forecast_records": 60,
+      "note_archive_view_sha256": "26c99b14a2f0fe486649b77d3bcaae2928d531f4c374b3c160981dd4e164c102",
+      "note_sealed_at": "2026-11-24T18:17:22.878878+00:00",
+      "priority_records": 0,
+      "run_id": 45457336530,
+      "run_start_to_generation_s_min_median_max": [
+        159.318,
+        168.625,
+        177.741
+      ],
+      "run_start_to_note_seal_s": 178.878878,
+      "run_started_at": "2026-11-24T18:14:24Z",
+      "run_updated_at": "2026-11-24T18:24:41Z",
+      "source_asof_to_generation_s_min_median_max": [
+        50.703,
+        80.983,
+        100.442
+      ]
+    },
+    {
+      "decoded_forecast_records": 1,
+      "note_archive_view_sha256": "b92a16ee075fe51bddf175df191468dc70a40515ff7e78ea43575f7cabf156dd",
+      "note_sealed_at": "2026-11-25T02:35:30.729225+00:00",
+      "priority_records": 1,
+      "run_id": 45533889452,
+      "run_start_to_generation_s_min_median_max": [
+        68.032,
+        68.032,
+        68.032
+      ],
+      "run_start_to_note_seal_s": 79.729225,
+      "run_started_at": "2026-11-25T02:34:11Z",
+      "run_updated_at": "2026-11-25T02:40:43Z",
+      "source_asof_to_generation_s_min_median_max": [
+        0.973,
+        0.973,
+        0.973
+      ]
+    },
+    {
+      "decoded_forecast_records": 1,
+      "note_archive_view_sha256": "bfbf71f6e80cfa4a7db8be77b59990da3a0daae05f85ba4c0a4f1e16486227dd",
+      "note_sealed_at": "2026-11-25T05:16:41.272205+00:00",
+      "priority_records": 0,
+      "run_id": 45552317289,
+      "run_start_to_generation_s_min_median_max": [
+        67.187,
+        67.187,
+        67.187
+      ],
+      "run_start_to_note_seal_s": 67.272205,
+      "run_started_at": "2026-11-25T05:15:34Z",
+      "run_updated_at": "2026-11-25T05:21:15Z",
+      "source_asof_to_generation_s_min_median_max": [
+        1.304,
+        1.304,
+        1.304
+      ]
+    },
+    {
+      "decoded_forecast_records": 1,
+      "note_archive_view_sha256": "e5e259f2ae2596cb5f2185be38b1741899733af6b44af17d16833e78a33dcce3",
+      "note_sealed_at": "2026-11-25T11:41:38.034353+00:00",
+      "priority_records": 1,
+      "run_id": 45606639155,
+      "run_start_to_generation_s_min_median_max": [
+        61.972,
+        61.972,
+        61.972
+      ],
+      "run_start_to_note_seal_s": 62.034353,
+      "run_started_at": "2026-11-25T11:40:36Z",
+      "run_updated_at": "2026-11-25T11:45:26Z",
+      "source_asof_to_generation_s_min_median_max": [
+        0.98,
+        0.98,
+        0.98
+      ]
+    }
+  ],
+  "archive_runs": 12,
+  "audit_saved_at_utc": "2026-11-25T14:37:02.431592+00:00",
+  "authenticated_note_index_git_revision": "373fc34e6e71e57f54a051a6c767ef2b43b9e490",
+  "authenticated_note_index_sha256": "6df730020eae4f39202f0483b9b9546ff688e8a618980fd2b37e2758b9d34344",
+  "branch": "main",
+  "captured_and_priority_by_day": {
+    "20261120": {
+      "captured": 33,
+      "priority": 3
+    },
+    "20261121": {
+      "captured": 57,
+      "priority": 3
+    },
+    "20261122": {
+      "captured": 68,
+      "priority": 6
+    },
+    "20261123": {
+      "captured": 89,
+      "priority": 4
+    },
+    "20261124": {
+      "captured": 81,
+      "priority": 4
+    },
+    "20261125": {
+      "captured": 75,
+      "priority": 2
+    }
+  },
+  "distinct_races_claimed": false,
+  "duration_seconds_min_median_max": [
+    221.0,
+    380.0,
+    618.0
+  ],
+  "encrypted_archive_readback": {
+    "local_git": 2,
+    "normal_authenticated_github_reads": 10
+  },
+  "event": "schedule",
+  "exact_priority_clock_records": 7,
+  "forecast_records": 236,
+  "intervals_over_five_minutes": 21,
+  "note_seal_lag_seconds_min_median_max": [
+    50.429,
+    66.579,
+    198.223
+  ],
+  "priority_forecast_clocks_seconds_min_median_max": {
+    "generation_before_cutoff": [
+      602.953,
+      658.362,
+      814.612
+    ],
+    "generation_to_note_seal": [
+      0.062,
+      0.068,
+      14.617
+    ],
+    "run_start_to_capture": [
+      38.028,
+      55.567,
+      67.059
+    ],
+    "run_start_to_generation": [
+      39.047,
+      56.388,
+      68.032
+    ],
+    "source_asof_to_generation": [
+      0.821,
+      0.98,
+      1.019
+    ]
+  },
+  "range_end_utc": "2026-11-25T11:40:36Z",
+  "range_start_utc": "2026-11-21T22:03:26Z",
+  "raw_private_data_in_report": false,
+  "repository": "haji84/RACE-AI",
+  "run_list_canonical_json_sha256": "d8785d68d143ccfe51a738afd8b74b65b65a361f10be55da641304e63c448d80",
+  "runs": [
+    {
+      "conclusion": "success",
+      "createdAt": "2026-11-21T22:03:26Z",
+      "databaseId": 44954713794,
+      "startedAt": "2026-11-21T22:03:26Z",
+      "updatedAt": "2026-11-21T22:10:41Z"
+    },
+    {
+      "conclusion": "success",
+      "createdAt": "2026-11-22T01:44:18Z",
+      "databaseId": 44972848385,
+      "startedAt": "2026-11-22T01:44:18Z",
+      "updatedAt": "2026-11-22T01:50:00Z"
+    },
+    {
+      "conclusion": "success",
+      "createdAt": "2026-11-22T02:31:25Z",
+      "databaseId": 44976492994,
+      "startedAt": "2026-11-22T02:31:25Z",
+      "updatedAt": "2026-11-22T02:35:06Z"
+    },
+    {
+      "conclusion": "success",
+      "createdAt": "2026-11-22T08:53:39Z",
+      "databaseId": 45004922287,
+      "startedAt": "2026-11-22T08:53:39Z",
+      "updatedAt": "2026-11-22T08:57:31Z"
+    },
+    {
+      "conclusion": "success",
+      "createdAt": "2026-11-22T10:11:07Z",
+      "databaseId": 45011177567,
+      "startedAt": "2026-11-22T10:11:07Z",
+      "updatedAt": "2026-11-22T10:15:00Z"
+    },
+    {
+      "conclusion": "success",
+      "createdAt": "2026-11-22T16:50:23Z",
+      "databaseId": 45046049582,
+      "startedAt": "2026-11-22T16:50:23Z",
+      "updatedAt": "2026-11-22T17:00:41Z"
+    },
+    {
+      "conclusion": "success",
+      "createdAt": "2026-11-22T17:58:30Z",
+      "databaseId": 45052405325,
+      "startedAt": "2026-11-22T17:58:30Z",
+      "updatedAt": "2026-11-22T18:04:38Z"
+    },
+    {
+      "conclusion": "success",
+      "createdAt": "2026-11-22T22:11:08Z",
+      "databaseId": 45076277711,
+      "startedAt": "2026-11-22T22:11:08Z",
+      "updatedAt": "2026-11-22T22:18:56Z"
+    },
+    {
+      "conclusion": "success",
+      "createdAt": "2026-11-22T23:22:22Z",
+      "databaseId": 45082901958,
+      "startedAt": "2026-11-22T23:22:22Z",
+      "updatedAt": "2026-11-22T23:30:01Z"
+    },
+    {
+      "conclusion": "success",
+      "createdAt": "2026-11-23T02:45:55Z",
+      "databaseId": 45102054295,
+      "startedAt": "2026-11-23T02:45:55Z",
+      "updatedAt": "2026-11-23T02:51:19Z"
+    },
+    {
+      "conclusion": "success",
+      "createdAt": "2026-11-23T03:53:57Z",
+      "databaseId": 45108637263,
+      "startedAt": "2026-11-23T03:53:57Z",
+      "updatedAt": "2026-11-23T03:59:33Z"
+    },
+    {
+      "conclusion": "success",
+      "createdAt": "2026-11-23T11:21:29Z",
+      "databaseId": 45164463641,
+      "startedAt": "2026-11-23T11:21:29Z",
+      "updatedAt": "2026-11-23T11:28:01Z"
+    },
+    {
+      "conclusion": "success",
+      "createdAt": "2026-11-23T14:06:13Z",
+      "databaseId": 45190594108,
+      "startedAt": "2026-11-23T14:06:13Z",
+      "updatedAt": "2026-11-23T14:13:06Z"
+    },
+    {
+      "conclusion": "success",
+      "createdAt": "2026-11-23T22:46:47Z",
+      "databaseId": 45282887847,
+      "startedAt": "2026-11-23T22:46:47Z",
+      "updatedAt": "2026-11-23T22:56:55Z"
+    },
+    {
+      "conclusion": "success",
+      "createdAt": "2026-11-24T01:48:09Z",
+      "databaseId": 45307718115,
+      "startedAt": "2026-11-24T01:48:09Z",
+      "updatedAt": "2026-11-24T01:58:15Z"
+    },
+    {
+      "conclusion": "success",
+      "createdAt": "2026-11-24T06:30:54Z",
+      "databaseId": 45341016400,
+      "startedAt": "2026-11-24T06:30:54Z",
+      "updatedAt": "2026-11-24T06:36:40Z"
+    },
+    {
+      "conclusion": "success",
+      "createdAt": "2026-11-24T12:04:29Z",
+      "databaseId": 45390016865,
+      "startedAt": "2026-11-24T12:04:29Z",
+      "updatedAt": "2026-11-24T12:09:07Z"
+    },
+    {
+      "conclusion": "success",
+      "createdAt": "2026-11-24T18:14:24Z",
+      "databaseId": 45457336530,
+      "startedAt": "2026-11-24T18:14:24Z",
+      "updatedAt": "2026-11-24T18:24:41Z"
+    },
+    {
+      "conclusion": "success",
+      "createdAt": "2026-11-24T22:40:58Z",
+      "databaseId": 45503200724,
+      "startedAt": "2026-11-24T22:40:58Z",
+      "updatedAt": "2026-11-24T22:49:58Z"
+    },
+    {
+      "conclusion": "success",
+      "createdAt": "2026-11-25T02:34:11Z",
+      "databaseId": 45533889452,
+      "startedAt": "2026-11-25T02:34:11Z",
+      "updatedAt": "2026-11-25T02:40:43Z"
+    },
+    {
+      "conclusion": "success",
+      "createdAt": "2026-11-25T05:15:34Z",
+      "databaseId": 45552317289,
+      "startedAt": "2026-11-25T05:15:34Z",
+      "updatedAt": "2026-11-25T05:21:15Z"
+    },
+    {
+      "conclusion": "success",
+      "createdAt": "2026-11-25T11:40:36Z",
+      "databaseId": 45606639155,
+      "startedAt": "2026-11-25T11:40:36Z",
+      "updatedAt": "2026-11-25T11:45:26Z"
+    }
+  ],
+  "runs_in_observation": 22,
+  "schema": "KEIRIN_PR71_SCHEDULE_ARCHIVED_GENERATION_AUDIT_V1",
+  "start_interval_minutes_min_median_max": [
+    47.117,
+    233.217,
+    520.567
+  ],
+  "time_association": "Unique nonempty research seal within the native scheduled run interval. The readback does not independently prove a run-ID field was embedded in each note.",
+  "timing_sources": {
+    "forecast_clock": "Exact source_as_of and generated_at from verified decrypted pre-race input/reference packet",
+    "run_clock": "GitHub Actions runs API",
+    "seal_clock": "existing note index created_at"
+  },
+  "workflow": "keirin-pr71-owner-autonomous.yml"
+}
