@@ -118,6 +118,42 @@ class PublicResultRefreshTests(unittest.TestCase):
                 self.assertEqual(publisher.main(), 0)
                 self.assertEqual(request.call_count, 2)
 
+    def test_busy_jst_day_checks_its_new_races_and_gives_older_days_a_turn(self):
+        with TemporaryDirectory() as directory:
+            state = Path(directory)
+            (state / 'rosters').mkdir()
+            days = (DATE, '2026-11-20', '2026-11-21')
+            for day in days:
+                rows = []
+                for i in range(3):
+                    number = i + 1
+                    compact = day.replace('-', '')
+                    row = race(i, day + 'T00:10:00+09:00')
+                    row.update(date=day, race_id=f'{compact}62{number:02}',
+                               source_url=f'https://keirin.kdreams.jp/hiroshima/racedetail/62{compact}0100{number:02}/')
+                    rows.append(row)
+                manifest = dict(roster(rows), date=day, generated_at=day + 'T00:00:00+09:00')
+                (state / 'rosters' / (day + '.json')).write_text(json.dumps(manifest))
+            calls = []
+
+            def unresolved(row, *args):
+                calls.append(row['race_id'])
+                raise ValueError('PAYOUT_NOT_PUBLISHED')
+
+            # At 00:30 JST it is still the previous UTC day. Simulated slow reads
+            # make the three dates compete for the same finite job budget.
+            with (patch('sys.argv', ['publisher', '--state-directory', directory]),
+                  patch.object(publisher, 'datetime', wraps=datetime) as clock,
+                  patch.object(publisher.time, 'monotonic', side_effect=lambda: len(calls) * 190),
+                  patch.object(publisher, 'observe', side_effect=unresolved),
+                  redirect_stdout(io.StringIO())):
+                clock.now.return_value = datetime.fromisoformat('2026-11-22T15:30:00+00:00')
+                self.assertEqual(publisher.main(), 0)
+                self.assertEqual(calls, ['202611236201', '202611236202', '202611206201'])
+                clock.now.return_value += timedelta(minutes=15)
+                self.assertEqual(publisher.main(), 0)
+                self.assertEqual(calls[3:], ['202611236203', '202611236201', '202611216201'])
+
     def test_budget_preserves_earlier_rows_and_resumes_with_the_next_race(self):
         match = {'race_id': IDS[2], 'state': 'matched', 'comparison': {'race_id': IDS[2]}}
         published = roster([race(0), race(1), race(2)])
@@ -156,7 +192,9 @@ class PublicResultRefreshTests(unittest.TestCase):
             git('init', '-b', state_ref, str(checkout))
             (checkout / 'rosters').mkdir()
             cutoff = (datetime.now(timezone.utc) + timedelta(days=1)).isoformat()
-            (checkout / 'rosters' / f'{DATE}.json').write_text(json.dumps(roster([race(0, cutoff)])))
+            fixture = root / f'{DATE}.json'
+            fixture.write_text(json.dumps(roster([race(0, cutoff)])))
+            (checkout / 'rosters' / '.gitkeep').touch()
             git('add', 'rosters', cwd=checkout)
             git('-c', 'user.name=Fixture', '-c', 'user.email=fixture@example.invalid',
                 'commit', '-m', 'Fixture roster', cwd=checkout)
@@ -165,9 +203,19 @@ class PublicResultRefreshTests(unittest.TestCase):
 
             summary = runner_temp / 'summary'
             env = {**os.environ, 'RUNNER_TEMP': str(runner_temp), 'GITHUB_STEP_SUMMARY': str(summary),
-                   'PYTHONPATH': str(repo)}
-            # Advance the real Bash clock in the fixture so both polls run immediately.
-            command = 'sleep() { SECONDS=$((SECONDS + $1)); }; source "$1" 16'
+                   'PYTHONPATH': str(repo), 'ROSTER_FIXTURE': str(fixture)}
+            # Supply one public day so the shell test exercises registration, commit and the next poll offline.
+            command = '''
+              python() {
+                if [[ "$2" == scripts.keirin_public_site_rosters ]]; then
+                  cp "$ROSTER_FIXTURE" "$4/rosters/"
+                else
+                  command python "$@"
+                fi
+              }
+              sleep() { SECONDS=$((SECONDS + $1)); }
+              source "$1" --discover 16
+            '''
             result = subprocess.run(['bash', '-c', command, 'test-watch',
                                      str(repo / 'scripts/keirin_publish_public_site_results.sh')],
                                     cwd=checkout, env=env, text=True, capture_output=True, timeout=30)
@@ -176,6 +224,8 @@ class PublicResultRefreshTests(unittest.TestCase):
             self.assertEqual([poll['updated'] for poll in polls], [True, False])
             stored = git('--git-dir', str(remote), 'show', f'{state_ref}:results/{DATE}.json')
             self.assertEqual(json.loads(stored)['races'], [])
+            manifest = git('--git-dir', str(remote), 'show', f'{state_ref}:rosters/{DATE}.json')
+            self.assertEqual(json.loads(manifest), json.loads(fixture.read_bytes()))
 
     def test_watch_reports_completion_only_after_all_published_races_are_resolved(self):
         special = {'race_id': IDS[0], 'state': 'held', 'reason': 'special_result'}

@@ -257,29 +257,37 @@ def main():
         re.fullmatch(day.replace('-', '') + r'\d{4}', rid)
         for day, rid in positions.items()), 'INVALID_PUBLIC_RESULT_POLL_POSITIONS')
     previous_positions = positions.copy()
+    today = datetime.now(timezone.utc).astimezone(timezone(timedelta(hours=9))).date().isoformat()
     day_packets = []
+    catchup_needed = False
     for path in rosters:
         destination=result_dir/path.name
         previous=json.loads(destination.read_bytes()) if destination.exists() else None
-        day_packets.append((previous['checked_at'] if previous else '', path, destination, previous))
+        if path.stem < today and not catchup_needed:
+            final_ids = {entry['race_id'] for entry in (previous or {}).get('races', [])
+                         if entry['state'] == 'matched' or entry.get('reason') == 'special_result'}
+            catchup_needed = (previous is None or any(race['race_id'] not in final_ids
+                              for race in json.loads(path.read_bytes())['races']))
+        day_packets.append((path.stem != today, previous['checked_at'] if previous else '',
+                            path, destination))
 
-    # Leave time for the last pair of requests and the Git write before the job times out.
+    # Check today's due races first. Leave 90s of the existing 450s budget for prior
+    # days when they still have work. Their saved timestamps and cursors rotate retries.
     deadline = time.monotonic() + 450
-
-    def can_poll():
-        return time.monotonic() < deadline
 
     complete = True
     status = 0
-    for _, path, destination, previous in sorted(day_packets):
-        if not can_poll():
+    for other_day, _, path, destination in sorted(day_packets):
+        if time.monotonic() >= deadline:
             complete = False
             break
-        published=json.loads(path.read_bytes())
         day = path.stem
-        checked(day==published['date'],'PUBLIC_ROSTER_FILENAME_MISMATCH')
+        published = json.loads(path.read_bytes())
+        previous = json.loads(destination.read_bytes()) if destination.exists() else None
+        checked(day == published['date'], 'PUBLIC_ROSTER_FILENAME_MISMATCH')
+        day_deadline = deadline - 90 if not other_day and catchup_needed else deadline
         packet,evidence=collect(published,fetch_once,consensus,previous=previous,
-                                resume_after=positions.get(day),can_poll=can_poll)
+                                resume_after=positions.get(day),can_poll=lambda: time.monotonic() < day_deadline)
         if packet!=previous:
             destination.write_text(json.dumps(packet,ensure_ascii=False,separators=(',', ':'))+'\n')
         resolved = sum(entry['state'] == 'matched' or entry.get('reason') == 'special_result'
