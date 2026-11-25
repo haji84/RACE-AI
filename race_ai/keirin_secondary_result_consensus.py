@@ -6,7 +6,7 @@ Official organizer settlement remains a separate authenticated intake gate.
 """
 from __future__ import annotations
 
-from datetime import date, datetime
+from datetime import date, datetime, timezone
 from hashlib import sha256
 from urllib.parse import parse_qs, urlsplit
 import re
@@ -36,6 +36,34 @@ class ResultConsensusError(ValueError):
 def require(condition, code):
     if not condition:
         raise ResultConsensusError(code)
+
+
+def _published_instant(raw):
+    if not isinstance(raw, str):
+        raise ValueError('SOURCE_TIME_MISSING')
+    value = datetime.fromisoformat(raw.replace('Z', '+00:00'))
+    if value.utcoffset() is None:
+        raise ValueError('SOURCE_TIME_MUST_INCLUDE_TIMEZONE')
+    return value.astimezone(timezone.utc)
+
+
+def checked_published_result(row, bound, checked_at):
+    """Check a published comparison against its race, cutoff and starters."""
+    comparison = row['comparison']
+    if not (comparison['race_id'] == bound['race_id']
+            and comparison['authority'] == 'cross_source_reference'
+            and comparison['comparison_scope'] == 'POST_CUTOFF_REFERENCE'):
+        raise ValueError('PROSPECTIVE_RESULT_PROVENANCE_MISMATCH')
+    if not _published_instant(bound['cutoff_at']) <= _published_instant(comparison['observed_at']) <= checked_at:
+        return 'invalid_timing', None
+    winners = comparison['winning_3t']
+    if not (type(winners) is list and len(winners) == 3
+            and all(type(car) is int and 1 <= car <= 9 for car in winners)
+            and len(set(winners)) == 3 and comparison['winning_2t'] == winners[:2]):
+        raise ValueError('PROSPECTIVE_RESULT_ORDER_INVALID')
+    if not set(winners) <= set(bound['starters']):
+        return 'winner_outside_starters', None
+    return 'matched', {'2t': winners[:2], '3t': winners}
 
 
 def check_race_url(*, provider, url, race_id):

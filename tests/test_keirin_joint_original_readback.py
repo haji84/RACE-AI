@@ -314,6 +314,16 @@ class JointOriginalReadbackTests(unittest.TestCase):
             self.assertNotIn(secret, output.getvalue())
             self.assertIn('JOINT_RECOVERY_DECRYPTION_FAILED', output.getvalue())
 
+    def test_invalid_secret_text_is_removed_and_reports_only_a_fixed_hold(self):
+        secret='private-canary-\udcff'
+        output=StringIO()
+        with patch.dict(os.environ, {'RACE_AI_KEIRIN_PRIVATE_RSA_PEM':secret}), redirect_stdout(output):
+            status=self.module.main([])
+            self.assertNotIn('RACE_AI_KEIRIN_PRIVATE_RSA_PEM',os.environ)
+        self.assertEqual(status,2)
+        self.assertNotIn('private-canary',output.getvalue())
+        self.assertEqual(json.loads(output.getvalue())['state'],'JOINT_RECOVERY_INPUT_INVALID')
+
 
 if __name__ == '__main__':
     unittest.main()

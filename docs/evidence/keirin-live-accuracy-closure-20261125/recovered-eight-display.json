@@ -1,0 +1,23 @@
+{
+  "schema": "KEIRIN_POST_CUTOFF_LINE_RECOVERY_DISPLAY_V1",
+  "generated_at": "2026-11-25T13:55:48.739530+00:00",
+  "races": 8,
+  "rider_rows": 52,
+  "source_capture_scope": "AFTER_CUTOFF_NO_PRE_CUTOFF_PUBLICATION_ATTESTATION",
+  "original_pre_cutoff_forecasts_unchanged": true,
+  "pre_cutoff_performance_increment": 0,
+  "results_used_as_features": false,
+  "source_file_sha256": "f51d603f1a01a289988573f2776231674b56e17c868fc107c003a920a71137f8",
+  "cipher_sha256": "3d028cf142decb2c1cf46ac98de4bfdd338412d278ce985bc3b86208ee8a43ab",
+  "publication": {
+    "state": "KEIRIN_NOTE_ENCRYPTED_GIT_READBACK_VERIFIED",
+    "source_commit": "373fc34e6e71e57f54a051a6c767ef2b43b9e490",
+    "entries": 153,
+    "provider_denied": false,
+    "covered_races": 403,
+    "priority_window_races": 22,
+    "private_plaintext_uploaded": false,
+    "production_state_key_used": false
+  },
+  "private_plaintext_uploaded": false
+}

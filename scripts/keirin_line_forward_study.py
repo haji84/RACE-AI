@@ -10,6 +10,7 @@ from pathlib import Path
 import re
 from secrets import token_hex
 
+from race_ai import keirin_secondary_result_consensus as consensus
 from scripts import keirin_generate_result_unread_analysis as ingest
 from scripts import keirin_rider_context_study as ledger
 
@@ -112,18 +113,7 @@ def witness(frame, head, run_id):
 
 
 def checked_result(row, bound, checked_at):
-    cmp = row['comparison']
-    ingest.need(cmp['race_id'] == bound['race_id'] and cmp['authority'] == 'cross_source_reference'
-                and cmp['comparison_scope'] == 'POST_CUTOFF_REFERENCE', 'PROSPECTIVE_RESULT_PROVENANCE_MISMATCH')
-    if not ingest.instant(bound['cutoff_at']) <= ingest.instant(cmp['observed_at']) <= checked_at:
-        return 'invalid_timing', None
-    winners = cmp['winning_3t']
-    ingest.need(type(winners) is list and len(winners) == 3 and
-                all(type(car) is int and 1 <= car <= 9 for car in winners) and
-                len(set(winners)) == 3 and cmp['winning_2t'] == winners[:2], 'PROSPECTIVE_RESULT_ORDER_INVALID')
-    if not set(winners) <= set(bound['starters']):
-        return 'winner_outside_starters', None
-    return 'matched', {'2t': winners[:2], '3t': winners}
+    return consensus.checked_published_result(row, bound, checked_at)
 
 
 def score(frame, outcomes, *, witnessed_at):

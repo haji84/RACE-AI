@@ -51,20 +51,26 @@ A級3班・L級・9車等は改善していない。区分を見て今回のモ�
 
 [PR #331](https://github.com/haji84/RACE-AI/pull/331)で、同一原本を既存の所有者RSA鍵でも独立に読める復旧コピーと検査を接続した。新しいコピーの作成時刻は13:26 UTCであり、新たな締切前予想として加算しない。元P-256の暗号文・header・index・過去Actionsの成功時刻と実行時のreceiptを結び、同じ平文SHAであることを確認する。
 
-[本番run 45626363042](https://github.com/haji84/RACE-AI/actions/runs/45626363042)の専用ランナーは、既存の所有者鍵での復号と検査に成功。これは合成テストの成功とは別の実原本の読戻しである。公式結果・実主催者締切の独立認証やPR71モデル採用とは区別する。復旧コピーは既存 `state/keirin-encrypted-history` の研究専用パスに保持し、公式結果の履歴へ混入させない。[復旧コピーの参照](evidence/keirin-live-accuracy-closure-20261125/joint-original-rsa-recovery.json)
+[本番run 45626363042](https://github.com/haji84/RACE-AI/actions/runs/45626363042)の専用ランナーは、既存の所有者鍵での復号と検査に成功。これは合成テストの成功とは別の実原本の読戻しである。公式結果・実主催者締切の独立認証やPR71モデル採用とは区別する。復旧コピーは既存 `state/keirin-encrypted-history` の研究専用パスに保持し、公式結果の履歴へ混入させない。[復旧コピーの参照](evidence/keirin-live-accuracy-closure-20261125/joint-original-rsa-recovery.json)・[実鍵での独立読戻し](evidence/keirin-live-accuracy-closure-20261125/independent-plaintext-readback.json)
+
+## 結果更新後の自動採点
+
+[PR #333](https://github.com/haji84/RACE-AI/pull/333)をmainへ統合。既存の公開結果更新workflowが完了すると、同じ暗号原本を既存鍵で再検証し、同じGit commitの出走表・結果へ照合する。取得側が一部失敗しても保存済み確認部分を使い、未取得は保留する。新しい源泉取得や権限変更、重みの採用はない。自動対象は今回の固定10件で、全国全レースの新B自動生成まで完了したという意味ではない。自動実行は最終掲載締切から6時間までに限定し、後日の手動監査は維持する。
+
+[main統合後run 45633700634](https://github.com/haji84/RACE-AI/actions/runs/45633700634)で復号から採点まで成功。さらに[結果更新による自動実行45634329984](https://github.com/haji84/RACE-AI/actions/runs/45634329984)でも完走した（`workflow_run`）。10件中9件の2媒体一致結果では、三連単Top4は両モデル3件、二車単Top2は両モデル2件で改善差は未確認。残り1件は結果待ち。[実行結果](evidence/keirin-live-accuracy-closure-20261125/automatic-forward-score.json)・[自動起動の証拠](evidence/keirin-live-accuracy-closure-20261125/automatic-trigger-proof.json)は件数・SHA・取得元commitだけを保存し、原本・氏名・買い目・確率・鍵を公開しない。展開原本不足、実主催者締切未認証、公式結果未認証を独立して明示する。
 
 ## 当日画面と採点
 
-当日登録75件のうち、10件は上記の締切前原本、別の57件は締切後に作った参考解析として区別して配信した。67件464出走の全確率・入力SHAを既存の画面モデルで検証。残る8件は元公開資料の並びがnullのため保留し、全国処理全体を停止させない。参考57件を締切前実績へ加算しない。[配信件数](evidence/keirin-live-accuracy-closure-20261125/day-display-publication.json)・[実データの読込](evidence/keirin-live-accuracy-closure-20261125/display-readback.json)
+当日登録75件のうち、10件は上記の締切前原本、別の57件は締切後に作った参考解析として区別して配信した。不足していた8件52出走は、Kdreamsの掲載並びを締切後13:53 UTCに取得して参考表示だけを補った。確認対象75件516出走の全確率・入力SHAを既存の画面モデルで検証。締切前10件、事後再現57件、締切後取得資料による参考8件を分け、65件を締切前実績へ加算しない。[配信件数](evidence/keirin-live-accuracy-closure-20261125/day-display-publication.json)・[不足8件の補完](evidence/keirin-live-accuracy-closure-20261125/recovered-eight-display.json)・[実データの読込](evidence/keirin-live-accuracy-closure-20261125/display-readback.json)
 
 `scripts/keirin_joint_forward_score.py` は新しいPDCA分類器ではない。実原本・外部SHA・同一入力・時刻・登録範囲を検査し、固定4点を既存 `keirin_forward_score.score` へ渡す。同じ同時分布で二車単2点と三連単1/4/8点を照合する。照合用への変換時刻は実際の現在時刻とし、事後変換ファイルを締切前原本と偽らない。
 
-13:28 UTC取得の2媒体一致結果では、10件中2件を照合し、三連単4点・二車単2点はどちらのモデルも0件。他は結果待ち。保存済みの展開原本がないため展開の一致を加算しない。[途中の採点](evidence/keirin-live-accuracy-closure-20261125/forward-score-1330.json)。少数の的中・不的中で重みを変更しない。
+13:43 UTC取得の2媒体一致結果では、10件中4件を照合し、三連単4点・二車単2点はどちらのモデルも2件。他は結果待ち。保存済みの展開原本がないため展開の一致を加算しない。[途中の採点](evidence/keirin-live-accuracy-closure-20261125/forward-score-1350.json)・[同一原本の復号との接続](evidence/keirin-live-accuracy-closure-20261125/live-chain-progress.json)。少数の的中・不的中で重みを変更しない。
 
 ## 次の継続作業と未達
 
 1. 固定した未来10件と、先行作業で固定された11月26日の比較群を、同一入力と点数で継続採点する。新しい情報で元の予想を書き換えず、公開旧Bと今回の順位比較を混同しない。
-2. 並び未取得8件、独立取得できない登録番号・履歴・コメントを項目別に補う。長期能力と直近の調子、全戦術の試行分母、映像の連続イベント、バンク・気象・連係への接続は全条件で完成していない。
+2. 締切後に補った8件を次回は締切前に収集し、独立取得できない登録番号・履歴・コメントを項目別に補う。長期能力と直近の調子、全戦術の試行分母、映像の連続イベント、バンク・気象・連係への接続は全条件で完成していない。
 3. 着順と展開の採点、履歴更新、改善候補の採否までの全国定期運転は未達。今回の未来原本に存在しない展開を事後追加しない。未知の原因は原因候補として扱う。
 4. 独立した複数開催日でのTop4／Top2・校正・区分別有効性を確認してから採用を判断する。3年分履歴の完全復元や、旧333私有ファイルの復元は達成していない。
 

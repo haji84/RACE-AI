@@ -1,12 +1,15 @@
 {
   "state": "ACTUAL_SOURCE_BYTES_BOUND_IN_APPROVED_READER",
-  "races": 67,
-  "riders": 464,
+  "races": 75,
+  "riders": 516,
   "prospective": 10,
-  "retrospective": 57,
-  "missing_published_lines": 8,
+  "retrospective": 65,
+  "missing_published_lines": 0,
   "refresh_holds": 0,
   "private_plaintext_uploaded": false,
   "owner_browser_decryption_observed": false,
-  "reader_production_main": "cc5009c660f859d2e43867240813bd7501d1d3aa"
+  "reader_production_main": "cc5009c660f859d2e43867240813bd7501d1d3aa",
+  "initial_missing_lines": 8,
+  "recovered_lines_source_scope": "AFTER_CUTOFF_DISPLAY_ONLY",
+  "pre_cutoff_performance_increment_from_display": 0
 }
