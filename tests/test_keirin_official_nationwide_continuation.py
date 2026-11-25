@@ -1,6 +1,6 @@
 """Bounded runner tests: no provider access, ephemeral keys, real source fixtures."""
 from copy import deepcopy
-from datetime import datetime
+from datetime import datetime, timedelta
 from hashlib import sha256
 import importlib
 from pathlib import Path
@@ -11,6 +11,8 @@ from unittest.mock import patch, Mock
 
 from tests.test_keirin_official_nationwide_records import NationwideRecordTests
 from tests.test_keirin_official_nationwide_extension import NationwideExtensionTests
+from tests.test_keirin_official_schedule import meeting, page, venue
+from tests.test_keirin_official_sp_receipt import AT, DAY, detail_data, html, list_data
 from race_ai import keirin_official_nationwide_extension as extension
 from race_ai import keirin_nationwide_auto_storage as storage
 
@@ -28,6 +30,46 @@ class FakeStore:
     def append(self,**kwargs):
         self.saved.append(deepcopy(kwargs))
         return {'evidence_sha256':'b'*64,'cipher_sha256':'c'*64}
+
+
+def cutoff_fixture():
+    calendar_raw = page([venue(code, [meeting('2030-01-14', '2030-01-16', chr(code) * 43)])
+                         for code in (98, 99)])
+    calendar = dict(raw_bytes=calendar_raw, expected_sha256=sha256(calendar_raw).hexdigest(),
+                    observed_at=AT)
+    listings, records = [], []
+    for code in (98, 99):
+        data = list_data()
+        rows = data['SJ0301']['kaisaiDayList'][1]['raceProgramList']
+        for number, label in enumerate(('A級特予選', 'A級特選', 'A級決勝'), 1):
+            rows[number - 1]['strSyumokuName'] = label
+        raw = html(data)
+        listed = dict(venue_code=code, raw_bytes=raw, expected_sha256=sha256(raw).hexdigest(),
+                      observed_at=AT, http_status=200)
+        listings.append(listed)
+        for number, cutoff in ((1, '12:47'), (2, '12:20'), (3, '11:50')):
+            if (code, number) not in ((99, 1), (99, 2), (98, 3)):
+                continue
+            row = rows[number - 1]
+            detail = detail_data()
+            detail['SC0201']['C0201data'].update(selRaceNo=number, aftBetTime=cutoff,
+                aftBetDate=DAY.replace('-', '') + cutoff.replace(':', ''))
+            for index, rider in enumerate(detail['SJ0315']['sensyuTypeInfo']):
+                rider['kyuhan'] = 'A1' if index % 2 else 'A2'
+            detail_raw = html(detail)
+            url = 'https://keirin.jp/sp/race'
+            digest = sha256(detail_raw).hexdigest()
+            source = dict(raw_bytes=detail_raw, expected_sha256=digest, observed_at=AT.isoformat(),
+                          source_url=url, request_url=url, http_status=200,
+                          receipt=dict(source_url=url, method='POST', http_status=200,
+                            form_fields={'encp': row['strRaceLnkPrm'], 'disp': 'SJ0315'},
+                            captured_at=AT.isoformat(), bytes_sha256=digest, kind='PROGRAM'))
+            records.append(dict(race_id=DAY.replace('-', '') + f'{code:02d}{number:02d}',
+                                class_label=row['strSyumokuName'], prediction_admitted=False,
+                                list_source=listed, detail_source=source))
+    registry = extension.register_day(calendar_receipt=calendar, list_sources=listings,
+                                      event_day=DAY, now=AT)
+    return dict(registry=registry, calendar_receipt=calendar, list_sources=listings), records
 
 
 class RunnerTests(unittest.TestCase):
@@ -134,6 +176,90 @@ class RunnerTests(unittest.TestCase):
         latest=store.saved[-1]['payload']
         self.assertEqual(latest['source_attempt_counts'],dict.fromkeys(ids,1)|{ids[0]:2})
         self.assertEqual(result['new_A_B_git_archived'],0)
+
+    def test_cutoff_priority_requires_an_untampered_current_official_card(self):
+        from race_ai import keirin_official_class_evidence as evidence
+
+        inventory, records = cutoff_fixture()
+        record = next(row for row in records if row['race_id'] == '203001159901')
+        day = dict(day_jst=DAY, observed_at=AT.isoformat(), registry=inventory['registry'],
+                   inventory={k:inventory[k] for k in ('calendar_receipt','list_sources')},
+                   unadmitted_class_evidence=dict(schema=evidence.SCHEMA, day_jst=DAY,
+                       model_generation=0, records=[record],
+                       safe_summary=[{'race_id':record['race_id'], 'official_cutoff_at':'untrusted'}]))
+        expected = datetime.fromisoformat(f'{DAY}T12:47:00+09:00')
+        self.assertEqual(evidence.replay_cutoff_hints(day, inventory, now=AT),
+                         {record['race_id']:expected})
+        opening_boundary = expected - timedelta(seconds=65)
+        self.assertEqual(evidence.replay_cutoff_hints(day, inventory, now=opening_boundary),
+                         {record['race_id']:expected})
+
+        for changed in ('body', 'post', 'detail-clock', 'current-reference', 'current-label',
+                        'too-close', 'expired'):
+            with self.subTest(changed=changed):
+                saved, current, now = deepcopy(day), deepcopy(inventory), AT
+                raw = saved['unadmitted_class_evidence']['records'][0]['detail_source']
+                if changed == 'body':
+                    raw['raw_bytes'] = raw['raw_bytes'].replace(b'12:47', b'12:48')
+                if changed == 'post':
+                    raw['receipt']['form_fields']['encp'] = 'X' * 43
+                if changed == 'detail-clock':
+                    raw['observed_at'] = raw['receipt']['captured_at'] = (now + timedelta(seconds=1)).isoformat()
+                if changed in ('current-reference', 'current-label'):
+                    listing = current['list_sources'][1]
+                    before, after = ((b'B' * 43, b'X' * 43) if changed == 'current-reference' else
+                                     ('A級特予選'.encode(), 'A級予選'.encode()))
+                    listing['raw_bytes'] = listing['raw_bytes'].replace(before, after)
+                    listing['expected_sha256'] = sha256(listing['raw_bytes']).hexdigest()
+                    current['registry'] = extension.register_day(calendar_receipt=current['calendar_receipt'],
+                        list_sources=current['list_sources'],event_day=DAY,now=now)
+                if changed == 'too-close':
+                    now = opening_boundary + timedelta(seconds=1)
+                if changed == 'expired':
+                    now = expected
+                self.assertEqual(evidence.replay_cutoff_hints(saved, current, now=now), {})
+
+    def test_capture_uses_the_cutoff_only_within_equal_attempt_and_race_number(self):
+        from race_ai import keirin_official_class_evidence as evidence
+
+        api = self.api()
+        inventory, records = cutoff_fixture()
+        registry = inventory['registry']
+        ids = registry['registered_race_ids']
+        previous = dict(schema=api.records.DAY_SCHEMA, day_jst=DAY, observed_at=AT.isoformat(),
+            registry=registry, prior_race_ids=[],
+            inventory={k:inventory[k] for k in ('calendar_receipt','list_sources')},
+            states=[dict(race_id=rid,state='SOURCE_CAPTURE_BUDGET_PENDING',
+                         condition_state='HISTORY_NOT_COLLECTED') for rid in ids],
+            source_attempt_counts={'203001159803':1},
+            unadmitted_class_evidence=dict(schema=evidence.SCHEMA,day_jst=DAY,
+                                           model_generation=0,records=records))
+        store=FakeStore('/synthetic',DAY)
+        store.index['registry']={'evidence_sha256':'b'*64}
+        attempted=[]
+        def collect(*, session, inventory, race, clock):
+            attempted.append(race['race_id'])
+            raise ValueError('CARD_LAYOUT_NOT_AVAILABLE')
+        session=Mock(halted=False,provider_denied=False,count=0,safe_diagnostics=[])
+        runtime=(Path('/synthetic'),Path('/private'),DAY,self.public,'a'*40)
+        with (patch.dict('os.environ',{'GITHUB_RUN_ID':'123456789','GITHUB_SHA':'a'*40}),
+              patch.object(store,'read',return_value=previous,create=True),
+              patch.object(api,'_runtime',return_value=runtime),
+              patch.object(api,'_begin_lease',return_value=FakeLease()),
+              patch.object(api,'_baseline_already_exists',return_value=False),
+              patch.object(api.records,'RecordStore',return_value=store),
+              patch.object(api.capture_files,'_private_directory',return_value=Path('/private')),
+              patch.object(api.sources,'OfficialSourceSession',return_value=session),
+              patch.object(api.sources,'collect_candidate',side_effect=collect),
+              patch.object(extension,'collect_day_inventory',return_value=inventory),
+              patch.object(evidence,'collect_unknown_class_evidence',return_value={'safe_summary':[]})):
+            result=api.run_capture(repo='/synthetic',private_root='/private',owner_public_pem='/public',
+                owner_private_pem=self.private,day=DAY,clock=lambda:AT,max_races=6)
+        self.assertEqual(attempted, ['203001159901','203001159801','203001159902','203001159802',
+                                     '203001159903','203001159803'])
+        self.assertEqual(result['new_A_B_git_archived'],0)
+        self.assertEqual(store.saved[-1]['payload']['source_attempt_counts'],
+                         dict.fromkeys(ids,1)|{'203001159803':2})
 
     def test_new_original_binds_the_same_confidence_in_source_bundle_and_both_cipher_arms(self):
         from race_ai import keirin_nationwide_auto_settlement as decrypt
