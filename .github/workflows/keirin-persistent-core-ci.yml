@@ -43,7 +43,8 @@ jobs:
       - name: Exercise dated rider features and conditional ranking
         run: |
           python -m venv "$RUNNER_TEMP/keirin-rider-profile-tests"
-          "$RUNNER_TEMP/keirin-rider-profile-tests/bin/python" -m pip install --disable-pip-version-check numpy==2.2.6 scipy==1.17.0
+          "$RUNNER_TEMP/keirin-rider-profile-tests/bin/python" -m pip install --disable-pip-version-check \
+            numpy==2.2.6 scipy==1.17.0 'cryptography>=44,<48'
           "$RUNNER_TEMP/keirin-rider-profile-tests/bin/python" -m unittest \
             tests.test_keirin_line_history_study tests.test_keirin_rider_profile_study \
             tests.test_keirin_joint_finish tests.test_keirin_tactical_observations \
