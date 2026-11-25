@@ -331,6 +331,9 @@ def replay_registry(payload):
         now=form._aware(payload['observed_at']),prior_race_ids=prior)
     need(rebuilt==payload['registry'],'REGISTRY_SOURCE_CHANGED')
     checked_states(payload['states'],rebuilt['registered_race_ids'])
+    attempts=payload.get('source_attempt_counts',{})
+    need(type(attempts) is dict and set(attempts)<=set(rebuilt['registered_race_ids']) and
+         all(type(count) is int and count>0 for count in attempts.values()),'REGISTRY_ATTEMPT_COUNTS')
     return rebuilt
 
 
