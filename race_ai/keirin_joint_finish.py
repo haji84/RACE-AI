@@ -212,8 +212,9 @@ class JointFinish:
                 expected_rank=fsum(place * probability for place, probability in enumerate(ranks, start=1)),
             )
         return dict(
-            premise='Given the listed starters, the frozen pre-race distribution for the first three '
-                    'places and the conditional order of the remaining starters fitted to earlier finishes.',
+            premise='Conditional on all listed starters finishing with no ties. The first three places use '
+                    'the frozen pre-race distribution, and the conditional order of the remaining starters '
+                    'is fitted to earlier finishes.',
             calibration_status='unavailable',
             riders=riders,
         )

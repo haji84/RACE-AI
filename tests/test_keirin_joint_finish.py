@@ -77,7 +77,7 @@ class JointFinishTests(unittest.TestCase):
         model = JointFinish(cars, top, tail=(0., 0.))
         data = model.rider_summary()
         self.assertEqual(data['calibration_status'], 'unavailable')
-        self.assertIn('conditional', data['premise'])
+        self.assertIn('all listed starters finishing with no ties', data['premise'])
         for car, raw in model.marginals().items():
             value = data['riders'][car]
             self.assertAlmostEqual(value['top2_probability'], math.fsum(raw[:2]))

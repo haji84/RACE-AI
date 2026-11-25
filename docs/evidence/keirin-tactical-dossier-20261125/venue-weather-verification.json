@@ -1,0 +1,457 @@
+{
+  "checked_at": "2026-11-25T12:04:48.574526+00:00",
+  "schema": "KEIRIN_VENUE_WEATHER_READ_ONLY_COVERAGE_V1",
+  "current_path": {
+    "asset_sha256": "2a62f3a6cf7f2a12d62b5b49b4d9a620db49309b0522814ed904c11c942e3d35",
+    "public_model_id": "video_line_ordered",
+    "public_races_checked": 75,
+    "deployed_weather_bank_input_verified": false,
+    "sources": {
+      "production_view_copy": "original-ranked public JSON",
+      "standard_collector": "scripts/keirin_note_collect_inputs.py — bank/weather None",
+      "documented_existing_A_B": "race_ai/keirin_nationwide_auto_generator.py — audit explicitly lists unknown conditions",
+      "older_context_20261120": "Archived bank context and JMA source URL on some rows, display/research notes only",
+      "PR71_intake": "scripts/keirin_cloud_owner_inputs.py requests optional modelled weather in partial probe; execution and first-party model use here not verified"
+    }
+  },
+  "west_11r": {
+    "race_id": "202611252611",
+    "cutoff": "2026-11-25T20:10:00+09:00",
+    "bank": {
+      "name": "西武園",
+      "source": "https://keirin.kdreams.jp/seibuen/",
+      "circumference_m": 400.0,
+      "straight_m": 47.6,
+      "cant_deg": 29.448333333333334,
+      "raw_sha256": "1192d3f229522ea79c1f4961a69a25fe122ceae6ced253efbd28e0e67082744d",
+      "straight_axis_degrees_unsigned": 90,
+      "geometry_scope": "named static bank / reported center cant / unsigned wind exposure axis",
+      "nearest_accepted_amedas": {
+        "id": "43266",
+        "name": "所沢",
+        "distance_km": 3.086,
+        "not_track_measurement": true
+      },
+      "earlier_crosscheck": {
+        "url": "https://keirin.netkeiba.com/race/course/?jyo_cd=26",
+        "sha256": "5613bfd29825ccb90c16c209de81922bba55b4901736f84fe3654d7207355a2a",
+        "captured_at": "2026-11-23T18:24:24.865791+00:00",
+        "circumference_m": 400.0,
+        "home_straight_m": 47.6
+      }
+    },
+    "station_observation": {
+      "url": "https://www.jma.go.jp/bosai/amedas/data/map/20261125190000.json",
+      "sha256": "f8a8848083d1595da7222570e2ec977704613cd0ee2e80d7ec6d8f7aba922564",
+      "observation": "2026-11-25T19:00:00+09:00",
+      "observed_at": "2026-11-25T19:00:00+09:00",
+      "captured_at": "2026-11-25T10:09:06.196435+00:00",
+      "wind_from_degrees": 292.5,
+      "wind_mps": 0.8,
+      "air_temp_c": 7.3,
+      "humidity_pct": 78,
+      "precipitation_1h_mm": 0.0,
+      "time_sensitive_venue_wetness": null,
+      "research_station_key": "a1070",
+      "amedas_station_id": "43266",
+      "amedas_station_name": "所沢"
+    },
+    "research_wind_frozen_at": "2026-11-25T10:09:36.069551+00:00",
+    "overlaps_published_4_points": true,
+    "official_outcome_ranking_same_as_published": true,
+    "after_race_track_condition_for_verification_only": {
+      "source_type": "KEIRIN.JP result detail",
+      "annotation": "晴",
+      "recorded_wind_speed": "0.0",
+      "last_update_jst": "2026/11/25 20:24",
+      "admitted_to_predeadline_prediction": false
+    }
+  },
+  "nov26": {
+    "races_with_bank_geometry": 72,
+    "races_with_regional_forecast_and_precipitation_interval": 72,
+    "exact_amedas_daily_temperature_forecast_venues": 5,
+    "venue_count": 7,
+    "forecasts": {
+      "31": {
+        "name": "松戸",
+        "source": "https://keirin.kdreams.jp/matsudo/",
+        "circumference_m": 333.0,
+        "straight_m": 38.2,
+        "cant_deg": 29.745,
+        "raw_sha256": "14c26df24654d71c601aea0ae75c3eadc6778772c772e68f7a9d443d4d604817",
+        "straight_axis_degrees_unsigned": 45,
+        "geometry_scope": "named static bank / reported center cant / unsigned wind exposure axis",
+        "nearest_accepted_amedas": {
+          "id": "45106",
+          "name": "船橋",
+          "distance_km": 15.824,
+          "not_track_measurement": true
+        },
+        "races": 9,
+        "region": {
+          "office_code": "120000",
+          "region_code": "120010",
+          "region_name": "北西部",
+          "municipality": "松戸市",
+          "source": {
+            "url": "https://www.jma.go.jp/bosai/forecast/data/forecast/120000.json",
+            "sha256": "28c583b11a6d769eab1f4a83aa991bd17c6b400247c10e1c2a46c3f0256c4984",
+            "checked_at": "2026-11-25T12:00:48.075199+00:00",
+            "http_date": "Wed, 25 Nov 2026 12:00:48 GMT",
+            "http_status": 200
+          }
+        },
+        "forecast_issued_jst": "2026-11-25T17:00:00+09:00",
+        "regional_day_weather": "晴れ　昼過ぎ　から　くもり",
+        "regional_day_wind_text": "北の風　後　南西の風",
+        "regional_six_hour_pop_pct_by_race_count": {
+          "0": 9
+        },
+        "station_daily_temperature_forecast": null,
+        "race_time_temperature_forecast_c": null,
+        "numerical_wind_speed_forecast_at_track": null,
+        "track_surface_moisture_or_precipitation_at_race_time": null,
+        "race_day_pre_cutoff_station_observation_pending": true
+      },
+      "38": {
+        "name": "静岡",
+        "source": "https://keirin.kdreams.jp/shizuoka/",
+        "circumference_m": 400.0,
+        "straight_m": 56.4,
+        "cant_deg": 30.722777777777775,
+        "raw_sha256": "95aa88521e240bb72812aeed2ffb96242f4f562da90e289cb69e17ed195d3384",
+        "straight_axis_degrees_unsigned": 45,
+        "geometry_scope": "named static bank / reported center cant / unsigned wind exposure axis",
+        "nearest_accepted_amedas": {
+          "id": "50331",
+          "name": "静岡",
+          "distance_km": 1.378,
+          "not_track_measurement": true
+        },
+        "races": 12,
+        "region": {
+          "office_code": "220000",
+          "region_code": "220010",
+          "region_name": "中部",
+          "municipality": "静岡市",
+          "source": {
+            "url": "https://www.jma.go.jp/bosai/forecast/data/forecast/220000.json",
+            "sha256": "8a91657ac2924c92576e40046510f977d6c8832067734e8d002415b6aaefa420",
+            "checked_at": "2026-11-25T12:00:47.647631+00:00",
+            "http_date": "Wed, 25 Nov 2026 12:00:47 GMT",
+            "http_status": 200
+          }
+        },
+        "forecast_issued_jst": "2026-11-25T17:00:00+09:00",
+        "regional_day_weather": "晴れ　夕方　から　くもり",
+        "regional_day_wind_text": "西の風　海上　では　南西の風　やや強く",
+        "regional_six_hour_pop_pct_by_race_count": {
+          "0": 12
+        },
+        "station_daily_temperature_forecast": {
+          "station": {
+            "name": "静岡",
+            "code": "50331"
+          },
+          "forecast_values_c": [
+            6,
+            17
+          ],
+          "source_time_defines": [
+            "2026-11-26T00:00:00+09:00",
+            "2026-11-26T09:00:00+09:00"
+          ]
+        },
+        "race_time_temperature_forecast_c": null,
+        "numerical_wind_speed_forecast_at_track": null,
+        "track_surface_moisture_or_precipitation_at_race_time": null,
+        "race_day_pre_cutoff_station_observation_pending": true
+      },
+      "46": {
+        "name": "富山",
+        "source": "https://keirin.kdreams.jp/toyama/",
+        "circumference_m": 333.0,
+        "straight_m": 43.0,
+        "cant_deg": 33.69,
+        "raw_sha256": "4f291ac7600d845eb3c94f4546254eec51cf27ea4b18780be3c029abd415104d",
+        "straight_axis_degrees_unsigned": 90,
+        "geometry_scope": "named static bank / reported center cant / unsigned wind exposure axis",
+        "nearest_accepted_amedas": {
+          "id": "55102",
+          "name": "富山",
+          "distance_km": 6.252,
+          "not_track_measurement": true
+        },
+        "races": 11,
+        "region": {
+          "office_code": "160000",
+          "region_code": "160010",
+          "region_name": "東部",
+          "municipality": "富山市",
+          "source": {
+            "url": "https://www.jma.go.jp/bosai/forecast/data/forecast/160000.json",
+            "sha256": "01767c33afa2e3a5d809a223df935a04dbabaab08698118e0dfe11236bc95db4",
+            "checked_at": "2026-11-25T12:00:48.231867+00:00",
+            "http_date": "Wed, 25 Nov 2026 12:00:49 GMT",
+            "http_status": 200
+          }
+        },
+        "forecast_issued_jst": "2026-11-25T17:00:00+09:00",
+        "regional_day_weather": "くもり　朝晩　晴れ",
+        "regional_day_wind_text": "南の風　やや強く　東部北　では　南西の風　強く",
+        "regional_six_hour_pop_pct_by_race_count": {
+          "10": 11
+        },
+        "station_daily_temperature_forecast": {
+          "station": {
+            "name": "富山",
+            "code": "55102"
+          },
+          "forecast_values_c": [
+            6,
+            16
+          ],
+          "source_time_defines": [
+            "2026-11-26T00:00:00+09:00",
+            "2026-11-26T09:00:00+09:00"
+          ]
+        },
+        "race_time_temperature_forecast_c": null,
+        "numerical_wind_speed_forecast_at_track": null,
+        "track_surface_moisture_or_precipitation_at_race_time": null,
+        "race_day_pre_cutoff_station_observation_pending": true
+      },
+      "47": {
+        "name": "松阪",
+        "source": "https://keirin.kdreams.jp/matsusaka/",
+        "circumference_m": 400.0,
+        "straight_m": 61.5,
+        "cant_deg": 34.42472222222222,
+        "raw_sha256": "a6b2b38c83e032018e7c302639e01c2348369d266f1940872ca853241fd316dc",
+        "straight_axis_degrees_unsigned": 45,
+        "geometry_scope": "named static bank / reported center cant / unsigned wind exposure axis",
+        "nearest_accepted_amedas": {
+          "id": "53196",
+          "name": "小俣",
+          "distance_km": 12.71,
+          "not_track_measurement": true
+        },
+        "races": 12,
+        "region": {
+          "office_code": "240000",
+          "region_code": "240010",
+          "region_name": "北中部",
+          "municipality": "松阪市",
+          "source": {
+            "url": "https://www.jma.go.jp/bosai/forecast/data/forecast/240000.json",
+            "sha256": "22d65ce3c5e548a4ed18fca8a0caeda5fbaf6726853fe782a67f2b207b987130",
+            "checked_at": "2026-11-25T12:00:47.826619+00:00",
+            "http_date": "Wed, 25 Nov 2026 12:00:38 GMT",
+            "http_status": 200
+          }
+        },
+        "forecast_issued_jst": "2026-11-25T17:00:00+09:00",
+        "regional_day_weather": "晴れ　昼前　から　くもり",
+        "regional_day_wind_text": "西の風　日中　東の風",
+        "regional_six_hour_pop_pct_by_race_count": {
+          "0": 6,
+          "10": 6
+        },
+        "station_daily_temperature_forecast": null,
+        "race_time_temperature_forecast_c": null,
+        "numerical_wind_speed_forecast_at_track": null,
+        "track_surface_moisture_or_precipitation_at_race_time": null,
+        "race_day_pre_cutoff_station_observation_pending": true
+      },
+      "51": {
+        "name": "福井",
+        "source": "https://keirin.kdreams.jp/fukui/",
+        "circumference_m": 400.0,
+        "straight_m": 52.8,
+        "cant_deg": 31.47694444444444,
+        "raw_sha256": "67bd043b4646ab78dac0ffe06dc7f154c7c0e30b8119d0435634569a87346b7e",
+        "straight_axis_degrees_unsigned": 0,
+        "geometry_scope": "named static bank / reported center cant / unsigned wind exposure axis",
+        "nearest_accepted_amedas": {
+          "id": "57066",
+          "name": "福井",
+          "distance_km": 2.117,
+          "not_track_measurement": true
+        },
+        "races": 12,
+        "region": {
+          "office_code": "180000",
+          "region_code": "180010",
+          "region_name": "嶺北",
+          "municipality": "福井市",
+          "source": {
+            "url": "https://www.jma.go.jp/bosai/forecast/data/forecast/180000.json",
+            "sha256": "ca2fa9b1e2568b08037f6daf4d6adb1c3a503aa21de5a3ee190e14b5d022d705",
+            "checked_at": "2026-11-25T12:00:48.002487+00:00",
+            "http_date": "Wed, 25 Nov 2026 12:00:29 GMT",
+            "http_status": 200
+          }
+        },
+        "forecast_issued_jst": "2026-11-25T17:00:00+09:00",
+        "regional_day_weather": "くもり　時々　晴れ",
+        "regional_day_wind_text": "南の風　海上　では　南西の風　やや強く",
+        "regional_six_hour_pop_pct_by_race_count": {
+          "10": 12
+        },
+        "station_daily_temperature_forecast": {
+          "station": {
+            "name": "福井",
+            "code": "57066"
+          },
+          "forecast_values_c": [
+            3,
+            14
+          ],
+          "source_time_defines": [
+            "2026-11-26T00:00:00+09:00",
+            "2026-11-26T09:00:00+09:00"
+          ]
+        },
+        "race_time_temperature_forecast_c": null,
+        "numerical_wind_speed_forecast_at_track": null,
+        "track_surface_moisture_or_precipitation_at_race_time": null,
+        "race_day_pre_cutoff_station_observation_pending": true
+      },
+      "73": {
+        "name": "小松島",
+        "source": "https://keirin.kdreams.jp/komatsushima/",
+        "circumference_m": 400.0,
+        "straight_m": 55.5,
+        "cant_deg": 29.774166666666666,
+        "raw_sha256": "b92ab6091142809034f18d48ea2017c58d44461139a45def852ab8f38041ef37",
+        "straight_axis_degrees_unsigned": 135,
+        "geometry_scope": "named static bank / reported center cant / unsigned wind exposure axis",
+        "nearest_accepted_amedas": {
+          "id": "71106",
+          "name": "徳島",
+          "distance_km": 7.205,
+          "not_track_measurement": true
+        },
+        "races": 7,
+        "region": {
+          "office_code": "360000",
+          "region_code": "360010",
+          "region_name": "北部",
+          "municipality": "小松島市",
+          "source": {
+            "url": "https://www.jma.go.jp/bosai/forecast/data/forecast/360000.json",
+            "sha256": "cdd72ebb684f32f0af781987ef7dc61984c674e561b63cce23e18e90f94f89f9",
+            "checked_at": "2026-11-25T12:00:48.089850+00:00",
+            "http_date": "Wed, 25 Nov 2026 12:00:48 GMT",
+            "http_status": 200
+          }
+        },
+        "forecast_issued_jst": "2026-11-25T17:00:00+09:00",
+        "regional_day_weather": "晴れ　昼前　から　くもり",
+        "regional_day_wind_text": "北西の風　後　南東の風",
+        "regional_six_hour_pop_pct_by_race_count": {
+          "0": 7
+        },
+        "station_daily_temperature_forecast": {
+          "station": {
+            "name": "徳島",
+            "code": "71106"
+          },
+          "forecast_values_c": [
+            5,
+            15
+          ],
+          "source_time_defines": [
+            "2026-11-26T00:00:00+09:00",
+            "2026-11-26T09:00:00+09:00"
+          ]
+        },
+        "race_time_temperature_forecast_c": null,
+        "numerical_wind_speed_forecast_at_track": null,
+        "track_surface_moisture_or_precipitation_at_race_time": null,
+        "race_day_pre_cutoff_station_observation_pending": true
+      },
+      "83": {
+        "name": "久留米",
+        "source": "https://keirin.kdreams.jp/kurume/",
+        "circumference_m": 400.0,
+        "straight_m": 50.7,
+        "cant_deg": 31.47694444444444,
+        "raw_sha256": "e26e47e9b588a2280781598780c154bc3f8cc29050a1de52a0ba22bd7e3bf908",
+        "straight_axis_degrees_unsigned": 135,
+        "geometry_scope": "named static bank / reported center cant / unsigned wind exposure axis",
+        "nearest_accepted_amedas": {
+          "id": "82306",
+          "name": "久留米",
+          "distance_km": 4.667,
+          "not_track_measurement": true
+        },
+        "races": 9,
+        "region": {
+          "office_code": "400000",
+          "region_code": "400040",
+          "region_name": "筑後地方",
+          "municipality": "久留米市",
+          "source": {
+            "url": "https://www.jma.go.jp/bosai/forecast/data/forecast/400000.json",
+            "sha256": "de685254aa54ace90a07330c109bd70ca3f3bf4bda23857703962e713799bf54",
+            "checked_at": "2026-11-25T12:00:48.167506+00:00",
+            "http_date": "Wed, 25 Nov 2026 12:00:48 GMT",
+            "http_status": 200
+          }
+        },
+        "forecast_issued_jst": "2026-11-25T17:00:00+09:00",
+        "regional_day_weather": "くもり　明け方　まで　晴れ",
+        "regional_day_wind_text": "北東の風",
+        "regional_six_hour_pop_pct_by_race_count": {
+          "10": 9
+        },
+        "station_daily_temperature_forecast": {
+          "station": {
+            "name": "久留米",
+            "code": "82306"
+          },
+          "forecast_values_c": [
+            5,
+            15
+          ],
+          "source_time_defines": [
+            "2026-11-26T00:00:00+09:00",
+            "2026-11-26T09:00:00+09:00"
+          ]
+        },
+        "race_time_temperature_forecast_c": null,
+        "numerical_wind_speed_forecast_at_track": null,
+        "track_surface_moisture_or_precipitation_at_race_time": null,
+        "race_day_pre_cutoff_station_observation_pending": true
+      }
+    },
+    "schedule_identity_mismatch_excluded": {
+      "75": "OFFICIAL_SCHEDULE_IDENTITY_MISMATCH"
+    },
+    "used_by_original_nov26_prediction_weights": false,
+    "daily_observations_before_the_races": 0
+  },
+  "prior_research": {
+    "wind_exact_budget": {
+      "registered": 6,
+      "result_eligible": 6,
+      "withheld": 0,
+      "published_hits": 3,
+      "wind_trial_hits": 3,
+      "changed_fixed_budget": 1,
+      "scope": "official organizer readback only; distinct from public two-source settlement",
+      "ordinary_kdreams_agree": 6,
+      "study_original_commit": "f18746e543b37b9c24d59ff53295c7600aa0b7ec"
+    },
+    "bank_chronological_old_8": [
+      4583,
+      4597
+    ],
+    "bank_recent_287_actual_budget": [
+      93,
+      91
+    ]
+  }
+}

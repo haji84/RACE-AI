@@ -1,0 +1,1182 @@
+{
+  "type": "Absolute marginal reliability diagnosis on date-separated replay. Neither calibration curve nor threshold was fitted.",
+  "bin_edges": [
+    0,
+    0.02,
+    0.05,
+    0.1,
+    0.2,
+    0.3,
+    0.45,
+    0.6,
+    0.8,
+    1.0
+  ],
+  "input_forecast_receipt_sha256": "d4cb9eeae3d05e48c534bdca404e37b09e5193a30e850ce81ac9c735dfa7da58",
+  "final_finish_source_sha256": "68d4c89c5630e3254f9265a5abc7d32acd73af29fa8ed76fa9de983014b20449",
+  "input_schedule_sha256": "afd1a3814c92b6172d17c5d02ce7a261945372ea945352c933c6e6ebc498db01",
+  "tail_model_receipt_sha256": "d299766d899456dd73397e75ef9a911d8413c915e4f13134db0bfa6e3375ebf1",
+  "script_sha256": "512739ecfe5e439a2c07b4ab1e2fada990ba0a573c0e5c85c1655a71f3e9e534",
+  "dependency": "Three forecasts derived from the same joint trifecta. Top3 and outside top3 are complementary. Tail fit affects only the last-place forecast among these targets.",
+  "confidence": "This is not a prospectively calibrated confidence grade. High-probability bins may have few events, especially among truly pre-cutoff program captures.",
+  "subsets": {
+    "archive_held": {
+      "races": 12234,
+      "rider_starts": 86841,
+      "calendar_days": 175,
+      "span": [
+        "20260524",
+        "20261120"
+      ],
+      "metrics": {
+        "win": {
+          "binary_brier": 0.09959019990860249,
+          "uniform_probability_by_field_size_brier": 0.12089138277344309,
+          "untrained_uniform_tail_brier": 0.09959019990860249,
+          "positives": 12234,
+          "average_probability": 0.14087815663108438,
+          "avg_actual_rate": 0.14087815663108438,
+          "ece_fixed_bins": 0.015522064201972073,
+          "reliability": [
+            {
+              "low": 0.0,
+              "high": 0.02,
+              "starters": 16093,
+              "positive": 169,
+              "mean_probability": 0.010838874284582179,
+              "observed_rate": 0.010501460262225813,
+              "observed_minus_predicted_ci95_by_jst_day": [
+                -0.001761873876866806,
+                0.001176264956725827
+              ]
+            },
+            {
+              "low": 0.02,
+              "high": 0.05,
+              "starters": 18044,
+              "positive": 685,
+              "mean_probability": 0.03387089361237999,
+              "observed_rate": 0.037962757703391706,
+              "observed_minus_predicted_ci95_by_jst_day": [
+                0.0013444925040244282,
+                0.006935563673803879
+              ]
+            },
+            {
+              "low": 0.05,
+              "high": 0.1,
+              "starters": 17026,
+              "positive": 1511,
+              "mean_probability": 0.07237925134751086,
+              "observed_rate": 0.08874662281216962,
+              "observed_minus_predicted_ci95_by_jst_day": [
+                0.012362683400381047,
+                0.020329041274681856
+              ]
+            },
+            {
+              "low": 0.1,
+              "high": 0.2,
+              "starters": 15352,
+              "positive": 2478,
+              "mean_probability": 0.142679319164251,
+              "observed_rate": 0.16141219385096403,
+              "observed_minus_predicted_ci95_by_jst_day": [
+                0.013593092348345045,
+                0.02376790800112322
+              ]
+            },
+            {
+              "low": 0.2,
+              "high": 0.3,
+              "starters": 7535,
+              "positive": 1888,
+              "mean_probability": 0.24606712219299076,
+              "observed_rate": 0.25056403450564035,
+              "observed_minus_predicted_ci95_by_jst_day": [
+                -0.0036097736682544398,
+                0.012212761973523513
+              ]
+            },
+            {
+              "low": 0.3,
+              "high": 0.45,
+              "starters": 6639,
+              "positive": 2229,
+              "mean_probability": 0.3673070110513875,
+              "observed_rate": 0.3357433348395843,
+              "observed_minus_predicted_ci95_by_jst_day": [
+                -0.041149066843716595,
+                -0.021956985397112525
+              ]
+            },
+            {
+              "low": 0.45,
+              "high": 0.6,
+              "starters": 3453,
+              "positive": 1558,
+              "mean_probability": 0.5181515273007165,
+              "observed_rate": 0.45120185346075875,
+              "observed_minus_predicted_ci95_by_jst_day": [
+                -0.08439925338954869,
+                -0.04841417026675194
+              ]
+            },
+            {
+              "low": 0.6,
+              "high": 0.8,
+              "starters": 2154,
+              "positive": 1264,
+              "mean_probability": 0.6846355368397549,
+              "observed_rate": 0.5868152274837511,
+              "observed_minus_predicted_ci95_by_jst_day": [
+                -0.11913976053684917,
+                -0.07486714842286259
+              ]
+            },
+            {
+              "low": 0.8,
+              "high": 1.0,
+              "starters": 545,
+              "positive": 452,
+              "mean_probability": 0.8607566391331737,
+              "observed_rate": 0.8293577981651377,
+              "observed_minus_predicted_ci95_by_jst_day": [
+                -0.06174258571585608,
+                -0.0016544282155323425
+              ]
+            }
+          ]
+        },
+        "top2": {
+          "binary_brier": 0.15567088147809524,
+          "uniform_probability_by_field_size_brier": 0.2018092178316036,
+          "untrained_uniform_tail_brier": 0.15567088147809524,
+          "positives": 24468,
+          "average_probability": 0.28175631326216877,
+          "avg_actual_rate": 0.28175631326216877,
+          "ece_fixed_bins": 0.013996117267325267,
+          "reliability": [
+            {
+              "low": 0.0,
+              "high": 0.02,
+              "starters": 1571,
+              "positive": 37,
+              "mean_probability": 0.013973262074638285,
+              "observed_rate": 0.023551877784850413,
+              "observed_minus_predicted_ci95_by_jst_day": [
+                0.002034756301298745,
+                0.017698868303427054
+              ]
+            },
+            {
+              "low": 0.02,
+              "high": 0.05,
+              "starters": 7636,
+              "positive": 308,
+              "mean_probability": 0.036125799402273784,
+              "observed_rate": 0.04033525405971713,
+              "observed_minus_predicted_ci95_by_jst_day": [
+                -0.0005198150868958608,
+                0.008913379635274762
+              ]
+            },
+            {
+              "low": 0.05,
+              "high": 0.1,
+              "starters": 13949,
+              "positive": 1072,
+              "mean_probability": 0.07421739436788728,
+              "observed_rate": 0.07685138719621479,
+              "observed_minus_predicted_ci95_by_jst_day": [
+                -0.0017880490659174563,
+                0.0069276510969390115
+              ]
+            },
+            {
+              "low": 0.1,
+              "high": 0.2,
+              "starters": 19474,
+              "positive": 3079,
+              "mean_probability": 0.14599426358836362,
+              "observed_rate": 0.1581082468932936,
+              "observed_minus_predicted_ci95_by_jst_day": [
+                0.006978881934920365,
+                0.0170242768679873
+              ]
+            },
+            {
+              "low": 0.2,
+              "high": 0.3,
+              "starters": 12145,
+              "positive": 3168,
+              "mean_probability": 0.24640370695283517,
+              "observed_rate": 0.2608480856319473,
+              "observed_minus_predicted_ci95_by_jst_day": [
+                0.007020270391304477,
+                0.0223721026611327
+              ]
+            },
+            {
+              "low": 0.3,
+              "high": 0.45,
+              "starters": 12083,
+              "positive": 4571,
+              "mean_probability": 0.3689935651029916,
+              "observed_rate": 0.37830009103699413,
+              "observed_minus_predicted_ci95_by_jst_day": [
+                0.0017947709883643901,
+                0.01664511955577016
+              ]
+            },
+            {
+              "low": 0.45,
+              "high": 0.6,
+              "starters": 8854,
+              "positive": 4457,
+              "mean_probability": 0.5209294609695021,
+              "observed_rate": 0.503388299073865,
+              "observed_minus_predicted_ci95_by_jst_day": [
+                -0.02828583006986714,
+                -0.007129523555205264
+              ]
+            },
+            {
+              "low": 0.6,
+              "high": 0.8,
+              "starters": 8140,
+              "positive": 5313,
+              "mean_probability": 0.6903469177117888,
+              "observed_rate": 0.6527027027027027,
+              "observed_minus_predicted_ci95_by_jst_day": [
+                -0.04870682077519263,
+                -0.02677481165349289
+              ]
+            },
+            {
+              "low": 0.8,
+              "high": 1.0,
+              "starters": 2989,
+              "positive": 2463,
+              "mean_probability": 0.8728621787246451,
+              "observed_rate": 0.8240214118434259,
+              "observed_minus_predicted_ci95_by_jst_day": [
+                -0.061874586126610204,
+                -0.03526701128203405
+              ]
+            }
+          ]
+        },
+        "top3": {
+          "binary_brier": 0.19337237592229145,
+          "uniform_probability_by_field_size_brier": 0.2427535051744814,
+          "untrained_uniform_tail_brier": 0.19337237592229145,
+          "positives": 36702,
+          "average_probability": 0.42263446989325326,
+          "avg_actual_rate": 0.4226344698932532,
+          "ece_fixed_bins": 0.012933735339369727,
+          "reliability": [
+            {
+              "low": 0.0,
+              "high": 0.02,
+              "starters": 16,
+              "positive": 0,
+              "mean_probability": 0.014334620725002963,
+              "observed_rate": 0.0,
+              "observed_minus_predicted_ci95_by_jst_day": [
+                -0.016045510113747892,
+                -0.01243870483966857
+              ]
+            },
+            {
+              "low": 0.02,
+              "high": 0.05,
+              "starters": 461,
+              "positive": 20,
+              "mean_probability": 0.039050092432775296,
+              "observed_rate": 0.04338394793926247,
+              "observed_minus_predicted_ci95_by_jst_day": [
+                -0.012647763837961332,
+                0.02337025440096841
+              ]
+            },
+            {
+              "low": 0.05,
+              "high": 0.1,
+              "starters": 3283,
+              "positive": 249,
+              "mean_probability": 0.07983952107758782,
+              "observed_rate": 0.07584526347852574,
+              "observed_minus_predicted_ci95_by_jst_day": [
+                -0.013657618372473986,
+                0.0059205817658893566
+              ]
+            },
+            {
+              "low": 0.1,
+              "high": 0.2,
+              "starters": 13997,
+              "positive": 2187,
+              "mean_probability": 0.15291216611664074,
+              "observed_rate": 0.156247767378724,
+              "observed_minus_predicted_ci95_by_jst_day": [
+                -0.0024514379028877775,
+                0.009196869415899105
+              ]
+            },
+            {
+              "low": 0.2,
+              "high": 0.3,
+              "starters": 15042,
+              "positive": 3935,
+              "mean_probability": 0.24929364277626131,
+              "observed_rate": 0.2616008509506714,
+              "observed_minus_predicted_ci95_by_jst_day": [
+                0.005110624467738762,
+                0.01898056071890695
+              ]
+            },
+            {
+              "low": 0.3,
+              "high": 0.45,
+              "starters": 18727,
+              "positive": 7230,
+              "mean_probability": 0.3715095219415748,
+              "observed_rate": 0.3860735835958776,
+              "observed_minus_predicted_ci95_by_jst_day": [
+                0.008977697298017338,
+                0.02005551626397313
+              ]
+            },
+            {
+              "low": 0.45,
+              "high": 0.6,
+              "starters": 13738,
+              "positive": 7221,
+              "mean_probability": 0.5216161938353743,
+              "observed_rate": 0.5256223613335275,
+              "observed_minus_predicted_ci95_by_jst_day": [
+                -0.003954997161974055,
+                0.011779662166409239
+              ]
+            },
+            {
+              "low": 0.6,
+              "high": 0.8,
+              "starters": 13794,
+              "positive": 9261,
+              "mean_probability": 0.6948790642044653,
+              "observed_rate": 0.6713788603740757,
+              "observed_minus_predicted_ci95_by_jst_day": [
+                -0.03216788603129761,
+                -0.015571182756698599
+              ]
+            },
+            {
+              "low": 0.8,
+              "high": 1.0,
+              "starters": 7783,
+              "positive": 6599,
+              "mean_probability": 0.8766651602257981,
+              "observed_rate": 0.8478735706025954,
+              "observed_minus_predicted_ci95_by_jst_day": [
+                -0.037284382674854746,
+                -0.01994536361780876
+              ]
+            }
+          ]
+        },
+        "outside_top3": {
+          "binary_brier": 0.19337237592229145,
+          "uniform_probability_by_field_size_brier": 0.24275350517448144,
+          "untrained_uniform_tail_brier": 0.19337237592229145,
+          "positives": 50139,
+          "average_probability": 0.5773655301067468,
+          "avg_actual_rate": 0.5773655301067468,
+          "ece_fixed_bins": 0.012468579128373755,
+          "reliability": [
+            {
+              "low": 0.0,
+              "high": 0.02,
+              "starters": 205,
+              "positive": 0,
+              "mean_probability": 0.013445425818895514,
+              "observed_rate": 0.0,
+              "observed_minus_predicted_ci95_by_jst_day": [
+                -0.014054170608326888,
+                -0.012864708882144563
+              ]
+            },
+            {
+              "low": 0.02,
+              "high": 0.05,
+              "starters": 661,
+              "positive": 39,
+              "mean_probability": 0.03631079866722561,
+              "observed_rate": 0.059001512859304085,
+              "observed_minus_predicted_ci95_by_jst_day": [
+                0.0048927356910237465,
+                0.0411053209163847
+              ]
+            },
+            {
+              "low": 0.05,
+              "high": 0.1,
+              "starters": 1658,
+              "positive": 171,
+              "mean_probability": 0.077086587529143,
+              "observed_rate": 0.10313630880579011,
+              "observed_minus_predicted_ci95_by_jst_day": [
+                0.010275672515021414,
+                0.04197738202643514
+              ]
+            },
+            {
+              "low": 0.1,
+              "high": 0.2,
+              "starters": 5259,
+              "positive": 974,
+              "mean_probability": 0.15313704993865432,
+              "observed_rate": 0.18520631298725992,
+              "observed_minus_predicted_ci95_by_jst_day": [
+                0.02136951426807172,
+                0.042692149004861527
+              ]
+            },
+            {
+              "low": 0.2,
+              "high": 0.3,
+              "starters": 6332,
+              "positive": 1823,
+              "mean_probability": 0.2513736296047775,
+              "observed_rate": 0.28790271636133924,
+              "observed_minus_predicted_ci95_by_jst_day": [
+                0.02493520793531567,
+                0.04799159161195091
+              ]
+            },
+            {
+              "low": 0.3,
+              "high": 0.45,
+              "starters": 11666,
+              "positive": 4489,
+              "mean_probability": 0.3776574225637969,
+              "observed_rate": 0.3847934167666724,
+              "observed_minus_predicted_ci95_by_jst_day": [
+                -0.0008767171316972786,
+                0.015750060291067427
+              ]
+            },
+            {
+              "low": 0.45,
+              "high": 0.6,
+              "starters": 15221,
+              "positive": 7896,
+              "mean_probability": 0.5293796685897341,
+              "observed_rate": 0.5187569804874844,
+              "observed_minus_predicted_ci95_by_jst_day": [
+                -0.017747952714572142,
+                -0.0034196509899074297
+              ]
+            },
+            {
+              "low": 0.6,
+              "high": 0.8,
+              "starters": 28082,
+              "positive": 19446,
+              "mean_probability": 0.7046365599145997,
+              "observed_rate": 0.6924720461505591,
+              "observed_minus_predicted_ci95_by_jst_day": [
+                -0.017028335381848062,
+                -0.007314240732426637
+              ]
+            },
+            {
+              "low": 0.8,
+              "high": 1.0,
+              "starters": 17757,
+              "positive": 15301,
+              "mean_probability": 0.8636787642408372,
+              "observed_rate": 0.8616883482570254,
+              "observed_minus_predicted_ci95_by_jst_day": [
+                -0.007360801739975245,
+                0.003175910512382924
+              ]
+            }
+          ]
+        },
+        "last": {
+          "binary_brier": 0.11243542498590962,
+          "uniform_probability_by_field_size_brier": 0.12089138277344309,
+          "untrained_uniform_tail_brier": 0.11495441963113713,
+          "positives": 12234,
+          "average_probability": 0.14087815663108438,
+          "avg_actual_rate": 0.14087815663108438,
+          "ece_fixed_bins": 0.010762172372329954,
+          "reliability": [
+            {
+              "low": 0.0,
+              "high": 0.02,
+              "starters": 6736,
+              "positive": 161,
+              "mean_probability": 0.011001837706712678,
+              "observed_rate": 0.023901425178147268,
+              "observed_minus_predicted_ci95_by_jst_day": [
+                0.00928233930510086,
+                0.01651239258832275
+              ]
+            },
+            {
+              "low": 0.02,
+              "high": 0.05,
+              "starters": 11044,
+              "positive": 553,
+              "mean_probability": 0.03488666310350191,
+              "observed_rate": 0.05007243752263672,
+              "observed_minus_predicted_ci95_by_jst_day": [
+                0.010729374968203248,
+                0.019560600518196674
+              ]
+            },
+            {
+              "low": 0.05,
+              "high": 0.1,
+              "starters": 17677,
+              "positive": 1442,
+              "mean_probability": 0.07488301866552119,
+              "observed_rate": 0.08157492787237654,
+              "observed_minus_predicted_ci95_by_jst_day": [
+                0.002623623205728398,
+                0.010949917738986062
+              ]
+            },
+            {
+              "low": 0.1,
+              "high": 0.2,
+              "starters": 28524,
+              "positive": 3941,
+              "mean_probability": 0.14656471213036595,
+              "observed_rate": 0.13816435282569065,
+              "observed_minus_predicted_ci95_by_jst_day": [
+                -0.011676158060655415,
+                -0.005129527842874522
+              ]
+            },
+            {
+              "low": 0.2,
+              "high": 0.3,
+              "starters": 16410,
+              "positive": 3775,
+              "mean_probability": 0.24391755372859197,
+              "observed_rate": 0.23004265691651432,
+              "observed_minus_predicted_ci95_by_jst_day": [
+                -0.019032398876075666,
+                -0.008508356051521317
+              ]
+            },
+            {
+              "low": 0.3,
+              "high": 0.45,
+              "starters": 6193,
+              "positive": 2207,
+              "mean_probability": 0.3457446790072537,
+              "observed_rate": 0.35637009526885194,
+              "observed_minus_predicted_ci95_by_jst_day": [
+                -0.0015542912956150617,
+                0.02344380071767102
+              ]
+            },
+            {
+              "low": 0.45,
+              "high": 0.6,
+              "starters": 248,
+              "positive": 147,
+              "mean_probability": 0.48667320725216373,
+              "observed_rate": 0.592741935483871,
+              "observed_minus_predicted_ci95_by_jst_day": [
+                0.044680485311658004,
+                0.1719054994797762
+              ]
+            },
+            {
+              "low": 0.6,
+              "high": 0.8,
+              "starters": 9,
+              "positive": 8,
+              "mean_probability": 0.6339483287643226,
+              "observed_rate": 0.8888888888888888,
+              "observed_minus_predicted_ci95_by_jst_day": [
+                0.07771589037845238,
+                0.38317351888600165
+              ]
+            }
+          ]
+        }
+      }
+    },
+    "independently_timestamped_pre_cutoff": {
+      "races": 321,
+      "rider_starts": 2276,
+      "calendar_days": 5,
+      "span": [
+        "20261116",
+        "20261120"
+      ],
+      "metrics": {
+        "win": {
+          "binary_brier": 0.10299726878309715,
+          "uniform_probability_by_field_size_brier": 0.12107533405863811,
+          "untrained_uniform_tail_brier": 0.10299726878309715,
+          "positives": 321,
+          "average_probability": 0.14103690685413006,
+          "avg_actual_rate": 0.14103690685413006,
+          "ece_fixed_bins": 0.03257270060842596,
+          "reliability": [
+            {
+              "low": 0.0,
+              "high": 0.02,
+              "starters": 428,
+              "positive": 3,
+              "mean_probability": 0.011168348328567647,
+              "observed_rate": 0.007009345794392523,
+              "observed_minus_predicted_ci95_by_jst_day": [
+                -0.00893754548544652,
+                0.00217776094468477
+              ]
+            },
+            {
+              "low": 0.02,
+              "high": 0.05,
+              "starters": 480,
+              "positive": 13,
+              "mean_probability": 0.033561185264549494,
+              "observed_rate": 0.027083333333333334,
+              "observed_minus_predicted_ci95_by_jst_day": [
+                -0.013927928516707894,
+                0.001014237367739634
+              ]
+            },
+            {
+              "low": 0.05,
+              "high": 0.1,
+              "starters": 420,
+              "positive": 41,
+              "mean_probability": 0.07294944542924253,
+              "observed_rate": 0.09761904761904762,
+              "observed_minus_predicted_ci95_by_jst_day": [
+                0.001834588962690484,
+                0.04817665782828234
+              ]
+            },
+            {
+              "low": 0.1,
+              "high": 0.2,
+              "starters": 426,
+              "positive": 79,
+              "mean_probability": 0.14196540813017614,
+              "observed_rate": 0.18544600938967137,
+              "observed_minus_predicted_ci95_by_jst_day": [
+                0.011779097777789252,
+                0.08175236453015583
+              ]
+            },
+            {
+              "low": 0.2,
+              "high": 0.3,
+              "starters": 203,
+              "positive": 57,
+              "mean_probability": 0.24187206079514262,
+              "observed_rate": 0.28078817733990147,
+              "observed_minus_predicted_ci95_by_jst_day": [
+                0.015048768565711135,
+                0.07179325874098859
+              ]
+            },
+            {
+              "low": 0.3,
+              "high": 0.45,
+              "starters": 142,
+              "positive": 44,
+              "mean_probability": 0.3714230968033676,
+              "observed_rate": 0.30985915492957744,
+              "observed_minus_predicted_ci95_by_jst_day": [
+                -0.15557201199829632,
+                0.01785725828998821
+              ]
+            },
+            {
+              "low": 0.45,
+              "high": 0.6,
+              "starters": 93,
+              "positive": 35,
+              "mean_probability": 0.5115892515363597,
+              "observed_rate": 0.3763440860215054,
+              "observed_minus_predicted_ci95_by_jst_day": [
+                -0.21185739984586197,
+                -0.08861712916262648
+              ]
+            },
+            {
+              "low": 0.6,
+              "high": 0.8,
+              "starters": 74,
+              "positive": 40,
+              "mean_probability": 0.6872760965110591,
+              "observed_rate": 0.5405405405405406,
+              "observed_minus_predicted_ci95_by_jst_day": [
+                -0.26755445514212495,
+                -0.024305597524346974
+              ]
+            },
+            {
+              "low": 0.8,
+              "high": 1.0,
+              "starters": 10,
+              "positive": 9,
+              "mean_probability": 0.8716207422460414,
+              "observed_rate": 0.9,
+              "observed_minus_predicted_ci95_by_jst_day": [
+                -0.15463484618737458,
+                0.1432342595113271
+              ]
+            }
+          ]
+        },
+        "top2": {
+          "binary_brier": 0.15595901113458632,
+          "uniform_probability_by_field_size_brier": 0.2022275225262923,
+          "untrained_uniform_tail_brier": 0.15595901113458632,
+          "positives": 642,
+          "average_probability": 0.2820738137082601,
+          "avg_actual_rate": 0.2820738137082601,
+          "ece_fixed_bins": 0.018572527348438533,
+          "reliability": [
+            {
+              "low": 0.0,
+              "high": 0.02,
+              "starters": 36,
+              "positive": 1,
+              "mean_probability": 0.015200820784722825,
+              "observed_rate": 0.027777777777777776,
+              "observed_minus_predicted_ci95_by_jst_day": [
+                -0.01557886305755667,
+                0.09557884637281508
+              ]
+            },
+            {
+              "low": 0.02,
+              "high": 0.05,
+              "starters": 188,
+              "positive": 4,
+              "mean_probability": 0.035196459844794005,
+              "observed_rate": 0.02127659574468085,
+              "observed_minus_predicted_ci95_by_jst_day": [
+                -0.02667793269935341,
+                -0.004966275710136902
+              ]
+            },
+            {
+              "low": 0.05,
+              "high": 0.1,
+              "starters": 372,
+              "positive": 30,
+              "mean_probability": 0.07396732475628438,
+              "observed_rate": 0.08064516129032258,
+              "observed_minus_predicted_ci95_by_jst_day": [
+                -0.019652823173681916,
+                0.03191894302005975
+              ]
+            },
+            {
+              "low": 0.1,
+              "high": 0.2,
+              "starters": 486,
+              "positive": 67,
+              "mean_probability": 0.14484910118906177,
+              "observed_rate": 0.13786008230452676,
+              "observed_minus_predicted_ci95_by_jst_day": [
+                -0.023374227476934333,
+                0.0121530874862272
+              ]
+            },
+            {
+              "low": 0.2,
+              "high": 0.3,
+              "starters": 333,
+              "positive": 96,
+              "mean_probability": 0.24583591182605574,
+              "observed_rate": 0.2882882882882883,
+              "observed_minus_predicted_ci95_by_jst_day": [
+                -0.008988962398100321,
+                0.10218102922783838
+              ]
+            },
+            {
+              "low": 0.3,
+              "high": 0.45,
+              "starters": 356,
+              "positive": 135,
+              "mean_probability": 0.36780345753318133,
+              "observed_rate": 0.3792134831460674,
+              "observed_minus_predicted_ci95_by_jst_day": [
+                -0.007737574442934836,
+                0.02910772256630934
+              ]
+            },
+            {
+              "low": 0.45,
+              "high": 0.6,
+              "starters": 219,
+              "positive": 111,
+              "mean_probability": 0.5164255928942884,
+              "observed_rate": 0.5068493150684932,
+              "observed_minus_predicted_ci95_by_jst_day": [
+                -0.11571913241452078,
+                0.07558585255328634
+              ]
+            },
+            {
+              "low": 0.6,
+              "high": 0.8,
+              "starters": 211,
+              "positive": 137,
+              "mean_probability": 0.6897274179283039,
+              "observed_rate": 0.6492890995260664,
+              "observed_minus_predicted_ci95_by_jst_day": [
+                -0.06252845343913722,
+                -0.013107238388012959
+              ]
+            },
+            {
+              "low": 0.8,
+              "high": 1.0,
+              "starters": 75,
+              "positive": 61,
+              "mean_probability": 0.8732299795612865,
+              "observed_rate": 0.8133333333333334,
+              "observed_minus_predicted_ci95_by_jst_day": [
+                -0.22835313886851413,
+                0.03807161170019284
+              ]
+            }
+          ]
+        },
+        "top3": {
+          "binary_brier": 0.1892887483053489,
+          "uniform_probability_by_field_size_brier": 0.24345656540296257,
+          "untrained_uniform_tail_brier": 0.1892887483053489,
+          "positives": 963,
+          "average_probability": 0.4231107205623902,
+          "avg_actual_rate": 0.4231107205623902,
+          "ece_fixed_bins": 0.016644031303806588,
+          "reliability": [
+            {
+              "low": 0.02,
+              "high": 0.05,
+              "starters": 8,
+              "positive": 0,
+              "mean_probability": 0.0417622671851956,
+              "observed_rate": 0.0,
+              "observed_minus_predicted_ci95_by_jst_day": null
+            },
+            {
+              "low": 0.05,
+              "high": 0.1,
+              "starters": 91,
+              "positive": 4,
+              "mean_probability": 0.08136792750417629,
+              "observed_rate": 0.04395604395604396,
+              "observed_minus_predicted_ci95_by_jst_day": [
+                -0.07293942808828062,
+                0.004002361139088172
+              ]
+            },
+            {
+              "low": 0.1,
+              "high": 0.2,
+              "starters": 358,
+              "positive": 54,
+              "mean_probability": 0.1538870553136969,
+              "observed_rate": 0.15083798882681565,
+              "observed_minus_predicted_ci95_by_jst_day": [
+                -0.03247975865664211,
+                0.02811722264885219
+              ]
+            },
+            {
+              "low": 0.2,
+              "high": 0.3,
+              "starters": 380,
+              "positive": 87,
+              "mean_probability": 0.2514890291906504,
+              "observed_rate": 0.22894736842105262,
+              "observed_minus_predicted_ci95_by_jst_day": [
+                -0.0652090780043007,
+                0.015056360358011705
+              ]
+            },
+            {
+              "low": 0.3,
+              "high": 0.45,
+              "starters": 496,
+              "positive": 199,
+              "mean_probability": 0.37470812702140793,
+              "observed_rate": 0.4012096774193548,
+              "observed_minus_predicted_ci95_by_jst_day": [
+                -0.005624075558431123,
+                0.06002339867056952
+              ]
+            },
+            {
+              "low": 0.45,
+              "high": 0.6,
+              "starters": 402,
+              "positive": 215,
+              "mean_probability": 0.5223291328670933,
+              "observed_rate": 0.5348258706467661,
+              "observed_minus_predicted_ci95_by_jst_day": [
+                -0.03883191967227953,
+                0.05846702931056143
+              ]
+            },
+            {
+              "low": 0.6,
+              "high": 0.8,
+              "starters": 353,
+              "positive": 245,
+              "mean_probability": 0.6918627477650942,
+              "observed_rate": 0.6940509915014165,
+              "observed_minus_predicted_ci95_by_jst_day": [
+                -0.03511770693611619,
+                0.03258923695782079
+              ]
+            },
+            {
+              "low": 0.8,
+              "high": 1.0,
+              "starters": 188,
+              "positive": 159,
+              "mean_probability": 0.8752389956841469,
+              "observed_rate": 0.8457446808510638,
+              "observed_minus_predicted_ci95_by_jst_day": [
+                -0.10151711419799878,
+                0.015785301137943585
+              ]
+            }
+          ]
+        },
+        "outside_top3": {
+          "binary_brier": 0.1892887483053489,
+          "uniform_probability_by_field_size_brier": 0.2434565654029626,
+          "untrained_uniform_tail_brier": 0.1892887483053489,
+          "positives": 1313,
+          "average_probability": 0.5768892794376098,
+          "avg_actual_rate": 0.5768892794376098,
+          "ece_fixed_bins": 0.014440356447177208,
+          "reliability": [
+            {
+              "low": 0.0,
+              "high": 0.02,
+              "starters": 4,
+              "positive": 0,
+              "mean_probability": 0.016227640057966775,
+              "observed_rate": 0.0,
+              "observed_minus_predicted_ci95_by_jst_day": [
+                -0.019082477444101905,
+                -0.013468843172794327
+              ]
+            },
+            {
+              "low": 0.02,
+              "high": 0.05,
+              "starters": 15,
+              "positive": 1,
+              "mean_probability": 0.03516873904492987,
+              "observed_rate": 0.06666666666666667,
+              "observed_minus_predicted_ci95_by_jst_day": [
+                -0.039885000584647126,
+                0.22177950042069836
+              ]
+            },
+            {
+              "low": 0.05,
+              "high": 0.1,
+              "starters": 39,
+              "positive": 1,
+              "mean_probability": 0.08044640752010229,
+              "observed_rate": 0.02564102564102564,
+              "observed_minus_predicted_ci95_by_jst_day": [
+                -0.07970614344318175,
+                -0.005518572620111372
+              ]
+            },
+            {
+              "low": 0.1,
+              "high": 0.2,
+              "starters": 130,
+              "positive": 27,
+              "mean_probability": 0.1517324405553123,
+              "observed_rate": 0.2076923076923077,
+              "observed_minus_predicted_ci95_by_jst_day": [
+                0.009945402939241753,
+                0.12732027658182166
+              ]
+            },
+            {
+              "low": 0.2,
+              "high": 0.3,
+              "starters": 159,
+              "positive": 43,
+              "mean_probability": 0.25302114281604765,
+              "observed_rate": 0.27044025157232704,
+              "observed_minus_predicted_ci95_by_jst_day": [
+                -0.02508448531813652,
+                0.06163350333743167
+              ]
+            },
+            {
+              "low": 0.3,
+              "high": 0.45,
+              "starters": 315,
+              "positive": 108,
+              "mean_probability": 0.38124619089795725,
+              "observed_rate": 0.34285714285714286,
+              "observed_minus_predicted_ci95_by_jst_day": [
+                -0.058072322702418425,
+                -0.009746128521489011
+              ]
+            },
+            {
+              "low": 0.45,
+              "high": 0.6,
+              "starters": 442,
+              "positive": 231,
+              "mean_probability": 0.5274621154989033,
+              "observed_rate": 0.5226244343891403,
+              "observed_minus_predicted_ci95_by_jst_day": [
+                -0.0407619701568415,
+                0.02755625529270929
+              ]
+            },
+            {
+              "low": 0.6,
+              "high": 0.8,
+              "starters": 715,
+              "positive": 503,
+              "mean_probability": 0.7019774960002256,
+              "observed_rate": 0.7034965034965035,
+              "observed_minus_predicted_ci95_by_jst_day": [
+                -0.028366160974855184,
+                0.027279400110718024
+              ]
+            },
+            {
+              "low": 0.8,
+              "high": 1.0,
+              "starters": 457,
+              "positive": 399,
+              "mean_probability": 0.8625160933420895,
+              "observed_rate": 0.8730853391684902,
+              "observed_minus_predicted_ci95_by_jst_day": [
+                -0.016240165134412066,
+                0.03205263016523064
+              ]
+            }
+          ]
+        },
+        "last": {
+          "binary_brier": 0.1118011251752603,
+          "uniform_probability_by_field_size_brier": 0.12107533405863811,
+          "untrained_uniform_tail_brier": 0.11488762026642646,
+          "positives": 321,
+          "average_probability": 0.14103690685413006,
+          "avg_actual_rate": 0.14103690685413006,
+          "ece_fixed_bins": 0.011004805354122611,
+          "reliability": [
+            {
+              "low": 0.0,
+              "high": 0.02,
+              "starters": 169,
+              "positive": 3,
+              "mean_probability": 0.011721943644850664,
+              "observed_rate": 0.01775147928994083,
+              "observed_minus_predicted_ci95_by_jst_day": [
+                -0.012329513471443555,
+                0.030670173633639924
+              ]
+            },
+            {
+              "low": 0.02,
+              "high": 0.05,
+              "starters": 285,
+              "positive": 16,
+              "mean_probability": 0.03617550020651653,
+              "observed_rate": 0.056140350877192984,
+              "observed_minus_predicted_ci95_by_jst_day": [
+                0.004913777809564408,
+                0.03399551181239107
+              ]
+            },
+            {
+              "low": 0.05,
+              "high": 0.1,
+              "starters": 465,
+              "positive": 32,
+              "mean_probability": 0.07532351701030292,
+              "observed_rate": 0.06881720430107527,
+              "observed_minus_predicted_ci95_by_jst_day": [
+                -0.019961125963266685,
+                0.005624154018024301
+              ]
+            },
+            {
+              "low": 0.1,
+              "high": 0.2,
+              "starters": 783,
+              "positive": 108,
+              "mean_probability": 0.14739312800247845,
+              "observed_rate": 0.13793103448275862,
+              "observed_minus_predicted_ci95_by_jst_day": [
+                -0.014754936900319577,
+                -0.005810005932418719
+              ]
+            },
+            {
+              "low": 0.2,
+              "high": 0.3,
+              "starters": 405,
+              "positive": 98,
+              "mean_probability": 0.2448525872469907,
+              "observed_rate": 0.2419753086419753,
+              "observed_minus_predicted_ci95_by_jst_day": [
+                -0.030634329388352536,
+                0.028392434433090565
+              ]
+            },
+            {
+              "low": 0.3,
+              "high": 0.45,
+              "starters": 165,
+              "positive": 63,
+              "mean_probability": 0.3465788210434637,
+              "observed_rate": 0.38181818181818183,
+              "observed_minus_predicted_ci95_by_jst_day": [
+                -0.0012016141627512905,
+                0.08535098375222902
+              ]
+            },
+            {
+              "low": 0.45,
+              "high": 0.6,
+              "starters": 4,
+              "positive": 1,
+              "mean_probability": 0.4809790055572086,
+              "observed_rate": 0.25,
+              "observed_minus_predicted_ci95_by_jst_day": null
+            }
+          ]
+        }
+      }
+    }
+  }
+}

@@ -141,9 +141,9 @@
       "max_report_absolute_difference": 0.0,
       "calibration_available": false,
       "confidence_numeric_claim": false,
-      "owner_summary_sha256": "daf11912f6c3db4ec21d1f552ffc59031fca24e1f64cd3c83623af976b1aa1ef",
+      "owner_summary_sha256": "0dfabafcb129ca84901b058869a2d5c5f5b677a05409873a2087507f8e5d1649",
       "earlier_public_snapshot_sha256": "edeaba22cda24a32b3d563a82a1a21245f38ee6ac049f587bfca620b913a94a8",
-      "checked_at": "2026-11-25T11:59:55.995100+00:00"
+      "checked_at": "2026-11-25T12:07:23.736759+00:00"
     },
     "forward-freeze": {
       "forecast_sha256": "7ca7a842a3a4f450d08492f3e1fdfa7b1e1f0cffb8a9112b8eba5b10e9ce007f",
@@ -169,6 +169,6 @@
     "summarize_riders.py": "cf1e522aee598b5e72d194b886b04ec62c2568120e6f49d624c6373e27505695",
     "score_site.py": "7496f6421387d603702b2ecf8e24fbecbb9c18798de3e6c728da21ab4431e260"
   },
-  "implementation_sha256": "9f5c7cdfe9b11067c82e590d75e35570ca8effbba23a7407925b9f040f7e2acb",
-  "test_sha256": "c6ef0905f2fd5940a3493e739ff7d7547481dbff4171fbcaad16ef457b2f746f"
+  "implementation_sha256": "1ae8dd3865f8ed5681afe2ddde8a9f0af5ea63991f8f6e5edeb160aa3d4a1aaf",
+  "test_sha256": "0a2562283b245b6683f1d8d0c76d6b512a247e4230ecbb0477defc565fdef6f0"
 }
