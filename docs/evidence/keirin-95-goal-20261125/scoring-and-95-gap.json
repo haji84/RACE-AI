@@ -1642,5 +1642,78 @@
         }
       }
     }
+  },
+  "different_line_runner_up_vs_observed_last_back": {
+    "scope": "Historical diagnostic only. Actual last-back leader and top-two used to group decisions. 2026-05-24 through 11-20, only multiple lines known and different lines first two. Uses original rolling population baseline.",
+    "arrays_sha256": "5a2235b92a872a7938d47b6e2cc09174d71b3276e5eff9c03f37861fd0e5d768",
+    "original_forecast_sha256": "ec44cd2347071bdee7b29a24d1b0ddeffa6ef78265e304628199f97246cdb692",
+    "branches": {
+      "all|back_leading_line_wins_second_elsewhere": {
+        "races": 1896,
+        "B_rider_exact_second": 0,
+        "B_rider_exact_first": 1039,
+        "baseline_winner_4": 1180,
+        "baseline_pair_4": 214,
+        "baseline_trifecta_4": 98,
+        "baseline_winner_8": 1401,
+        "baseline_pair_8": 488,
+        "baseline_trifecta_8": 263
+      },
+      "all|back_leading_line_second_winner_elsewhere": {
+        "races": 1546,
+        "B_rider_exact_second": 667,
+        "B_rider_exact_first": 0,
+        "baseline_winner_4": 787,
+        "baseline_pair_4": 157,
+        "baseline_trifecta_4": 66,
+        "baseline_winner_8": 970,
+        "baseline_pair_8": 342,
+        "baseline_trifecta_8": 164
+      },
+      "all|both_from_other_lines": {
+        "races": 754,
+        "B_rider_exact_second": 0,
+        "B_rider_exact_first": 0,
+        "baseline_winner_4": 359,
+        "baseline_pair_4": 83,
+        "baseline_trifecta_4": 28,
+        "baseline_winner_8": 438,
+        "baseline_pair_8": 163,
+        "baseline_trifecta_8": 63
+      },
+      "verified_pre_cutoff|back_leading_line_wins_second_elsewhere": {
+        "races": 58,
+        "B_rider_exact_second": 0,
+        "B_rider_exact_first": 33,
+        "baseline_winner_4": 36,
+        "baseline_pair_4": 10,
+        "baseline_trifecta_4": 6,
+        "baseline_winner_8": 43,
+        "baseline_pair_8": 14,
+        "baseline_trifecta_8": 10
+      },
+      "verified_pre_cutoff|back_leading_line_second_winner_elsewhere": {
+        "races": 40,
+        "B_rider_exact_second": 22,
+        "B_rider_exact_first": 0,
+        "baseline_winner_4": 19,
+        "baseline_pair_4": 4,
+        "baseline_trifecta_4": 0,
+        "baseline_winner_8": 29,
+        "baseline_pair_8": 12,
+        "baseline_trifecta_8": 7
+      },
+      "verified_pre_cutoff|both_from_other_lines": {
+        "races": 25,
+        "B_rider_exact_second": 0,
+        "B_rider_exact_first": 0,
+        "baseline_winner_4": 12,
+        "baseline_pair_4": 2,
+        "baseline_trifecta_4": 1,
+        "baseline_winner_8": 16,
+        "baseline_pair_8": 5,
+        "baseline_trifecta_8": 2
+      }
+    }
   }
 }
