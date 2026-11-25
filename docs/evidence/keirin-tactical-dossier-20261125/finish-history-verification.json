@@ -1,0 +1,69 @@
+{
+  "archive_identity_source_sha256": "f48693892ff6dd2b30d1b16806b991c04925fbb0c064cb92e61180c378031edb",
+  "archive_requested_range": [
+    "20231124",
+    "20261123"
+  ],
+  "checked_at": "2026-11-25T11:46:16.179234+00:00",
+  "cohorts": {
+    "nov26": {
+      "numbers_with_at_least_observations": {
+        "5": 501,
+        "10": 501,
+        "20": 501,
+        "30": 500
+      },
+      "observed_career_n_range": [
+        28,
+        365
+      ],
+      "races": 72,
+      "starters": 501,
+      "starters_with_some_bound_finishes": 501,
+      "unique_registrations": 501
+    },
+    "seibuen11": {
+      "numbers_with_at_least_observations": {
+        "5": 7,
+        "10": 7,
+        "20": 7,
+        "30": 7
+      },
+      "observed_career_n_range": [
+        101,
+        257
+      ],
+      "races": 1,
+      "starters": 7,
+      "starters_with_some_bound_finishes": 7,
+      "unique_registrations": 7
+    }
+  },
+  "earliest_bound_evidence_day": "20231124",
+  "historical_rows": {
+    "actual_b_rows": 198114,
+    "actual_s_rows": 187080,
+    "eligible_csv_races": 47543,
+    "eligible_prior_races": 75923,
+    "eligible_rider_rows": 538450,
+    "eligible_sql_races": 28380,
+    "incomplete_earlier_fields": 6483,
+    "role_rows": 188280,
+    "speed_rows": 509526,
+    "unbound_rider_rows": 26562,
+    "used_rider_rows": 511888
+  },
+  "latest_bound_evidence_day": "20261122",
+  "months_race_inventory": 80388,
+  "no_claim_to_race_or_starter_universe": true,
+  "private_output_sha256": "30aa2723a7a08bbe26047660d58f1ea33f2ac165f903cce783e720800df6d949",
+  "real_input_sha256": {
+    "seibuen_prestart_input_sha256": "fccd91e7e7caa3cda753ee76ab5de4bf11f5a2eea0cca8ba86f849519062b27d",
+    "tomorrow_official_sha256": "9795932d5ea51c43955d7c299c2fb05e86a9ec62e59a342ee8a18f3f47cb0ed5",
+    "tomorrow_prestart_forecast_sha256": "4dfd19466281f226481e7232190bdf4b0a3aa816c5946c665eea7c8ee0658f9b"
+  },
+  "schema": "KEIRIN_REGISTERED_FINISH_HISTORY_COVERAGE_V1",
+  "tomorrow_excluded_venues": {
+    "75": "OFFICIAL_SCHEDULE_IDENTITY_MISMATCH"
+  }
+}

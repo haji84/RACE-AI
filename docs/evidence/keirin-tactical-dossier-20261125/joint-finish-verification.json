@@ -1,0 +1,174 @@
+{
+  "scope": "Completed the original joint first–third distribution with historically learned conditional tail. Archived and prospective counts are separate.",
+  "limitations": "Archived timed card subset exists; no commissioned confidence estimate; top-three fixture ownership and full probability support required. Rankings in this package have not replaced a published forecast.",
+  "data": {
+    "design": {
+      "method": "Compare research B jointly. Keep the pre-race all-combination distribution of actual first–third unchanged. Conditional on these finishers, rank remaining cars with Plackett–Luce from their pre-race log-odds of top3 and log P(win|top3). Shared trainable coefficients L2 0.02 after averaging conditional selection loss; baseline assigns each suffix permutation equal chance. No tuning or outcome-derived input. Report 2t and 3t by marginalizing the same distribution, and each car 1..N by exact conditional mixture. Rank rows and columns must sum to one.",
+      "chronology": "Train using complete earlier archived observed finishes plus original rolling earlier-fitted probabilities from 2025-05-24–2026-05-23. Freeze returned weights before attaching complete 2026-05-24–2026-11-20 outcomes. Keep source prestart timestamps only where independently stored; old archive is date-ordered replay. Separate exact current 75 top3 arms and compare their own existing published exacta choices. Closed public offers are used here to verify construction, not as a newly issued prediction."
+    },
+    "fit": {
+      "weight": [
+        0.3426218420518321,
+        -0.26418205686284013
+      ],
+      "training_races": 25471,
+      "counts_by_starter_count": {
+        "5": 241,
+        "6": 1149,
+        "7": 21922,
+        "8": 136,
+        "9": 2023
+      },
+      "training_start": "2025-05-24",
+      "trained_before": "2026-05-24",
+      "design_sha256": "46c12176ac40090af718cfa4af0af2b69fa2541c0085f0e407457f9304d5b469",
+      "archived_form_and_prob_sha256": "5a2235b92a872a7938d47b6e2cc09174d71b3276e5eff9c03f37861fd0e5d768",
+      "old_model_forecast_sha256": "ec44cd2347071bdee7b29a24d1b0ddeffa6ef78265e304628199f97246cdb692",
+      "observed_archived_finishes_sha256": "68d4c89c5630e3254f9265a5abc7d32acd73af29fa8ed76fa9de983014b20449"
+    },
+    "archival-frozen": {
+      "n": 12234,
+      "forecast_hashes": {
+        "5": "416b62ac82dbb79258ffcb56bfaeb58c5c92432d3ffe5c4e4102034e4fd34710",
+        "6": "e25dfa7c92c5dd602b695d4f198e97db8677b33aa9e44689cf85f62e3969a957",
+        "7": "d4f4ed2714dd0f287de05ff88f3181f73960f4221e82922f823afb69ce83a6f2",
+        "8": "e7d7f217fbffe542a658c3673c9855feb5152c6b9c3d93a349eb32d2f5636120",
+        "9": "6d6bdfb4172f661ba05cda1de71113e35e73272557767db42ac24cb3b0b4222c"
+      },
+      "fit_sha256": "d299766d899456dd73397e75ef9a911d8413c915e4f13134db0bfa6e3375ebf1"
+    },
+    "archival-results": {
+      "all": {
+        "n": 12234,
+        "threeway_exact_unchanged": [
+          1248,
+          3234,
+          4583
+        ],
+        "probability_exact_complete_order_before": 0.001957943329175225,
+        "probability_exact_complete_order_after": 0.0022620275024431407,
+        "suffix_log_loss_uniform_given_correct_top3": 3.36722292602799,
+        "suffix_log_loss_learned_given_correct_top3": 3.2854808035510272,
+        "tail_slot_marginal_log_loss_uniform": 1.8698627227314049,
+        "tail_slot_marginal_log_loss_learned": 1.8457620905843848,
+        "mean_ordinal_rank_abs_error_uniform": 1.5662403891314896,
+        "mean_ordinal_rank_abs_error_learned": 1.5585044022513193
+      },
+      "timestamped_pre_cutoff_card": {
+        "n": 321,
+        "threeway_exact_unchanged": [
+          38,
+          84,
+          119
+        ],
+        "probability_exact_complete_order_before": 0.0015589342321154455,
+        "probability_exact_complete_order_after": 0.001814168056325945,
+        "suffix_log_loss_uniform_given_correct_top3": 3.336018198341294,
+        "suffix_log_loss_learned_given_correct_top3": 3.2632315516437442,
+        "tail_slot_marginal_log_loss_uniform": 1.8667947264184568,
+        "tail_slot_marginal_log_loss_learned": 1.844342983319854,
+        "mean_ordinal_rank_abs_error_uniform": 1.5611308905701435,
+        "mean_ordinal_rank_abs_error_learned": 1.5490159719131689
+      }
+    },
+    "current-verification": {
+      "n": 75,
+      "all_top8_trifecta_preserved": true,
+      "exacta_top4_sequence_changes": 33,
+      "exacta_top4_set_changes": 19,
+      "exacta_published_cap_set_changes": 8,
+      "max_row_or_column_sum_error": 4.440892098500626e-16,
+      "forecast_sha256": "edeaba22cda24a32b3d563a82a1a21245f38ee6ac049f587bfca620b913a94a8",
+      "original_model_sha256": "d69b323e5f8f49851e6cf52cc4095a1fc638d8378b903faa5af1fb6594dc7494",
+      "public_asset_sha256": "51a98f0a048d4831eeb8c85533e28f789b17dc55ca59a7cb0cf0c920d7e4eb9e"
+    },
+    "current-exacta-results": {
+      "verified_public_result_at": "2026-11-25T11:08:30.281559+00:00",
+      "registered": 75,
+      "counts": {
+        "matched": 51,
+        "held": 1,
+        "missing": 23
+      },
+      "comparisons": {
+        "1": {
+          "base_hits": 10,
+          "coherent_hits": 8,
+          "gained": 0,
+          "lost": 2,
+          "changed": 7,
+          "tickets_each": 51
+        },
+        "2": {
+          "base_hits": 18,
+          "coherent_hits": 18,
+          "gained": 1,
+          "lost": 1,
+          "changed": 5,
+          "tickets_each": 102
+        },
+        "4": {
+          "base_hits": 32,
+          "coherent_hits": 33,
+          "gained": 2,
+          "lost": 1,
+          "changed": 15,
+          "tickets_each": 204
+        },
+        "displayed": {
+          "base_hits": 23,
+          "coherent_hits": 23,
+          "gained": 1,
+          "lost": 1,
+          "changed": 8,
+          "tickets_each": 126
+        }
+      },
+      "classification": "Original raw publication replay. The reconstructed joint P1,2 takes P1,2,3 from its frozen pre-race information; this retrospective attachment did not publish a new forecast.",
+      "witness": {
+        "roster_sha256": "c96f35a0c0a9e26c34a491d162674f40a47a2e5fd0ae19f4583c86653d6aeb31",
+        "result_sha256": "c9367260bd9b142800d259001f92112d728360f14b7c9cc29ca601a22b512f89",
+        "joint_forecast_sha256": "edeaba22cda24a32b3d563a82a1a21245f38ee6ac049f587bfca620b913a94a8"
+      }
+    },
+    "rider-summary-proof": {
+      "races": 75,
+      "riders": 516,
+      "raw_probabilities_reused": true,
+      "per_race_top2_total": 2.0,
+      "per_race_top3_total": 3.0,
+      "per_race_expected_rank_sum": "N*(N+1)/2",
+      "max_report_absolute_difference": 0.0,
+      "calibration_available": false,
+      "confidence_numeric_claim": false,
+      "owner_summary_sha256": "daf11912f6c3db4ec21d1f552ffc59031fca24e1f64cd3c83623af976b1aa1ef",
+      "earlier_public_snapshot_sha256": "edeaba22cda24a32b3d563a82a1a21245f38ee6ac049f587bfca620b913a94a8",
+      "checked_at": "2026-11-25T11:59:55.995100+00:00"
+    },
+    "forward-freeze": {
+      "forecast_sha256": "7ca7a842a3a4f450d08492f3e1fdfa7b1e1f0cffb8a9112b8eba5b10e9ce007f",
+      "registered": 18,
+      "frozen_at": "2026-11-25T11:57:58.072702+00:00",
+      "fit_sha256": "d299766d899456dd73397e75ef9a911d8413c915e4f13134db0bfa6e3375ebf1",
+      "design_sha256": "46c12176ac40090af718cfa4af0af2b69fa2541c0085f0e407457f9304d5b469",
+      "earliest_cutoff": "2026-11-25T21:00:00+09:00",
+      "latest_cutoff": "2026-11-25T23:25:00+09:00",
+      "changed_exacta_at_site_caps": 0
+    }
+  },
+  "source_digests": {
+    "design.json": "46c12176ac40090af718cfa4af0af2b69fa2541c0085f0e407457f9304d5b469",
+    "fit.json": "d299766d899456dd73397e75ef9a911d8413c915e4f13134db0bfa6e3375ebf1",
+    "archival-frozen.json": "d4cb9eeae3d05e48c534bdca404e37b09e5193a30e850ce81ac9c735dfa7da58",
+    "archival-results.json": "49697b0a7c7a28ae2c7474461028e98c4b2c458b275eec419031d3d79b9b98af",
+    "current-verification.json": "c1807f34d7033cbc5fa3916afef6eb84e73ac173d659afa4a29ab37cbdf98ba5",
+    "current-exacta-results.json": "e67ebf337bb5bb1c7b73fdb3db25b72b6430a3a33687eca3d27b5b3ed8d599fe",
+    "rider-summary-proof.json": "e5fa0387a4d45a73f68a2e0fbcd63a389397624daf782b7bcaea43488ff31127",
+    "forward-freeze.json": "86fbac53dac8f9dfc7247b28a6908c656960f8afaf0f36197947cb4768c1f671",
+    "benchmark.py": "5000bde802143404f549a6002fb2466404b904a8816412a529a1e3d9bfcbc512",
+    "summarize_riders.py": "cf1e522aee598b5e72d194b886b04ec62c2568120e6f49d624c6373e27505695",
+    "score_site.py": "7496f6421387d603702b2ecf8e24fbecbb9c18798de3e6c728da21ab4431e260"
+  },
+  "implementation_sha256": "9f5c7cdfe9b11067c82e590d75e35570ca8effbba23a7407925b9f040f7e2acb",
+  "test_sha256": "c6ef0905f2fd5940a3493e739ff7d7547481dbff4171fbcaad16ef457b2f746f"
+}

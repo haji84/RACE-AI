@@ -1,7 +1,8 @@
 """Build dated, registration-bound features from public KEIRIN result records."""
 
-from bisect import bisect_left
-from collections import defaultdict
+from bisect import bisect_left, bisect_right
+from calendar import monthrange
+from collections import Counter, defaultdict
 from dataclasses import dataclass
 from datetime import date
 from math import isfinite, log
@@ -109,6 +110,23 @@ class HistorySeries:
 
 
 EMPTY_WINDOW = np.zeros(len(METRICS)), np.zeros(len(METRICS)), 0, None
+FINISH_PERIODS = {'all': None, '3_years': 36, '1_year': 12, '6_months': 6,
+                  '4_months': 4, '3_months': 3, '1_month': 1}
+FINISH_START_COUNTS = (30, 20, 10, 5)
+
+
+def _history_cutoff(race_id, latest_day):
+    cutoff = date.fromisoformat(race_id[:8]).toordinal()
+    if latest_day is not None:
+        cutoff = min(cutoff, date.fromisoformat(latest_day).toordinal() + 1)
+    return date.fromordinal(cutoff)
+
+
+def _months_before(day, months):
+    year, month = divmod(day.year * 12 + day.month - 1 - months, 12)
+    if year < date.min.year:
+        return date.min
+    return date(year, month + 1, min(day.day, monthrange(year, month + 1)[1]))
 
 
 class HistoryBook:
@@ -116,6 +134,7 @@ class HistoryBook:
 
     def __init__(self, rides):
         history = defaultdict(list)
+        finishes = defaultdict(list)
         seen = set()
         for ride in rides:
             key = ride.registration, ride.race_id
@@ -123,6 +142,7 @@ class HistoryBook:
                 raise ValueError('Repeated rider and race in prior history.')
             seen.add(key)
             observation = date.fromisoformat(ride.race_id[:8]).toordinal(), ride.metrics()
+            finishes[ride.registration].append((ride.race_id, ride.finish))
             history[ride.registration, 'all', None].append(observation)
             history[ride.registration, 'track', ride.race_id[8:10]].append(observation)
             if ride.role is not None:
@@ -132,11 +152,53 @@ class HistoryBook:
         self.series = {
             key: HistorySeries(sorted(values, key=lambda row: row[0])) for key, values in history.items()
         }
+        self.finishes = {registration: tuple(sorted(rows)) for registration, rows in finishes.items()}
+
+    def finish_history(self, registration, *, race_id, latest_day=None):
+        """Summarize bound numeric finishes available in the archive strictly before the cutoff day.
+
+        The archive can omit starts entirely, so the count of missing finishes is unknown.
+        Last-N windows use observable finishes and omit a boundary day if its order is unknown.
+        Historical prediction callers must use the archive revision available at their cutoff.
+        """
+        if not is_registration(registration):
+            raise ValueError('A rider registration is required for a finish history.')
+        cutoff = _history_cutoff(race_id, latest_day)
+        rows = self.finishes.get(registration, ())
+        right = bisect_left(rows, (cutoff.isoformat().replace('-', ''),))
+
+        def summary(left):
+            observed = right - left
+            counts = Counter(finish for _, finish in rows[left:right])
+            counts = {rank: counts[rank] for rank in range(1, 10)}
+            return dict(observed_count=observed, missing_finish_count=None, finish_counts=counts,
+                        finish_rates={rank: count / observed for rank, count in counts.items()} if observed else None,
+                        first_observed_day=date.fromisoformat(rows[left][0][:8]).isoformat() if observed else None,
+                        latest_observed_day=date.fromisoformat(rows[right - 1][0][:8]).isoformat() if observed else None)
+
+        periods = {}
+        for name, months in FINISH_PERIODS.items():
+            start = _months_before(cutoff, months) if months is not None else None
+            left = bisect_left(rows, (start.isoformat().replace('-', ''),), hi=right) if start else 0
+            periods[name] = dict(summary(left), start_day_inclusive=start.isoformat() if start else None)
+
+        last_starts = {}
+        for count in FINISH_START_COUNTS:
+            left = max(0, right - count)
+            tied = 0
+            if left and rows[left - 1][0][:8] == rows[left][0][:8]:
+                day = rows[left][0][:8]
+                start = bisect_left(rows, (day,), hi=left)
+                left = bisect_right(rows, day, lo=left, hi=right, key=lambda row: row[0][:8])
+                tied = left - start
+            last_starts[count] = dict(summary(left), unfilled_slots=count - (right - left),
+                                      tied_boundary_observations=tied)
+
+        return dict(registration=registration, as_of_exclusive=cutoff.isoformat(),
+                    periods=periods, last_starts=last_starts)
 
     def features(self, registration, *, race_id, role, grade, latest_day=None):
-        cutoff = date.fromisoformat(race_id[:8]).toordinal()
-        if latest_day is not None:
-            cutoff = min(cutoff, date.fromisoformat(latest_day).toordinal() + 1)
+        cutoff = _history_cutoff(race_id, latest_day).toordinal()
 
         def window(kind, tag, lookback):
             series = self.series.get((registration, kind, tag))

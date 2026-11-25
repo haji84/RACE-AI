@@ -77,6 +77,64 @@ class KeirinRiderProfileStudyTests(unittest.TestCase):
         self.assertEqual(HistoryBook([before, after]).features('012345', **context),
                          HistoryBook([before]).features('012345', **context))
 
+    def test_finish_history_counts_distinct_calendar_windows_and_last_starts(self):
+        from scripts.keirin_rider_profile_history import HistoryBook, Ride
+
+        rows = [Ride(f'{day}2101', '012345', finish, None, None, 'A') for day, finish in (
+            ('20231124', 9), ('20231125', 8), ('20251125', 7), ('20260525', 6),
+            ('20260725', 5), ('20260825', 4), ('20261025', 3), ('20261124', 2),
+            ('20261125', 1), ('20261126', 1),
+        )]
+        rows.append(Ride('202611242102', '054321', 1, None, None, 'A'))
+        report = HistoryBook(reversed(rows)).finish_history('012345', race_id='202611252611')
+        self.assertEqual(report['as_of_exclusive'], '2026-11-25')
+        self.assertEqual({key: row['observed_count'] for key, row in report['periods'].items()},
+                         {'all': 8, '3_years': 7, '1_year': 6, '6_months': 5, '4_months': 4,
+                          '3_months': 3, '1_month': 2})
+        self.assertEqual(report['periods']['all']['missing_finish_count'], None)
+        self.assertEqual(report['periods']['all']['finish_counts'][1], 0)
+        self.assertEqual(report['periods']['1_month']['finish_rates'][2], 0.5)
+        self.assertEqual(report['periods']['1_month']['first_observed_day'], '2026-10-25')
+        self.assertEqual({key: row['unfilled_slots'] for key, row in report['last_starts'].items()},
+                         {30: 22, 20: 12, 10: 2, 5: 0})
+        last_five = report['last_starts'][5]
+        self.assertEqual(last_five['finish_counts'], {1: 0, 2: 1, 3: 1, 4: 1, 5: 1, 6: 1, 7: 0, 8: 0, 9: 0})
+
+    def test_finish_history_clamps_to_latest_allowed_day_and_preserves_missing(self):
+        from scripts.keirin_rider_profile_history import HistoryBook, Ride
+
+        rows = [Ride(f'{day}2101', '012345', finish, None, None, 'A') for day, finish in (
+            ('20260227', 9), ('20260228', 4), ('20260330', 2), ('20260331', 1),
+        )]
+        sample = HistoryBook(rows)
+        report = sample.finish_history('012345', race_id='202604021301', latest_day='20260330')
+        self.assertEqual(report['as_of_exclusive'], '2026-03-31')
+        month = report['periods']['1_month']
+        self.assertEqual(month['start_day_inclusive'], '2026-02-28')
+        self.assertEqual(month['observed_count'], 2)
+        self.assertEqual(month['finish_counts'][1], 0)
+        self.assertEqual(month['finish_counts'][9], 0)
+        empty = sample.finish_history('054321', race_id='202604021301')['last_starts'][5]
+        self.assertEqual(empty['observed_count'], 0)
+        self.assertEqual(empty['unfilled_slots'], 5)
+        self.assertIsNone(empty['finish_rates'])
+        self.assertIsNone(empty['first_observed_day'])
+        self.assertIsNone(empty['latest_observed_day'])
+
+    def test_finish_history_exposes_unordered_boundary_day_in_last_starts(self):
+        from scripts.keirin_rider_profile_history import HistoryBook, Ride
+
+        rows = [Ride(race_id, '012345', finish, None, None, 'A') for race_id, finish in (
+            ('202611202101', 9), ('202611202201', 8), ('202611212101', 7),
+            ('202611222101', 6), ('202611232101', 5), ('202611242101', 4),
+        )]
+        last_five = HistoryBook(rows).finish_history('012345', race_id='202611252611')['last_starts'][5]
+        self.assertEqual(last_five['observed_count'], 4)
+        self.assertEqual(last_five['unfilled_slots'], 1)
+        self.assertEqual(last_five['tied_boundary_observations'], 2)
+        self.assertEqual(last_five['finish_counts'][8], 0)
+        self.assertEqual(last_five['finish_counts'][9], 0)
+
     def test_registration_binding_recovers_the_documented_prefecture_split(self):
         from scripts.keirin_rider_profile_identity import IdentityIndex
 

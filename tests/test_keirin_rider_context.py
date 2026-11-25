@@ -98,3 +98,48 @@ class RiderContextTests(unittest.TestCase):
         result = context.compare(race)
         self.assertEqual(result['candidate']['new_scenario_count'], 0)
         self.assertEqual(result['candidate']['B']['state'], 'UNGENERATED_LINE_EVIDENCE_MISSING')
+
+    def test_multi_stage_paths_allow_a_solo_response_from_prestart_features(self):
+        race = card()
+        race['riders'][6].update(style='MAKURI', makuri=3)
+        paths = context.multi_stage_makuri_hypotheses(race)
+        path = next(row for row in paths
+                    if row['initiative_car'] == 1 and
+                    [move['actor_car'] for move in row['moves']] == [4, 7] and
+                    row['moves'][-1]['window'] == 'FOURTH_CORNER_TO_GOAL')
+        self.assertEqual([move['countered_car'] for move in path['moves']], [1, 4])
+        self.assertEqual([move['conditional_followers'] for move in path['moves']], [[5, 6], []])
+        self.assertEqual(path['six_phases'][3]['projected_order'][:2], [1, 2])
+        self.assertEqual(path['six_phases'][4]['projected_order'][:3], [4, 5, 6])
+        self.assertEqual(path['six_phases'][5]['projected_order'][:3], [7, 4, 5])
+        self.assertIsNone(path['probability'])
+        for step in path['six_phases']:
+            self.assertEqual(sorted(step['projected_order']), list(range(1, 8)))
+
+    def test_multi_stage_paths_are_bounded_and_use_only_distinct_lines(self):
+        race = card()
+        race['line_groups'] = [[1, 3], [2], [4, 5], [7, 6]]
+        race['riders'][6].update(style='MAKURI', makuri=3)
+        paths = context.multi_stage_makuri_hypotheses(race)
+        self.assertTrue(any(len(path['moves']) == 3 for path in paths))
+        self.assertLessEqual(len(paths), 120)
+        keys = {path['scenario_id'] for path in paths}
+        self.assertEqual(len(keys), len(paths))
+        for path in paths:
+            actors = [path['initiative_car']] + [move['actor_car'] for move in path['moves']]
+            self.assertEqual(len(actors), len(set(actors)))
+        race.update(actual_finish=[7, 2, 5], official_initiative=7, observations=[{'actor': 7}])
+        self.assertEqual(paths, context.multi_stage_makuri_hypotheses(race))
+
+    def test_multi_stage_paths_require_multiple_self_propelled_lines(self):
+        race = card()
+        race['riders'][3].update(style='MARK', h_count=0, b_count=0, nige=0)
+        self.assertEqual(context.multi_stage_makuri_hypotheses(race), [])
+        race['line_groups'] = None
+        self.assertEqual(context.multi_stage_makuri_hypotheses(race), [])
+
+    def test_multi_stage_paths_reject_boolean_car_number(self):
+        race = card()
+        race['line_groups'][0][0] = True
+        with self.assertRaisesRegex(ValueError, 'LINE_GROUPS_NOT_AN_EXACT_STARTER_PARTITION'):
+            context.multi_stage_makuri_hypotheses(race)

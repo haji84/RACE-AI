@@ -3,6 +3,7 @@ from __future__ import annotations
 
 from collections import Counter
 from copy import deepcopy
+from itertools import permutations
 
 from . import keirin_nationwide_auto_generator as core
 
@@ -121,6 +122,61 @@ def _supported_paths(profiles, groups, line, opponent, phase, basis):
                 branch_support=support, pair_support_A=pair_a, pair_support_B=pair_b,
                 conditional_third_support=fraction, support_A=pair_a*fraction, support_B=pair_b*fraction,
                 known_line_hypothesis=True)
+
+
+def _multi_stage_path(groups, profiles, lead, responses, late_finish):
+    initiative = lead[0]
+    phases = core._scenario_prefix(groups, profiles, initiative, None, 'HOLD')[:4]
+    order = phases[-1]['projected_order']
+    corner_order = order
+    moves = []
+    for index, group in enumerate(responses):
+        actor = group[0]
+        countered = order[0]
+        window = ('FOURTH_CORNER_TO_GOAL' if late_finish and index == len(responses) - 1
+                  else 'FINAL_BACK_TO_FOURTH_CORNER')
+        order = core._arrange(group, order)
+        moves.append(dict(actor_car=actor, countered_car=countered, window=window,
+                          conditional_followers=group[1:],
+                          condition=f'{actor}番が{countered}番を外から交わし、掲載ラインが追走する条件。',
+                          evidence=core._profile_facts(profiles[actor])))
+        if window == 'FINAL_BACK_TO_FOURTH_CORNER':
+            corner_order = order
+    phases.append(core._evidence_phase('FOURTH_CORNER', corner_order,
+        '最終バック後から4角までに、想定した仕掛けが順に前へ出る分岐。',
+        ['CONDITIONAL_MULTI_STAGE_RESPONSE']))
+    phases.append(core._evidence_phase('GOAL', order,
+        '想定した捲りの後、さらに位置の入れ替わりなくゴールする分岐。',
+        ['CONDITIONAL_FINISH_ORDER']))
+    route = '-'.join(str(car) for car in [initiative, *(move['actor_car'] for move in moves)])
+    timing = 'LATE' if late_finish else 'BY_CORNER'
+    return dict(scenario_id=f'MAKURI_RESPONSE_{route}_{timing}', initiative_car=initiative,
+                moves=moves, six_phases=phases, probability=None,
+                probability_status='NO_INDEPENDENT_CALIBRATION')
+
+
+def multi_stage_makuri_hypotheses(snapshot):
+    """Generate up to three successive counters on distinct pre-race lines.
+
+    The order and followers describe one conditional path. The evidence does
+    not identify when moves will occur or how likely the paths are. The
+    caller binds the input to verified sources acquired before the cutoff.
+    """
+    profiles, _ = core._evidence_profiles(snapshot)
+    groups = core._evidence_line_groups(snapshot, profiles)
+    core.need(all(type(car) is int for group in groups or () for car in group),
+              'LINE_GROUPS_NOT_AN_EXACT_STARTER_PARTITION')
+    eligible = sorted((group for group in groups or () if _self_propelled(profiles[group[0]])),
+                      key=lambda group: (-profiles[group[0]]['head_strength'], group[0]))[:4]
+    paths = []
+    for lead in eligible:
+        other_lines = [group for group in eligible if group != lead]
+        for count in range(1, len(eligible)):
+            for responses in permutations(other_lines, count):
+                paths.append(_multi_stage_path(groups, profiles, lead, responses, False))
+                if count > 1:
+                    paths.append(_multi_stage_path(groups, profiles, lead, responses, True))
+    return paths
 
 
 def compare(snapshot):
