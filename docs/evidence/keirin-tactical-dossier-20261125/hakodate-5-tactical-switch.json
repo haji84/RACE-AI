@@ -1,0 +1,65 @@
+{
+  "scope": "retrospective_label_admission_only",
+  "race_id": "202509161105",
+  "observed_event": "Existing video labels verify that #5 followed #4 at final H, moved outside after corner 2 in the H-to-B interval, and overtook #4. The exact passing frame is occluded.",
+  "source_url": "https://keirin.kdreams.jp/hakodate/racedetail/1120250914030005/?pageType=showResult",
+  "registration": "012757",
+  "finish": 1,
+  "opponent_car": 4,
+  "opponent_finish": 5,
+  "capture_utc": "2026-11-24T12:48:54.564908+00:00",
+  "available_for_admission_utc": "2026-11-24T15:03:59Z",
+  "availability_note": "The public analysis commit is the conservative availability floor. The clip capture time does not prove publication or finalized review time.",
+  "availability_git": "2e9453a43849a83d185be4b6f4d32d70c3524ba2",
+  "public_analysis_path": "docs/evidence/keirin-video-corpus-20261124/analysis.md",
+  "public_analysis_sha256": "3daa0fd83b9c7678a27a7072f49f6fc4973b30336ba565ef4487ea786745c46d",
+  "digests": {
+    "clip_bytes": "dc8643a574f49e753bdcfe5b6f57ca719a21817115969f258459fc4fa38c7e47",
+    "capture_metadata": "ed8a967ac1b5d0699f4cf73bf392004a643f9267ef015242775f23095ffb0c29",
+    "review_annotations": "987b19879bbdb4ddf104167347fc9f1848b7bf59485a59376dff5c3441653a71",
+    "phase_anchors": "30b541d5eaf8af1a121f8cfbe2b81b2284fd3dc612c57a25d7db84d7e5d4416d",
+    "saved_independent_result_html": "0fc0473ff5e1eed4cbe6b3dd26225d91bb0a7edf10e255f874ca06a151038f9e"
+  },
+  "lap_review_window_ms": [
+    51520,
+    75400
+  ],
+  "final_h_crossing_ms": [
+    51520,
+    51600
+  ],
+  "goal_crossing_ms": [
+    75320,
+    75400
+  ],
+  "actual_pass_instant_ms": null,
+  "later_diagnostic_admitted": {
+    "state": "observed",
+    "observed_opportunities": 1,
+    "known_outcomes": 1,
+    "unknown_outcomes": 0,
+    "observed_successes": 1
+  },
+  "pre_witness_exclusion": {
+    "not_available_before_cutoff": 1
+  },
+  "equality_at_witness_exclusion": {
+    "not_available_before_cutoff": 1
+  },
+  "target_race_exclusion": {
+    "target_race": 1
+  },
+  "unverified_input_exclusion": {
+    "source_unverified": 1
+  },
+  "nov26_frozen_cohort": {
+    "git_receipt": "de4611e04b15b44c1519c1cb9679b7ed300275fe",
+    "identity_manifest_sha256": "d7f1965c0133b5e55defdc193bad27c17ff9843d11e6ef19d02492c6be931782",
+    "races": 84,
+    "starter_appearances": 580,
+    "unique_registrations": 580,
+    "registration_matches": 0
+  },
+  "predictive_rating": null,
+  "qualifying_forward_races": 0
+}

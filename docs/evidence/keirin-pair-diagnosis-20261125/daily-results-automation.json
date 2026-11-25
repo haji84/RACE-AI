@@ -1,0 +1,37 @@
+{
+  "homepage": "https://keirin-20261119-race-note.chankuma.chatgpt.site",
+  "checked_utc": "2026-11-25T05:31:54.679Z",
+  "git_state": "d3f6d547a7281bc13030b80024de31d62b26ca29",
+  "site_source_commit": "723019e96e0d18db2c1ad0575d103737f08e6921",
+  "date_states": {
+    "2026-11-25": {
+      "published": 75,
+      "matched": 22,
+      "held": 1,
+      "pending": 1
+    },
+    "2026-11-24": {
+      "published": 81,
+      "matched": 79,
+      "held": 1,
+      "pending": 1
+    },
+    "2026-11-23": {
+      "published": 89,
+      "matched": 87,
+      "held": 2,
+      "pending": 0
+    },
+    "2026-11-22": {
+      "published": 68,
+      "matched": 67,
+      "held": 1,
+      "pending": 0
+    }
+  },
+  "publication_run": "https://github.com/haji84/RACE-AI/actions/runs/45554054130",
+  "github_event": "push",
+  "github_workflow_job": "publish-public-site-results",
+  "discovery_check": "https://github.com/haji84/RACE-AI/actions/runs/45553638752",
+  "scope": "Original-site published forecasts only. The publication receipt push registers published rosters; the existing default-branch schedule revisits registered dates. Periodic discovery without a receipt has not been merged to main."
+}

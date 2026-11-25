@@ -1,0 +1,62 @@
+{
+  "adds_n_with_both_ordered_pairs": 3,
+  "adds_new_validated_cross_line_examples": 0,
+  "archive_gold_reference_sha256": "ec587c9ef32db994f88c1ad2801806cc082e1ba4ae98b93b5d2e3c4031d333f9",
+  "crossed_minimum_event_gate": false,
+  "frozen_plan_sha256": "21f8d6df022badb836c86cbf60a1679821919fe16ac21e1eb5c9ead87ab874f0",
+  "generated": "2026-11-25T12:42:01.087154+00:00",
+  "intervals": {
+    "B_C": {
+      "different_line_change": 0,
+      "same_line_change": 0,
+      "same_rider": 4,
+      "unreadable": 0
+    },
+    "C_goal": {
+      "different_line_change": 0,
+      "same_line_change": 3,
+      "same_rider": 1,
+      "unreadable": 0
+    }
+  },
+  "limitations": "Visual labels at explicit checkpoints only. The selection is date-ordered across previously unseen races; the same and cross-line second-place counts are post-outcome descriptions. No model changes evaluated here.",
+  "official_locations_sha256": "df6dc10243253d9e2ef350c63f247e7d778d04ef6aa5ba9a07d54a912af54873",
+  "old_cross": 3,
+  "old_n": 33,
+  "older_expansion_replayed_total": 20,
+  "played": 5,
+  "same_and_cross_second": {
+    "cross_line_second": {
+      "4C_actual_second_already_second": 0,
+      "4C_actual_second_not_top_two": 1,
+      "4C_pair_readable": 1,
+      "B_actual_second_already_second": 0,
+      "B_actual_second_not_top_two": 1,
+      "B_pair_readable": 1,
+      "cases": 1
+    },
+    "same_line_second": {
+      "4C_actual_second_already_second": 0,
+      "4C_actual_second_not_top_two": 1,
+      "4C_pair_readable": 3,
+      "B_actual_second_already_second": 0,
+      "B_actual_second_not_top_two": 0,
+      "B_pair_readable": 2,
+      "B_pair_unreadable": 1,
+      "cases": 3
+    }
+  },
+  "selected": 5,
+  "total_strict_complete_pairs": 36,
+  "total_strict_cross_line_changes": 3,
+  "training_provisional_sha256": "cda8232f5d5203c505d44ce0ca294499186b955d0385dc231224009d40382418",
+  "unique_venues_with_crossing": 3,
+  "verified_counts": {
+    "official_B_matched": 4,
+    "official_podium_archived_agree": 5,
+    "visual_B_conflict": 0,
+    "visual_B_unreadable": 1
+  },
+  "verified_events_sha256": "85c2cd84e1369d29695d9ed9b87baf38452d078aedd0bd96c0f3b1faf7b12a0f",
+  "visual_labels_sha256": "8e016381270ee6d21a3554f9540db7f2941b97395384d8636e394e8b3c020e46"
+}

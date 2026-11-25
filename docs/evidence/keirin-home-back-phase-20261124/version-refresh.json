@@ -1,0 +1,54 @@
+{
+  "admitted_cards_sha256": "6814961d8d4684f625857471fc5a9bb39fd7b1f911cb8f50b2081d6cc07529b6",
+  "change_pairs_sha256": null,
+  "counts": {
+    "ADMITTED": 64,
+    "CONFLICTING_RESPONSIVE_STARTER_ROWS": 1,
+    "FULL_NAME_NOT_EXACTLY_ATTESTED": 1,
+    "GIRLS_UNCHANGED": 9,
+    "MEN_UNCHANGED": 55,
+    "UNCHANGED": 64,
+    "girls_category": 10,
+    "target": 66
+  },
+  "date": "2026-11-24",
+  "limits": {
+    "elapsed_minutes": [
+      171.35,
+      171.97
+    ],
+    "minutes_to_cutoff": [
+      41.19,
+      790.47
+    ]
+  },
+  "original_locked_input_sha256": "215fc9a9444969abd126397a170ea1ab430a4b9a8e974c7a13a5695da80bdad2",
+  "receipt_list_sha256": "f6870e64965353f682b5d6def813e8edd058b7b5e95ef60e3ed1c6da9f94b38b",
+  "capture": {
+    "target_count": 66,
+    "counts": {
+      "requests": 66,
+      "http_200": 66,
+      "body_completed_before_original_cutoff": 66,
+      "server_date_present": 66
+    },
+    "first_requested_at": "2026-11-23T23:03:48.530744+00:00",
+    "last_completed_at": "2026-11-23T23:05:31.620632+00:00",
+    "provider_stop": null,
+    "receipt_sha256": "f6870e64965353f682b5d6def813e8edd058b7b5e95ef60e3ed1c6da9f94b38b"
+  },
+  "other_15_without_published_line": {
+    "counts": {
+      "both_before_same_cutoff_and_full_roster": 15,
+      "later_showed_published_line": 0,
+      "unpublished_both": 15
+    },
+    "date": "2026-11-24",
+    "earliest_refresh_time": "2026-11-23T20:42:38.696391+00:00",
+    "early_intake_receipt_sha256": "899251fcfe6c5852423cc17b58460cdadd01cfbb94b1fb9bb28728776f0d6476",
+    "latest_refresh_time": "2026-11-23T20:42:55.129365+00:00",
+    "refresh_receipt_sha256": "e924ebd8774122f90144b03ecf5cca91428f61a09b12d1fa97cf47fb52f9e2ee",
+    "scope": 15,
+    "separate_from_refresh_64": true
+  }
+}

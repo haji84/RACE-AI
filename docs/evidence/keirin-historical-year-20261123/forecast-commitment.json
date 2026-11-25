@@ -1,0 +1,82 @@
+{
+  "schema": "RACE_AI_KEIRIN_HISTORICAL_BLIND_FORECAST_FREEZE_V1",
+  "sealed_at_utc": "2026-11-23T12:30:32.715466+00:00",
+  "evaluation": {
+    "max_equal_ticket_window": 4,
+    "selected_ticket_counts_reported": true,
+    "answer_columns_used_to_generate_forecasts": false,
+    "scoring_done": false
+  },
+  "forecasts_commitment_sha256": "bb10cf366234a41be6ced512a308ae01ec0dae4a2cdb2ef8eb4b42f16dc0cdd4",
+  "source_inventory_hashes": {
+    "source-manifest.json": "05ba8d525febf5392051e04b55cf6877d984de7b3bbf39b45aaff95ac5ecb206",
+    "supplement-manifest.json": "a6ecd11ffef299567728f487418bb7d4b343e622a907b59d618f385d1f4a68c4",
+    "line-entries-manifest.json": "ed498be78c98efc6110cc35cd644b8e8e6a03ba811fa313a9547ec9ab1a1c257"
+  },
+  "allowed_input_sha256": "1a5809c4be6b4031a6f5dff4eb9e230b789d069b82550e2ca9515a6f47e67ae1",
+  "generation_code_sha256": {
+    "prepare_input.py": "a59d16414028662fcea0be749ef056aef85371b83c36c0a32730f6660cab0513",
+    "predict_and_freeze.py": "9b4bb3e9fdfcc55b5f684b68a48f4fa9d32dbfae495e6c285e9533b49f5a0420"
+  },
+  "model_source_sha256": {
+    "core": "b30b7940cb054fc3225f109f1f35e70cab034c704e0d701937ded8309b8f5b47",
+    "rider_context": "68141d2380c76e84896e7e60476dc310dee1155c9f887a5542dfc0a2c200f465"
+  },
+  "coverage": {
+    "period": [
+      "2025-11-23",
+      "2026-11-22"
+    ],
+    "calendar_days": 365,
+    "annual_races": 27182,
+    "archived_entry_days": 362,
+    "missing_entry_days": [
+      "2026-04-05",
+      "2026-04-06",
+      "2026-05-04"
+    ],
+    "annual_sources": {
+      "kdreams_archived_racecard": 25074,
+      "netkeirin_separate_entry_archive": 2108
+    },
+    "line_sources": {
+      "race_ai_saved_racecard_before_cutoff": 139,
+      "github_entry_snapshot_before_cutoff": 336
+    },
+    "identified_source_races": 27182,
+    "issues": {
+      "kdreams_uncertain_race_date_or_id_rows": 187,
+      "line_snapshot_groups_unverified_or_incomplete": 14,
+      "owner_references_without_pre_cutoff_archive": 24
+    },
+    "design_examples_excluded": 1
+  },
+  "forecast_counts": {
+    "annual": 27106,
+    "with_lines": 474
+  },
+  "scenario_changes": {
+    "races_with_added_paths": 284
+  },
+  "not_generated": {
+    "annual:INSUFFICIENT_OBSERVED_FINISH_FEATURES": 46,
+    "annual:COMPETITION_POINTS_UNAVAILABLE_FOR_ALL": 30,
+    "with_lines:INSUFFICIENT_OBSERVED_FINISH_FEATURES": 1
+  },
+  "race_rows_by_month": {
+    "annual:202511": 566,
+    "annual:202512": 2247,
+    "annual:202601": 2305,
+    "annual:202602": 2149,
+    "annual:202603": 2263,
+    "annual:202604": 2192,
+    "annual:202605": 2241,
+    "annual:202606": 2274,
+    "annual:202607": 2416,
+    "annual:202608": 2352,
+    "annual:202609": 2265,
+    "annual:202610": 2270,
+    "annual:202611": 1642,
+    "with_lines:202611": 475
+  }
+}

@@ -1,0 +1,700 @@
+{
+  "schema": "KEIRIN_AB_MISS_CAUSES_V1",
+  "post_hoc": true,
+  "source_commit": "894b7e6f4b89863fce791ace143e2ad29098152c",
+  "source_forecast_commitment": "4945215f2ab271e0dea67213a01d0faa44a37c7a4b678466829c7eb9df1787a6",
+  "source_input_sha256": "4d0d9719e50fdaef160a2bbc8e029ea0f95fc74fcba87f61bf29dfd2b3f0482b",
+  "diagnostic_source_sha256": "ae02668fa2e8fc178aae6ff4a71453390a020b952489a557a0b3ce2350a0cbdb",
+  "source_results_commit": "37bda18979e902650c139e24e13dcfbf764cf1b3",
+  "subsets": {
+    "all": {
+      "totals": {
+        "races": 3582,
+        "2t:full_pool_hits": 1960,
+        "3t:full_pool_hits": 1203,
+        "B8_miss:correct_third_not_generated_for_pair": 757,
+        "A8_miss:correct_third_not_generated_for_pair": 757,
+        "miss_pool_winner_never_in_first_two_at_corner": 188,
+        "miss_pool_still_unreachable_with_any_exchanges_under_branch_budget": 1704,
+        "miss_pool_recovered_only_removing_finish_strength_gate": 138,
+        "B8_miss:correct_first_two_not_generated": 679,
+        "A8_miss:correct_first_two_not_generated": 679,
+        "B8_miss:winner_not_a_winning_candidate": 943,
+        "A8_miss:winner_not_a_winning_candidate": 943,
+        "B8_miss:present_in_full_pool": 307,
+        "A8_miss:present_in_full_pool": 310
+      },
+      "same_points_scores": {
+        "2t:1": {
+          "A": 643,
+          "B": 644,
+          "either_A_or_B": 682,
+          "learned_same_pool": 846,
+          "learned_all_legal": 863,
+          "points_per_arm": 3582
+        },
+        "2t:2": {
+          "A": 1016,
+          "B": 1020,
+          "either_A_or_B": 1052,
+          "learned_same_pool": 1198,
+          "learned_all_legal": 1356,
+          "points_per_arm": 7123
+        },
+        "2t:4": {
+          "A": 1417,
+          "B": 1425,
+          "either_A_or_B": 1454,
+          "learned_same_pool": 1553,
+          "learned_all_legal": 1874,
+          "points_per_arm": 14142
+        },
+        "3t:1": {
+          "A": 228,
+          "B": 224,
+          "either_A_or_B": 235,
+          "learned_same_pool": 319,
+          "learned_all_legal": 286,
+          "points_per_arm": 3582
+        },
+        "3t:4": {
+          "A": 627,
+          "B": 628,
+          "either_A_or_B": 651,
+          "learned_same_pool": 754,
+          "learned_all_legal": 840,
+          "points_per_arm": 14190
+        },
+        "3t:8": {
+          "A": 893,
+          "B": 896,
+          "either_A_or_B": 911,
+          "learned_same_pool": 974,
+          "learned_all_legal": 1298,
+          "points_per_arm": 27787
+        }
+      },
+      "matching_A_B_rankings": {
+        "2t:1": {
+          "same_set": 3252,
+          "same_order": 3252
+        },
+        "2t:2": {
+          "same_set": 3199,
+          "same_order": 2922
+        },
+        "2t:4": {
+          "same_set": 3015,
+          "same_order": 2232
+        },
+        "3t:1": {
+          "same_set": 3309,
+          "same_order": 3309
+        },
+        "3t:4": {
+          "same_set": 2862,
+          "same_order": 2066
+        },
+        "3t:8": {
+          "same_set": 2806,
+          "same_order": 1233
+        }
+      },
+      "candidate_counts": {
+        "2t": {
+          "median": 10.0,
+          "min": 1,
+          "max": 47
+        },
+        "3t": {
+          "median": 17.0,
+          "min": 1,
+          "max": 105
+        }
+      },
+      "winner_announced_role": {
+        "LEAD": {
+          "races": 1755,
+          "known_in_candidate_pool": 848,
+          "B_top8_hit": 675
+        },
+        "SECOND": {
+          "races": 1232,
+          "known_in_candidate_pool": 152,
+          "B_top8_hit": 94
+        },
+        "SOLO": {
+          "races": 162,
+          "known_in_candidate_pool": 33,
+          "B_top8_hit": 16
+        },
+        "REAR": {
+          "races": 105,
+          "known_in_candidate_pool": 0,
+          "B_top8_hit": 0
+        }
+      },
+      "announced_line_patterns": {
+        "field:solo": {
+          "races": 305,
+          "known_in_candidate_pool": 160,
+          "B_top8_hit": 103
+        },
+        "starter_count:7": {
+          "races": 3099,
+          "known_in_candidate_pool": 1078,
+          "B_top8_hit": 812
+        },
+        "distinct_planned_lines_in_finish:3": {
+          "races": 453,
+          "known_in_candidate_pool": 11,
+          "B_top8_hit": 8
+        },
+        "first_two_planned_line:different": {
+          "races": 1387,
+          "known_in_candidate_pool": 199,
+          "B_top8_hit": 142
+        },
+        "field:lines": {
+          "races": 3277,
+          "known_in_candidate_pool": 1043,
+          "B_top8_hit": 793
+        },
+        "distinct_planned_lines_in_finish:1": {
+          "races": 746,
+          "known_in_candidate_pool": 431,
+          "B_top8_hit": 351
+        },
+        "first_two_planned_line:same": {
+          "races": 1867,
+          "known_in_candidate_pool": 834,
+          "B_top8_hit": 643
+        },
+        "same_line_first_two_order:preserved": {
+          "races": 1173,
+          "known_in_candidate_pool": 682,
+          "B_top8_hit": 549
+        },
+        "distinct_planned_lines_in_finish:2": {
+          "races": 2055,
+          "known_in_candidate_pool": 591,
+          "B_top8_hit": 426
+        },
+        "same_line_first_two_order:reverse": {
+          "races": 694,
+          "known_in_candidate_pool": 152,
+          "B_top8_hit": 94
+        },
+        "starter_count:9": {
+          "races": 314,
+          "known_in_candidate_pool": 72,
+          "B_top8_hit": 41
+        },
+        "starter_count:6": {
+          "races": 122,
+          "known_in_candidate_pool": 37,
+          "B_top8_hit": 31
+        },
+        "starter_count:5": {
+          "races": 28,
+          "known_in_candidate_pool": 12,
+          "B_top8_hit": 10
+        },
+        "starter_count:8": {
+          "races": 19,
+          "known_in_candidate_pool": 4,
+          "B_top8_hit": 2
+        }
+      },
+      "winner_competition_points_rank": {
+        "points_rank:1": {
+          "races": 1412,
+          "known_in_candidate_pool": 558,
+          "B_top8_hit": 481
+        },
+        "points_rank:2-3": {
+          "races": 1276,
+          "known_in_candidate_pool": 395,
+          "B_top8_hit": 295
+        },
+        "points_rank:4_or_lower": {
+          "races": 825,
+          "known_in_candidate_pool": 223,
+          "B_top8_hit": 97
+        }
+      },
+      "official_deciding_method": {
+        "捲": {
+          "races": 1075,
+          "known_in_candidate_pool": 426,
+          "B_top8_hit": 317
+        },
+        "逃": {
+          "races": 808,
+          "known_in_candidate_pool": 450,
+          "B_top8_hit": 364
+        },
+        "差": {
+          "races": 1612,
+          "known_in_candidate_pool": 285,
+          "B_top8_hit": 185
+        }
+      },
+      "actual_S_and_B": {
+        "S:absent": {
+          "races": 2410,
+          "known_in_candidate_pool": 774,
+          "B_top8_hit": 572
+        },
+        "B:possible": {
+          "races": 3418,
+          "known_in_candidate_pool": 1149,
+          "B_top8_hit": 854
+        },
+        "S:possible": {
+          "races": 961,
+          "known_in_candidate_pool": 342,
+          "B_top8_hit": 263
+        },
+        "B:absent": {
+          "races": 76,
+          "known_in_candidate_pool": 11,
+          "B_top8_hit": 11
+        },
+        "B:absent_role:LEAD": {
+          "races": 16,
+          "known_in_candidate_pool": 1,
+          "B_top8_hit": 1
+        },
+        "B:absent_and_no_attack_evidence": {
+          "races": 47,
+          "known_in_candidate_pool": 8,
+          "B_top8_hit": 8
+        },
+        "B:absent_role:SOLO": {
+          "races": 24,
+          "known_in_candidate_pool": 6,
+          "B_top8_hit": 6
+        },
+        "B:absent_role:SECOND": {
+          "races": 31,
+          "known_in_candidate_pool": 2,
+          "B_top8_hit": 2
+        },
+        "B:absent_role:REAR": {
+          "races": 5,
+          "known_in_candidate_pool": 2,
+          "B_top8_hit": 2
+        }
+      },
+      "model_input_availability": {
+        "S": 4000,
+        "H": 0,
+        "B": 4000,
+        "nige": 4000,
+        "sashi": 4000,
+        "makuri": 4000,
+        "competition_points": 25496,
+        "rider_rows": 25543
+      },
+      "minimum_corner_exchanges_for_absent_podiums": {
+        "minimum_corner_exchanges:4": 320,
+        "minimum_corner_exchanges:2": 692,
+        "minimum_corner_exchanges:1": 501,
+        "minimum_corner_exchanges:5": 176,
+        "minimum_corner_exchanges:3": 499,
+        "minimum_corner_exchanges:6": 79,
+        "minimum_corner_exchanges:7": 45,
+        "minimum_corner_exchanges:8": 31,
+        "minimum_corner_exchanges:13": 2,
+        "minimum_corner_exchanges:10": 10,
+        "minimum_corner_exchanges:9": 15,
+        "minimum_corner_exchanges:11": 1,
+        "minimum_corner_exchanges:12": 2,
+        "minimum_corner_exchanges:0": 6
+      },
+      "archive_final_popularity_reference": {
+        "2t": {
+          "rates_present": 3496,
+          "win_at_final_popularity_at_most_1": 924,
+          "win_at_final_popularity_at_most_2": 1444,
+          "win_at_final_popularity_at_most_4": 2015
+        },
+        "3t": {
+          "rates_present": 3496,
+          "win_at_final_popularity_at_most_1": 492,
+          "win_at_final_popularity_at_most_4": 1117,
+          "win_at_final_popularity_at_most_8": 1563
+        }
+      },
+      "standard_support_window_selections": {
+        "A:2t": {
+          "races": 3582,
+          "points": 12242,
+          "hits": 1358,
+          "abstained": 98,
+          "over_eight": 123
+        },
+        "B:2t": {
+          "races": 3582,
+          "points": 11534,
+          "hits": 1333,
+          "abstained": 81,
+          "over_eight": 86
+        },
+        "A:3t": {
+          "races": 3582,
+          "points": 16721,
+          "hits": 686,
+          "abstained": 46,
+          "over_eight": 384
+        },
+        "B:3t": {
+          "races": 3582,
+          "points": 15623,
+          "hits": 651,
+          "abstained": 45,
+          "over_eight": 308
+        }
+      }
+    },
+    "dated_pre_cutoff": {
+      "totals": {
+        "races": 557,
+        "2t:full_pool_hits": 386,
+        "3t:full_pool_hits": 248,
+        "B8_miss:correct_third_not_generated_for_pair": 138,
+        "A8_miss:correct_third_not_generated_for_pair": 138,
+        "miss_pool_winner_never_in_first_two_at_corner": 15,
+        "miss_pool_still_unreachable_with_any_exchanges_under_branch_budget": 202,
+        "miss_pool_recovered_only_removing_finish_strength_gate": 8,
+        "B8_miss:correct_first_two_not_generated": 151,
+        "A8_miss:correct_first_two_not_generated": 151,
+        "B8_miss:winner_not_a_winning_candidate": 20,
+        "A8_miss:winner_not_a_winning_candidate": 20,
+        "B8_miss:present_in_full_pool": 97,
+        "A8_miss:present_in_full_pool": 98
+      },
+      "same_points_scores": {
+        "2t:1": {
+          "A": 94,
+          "B": 102,
+          "either_A_or_B": 109,
+          "learned_same_pool": 130,
+          "learned_all_legal": 131,
+          "points_per_arm": 557
+        },
+        "2t:2": {
+          "A": 175,
+          "B": 181,
+          "either_A_or_B": 188,
+          "learned_same_pool": 203,
+          "learned_all_legal": 210,
+          "points_per_arm": 1114
+        },
+        "2t:4": {
+          "A": 246,
+          "B": 252,
+          "either_A_or_B": 259,
+          "learned_same_pool": 278,
+          "learned_all_legal": 297,
+          "points_per_arm": 2228
+        },
+        "3t:1": {
+          "A": 37,
+          "B": 37,
+          "either_A_or_B": 41,
+          "learned_same_pool": 59,
+          "learned_all_legal": 47,
+          "points_per_arm": 557
+        },
+        "3t:4": {
+          "A": 105,
+          "B": 106,
+          "either_A_or_B": 112,
+          "learned_same_pool": 130,
+          "learned_all_legal": 125,
+          "points_per_arm": 2228
+        },
+        "3t:8": {
+          "A": 150,
+          "B": 151,
+          "either_A_or_B": 155,
+          "learned_same_pool": 181,
+          "learned_all_legal": 206,
+          "points_per_arm": 4454
+        }
+      },
+      "matching_A_B_rankings": {
+        "2t:1": {
+          "same_set": 472,
+          "same_order": 472
+        },
+        "2t:2": {
+          "same_set": 443,
+          "same_order": 388
+        },
+        "2t:4": {
+          "same_set": 395,
+          "same_order": 230
+        },
+        "3t:1": {
+          "same_set": 482,
+          "same_order": 482
+        },
+        "3t:4": {
+          "same_set": 345,
+          "same_order": 182
+        },
+        "3t:8": {
+          "same_set": 292,
+          "same_order": 50
+        }
+      },
+      "candidate_counts": {
+        "2t": {
+          "median": 14,
+          "min": 5,
+          "max": 42
+        },
+        "3t": {
+          "median": 27,
+          "min": 6,
+          "max": 105
+        }
+      },
+      "winner_announced_role": {
+        "LEAD": {
+          "races": 287,
+          "known_in_candidate_pool": 151,
+          "B_top8_hit": 100
+        },
+        "SECOND": {
+          "races": 186,
+          "known_in_candidate_pool": 57,
+          "B_top8_hit": 33
+        },
+        "SOLO": {
+          "races": 21,
+          "known_in_candidate_pool": 11,
+          "B_top8_hit": 5
+        },
+        "REAR": {
+          "races": 13,
+          "known_in_candidate_pool": 0,
+          "B_top8_hit": 0
+        }
+      },
+      "announced_line_patterns": {
+        "distinct_planned_lines_in_finish:2": {
+          "races": 323,
+          "known_in_candidate_pool": 118,
+          "B_top8_hit": 68
+        },
+        "first_two_planned_line:same": {
+          "races": 284,
+          "known_in_candidate_pool": 178,
+          "B_top8_hit": 114
+        },
+        "same_line_first_two_order:preserved": {
+          "races": 175,
+          "known_in_candidate_pool": 121,
+          "B_top8_hit": 81
+        },
+        "field:lines": {
+          "races": 509,
+          "known_in_candidate_pool": 220,
+          "B_top8_hit": 138
+        },
+        "starter_count:7": {
+          "races": 482,
+          "known_in_candidate_pool": 223,
+          "B_top8_hit": 139
+        },
+        "distinct_planned_lines_in_finish:3": {
+          "races": 67,
+          "known_in_candidate_pool": 4,
+          "B_top8_hit": 3
+        },
+        "first_two_planned_line:different": {
+          "races": 223,
+          "known_in_candidate_pool": 41,
+          "B_top8_hit": 24
+        },
+        "distinct_planned_lines_in_finish:1": {
+          "races": 117,
+          "known_in_candidate_pool": 97,
+          "B_top8_hit": 67
+        },
+        "same_line_first_two_order:reverse": {
+          "races": 109,
+          "known_in_candidate_pool": 57,
+          "B_top8_hit": 33
+        },
+        "field:solo": {
+          "races": 48,
+          "known_in_candidate_pool": 28,
+          "B_top8_hit": 13
+        },
+        "starter_count:6": {
+          "races": 13,
+          "known_in_candidate_pool": 8,
+          "B_top8_hit": 5
+        },
+        "starter_count:9": {
+          "races": 58,
+          "known_in_candidate_pool": 16,
+          "B_top8_hit": 6
+        },
+        "starter_count:8": {
+          "races": 2,
+          "known_in_candidate_pool": 0,
+          "B_top8_hit": 0
+        },
+        "starter_count:5": {
+          "races": 2,
+          "known_in_candidate_pool": 1,
+          "B_top8_hit": 1
+        }
+      },
+      "winner_competition_points_rank": {
+        "points_rank:2-3": {
+          "races": 200,
+          "known_in_candidate_pool": 89,
+          "B_top8_hit": 56
+        },
+        "points_rank:1": {
+          "races": 212,
+          "known_in_candidate_pool": 99,
+          "B_top8_hit": 80
+        },
+        "points_rank:4_or_lower": {
+          "races": 134,
+          "known_in_candidate_pool": 57,
+          "B_top8_hit": 13
+        }
+      },
+      "official_deciding_method": {
+        "捲": {
+          "races": 145,
+          "known_in_candidate_pool": 58,
+          "B_top8_hit": 35
+        },
+        "逃": {
+          "races": 115,
+          "known_in_candidate_pool": 71,
+          "B_top8_hit": 47
+        },
+        "差": {
+          "races": 211,
+          "known_in_candidate_pool": 77,
+          "B_top8_hit": 39
+        }
+      },
+      "actual_S_and_B": {
+        "S:absent": {
+          "races": 313,
+          "known_in_candidate_pool": 124,
+          "B_top8_hit": 72
+        },
+        "B:possible": {
+          "races": 461,
+          "known_in_candidate_pool": 203,
+          "B_top8_hit": 118
+        },
+        "S:possible": {
+          "races": 141,
+          "known_in_candidate_pool": 74,
+          "B_top8_hit": 44
+        },
+        "B:absent": {
+          "races": 8,
+          "known_in_candidate_pool": 2,
+          "B_top8_hit": 2
+        },
+        "B:absent_role:SOLO": {
+          "races": 2,
+          "known_in_candidate_pool": 1,
+          "B_top8_hit": 1
+        },
+        "B:absent_and_no_attack_evidence": {
+          "races": 3,
+          "known_in_candidate_pool": 1,
+          "B_top8_hit": 1
+        },
+        "B:absent_role:SECOND": {
+          "races": 6,
+          "known_in_candidate_pool": 1,
+          "B_top8_hit": 1
+        }
+      },
+      "model_input_availability": {
+        "S": 4000,
+        "H": 0,
+        "B": 4000,
+        "nige": 4000,
+        "sashi": 4000,
+        "makuri": 4000,
+        "competition_points": 3990,
+        "rider_rows": 4000
+      },
+      "minimum_corner_exchanges_for_absent_podiums": {
+        "minimum_corner_exchanges:2": 107,
+        "minimum_corner_exchanges:3": 68,
+        "minimum_corner_exchanges:4": 47,
+        "minimum_corner_exchanges:8": 2,
+        "minimum_corner_exchanges:1": 46,
+        "minimum_corner_exchanges:6": 7,
+        "minimum_corner_exchanges:5": 21,
+        "minimum_corner_exchanges:10": 2,
+        "minimum_corner_exchanges:7": 5,
+        "minimum_corner_exchanges:9": 1,
+        "minimum_corner_exchanges:0": 3
+      },
+      "archive_final_popularity_reference": {
+        "2t": {
+          "rates_present": 471,
+          "win_at_final_popularity_at_most_1": 115,
+          "win_at_final_popularity_at_most_2": 191,
+          "win_at_final_popularity_at_most_4": 271
+        },
+        "3t": {
+          "rates_present": 471,
+          "win_at_final_popularity_at_most_1": 68,
+          "win_at_final_popularity_at_most_4": 154,
+          "win_at_final_popularity_at_most_8": 209
+        }
+      },
+      "standard_support_window_selections": {
+        "A:2t": {
+          "races": 557,
+          "points": 2600,
+          "hits": 272,
+          "abstained": 0,
+          "over_eight": 46
+        },
+        "B:2t": {
+          "races": 557,
+          "points": 2340,
+          "hits": 266,
+          "abstained": 0,
+          "over_eight": 28
+        },
+        "A:3t": {
+          "races": 557,
+          "points": 3179,
+          "hits": 118,
+          "abstained": 0,
+          "over_eight": 99
+        },
+        "B:3t": {
+          "races": 557,
+          "points": 2787,
+          "hits": 108,
+          "abstained": 0,
+          "over_eight": 73
+        }
+      }
+    }
+  }
+}

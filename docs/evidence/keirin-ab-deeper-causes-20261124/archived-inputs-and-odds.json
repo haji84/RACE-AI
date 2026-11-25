@@ -1,0 +1,727 @@
+{
+  "schema": "KEIRIN_SAVED_INPUT_AND_ODDS_MISS_CHECK_V1",
+  "source_revision": "894b7e6f4b89863fce791ace143e2ad29098152c",
+  "post_hoc": true,
+  "diagnostic_sha256": "c3767b923b8ecba7f5d1ae7ae383ee4f3c950f7535c18986215c51ab63c4d11f",
+  "snapshot_sha256": {
+    "direct_report": "ff887f6d2c1f0eced702d5607cbedfb88654d5b9d802c1db3ff094905a068611",
+    "previous_quote_capture": "e78f8c3ff26cc463cfa1b73bfe4f42984f110748063b8f71c86ef684b848bfbe",
+    "previous_racecard_capture": "fac31353f4ebcbeeb9f57e780281b93821cbb1ef391d5cbed7adf19dd8ebdfeb"
+  },
+  "sameday_known_results": 86,
+  "result_snapshot": {
+    "label_source_commit": "37bda18979e902650c139e24e13dcfbf764cf1b3",
+    "checked_at": "2026-11-23T15:55:02.503459+00:00",
+    "matched_within_study": 86
+  },
+  "scope": {
+    "matched_saved_inputs": 86,
+    "both_published_cutoffs_equal": 86,
+    "formal_attestation_for_rich_direct_source": 0,
+    "published_line_grouping_differs": 0
+  },
+  "differences": {
+    "h_count": {
+      "rider_rows": 616,
+      "known_app": 0,
+      "known_direct": 616,
+      "both_known": 0,
+      "different_if_both_known": 0,
+      "direct_positive": 2
+    },
+    "b_count": {
+      "rider_rows": 616,
+      "known_app": 616,
+      "known_direct": 616,
+      "both_known": 616,
+      "different_if_both_known": 167
+    },
+    "S": {
+      "rider_rows": 616,
+      "known_app": 616,
+      "known_direct": 616,
+      "both_known": 616,
+      "different_if_both_known": 186
+    },
+    "competition_points": {
+      "rider_rows": 616,
+      "known_app": 615,
+      "known_direct": 615,
+      "both_known": 615,
+      "different_if_both_known": 276
+    },
+    "win_rate": {
+      "rider_rows": 616,
+      "known_app": 616,
+      "known_direct": 616,
+      "both_known": 616,
+      "different_if_both_known": 480
+    },
+    "top2_rate": {
+      "rider_rows": 616,
+      "known_app": 616,
+      "known_direct": 616,
+      "both_known": 616,
+      "different_if_both_known": 552
+    },
+    "top3_rate": {
+      "rider_rows": 616,
+      "known_app": 616,
+      "known_direct": 616,
+      "both_known": 616,
+      "different_if_both_known": 562
+    },
+    "mark_rank": {
+      "rider_rows": 616,
+      "known_app": 0,
+      "known_direct": 616,
+      "both_known": 0,
+      "different_if_both_known": 0
+    },
+    "comment": {
+      "rider_rows": 616,
+      "known_direct": 616,
+      "known_app": 0
+    }
+  },
+  "saved_source_comparisons": {
+    "direct_source_full:A:2t:pool": {
+      "races": 86,
+      "different_pool": 13,
+      "control_hit": 62,
+      "comparison_hit": 63
+    },
+    "direct_source_full:A:2t:2": {
+      "races": 86,
+      "points": 172,
+      "control_hit": 33,
+      "comparison_hit": 34,
+      "only_control_hit": 0,
+      "only_comparison_hit": 1
+    },
+    "direct_source_full:A:2t:4": {
+      "races": 86,
+      "points": 344,
+      "control_hit": 44,
+      "comparison_hit": 45,
+      "only_control_hit": 0,
+      "only_comparison_hit": 1
+    },
+    "direct_source_full:A:3t:pool": {
+      "races": 86,
+      "different_pool": 28,
+      "control_hit": 42,
+      "comparison_hit": 41
+    },
+    "direct_source_full:A:3t:4": {
+      "races": 86,
+      "points": 344,
+      "control_hit": 27,
+      "comparison_hit": 27,
+      "only_control_hit": 2,
+      "only_comparison_hit": 2
+    },
+    "direct_source_full:A:3t:8": {
+      "races": 86,
+      "points": 688,
+      "control_hit": 31,
+      "comparison_hit": 30,
+      "only_control_hit": 2,
+      "only_comparison_hit": 1
+    },
+    "direct_source_full:B:2t:pool": {
+      "races": 86,
+      "different_pool": 13,
+      "control_hit": 62,
+      "comparison_hit": 63
+    },
+    "direct_source_full:B:2t:2": {
+      "races": 86,
+      "points": 172,
+      "control_hit": 35,
+      "comparison_hit": 34,
+      "only_control_hit": 1,
+      "only_comparison_hit": 0
+    },
+    "direct_source_full:B:2t:4": {
+      "races": 86,
+      "points": 344,
+      "control_hit": 44,
+      "comparison_hit": 45,
+      "only_control_hit": 1,
+      "only_comparison_hit": 2
+    },
+    "direct_source_full:B:3t:pool": {
+      "races": 86,
+      "different_pool": 28,
+      "control_hit": 42,
+      "comparison_hit": 41
+    },
+    "direct_source_full:B:3t:4": {
+      "races": 86,
+      "points": 344,
+      "control_hit": 28,
+      "comparison_hit": 28,
+      "only_control_hit": 2,
+      "only_comparison_hit": 2
+    },
+    "direct_source_full:B:3t:8": {
+      "races": 86,
+      "points": 688,
+      "control_hit": 30,
+      "comparison_hit": 31,
+      "only_control_hit": 2,
+      "only_comparison_hit": 3
+    },
+    "H_only:A:2t:pool": {
+      "races": 86,
+      "different_pool": 0,
+      "control_hit": 62,
+      "comparison_hit": 62
+    },
+    "H_only:A:2t:2": {
+      "races": 86,
+      "points": 172,
+      "control_hit": 33,
+      "comparison_hit": 33,
+      "only_control_hit": 0,
+      "only_comparison_hit": 0
+    },
+    "H_only:A:2t:4": {
+      "races": 86,
+      "points": 344,
+      "control_hit": 44,
+      "comparison_hit": 43,
+      "only_control_hit": 1,
+      "only_comparison_hit": 0
+    },
+    "H_only:A:3t:pool": {
+      "races": 86,
+      "different_pool": 0,
+      "control_hit": 42,
+      "comparison_hit": 42
+    },
+    "H_only:A:3t:4": {
+      "races": 86,
+      "points": 344,
+      "control_hit": 27,
+      "comparison_hit": 26,
+      "only_control_hit": 1,
+      "only_comparison_hit": 0
+    },
+    "H_only:A:3t:8": {
+      "races": 86,
+      "points": 688,
+      "control_hit": 31,
+      "comparison_hit": 31,
+      "only_control_hit": 0,
+      "only_comparison_hit": 0
+    },
+    "H_only:B:2t:pool": {
+      "races": 86,
+      "different_pool": 0,
+      "control_hit": 62,
+      "comparison_hit": 62
+    },
+    "H_only:B:2t:2": {
+      "races": 86,
+      "points": 172,
+      "control_hit": 35,
+      "comparison_hit": 34,
+      "only_control_hit": 1,
+      "only_comparison_hit": 0
+    },
+    "H_only:B:2t:4": {
+      "races": 86,
+      "points": 344,
+      "control_hit": 44,
+      "comparison_hit": 43,
+      "only_control_hit": 1,
+      "only_comparison_hit": 0
+    },
+    "H_only:B:3t:pool": {
+      "races": 86,
+      "different_pool": 0,
+      "control_hit": 42,
+      "comparison_hit": 42
+    },
+    "H_only:B:3t:4": {
+      "races": 86,
+      "points": 344,
+      "control_hit": 28,
+      "comparison_hit": 27,
+      "only_control_hit": 1,
+      "only_comparison_hit": 0
+    },
+    "H_only:B:3t:8": {
+      "races": 86,
+      "points": 688,
+      "control_hit": 30,
+      "comparison_hit": 31,
+      "only_control_hit": 0,
+      "only_comparison_hit": 1
+    },
+    "publisher_mark_only:A:2t:pool": {
+      "races": 86,
+      "different_pool": 4,
+      "control_hit": 62,
+      "comparison_hit": 63
+    },
+    "publisher_mark_only:A:2t:2": {
+      "races": 86,
+      "points": 172,
+      "control_hit": 33,
+      "comparison_hit": 33,
+      "only_control_hit": 1,
+      "only_comparison_hit": 1
+    },
+    "publisher_mark_only:A:2t:4": {
+      "races": 86,
+      "points": 344,
+      "control_hit": 44,
+      "comparison_hit": 45,
+      "only_control_hit": 0,
+      "only_comparison_hit": 1
+    },
+    "publisher_mark_only:A:3t:pool": {
+      "races": 86,
+      "different_pool": 4,
+      "control_hit": 42,
+      "comparison_hit": 42
+    },
+    "publisher_mark_only:A:3t:4": {
+      "races": 86,
+      "points": 344,
+      "control_hit": 27,
+      "comparison_hit": 27,
+      "only_control_hit": 1,
+      "only_comparison_hit": 1
+    },
+    "publisher_mark_only:A:3t:8": {
+      "races": 86,
+      "points": 688,
+      "control_hit": 31,
+      "comparison_hit": 31,
+      "only_control_hit": 0,
+      "only_comparison_hit": 0
+    },
+    "publisher_mark_only:B:2t:pool": {
+      "races": 86,
+      "different_pool": 4,
+      "control_hit": 62,
+      "comparison_hit": 63
+    },
+    "publisher_mark_only:B:2t:2": {
+      "races": 86,
+      "points": 172,
+      "control_hit": 35,
+      "comparison_hit": 34,
+      "only_control_hit": 1,
+      "only_comparison_hit": 0
+    },
+    "publisher_mark_only:B:2t:4": {
+      "races": 86,
+      "points": 344,
+      "control_hit": 44,
+      "comparison_hit": 45,
+      "only_control_hit": 0,
+      "only_comparison_hit": 1
+    },
+    "publisher_mark_only:B:3t:pool": {
+      "races": 86,
+      "different_pool": 4,
+      "control_hit": 42,
+      "comparison_hit": 42
+    },
+    "publisher_mark_only:B:3t:4": {
+      "races": 86,
+      "points": 344,
+      "control_hit": 28,
+      "comparison_hit": 29,
+      "only_control_hit": 1,
+      "only_comparison_hit": 2
+    },
+    "publisher_mark_only:B:3t:8": {
+      "races": 86,
+      "points": 688,
+      "control_hit": 30,
+      "comparison_hit": 32,
+      "only_control_hit": 0,
+      "only_comparison_hit": 2
+    },
+    "S_only:A:2t:pool": {
+      "races": 86,
+      "different_pool": 0,
+      "control_hit": 62,
+      "comparison_hit": 62
+    },
+    "S_only:A:2t:2": {
+      "races": 86,
+      "points": 172,
+      "control_hit": 33,
+      "comparison_hit": 33,
+      "only_control_hit": 0,
+      "only_comparison_hit": 0
+    },
+    "S_only:A:2t:4": {
+      "races": 86,
+      "points": 344,
+      "control_hit": 44,
+      "comparison_hit": 44,
+      "only_control_hit": 0,
+      "only_comparison_hit": 0
+    },
+    "S_only:A:3t:pool": {
+      "races": 86,
+      "different_pool": 12,
+      "control_hit": 42,
+      "comparison_hit": 42
+    },
+    "S_only:A:3t:4": {
+      "races": 86,
+      "points": 344,
+      "control_hit": 27,
+      "comparison_hit": 27,
+      "only_control_hit": 1,
+      "only_comparison_hit": 1
+    },
+    "S_only:A:3t:8": {
+      "races": 86,
+      "points": 688,
+      "control_hit": 31,
+      "comparison_hit": 31,
+      "only_control_hit": 1,
+      "only_comparison_hit": 1
+    },
+    "S_only:B:2t:pool": {
+      "races": 86,
+      "different_pool": 0,
+      "control_hit": 62,
+      "comparison_hit": 62
+    },
+    "S_only:B:2t:2": {
+      "races": 86,
+      "points": 172,
+      "control_hit": 35,
+      "comparison_hit": 35,
+      "only_control_hit": 0,
+      "only_comparison_hit": 0
+    },
+    "S_only:B:2t:4": {
+      "races": 86,
+      "points": 344,
+      "control_hit": 44,
+      "comparison_hit": 44,
+      "only_control_hit": 0,
+      "only_comparison_hit": 0
+    },
+    "S_only:B:3t:pool": {
+      "races": 86,
+      "different_pool": 12,
+      "control_hit": 42,
+      "comparison_hit": 42
+    },
+    "S_only:B:3t:4": {
+      "races": 86,
+      "points": 344,
+      "control_hit": 28,
+      "comparison_hit": 28,
+      "only_control_hit": 1,
+      "only_comparison_hit": 1
+    },
+    "S_only:B:3t:8": {
+      "races": 86,
+      "points": 688,
+      "control_hit": 30,
+      "comparison_hit": 30,
+      "only_control_hit": 1,
+      "only_comparison_hit": 1
+    },
+    "published_line_only:A:2t:pool": {
+      "races": 86,
+      "different_pool": 0,
+      "control_hit": 62,
+      "comparison_hit": 62
+    },
+    "published_line_only:A:2t:2": {
+      "races": 86,
+      "points": 172,
+      "control_hit": 33,
+      "comparison_hit": 33,
+      "only_control_hit": 0,
+      "only_comparison_hit": 0
+    },
+    "published_line_only:A:2t:4": {
+      "races": 86,
+      "points": 344,
+      "control_hit": 44,
+      "comparison_hit": 44,
+      "only_control_hit": 0,
+      "only_comparison_hit": 0
+    },
+    "published_line_only:A:3t:pool": {
+      "races": 86,
+      "different_pool": 0,
+      "control_hit": 42,
+      "comparison_hit": 42
+    },
+    "published_line_only:A:3t:4": {
+      "races": 86,
+      "points": 344,
+      "control_hit": 27,
+      "comparison_hit": 27,
+      "only_control_hit": 0,
+      "only_comparison_hit": 0
+    },
+    "published_line_only:A:3t:8": {
+      "races": 86,
+      "points": 688,
+      "control_hit": 31,
+      "comparison_hit": 31,
+      "only_control_hit": 0,
+      "only_comparison_hit": 0
+    },
+    "published_line_only:B:2t:pool": {
+      "races": 86,
+      "different_pool": 0,
+      "control_hit": 62,
+      "comparison_hit": 62
+    },
+    "published_line_only:B:2t:2": {
+      "races": 86,
+      "points": 172,
+      "control_hit": 35,
+      "comparison_hit": 35,
+      "only_control_hit": 0,
+      "only_comparison_hit": 0
+    },
+    "published_line_only:B:2t:4": {
+      "races": 86,
+      "points": 344,
+      "control_hit": 44,
+      "comparison_hit": 44,
+      "only_control_hit": 0,
+      "only_comparison_hit": 0
+    },
+    "published_line_only:B:3t:pool": {
+      "races": 86,
+      "different_pool": 0,
+      "control_hit": 42,
+      "comparison_hit": 42
+    },
+    "published_line_only:B:3t:4": {
+      "races": 86,
+      "points": 344,
+      "control_hit": 28,
+      "comparison_hit": 28,
+      "only_control_hit": 0,
+      "only_comparison_hit": 0
+    },
+    "published_line_only:B:3t:8": {
+      "races": 86,
+      "points": 688,
+      "control_hit": 30,
+      "comparison_hit": 30,
+      "only_control_hit": 0,
+      "only_comparison_hit": 0
+    }
+  },
+  "odds_comparisons": {
+    "same_priced_subset:A:2t:2": {
+      "races": 76,
+      "points": 152,
+      "baseline_hit": 29,
+      "blend_hit": 33,
+      "only_baseline_hit": 3,
+      "only_blend_hit": 7
+    },
+    "same_priced_subset:A:2t:4": {
+      "races": 76,
+      "points": 304,
+      "baseline_hit": 41,
+      "blend_hit": 41,
+      "only_baseline_hit": 3,
+      "only_blend_hit": 3
+    },
+    "full_population_odds_reference:A:2t:2": {
+      "races": 82,
+      "points": 164,
+      "baseline_hit": 32,
+      "odds_only_hit": 30,
+      "gold_in_original_pool": 60
+    },
+    "full_population_odds_reference:A:2t:4": {
+      "races": 82,
+      "points": 328,
+      "baseline_hit": 42,
+      "odds_only_hit": 39,
+      "gold_in_original_pool": 60
+    },
+    "same_priced_subset:A:3t:4": {
+      "races": 81,
+      "points": 324,
+      "baseline_hit": 26,
+      "blend_hit": 29,
+      "only_baseline_hit": 1,
+      "only_blend_hit": 4
+    },
+    "same_priced_subset:A:3t:8": {
+      "races": 81,
+      "points": 648,
+      "baseline_hit": 29,
+      "blend_hit": 32,
+      "only_baseline_hit": 0,
+      "only_blend_hit": 3
+    },
+    "full_population_odds_reference:A:3t:4": {
+      "races": 82,
+      "points": 328,
+      "baseline_hit": 26,
+      "odds_only_hit": 27,
+      "gold_in_original_pool": 41
+    },
+    "full_population_odds_reference:A:3t:8": {
+      "races": 82,
+      "points": 656,
+      "baseline_hit": 30,
+      "odds_only_hit": 37,
+      "gold_in_original_pool": 41
+    },
+    "same_priced_subset:B:2t:2": {
+      "races": 76,
+      "points": 152,
+      "baseline_hit": 31,
+      "blend_hit": 33,
+      "only_baseline_hit": 3,
+      "only_blend_hit": 5
+    },
+    "same_priced_subset:B:2t:4": {
+      "races": 76,
+      "points": 304,
+      "baseline_hit": 40,
+      "blend_hit": 41,
+      "only_baseline_hit": 1,
+      "only_blend_hit": 2
+    },
+    "full_population_odds_reference:B:2t:2": {
+      "races": 82,
+      "points": 164,
+      "baseline_hit": 34,
+      "odds_only_hit": 30,
+      "gold_in_original_pool": 60
+    },
+    "full_population_odds_reference:B:2t:4": {
+      "races": 82,
+      "points": 328,
+      "baseline_hit": 42,
+      "odds_only_hit": 39,
+      "gold_in_original_pool": 60
+    },
+    "same_priced_subset:B:3t:4": {
+      "races": 81,
+      "points": 324,
+      "baseline_hit": 26,
+      "blend_hit": 29,
+      "only_baseline_hit": 1,
+      "only_blend_hit": 4
+    },
+    "same_priced_subset:B:3t:8": {
+      "races": 81,
+      "points": 648,
+      "baseline_hit": 28,
+      "blend_hit": 34,
+      "only_baseline_hit": 0,
+      "only_blend_hit": 6
+    },
+    "full_population_odds_reference:B:3t:4": {
+      "races": 82,
+      "points": 328,
+      "baseline_hit": 27,
+      "odds_only_hit": 27,
+      "gold_in_original_pool": 41
+    },
+    "full_population_odds_reference:B:3t:8": {
+      "races": 82,
+      "points": 656,
+      "baseline_hit": 29,
+      "odds_only_hit": 37,
+      "gold_in_original_pool": 41
+    },
+    "all_original_candidates:A:3t:4": {
+      "races": 46,
+      "points": 184,
+      "baseline_hit": 11,
+      "blend_hit": 14,
+      "only_baseline_hit": 0,
+      "only_blend_hit": 3
+    },
+    "all_original_candidates:A:3t:8": {
+      "races": 46,
+      "points": 368,
+      "baseline_hit": 13,
+      "blend_hit": 14,
+      "only_baseline_hit": 0,
+      "only_blend_hit": 1
+    },
+    "all_original_candidates:B:3t:4": {
+      "races": 46,
+      "points": 184,
+      "baseline_hit": 11,
+      "blend_hit": 14,
+      "only_baseline_hit": 0,
+      "only_blend_hit": 3
+    },
+    "all_original_candidates:B:3t:8": {
+      "races": 46,
+      "points": 368,
+      "baseline_hit": 12,
+      "blend_hit": 14,
+      "only_baseline_hit": 0,
+      "only_blend_hit": 2
+    },
+    "all_original_candidates:A:2t:2": {
+      "races": 37,
+      "points": 74,
+      "baseline_hit": 10,
+      "blend_hit": 14,
+      "only_baseline_hit": 0,
+      "only_blend_hit": 4
+    },
+    "all_original_candidates:A:2t:4": {
+      "races": 37,
+      "points": 148,
+      "baseline_hit": 15,
+      "blend_hit": 17,
+      "only_baseline_hit": 0,
+      "only_blend_hit": 2
+    },
+    "all_original_candidates:B:2t:2": {
+      "races": 37,
+      "points": 74,
+      "baseline_hit": 11,
+      "blend_hit": 14,
+      "only_baseline_hit": 1,
+      "only_blend_hit": 4
+    },
+    "all_original_candidates:B:2t:4": {
+      "races": 37,
+      "points": 148,
+      "baseline_hit": 16,
+      "blend_hit": 17,
+      "only_baseline_hit": 0,
+      "only_blend_hit": 1
+    }
+  },
+  "odds_exclusions": {
+    "2t:common_quote_pool_small": 6,
+    "3t:common_quote_pool_small": 1,
+    "cutoff_or_quote_status_unverified": 4
+  },
+  "odds_blend_weight": 0.5,
+  "quote_time_log": {
+    "bound_races": 82,
+    "min_minutes_before_cutoff": 4.5291500000000005,
+    "median_minutes_before_cutoff": 356.49984166666667,
+    "from_10_to_15_minutes_before_cutoff": 1
+  }
+}

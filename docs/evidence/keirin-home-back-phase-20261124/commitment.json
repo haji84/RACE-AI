@@ -1,0 +1,25 @@
+{
+  "schema": "KEIRIN_LEARNED_HOME_BACK_PHASE_V1",
+  "model_sha256": "85dad7d1f9f3a5b2b52b4ae30dc553f8641ccc5a55d28d59acb7fdab79459e46",
+  "driver_sha256": "6b6ba894066e19ca6eb9b2b03f1d37f40f98772c43de34f435cd00e516ad8103",
+  "B_training_commitment_sha256": "e127f075fb928f56bf22080650d891db3cfc27364d9054a7d3ff03fa2604d31a",
+  "H_archive_projection_sha256": "96f92fd381a4d97607138f51c631266d3eb0aee7bf540ddecc96c215e37b4285",
+  "H_source_events_available": 316,
+  "forecast_current_outcome_fields_used": false,
+  "phases_integrated_before_candidate_selection": true,
+  "periods": {
+    "earlier": {
+      "forecast_commitment_sha256": "3b6567c28800f1ed6742ad93e672d5b035a7c31a63af67d91cff012555f397d0",
+      "configuration_sha256": "9487a4c42ee8e9e978bfddca5bc285888059f4b01c93f01d62f95ab95010ed4a",
+      "forecast_rows": 4621,
+      "owner_cipher_sha256": "1bd0c9d2158d3b489aa3fbe95eb4a2cce3dfcf2b7c5b7f6d08aa3dcf2dbd65a4"
+    },
+    "recent": {
+      "forecast_commitment_sha256": "21a51dfc12860e504ce4eea9ac7c7d79c9a7256e3b8433a80dc115286cb3eb06",
+      "configuration_sha256": "f2320760e6dff3dbd9ec4be1bb490d438e786d58cdc032e44abc10d7e9082722",
+      "forecast_rows": 3590,
+      "owner_cipher_sha256": "c81aa125a853c3dae321bdaa3bc7b349e8dd26adbf16fbb5dbb4dd27ff0ca7d3"
+    }
+  },
+  "fixed_at": "2026-11-23T23:13:48.727141+00:00"
+}

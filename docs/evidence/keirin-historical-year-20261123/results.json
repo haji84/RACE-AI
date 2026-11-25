@@ -1,0 +1,1066 @@
+{
+  "schema": "RACE_AI_KEIRIN_HISTORICAL_BLIND_RESULT_V2",
+  "period_jst": [
+    "2025-11-23",
+    "2026-11-22"
+  ],
+  "first_forecast_commitment_head": "9d8cf60e0340d9d99ef9842c5eb635e3af977a62",
+  "first_forecast_commitment_sha256": "bb10cf366234a41be6ced512a308ae01ec0dae4a2cdb2ef8eb4b42f16dc0cdd4",
+  "first_forecast_witness_ci": 45175143025,
+  "first_forecast_witnessed_at": "2026-11-23T12:31:36Z",
+  "supplemental_forecast_commitment_head": "7d9576ed5662f2f0ab9826e20ff02f34dc4df215",
+  "supplemental_forecast_commitment_sha256": "2d913b3e429fd86d7bd58be32dfefa66f76730c1196689ccb1420696099462eb",
+  "supplemental_forecast_witness_ci": 45177825714,
+  "supplemental_forecast_witnessed_at": "2026-11-23T12:48:43Z",
+  "scorer_phase_started_at": "2026-11-23T13:02:27.586771+00:00",
+  "evaluated_at": "2026-11-23T13:02:57.941871+00:00",
+  "first_source_coverage": {
+    "period": [
+      "2025-11-23",
+      "2026-11-22"
+    ],
+    "calendar_days": 365,
+    "annual_races": 27182,
+    "archived_entry_days": 362,
+    "missing_entry_days": [
+      "2026-04-05",
+      "2026-04-06",
+      "2026-05-04"
+    ],
+    "annual_sources": {
+      "kdreams_archived_racecard": 25074,
+      "netkeirin_separate_entry_archive": 2108
+    },
+    "line_sources": {
+      "race_ai_saved_racecard_before_cutoff": 139,
+      "github_entry_snapshot_before_cutoff": 336
+    },
+    "identified_source_races": 27182,
+    "issues": {
+      "kdreams_uncertain_race_date_or_id_rows": 187,
+      "line_snapshot_groups_unverified_or_incomplete": 14,
+      "owner_references_without_pre_cutoff_archive": 24
+    },
+    "design_examples_excluded": 1
+  },
+  "gap_source_coverage": {
+    "2026-04-05": {
+      "linked_meetings": 8,
+      "linked_races": 75,
+      "forecasts": 75
+    },
+    "2026-04-06": {
+      "linked_meetings": 8,
+      "linked_races": 74,
+      "forecasts": 74
+    },
+    "2026-05-04": {
+      "linked_meetings": 7,
+      "linked_races": 71,
+      "forecasts": 71
+    }
+  },
+  "prediction_days": 365,
+  "labels_by_archive": {
+    "kdreams": 15818,
+    "netkeirin_archive": 12596,
+    "race_ai_public": 66,
+    "app_paid_results_archive": 2738,
+    "kdreams_dated_payouts": 6140,
+    "netkeirin_direct_residual": 7
+  },
+  "race_ai_public_results_state_head": "33dcacdcfd79bdb6f86a6468393824e3b03f3463",
+  "result_diagnostics": {
+    "kdreams_missing_or_ambiguous_result": 9180,
+    "netkeirin_missing_or_ambiguous_result": 43,
+    "late_archive_missing_paid_market": 3933
+  },
+  "data_archives": {
+    "monthly_archive": {
+      "repository": "Kenseimk/keirin-data",
+      "commit": "8ba8316329c145aea55b5ada529b0af7b0d94c48"
+    },
+    "supplement": {
+      "repository": "snarfnet/keirin-data",
+      "commit": "b044f1f99e840a25e873927bddb1558e4b67f51a"
+    },
+    "before_cutoff_line_archive": {
+      "repository": "kurinaka12-afk/keirin-app-data",
+      "commit": "2022a1df1083ecfdc99cd3dc451f278bf785414a"
+    },
+    "later_result_archive": {
+      "repository": "kurinaka12-afk/keirin-app-data",
+      "commit": "2022a1df1083ecfdc99cd3dc451f278bf785414a"
+    }
+  },
+  "evaluator_source_sha256": {
+    "score_frozen.py": "e829c00d60d6986199c42d6a59604c01c70520053612536b2da7c5a389b4138c",
+    "finish_year.py": "f9980616b04f77b1a28212fb2b0dfd5c4454f950728b542b8cf5bad910af7c91",
+    "review_unlisted_results.py": "36b20a1cc58cc1500e9319821161970c3e8684474b3f6922bd02e04a9ebd9f7b"
+  },
+  "dated_payout_label_recovery": {
+    "planned_days": 83,
+    "requests": 0,
+    "labels_recovered": 1834,
+    "provider_stop": null,
+    "daily": {
+      "2025-11-28": {
+        "input_missing_labels": 1,
+        "recovered": 0,
+        "comparison_archive_overlap": 59,
+        "overlap_market_agreements": 59,
+        "page_sha256": "0a43e8fd9cc1d1c170f029b475ee3dd470787ae493ba68e79c69c97c8b19e9b3"
+      },
+      "2025-12-24": {
+        "input_missing_labels": 1,
+        "recovered": 0,
+        "comparison_archive_overlap": 78,
+        "overlap_market_agreements": 78,
+        "page_sha256": "bb56f85ca679cc9a1645b01a45048184ea03059356e975fa2ebc4f779e2388b8"
+      },
+      "2025-12-27": {
+        "input_missing_labels": 1,
+        "recovered": 0,
+        "comparison_archive_overlap": 66,
+        "overlap_market_agreements": 66,
+        "page_sha256": "0b797cf0e7ceadb2ef9fb109b4482e2a1a8264a9aaf21c0644340fe72bda493d"
+      },
+      "2026-02-01": {
+        "input_missing_labels": 1,
+        "recovered": 0,
+        "comparison_archive_overlap": 93,
+        "overlap_market_agreements": 93,
+        "page_sha256": "9859bea5f3f5e18a7720ea3eca63c8202c47e7516e689ef7965fda38d4615d22"
+      },
+      "2026-02-08": {
+        "input_missing_labels": 9,
+        "recovered": 0,
+        "comparison_archive_overlap": 63,
+        "overlap_market_agreements": 63,
+        "page_sha256": "f54adacf6c4f4b442834440290b636e2ccf4ddbfda65cbaa8047fb46b0ac8855"
+      },
+      "2026-02-09": {
+        "input_missing_labels": 3,
+        "recovered": 0,
+        "comparison_archive_overlap": 72,
+        "overlap_market_agreements": 72,
+        "page_sha256": "491b9c404bff8c613e86e6ad4a684aef0fd68f5031cfc670073af0dc2334a1c6"
+      },
+      "2026-02-16": {
+        "input_missing_labels": 1,
+        "recovered": 0,
+        "comparison_archive_overlap": 82,
+        "overlap_market_agreements": 82,
+        "page_sha256": "812af5a64b409711f44f4dc06eb53599edc12df52f6dae5e477961ea1df2579a"
+      },
+      "2026-02-25": {
+        "input_missing_labels": 1,
+        "recovered": 0,
+        "comparison_archive_overlap": 86,
+        "overlap_market_agreements": 86,
+        "page_sha256": "0cfba2335a89a7b032b94c72c087ba87ae54e70b76fd4d232ef2d6a7bac93934"
+      },
+      "2026-03-10": {
+        "input_missing_labels": 11,
+        "recovered": 0,
+        "comparison_archive_overlap": 72,
+        "overlap_market_agreements": 72,
+        "page_sha256": "98b704e8289742158900d3bb6a30b7433866df8dec11bb1904d668540bd83e55"
+      },
+      "2026-03-11": {
+        "input_missing_labels": 5,
+        "recovered": 0,
+        "comparison_archive_overlap": 55,
+        "overlap_market_agreements": 55,
+        "page_sha256": "9fa95cb74bbc538809fbc7331150d5cc747de1936123cc50fcadb7cbe8faffb2"
+      },
+      "2026-03-13": {
+        "input_missing_labels": 1,
+        "recovered": 0,
+        "comparison_archive_overlap": 59,
+        "overlap_market_agreements": 59,
+        "page_sha256": "2654a43d5aa3d706e9aa815429fe98c07490c6d0a1221fe9dd0ccd1f3dc0559b"
+      },
+      "2026-04-01": {
+        "input_missing_labels": 2,
+        "recovered": 2,
+        "comparison_archive_overlap": 60,
+        "overlap_market_agreements": 60,
+        "page_sha256": "ff4e117bad40fff73287138b5412e8f7b18d0eb2d692b8ecc70814be32a99a0a"
+      },
+      "2026-04-05": {
+        "input_missing_labels": 75,
+        "recovered": 75,
+        "comparison_archive_overlap": 0,
+        "overlap_market_agreements": 0,
+        "page_sha256": "fafecc61764ed7460b7be6216a6ecba7ad587dd41c3da1593db54be61297d527"
+      },
+      "2026-04-06": {
+        "input_missing_labels": 74,
+        "recovered": 74,
+        "comparison_archive_overlap": 0,
+        "overlap_market_agreements": 0,
+        "page_sha256": "221c1162d4646ade5e30269ba780467a1250ec62ac3c3df6c2e39d35f481977d"
+      },
+      "2026-04-08": {
+        "input_missing_labels": 6,
+        "recovered": 6,
+        "comparison_archive_overlap": 55,
+        "overlap_market_agreements": 55,
+        "page_sha256": "50682a23f26961a18e7c1988325d93391950ecfebe41d2f5fc8d1878d970e260"
+      },
+      "2026-04-25": {
+        "input_missing_labels": 1,
+        "recovered": 0,
+        "comparison_archive_overlap": 70,
+        "overlap_market_agreements": 70,
+        "page_sha256": "0fd4d7fd37422f729f1a9956059b697513ef2cc26a4da0ba3744e94b14cfd463"
+      },
+      "2026-04-30": {
+        "input_missing_labels": 10,
+        "recovered": 10,
+        "comparison_archive_overlap": 61,
+        "overlap_market_agreements": 61,
+        "page_sha256": "31ae2cdf06201fb67d94899643431d01d1369b1b644329bb821de5a9ce941adf"
+      },
+      "2026-05-01": {
+        "input_missing_labels": 63,
+        "recovered": 63,
+        "comparison_archive_overlap": 18,
+        "overlap_market_agreements": 18,
+        "page_sha256": "601d77e5526c728a5084e7bafca3768aa353898161de3d1f5b1970e0ab049986"
+      },
+      "2026-05-03": {
+        "input_missing_labels": 3,
+        "recovered": 3,
+        "comparison_archive_overlap": 59,
+        "overlap_market_agreements": 59,
+        "page_sha256": "217ced1334b224987246dca4d5e7ed229054bd2159ca06f03e75c6b662f16f1e"
+      },
+      "2026-05-04": {
+        "input_missing_labels": 71,
+        "recovered": 71,
+        "comparison_archive_overlap": 0,
+        "overlap_market_agreements": 0,
+        "page_sha256": "24595791157eb16a60a82e6dc85cd094274ad46a9534383efca0078efe45eb07"
+      },
+      "2026-05-08": {
+        "input_missing_labels": 1,
+        "recovered": 0,
+        "comparison_archive_overlap": 75,
+        "overlap_market_agreements": 75,
+        "page_sha256": "8dc8ddbfe75a4fc006390712e4595c336c20a9be769c8c025908f4e1065e5a1c"
+      },
+      "2026-05-10": {
+        "input_missing_labels": 2,
+        "recovered": 2,
+        "comparison_archive_overlap": 58,
+        "overlap_market_agreements": 58,
+        "page_sha256": "ae370b99123fa4597b9b1c3a29a5048d37b07cea9c40e482a6cb4d8a5735286b"
+      },
+      "2026-05-11": {
+        "input_missing_labels": 71,
+        "recovered": 71,
+        "comparison_archive_overlap": 0,
+        "overlap_market_agreements": 0,
+        "page_sha256": "ed3573af1577991e7e6a0e25a0c9c49711e6d0644aa3d4f1cfa6cdaed1c1a841"
+      },
+      "2026-05-12": {
+        "input_missing_labels": 71,
+        "recovered": 71,
+        "comparison_archive_overlap": 0,
+        "overlap_market_agreements": 0,
+        "page_sha256": "f33b4b11c32fc41de85f972b1bbabd1b3ee2d6c6dea07d60be296294174986cb"
+      },
+      "2026-05-13": {
+        "input_missing_labels": 71,
+        "recovered": 71,
+        "comparison_archive_overlap": 0,
+        "overlap_market_agreements": 0,
+        "page_sha256": "47079579afed67f63bbb612e4f39253cedbcef97b42991f993c06dd1f306d1f9"
+      },
+      "2026-05-14": {
+        "input_missing_labels": 56,
+        "recovered": 56,
+        "comparison_archive_overlap": 0,
+        "overlap_market_agreements": 0,
+        "page_sha256": "212284f01cf974f5e0fcabb40ad452d3b405c1a2dce028806635bf4c820aad29"
+      },
+      "2026-05-15": {
+        "input_missing_labels": 79,
+        "recovered": 79,
+        "comparison_archive_overlap": 0,
+        "overlap_market_agreements": 0,
+        "page_sha256": "feb7d8f85668ab85d2b00571d0c1579a1e081a2c0e51e15bf21f00268549f2be"
+      },
+      "2026-05-16": {
+        "input_missing_labels": 2,
+        "recovered": 2,
+        "comparison_archive_overlap": 58,
+        "overlap_market_agreements": 58,
+        "page_sha256": "d7f0d28c1fe2d29fcab37a496f13a79c56a4973995b26835712311d13df20f02"
+      },
+      "2026-05-17": {
+        "input_missing_labels": 2,
+        "recovered": 2,
+        "comparison_archive_overlap": 81,
+        "overlap_market_agreements": 81,
+        "page_sha256": "4b26e845024058cf6c2aa28d9d8a2adfaa303c9285834371f30056088651ad69"
+      },
+      "2026-05-18": {
+        "input_missing_labels": 71,
+        "recovered": 71,
+        "comparison_archive_overlap": 0,
+        "overlap_market_agreements": 0,
+        "page_sha256": "e62794f522663499bf3a80b4948a45f2dbec9f1a424e449ecffa308dc3536627"
+      },
+      "2026-05-19": {
+        "input_missing_labels": 78,
+        "recovered": 78,
+        "comparison_archive_overlap": 0,
+        "overlap_market_agreements": 0,
+        "page_sha256": "3966d20877477fa0b618df7bab97c15d5352d2c31faa9e351a8ba0e9d23a5b3a"
+      },
+      "2026-05-20": {
+        "input_missing_labels": 83,
+        "recovered": 83,
+        "comparison_archive_overlap": 0,
+        "overlap_market_agreements": 0,
+        "page_sha256": "348241bb7468fb4d58b5dfce28537956156bbdaeae6ff1d1cadf5fe547e690bc"
+      },
+      "2026-05-21": {
+        "input_missing_labels": 72,
+        "recovered": 72,
+        "comparison_archive_overlap": 0,
+        "overlap_market_agreements": 0,
+        "page_sha256": "ee67eae04d8ec56ec54957c4fcea222aec35d7237008ae0056a4c107dbcbe356"
+      },
+      "2026-05-22": {
+        "input_missing_labels": 83,
+        "recovered": 83,
+        "comparison_archive_overlap": 0,
+        "overlap_market_agreements": 0,
+        "page_sha256": "76de6f08ec5be1f714716b76465c44eb351a5fdb8f2a0ac0555625f603af56c5"
+      },
+      "2026-05-23": {
+        "input_missing_labels": 1,
+        "recovered": 1,
+        "comparison_archive_overlap": 78,
+        "overlap_market_agreements": 78,
+        "page_sha256": "c3357a3193281a67ae20a9ca3fe27de08b7c37ac86ba31ae66be25f2adee2789"
+      },
+      "2026-05-24": {
+        "input_missing_labels": 3,
+        "recovered": 2,
+        "comparison_archive_overlap": 75,
+        "overlap_market_agreements": 75,
+        "page_sha256": "b9e9cd0d8714cc54b72d2c607790361b09c353695f71bf2587f82c7e0c755392"
+      },
+      "2026-05-25": {
+        "input_missing_labels": 75,
+        "recovered": 75,
+        "comparison_archive_overlap": 0,
+        "overlap_market_agreements": 0,
+        "page_sha256": "5c4782c3d6d1377470bbf975a3c7089e37270fc4249360dbdb81a5a7c653b0af"
+      },
+      "2026-05-26": {
+        "input_missing_labels": 74,
+        "recovered": 74,
+        "comparison_archive_overlap": 0,
+        "overlap_market_agreements": 0,
+        "page_sha256": "8fcd2585eaa111b7cdfb304638ac5e074d002f71e7d9df9fa5545beda88018fe"
+      },
+      "2026-05-27": {
+        "input_missing_labels": 75,
+        "recovered": 75,
+        "comparison_archive_overlap": 0,
+        "overlap_market_agreements": 0,
+        "page_sha256": "90ef6f0bfa612fea6fa065a76fd508ad07e4473129552b559dbada12af431275"
+      },
+      "2026-05-28": {
+        "input_missing_labels": 79,
+        "recovered": 79,
+        "comparison_archive_overlap": 0,
+        "overlap_market_agreements": 0,
+        "page_sha256": "5419ea9d047d4dbe3860e590d5a5b3973de7034b87f79ead5cbbfcf5b620fdb0"
+      },
+      "2026-05-29": {
+        "input_missing_labels": 72,
+        "recovered": 71,
+        "comparison_archive_overlap": 0,
+        "overlap_market_agreements": 0,
+        "page_sha256": "9111608b04c4b796fa10167455d168de4488e62424f3df532cc2e446e69af062"
+      },
+      "2026-05-30": {
+        "input_missing_labels": 2,
+        "recovered": 2,
+        "comparison_archive_overlap": 81,
+        "overlap_market_agreements": 81,
+        "page_sha256": "51a91f7490a615c1c9167a9ba3cb2c9475c1b30441021c15e38e3552f804c699"
+      },
+      "2026-05-31": {
+        "input_missing_labels": 1,
+        "recovered": 1,
+        "comparison_archive_overlap": 73,
+        "overlap_market_agreements": 73,
+        "page_sha256": "e90a27f331993cdd04d557247a9d2bffcb47eeac38b6a06cd6c982c2a5f65d91"
+      },
+      "2026-06-01": {
+        "input_missing_labels": 65,
+        "recovered": 65,
+        "comparison_archive_overlap": 27,
+        "overlap_market_agreements": 27,
+        "page_sha256": "6cea02f9bb962d99ea4118357c6e8348573c1f74922440ddb849850c6041872a"
+      },
+      "2026-06-02": {
+        "input_missing_labels": 92,
+        "recovered": 84,
+        "comparison_archive_overlap": 0,
+        "overlap_market_agreements": 0,
+        "page_sha256": "5e16abb510cfbaa5d3bd87ddc43a9a51ab78635e6b20bc7bb8609f0879b61191"
+      },
+      "2026-06-03": {
+        "input_missing_labels": 81,
+        "recovered": 74,
+        "comparison_archive_overlap": 0,
+        "overlap_market_agreements": 0,
+        "page_sha256": "d106e3554e29febc7406ee5a8ea2734dd5113a450a3337c8785a82b37e3556c7"
+      },
+      "2026-06-04": {
+        "input_missing_labels": 75,
+        "recovered": 75,
+        "comparison_archive_overlap": 0,
+        "overlap_market_agreements": 0,
+        "page_sha256": "68c3a8fdc0204ba9629097601092c87b3c5be40e2434c3d1967714f8204bfb54"
+      },
+      "2026-06-05": {
+        "input_missing_labels": 81,
+        "recovered": 81,
+        "comparison_archive_overlap": 0,
+        "overlap_market_agreements": 0,
+        "page_sha256": "d6848b97de7c36db21fa20223d8086d3b6f26a6775ae9d02fe680bd68b905838"
+      },
+      "2026-06-06": {
+        "input_missing_labels": 1,
+        "recovered": 1,
+        "comparison_archive_overlap": 66,
+        "overlap_market_agreements": 66,
+        "page_sha256": "453d2dd2fba4d47b2014c13d393d4fbc3c9b7c709b876bdec543dcbfea54d400"
+      },
+      "2026-06-10": {
+        "input_missing_labels": 1,
+        "recovered": 1,
+        "comparison_archive_overlap": 88,
+        "overlap_market_agreements": 87,
+        "page_sha256": "d17765ca2436478aec78a2a1b82ee5dbad50d13d80f8b9303f638b6a1c81adf9"
+      },
+      "2026-06-16": {
+        "input_missing_labels": 1,
+        "recovered": 1,
+        "comparison_archive_overlap": 67,
+        "overlap_market_agreements": 67,
+        "page_sha256": "612e6d14c936dc405ca838e58f9f3c76de2c2f7f43c8d230a3d31ecee7a6add2"
+      },
+      "2026-06-17": {
+        "input_missing_labels": 1,
+        "recovered": 0,
+        "comparison_archive_overlap": 70,
+        "overlap_market_agreements": 69,
+        "page_sha256": "e284404e0977f69f6299a5c909c930f38aa808acdcaa955d1bed4e2785937173"
+      },
+      "2026-06-18": {
+        "input_missing_labels": 1,
+        "recovered": 1,
+        "comparison_archive_overlap": 68,
+        "overlap_market_agreements": 68,
+        "page_sha256": "a72ec76a1ae0e65010c4aa84f1a3657f277ee09d7ee7e51f2b25f79b086886d6"
+      },
+      "2026-06-19": {
+        "input_missing_labels": 1,
+        "recovered": 1,
+        "comparison_archive_overlap": 77,
+        "overlap_market_agreements": 77,
+        "page_sha256": "bbdcd642e025b63a28b8603eb5c2a7e8d0ac85e09f013af3ddf8bed66789e56a"
+      },
+      "2026-06-21": {
+        "input_missing_labels": 1,
+        "recovered": 1,
+        "comparison_archive_overlap": 60,
+        "overlap_market_agreements": 60,
+        "page_sha256": "1077f0969ade3efd6220e73d5bc2f5291cee22488f7ffa33ba1547d35ec6acfe"
+      },
+      "2026-06-23": {
+        "input_missing_labels": 2,
+        "recovered": 0,
+        "comparison_archive_overlap": 88,
+        "overlap_market_agreements": 87,
+        "page_sha256": "833a5f8c53b1b94bba78f4bb055738faf4c94edaa78ed1d39d829309360fc54b"
+      },
+      "2026-06-24": {
+        "input_missing_labels": 1,
+        "recovered": 1,
+        "comparison_archive_overlap": 71,
+        "overlap_market_agreements": 71,
+        "page_sha256": "e1bc4f2902718c9cae5306a43c44d70462423b496e43684b53b89bced200c865"
+      },
+      "2026-07-01": {
+        "input_missing_labels": 2,
+        "recovered": 2,
+        "comparison_archive_overlap": 81,
+        "overlap_market_agreements": 81,
+        "page_sha256": "035ce7729abcedf483240b76fec40809c9b45e648eed0d9b73e06fe8e04ec5fe"
+      },
+      "2026-07-02": {
+        "input_missing_labels": 1,
+        "recovered": 0,
+        "comparison_archive_overlap": 81,
+        "overlap_market_agreements": 80,
+        "page_sha256": "0a402d65c3a0afb5ed907309d918bd58e2ef1787d4b0e1a4b8b667f120fb2c00"
+      },
+      "2026-07-09": {
+        "input_missing_labels": 1,
+        "recovered": 1,
+        "comparison_archive_overlap": 71,
+        "overlap_market_agreements": 71,
+        "page_sha256": "7255b91939f988c96b7eb92ad1fb384102124bfbbfd4055ef12d2b763f9e487d"
+      },
+      "2026-07-10": {
+        "input_missing_labels": 1,
+        "recovered": 1,
+        "comparison_archive_overlap": 79,
+        "overlap_market_agreements": 79,
+        "page_sha256": "30109c0dce52306619992ae1f72c45f061dd7daaf4e8fdc50a6678883af10a0b"
+      },
+      "2026-07-28": {
+        "input_missing_labels": 1,
+        "recovered": 0,
+        "comparison_archive_overlap": 77,
+        "overlap_market_agreements": 77,
+        "page_sha256": "f58307dd8c953f75e4236ee19a77a0b0ac13447af17b116e1c27d1c911ea8de8"
+      },
+      "2026-08-04": {
+        "input_missing_labels": 1,
+        "recovered": 1,
+        "comparison_archive_overlap": 81,
+        "overlap_market_agreements": 81,
+        "page_sha256": "e558f0896a6b62041e039936733791ed7d1166701006b68f1a5e8098478bd92a"
+      },
+      "2026-09-05": {
+        "input_missing_labels": 1,
+        "recovered": 1,
+        "comparison_archive_overlap": 79,
+        "overlap_market_agreements": 79,
+        "page_sha256": "c4c2ecb354d5f5d34bd48f524aa86680de03f18bef9bbb1fe113af0a1d20cb21"
+      },
+      "2026-09-10": {
+        "input_missing_labels": 1,
+        "recovered": 1,
+        "comparison_archive_overlap": 82,
+        "overlap_market_agreements": 82,
+        "page_sha256": "8afda0aef6a96bad5de56a7bea1ed717dc400566df8cdb682bcf745c4c9c9f55"
+      },
+      "2026-09-15": {
+        "input_missing_labels": 1,
+        "recovered": 1,
+        "comparison_archive_overlap": 82,
+        "overlap_market_agreements": 82,
+        "page_sha256": "798d06177a4c0ae4869cab27d9cd7fe4426bb0d8c6014f2bdbe506b2aeda5d24"
+      },
+      "2026-09-17": {
+        "input_missing_labels": 1,
+        "recovered": 1,
+        "comparison_archive_overlap": 77,
+        "overlap_market_agreements": 77,
+        "page_sha256": "03a4d92996187ac8cccb897b78753d9a404e8087603284e1e513f6221b287ba6"
+      },
+      "2026-09-19": {
+        "input_missing_labels": 1,
+        "recovered": 0,
+        "comparison_archive_overlap": 71,
+        "overlap_market_agreements": 70,
+        "page_sha256": "26b05f4fd32046395ff0a8ccf6d012426e2a114de72d9a4c2c4d67a3a2858ac0"
+      },
+      "2026-09-20": {
+        "input_missing_labels": 1,
+        "recovered": 1,
+        "comparison_archive_overlap": 71,
+        "overlap_market_agreements": 69,
+        "page_sha256": "360c736689bef98b315e8e34d2f17d24f18e9c6fbb859baccd97c90ce0a98a44"
+      },
+      "2026-09-24": {
+        "input_missing_labels": 1,
+        "recovered": 1,
+        "comparison_archive_overlap": 85,
+        "overlap_market_agreements": 84,
+        "page_sha256": "e6f7fe040dd9548460ba8c1b35a5b870f713ce5959a38f9046e849be41cb4ba8"
+      },
+      "2026-10-01": {
+        "input_missing_labels": 1,
+        "recovered": 1,
+        "comparison_archive_overlap": 81,
+        "overlap_market_agreements": 80,
+        "page_sha256": "f9fabf5f7efd2d2f6a5becf138ee4a835b03b2f32ad5c46d96d0da45157e3e7c"
+      },
+      "2026-10-04": {
+        "input_missing_labels": 1,
+        "recovered": 0,
+        "comparison_archive_overlap": 69,
+        "overlap_market_agreements": 69,
+        "page_sha256": "3052706e585d214ba8984d3fbfc695a3c1918887b7151180de64e3c388acc723"
+      },
+      "2026-10-05": {
+        "input_missing_labels": 1,
+        "recovered": 1,
+        "comparison_archive_overlap": 69,
+        "overlap_market_agreements": 69,
+        "page_sha256": "82b633f5d6dbe8eea0a5c66413982be8cf2b4117485f3e06268c3e1c7af2ad52"
+      },
+      "2026-10-07": {
+        "input_missing_labels": 1,
+        "recovered": 1,
+        "comparison_archive_overlap": 71,
+        "overlap_market_agreements": 71,
+        "page_sha256": "316151711131445d4c58f76d3d12b5a2604c566838b9b0133719735ac64deb6d"
+      },
+      "2026-10-10": {
+        "input_missing_labels": 2,
+        "recovered": 2,
+        "comparison_archive_overlap": 70,
+        "overlap_market_agreements": 70,
+        "page_sha256": "b61f34d47cb52d152f35b4a4585d820e99542b47c75ad027a96c06e0e3edd3b0"
+      },
+      "2026-10-17": {
+        "input_missing_labels": 2,
+        "recovered": 2,
+        "comparison_archive_overlap": 69,
+        "overlap_market_agreements": 69,
+        "page_sha256": "cd44b183ea46a3141c1e4dbbb26e846f2fe071a4af5c2a31da27a7f2eaa5d99f"
+      },
+      "2026-10-20": {
+        "input_missing_labels": 1,
+        "recovered": 0,
+        "comparison_archive_overlap": 70,
+        "overlap_market_agreements": 70,
+        "page_sha256": "4657c30e4130cb04ba030b3f51f061693d549017bef8baeca0b5635bb1c779fa"
+      },
+      "2026-10-22": {
+        "input_missing_labels": 1,
+        "recovered": 1,
+        "comparison_archive_overlap": 85,
+        "overlap_market_agreements": 84,
+        "page_sha256": "ebd4abc4f097fbd000d57cc32a45a332ae1ffe1fe8cf0f08f799ad650ce295ac"
+      },
+      "2026-10-27": {
+        "input_missing_labels": 1,
+        "recovered": 1,
+        "comparison_archive_overlap": 59,
+        "overlap_market_agreements": 59,
+        "page_sha256": "0a585b5ae69374bab93f86c847ca8d705b06530e27b4ee2d7310d94fab96e3f4"
+      },
+      "2026-11-02": {
+        "input_missing_labels": 1,
+        "recovered": 0,
+        "comparison_archive_overlap": 70,
+        "overlap_market_agreements": 70,
+        "page_sha256": "ba6bd5d149b8b99fcec37a8da676543b0a2a7b6619b0f51cc6103fded490c97e"
+      },
+      "2026-11-09": {
+        "input_missing_labels": 2,
+        "recovered": 2,
+        "comparison_archive_overlap": 81,
+        "overlap_market_agreements": 81,
+        "page_sha256": "42658c01c667cf5cc8a99b1bacb21886bed38662121e4a81d14aca2d9434f7b3"
+      },
+      "2026-11-16": {
+        "input_missing_labels": 1,
+        "recovered": 1,
+        "comparison_archive_overlap": 71,
+        "overlap_market_agreements": 71,
+        "page_sha256": "d2cb2f9f8ee6d37ff2f4341a464351f51ec952818a5f7234fbb001ce7f038f83"
+      },
+      "2026-11-21": {
+        "input_missing_labels": 2,
+        "recovered": 0,
+        "comparison_archive_overlap": 55,
+        "overlap_market_agreements": 55,
+        "page_sha256": "fcc958e6cf44b423cc61159e9f71599876401a1ccdff9a01c0d086d970c964a7"
+      }
+    }
+  },
+  "direct_result_review": [
+    {
+      "statuses": {
+        "special_result_notice": 55,
+        "matched": 7
+      },
+      "provider_stop": null,
+      "private_evidence_sha256": "52ebe18e112f840a2721df66c03a8eefa40c1c39df1832439293a37f81abfdcf"
+    },
+    {
+      "statuses": {
+        "special_result_notice": 3
+      },
+      "provider_stop": null,
+      "private_evidence_sha256": "70ea7298e6ee41d40526d9c5377d060ac19c8230026ce1239e75e69dcde539a1"
+    }
+  ],
+  "coverage": {
+    "annual": {
+      "input_races": 27402,
+      "forecast_races": 27326,
+      "scored_races": 27251,
+      "scored_with_multiple_sources": 9456,
+      "scored_with_added_paths": 0,
+      "no_forecast": 76,
+      "label_unavailable": 58,
+      "independent_sources_conflict": 17,
+      "scored_calendar_days": 365
+    },
+    "with_lines": {
+      "input_races": 475,
+      "forecast_races": 474,
+      "scored_races": 472,
+      "scored_with_multiple_sources": 471,
+      "scored_with_added_paths": 283,
+      "label_unavailable": 2,
+      "no_forecast": 1,
+      "scored_calendar_days": 7
+    }
+  },
+  "label_sources": {
+    "annual": {
+      "kdreams": 11051,
+      "kdreams+kdreams_dated_payouts": 1780,
+      "kdreams_dated_payouts": 1834,
+      "netkeirin_archive": 4903,
+      "netkeirin_archive+kdreams_dated_payouts": 1958,
+      "kdreams+netkeirin_archive": 2980,
+      "netkeirin_archive+app_paid_results_archive+kdreams_dated_payouts": 558,
+      "netkeirin_archive+app_paid_results_archive": 2114,
+      "netkeirin_archive+race_ai_public+app_paid_results_archive": 66,
+      "netkeirin_direct_residual": 7
+    },
+    "with_lines": {
+      "netkeirin_archive+race_ai_public+app_paid_results_archive": 66,
+      "netkeirin_archive+app_paid_results_archive+kdreams_dated_payouts": 125,
+      "netkeirin_archive+app_paid_results_archive": 279,
+      "kdreams_dated_payouts": 1,
+      "netkeirin_archive+kdreams_dated_payouts": 1
+    }
+  },
+  "months": {
+    "annual:202511": {
+      "input_races": 566,
+      "forecast_races": 560,
+      "scored_races": 559,
+      "2t_top4_races": 559,
+      "2t_top4_points": 2236,
+      "2t_top4_hits": 219,
+      "3t_top4_races": 559,
+      "3t_top4_points": 2236,
+      "3t_top4_hits": 80,
+      "label_unavailable": 1
+    },
+    "annual:202512": {
+      "input_races": 2247,
+      "forecast_races": 2213,
+      "scored_races": 2211,
+      "2t_top4_races": 2211,
+      "2t_top4_points": 8844,
+      "2t_top4_hits": 910,
+      "3t_top4_races": 2211,
+      "3t_top4_points": 8844,
+      "3t_top4_hits": 339,
+      "label_unavailable": 2
+    },
+    "annual:202601": {
+      "input_races": 2305,
+      "forecast_races": 2305,
+      "scored_races": 2305,
+      "2t_top4_races": 2305,
+      "2t_top4_points": 9220,
+      "2t_top4_hits": 967,
+      "3t_top4_races": 2305,
+      "3t_top4_points": 9220,
+      "3t_top4_hits": 351
+    },
+    "annual:202602": {
+      "input_races": 2149,
+      "forecast_races": 2149,
+      "scored_races": 2134,
+      "2t_top4_races": 2134,
+      "2t_top4_points": 8536,
+      "2t_top4_hits": 872,
+      "3t_top4_races": 2134,
+      "3t_top4_points": 8536,
+      "3t_top4_hits": 354,
+      "label_unavailable": 15
+    },
+    "annual:202603": {
+      "input_races": 2263,
+      "forecast_races": 2263,
+      "scored_races": 2246,
+      "2t_top4_races": 2246,
+      "2t_top4_points": 8984,
+      "2t_top4_hits": 985,
+      "3t_top4_races": 2246,
+      "3t_top4_points": 8984,
+      "3t_top4_hits": 366,
+      "label_unavailable": 17
+    },
+    "annual:202604": {
+      "input_races": 2341,
+      "forecast_races": 2335,
+      "scored_races": 2334,
+      "2t_top4_races": 2334,
+      "2t_top4_points": 9336,
+      "2t_top4_hits": 1024,
+      "3t_top4_races": 2334,
+      "3t_top4_points": 9336,
+      "3t_top4_hits": 405,
+      "label_unavailable": 1
+    },
+    "annual:202605": {
+      "input_races": 2312,
+      "forecast_races": 2291,
+      "scored_races": 2288,
+      "2t_top4_races": 2288,
+      "2t_top4_points": 9152,
+      "2t_top4_hits": 1014,
+      "3t_top4_races": 2288,
+      "3t_top4_points": 9152,
+      "3t_top4_hits": 422,
+      "label_unavailable": 3
+    },
+    "annual:202606": {
+      "input_races": 2274,
+      "forecast_races": 2265,
+      "scored_races": 2251,
+      "2t_top4_races": 2251,
+      "2t_top4_points": 9004,
+      "2t_top4_hits": 941,
+      "3t_top4_races": 2251,
+      "3t_top4_points": 9004,
+      "3t_top4_hits": 365,
+      "label_unavailable": 11,
+      "independent_sources_conflict": 3
+    },
+    "annual:202607": {
+      "input_races": 2416,
+      "forecast_races": 2416,
+      "scored_races": 2410,
+      "2t_top4_races": 2410,
+      "2t_top4_points": 9640,
+      "2t_top4_hits": 957,
+      "3t_top4_races": 2410,
+      "3t_top4_points": 9640,
+      "3t_top4_hits": 389,
+      "label_unavailable": 2,
+      "independent_sources_conflict": 4
+    },
+    "annual:202608": {
+      "input_races": 2352,
+      "forecast_races": 2352,
+      "scored_races": 2348,
+      "2t_top4_races": 2348,
+      "2t_top4_points": 9392,
+      "2t_top4_hits": 953,
+      "3t_top4_races": 2348,
+      "3t_top4_points": 9392,
+      "3t_top4_hits": 362,
+      "independent_sources_conflict": 4
+    },
+    "annual:202609": {
+      "input_races": 2265,
+      "forecast_races": 2265,
+      "scored_races": 2260,
+      "2t_top4_races": 2260,
+      "2t_top4_points": 9040,
+      "2t_top4_hits": 1000,
+      "3t_top4_races": 2260,
+      "3t_top4_points": 9040,
+      "3t_top4_hits": 423,
+      "independent_sources_conflict": 4,
+      "label_unavailable": 1
+    },
+    "annual:202610": {
+      "input_races": 2270,
+      "forecast_races": 2270,
+      "scored_races": 2266,
+      "2t_top4_races": 2266,
+      "2t_top4_points": 9064,
+      "2t_top4_hits": 949,
+      "3t_top4_races": 2266,
+      "3t_top4_points": 9064,
+      "3t_top4_hits": 366,
+      "independent_sources_conflict": 2,
+      "label_unavailable": 2
+    },
+    "annual:202611": {
+      "input_races": 1642,
+      "forecast_races": 1642,
+      "scored_races": 1639,
+      "2t_top4_races": 1639,
+      "2t_top4_points": 6556,
+      "2t_top4_hits": 720,
+      "3t_top4_races": 1639,
+      "3t_top4_points": 6556,
+      "3t_top4_hits": 268,
+      "label_unavailable": 3
+    },
+    "with_lines:202611": {
+      "input_races": 475,
+      "forecast_races": 474,
+      "scored_races": 472,
+      "label_unavailable": 2
+    }
+  },
+  "score": {
+    "annual:current_A:2t": {
+      "matched_races": 27251,
+      "top1_races": 27251,
+      "top1_points": 27251,
+      "top1_hits": 4382,
+      "top4_races": 27251,
+      "top4_points": 109004,
+      "top4_hits": 11511,
+      "selected_races": 27226,
+      "selected_points": 216313,
+      "selected_hits": 15532
+    },
+    "annual:current_A:3t": {
+      "matched_races": 27251,
+      "top1_races": 27251,
+      "top1_points": 27251,
+      "top1_hits": 1363,
+      "top4_races": 27251,
+      "top4_points": 109004,
+      "top4_hits": 4490,
+      "selected_races": 27237,
+      "selected_points": 679295,
+      "selected_hits": 12374
+    },
+    "with_lines:current_A:2t": {
+      "matched_races": 472,
+      "top1_races": 472,
+      "top1_points": 472,
+      "top1_hits": 68,
+      "top4_races": 472,
+      "top4_points": 1887,
+      "top4_hits": 193,
+      "selected_races": 472,
+      "selected_points": 2068,
+      "selected_hits": 206
+    },
+    "with_lines:current_A:3t": {
+      "matched_races": 472,
+      "top1_races": 472,
+      "top1_points": 472,
+      "top1_hits": 26,
+      "top4_races": 472,
+      "top4_points": 1888,
+      "top4_hits": 79,
+      "selected_races": 472,
+      "selected_points": 2548,
+      "selected_hits": 93
+    },
+    "with_lines:current_B:2t": {
+      "matched_races": 472,
+      "top1_races": 472,
+      "top1_points": 472,
+      "top1_hits": 77,
+      "top4_races": 472,
+      "top4_points": 1887,
+      "top4_hits": 192,
+      "selected_races": 472,
+      "selected_points": 1872,
+      "selected_hits": 205
+    },
+    "with_lines:current_B:3t": {
+      "matched_races": 472,
+      "top1_races": 472,
+      "top1_points": 472,
+      "top1_hits": 27,
+      "top4_races": 472,
+      "top4_points": 1888,
+      "top4_hits": 78,
+      "selected_races": 472,
+      "selected_points": 2257,
+      "selected_hits": 84
+    },
+    "with_lines:updated_A:2t": {
+      "matched_races": 472,
+      "top1_races": 472,
+      "top1_points": 472,
+      "top1_hits": 67,
+      "top4_races": 472,
+      "top4_points": 1887,
+      "top4_hits": 197,
+      "selected_races": 472,
+      "selected_points": 2184,
+      "selected_hits": 219
+    },
+    "with_lines:updated_A:3t": {
+      "matched_races": 472,
+      "top1_races": 472,
+      "top1_points": 472,
+      "top1_hits": 26,
+      "top4_races": 472,
+      "top4_points": 1888,
+      "top4_hits": 76,
+      "selected_races": 472,
+      "selected_points": 2649,
+      "selected_hits": 93
+    },
+    "with_lines:updated_B:2t": {
+      "matched_races": 472,
+      "top1_races": 472,
+      "top1_points": 472,
+      "top1_hits": 76,
+      "top4_races": 472,
+      "top4_points": 1887,
+      "top4_hits": 197,
+      "selected_races": 472,
+      "selected_points": 1959,
+      "selected_hits": 217
+    },
+    "with_lines:updated_B:3t": {
+      "matched_races": 472,
+      "top1_races": 472,
+      "top1_points": 472,
+      "top1_hits": 27,
+      "top4_races": 472,
+      "top4_points": 1888,
+      "top4_hits": 78,
+      "selected_races": 472,
+      "selected_points": 2331,
+      "selected_hits": 85
+    }
+  },
+  "paired_top4": {
+    "A:2t": {
+      "neither": 269,
+      "current_only": 6,
+      "both": 187,
+      "updated_only": 10
+    },
+    "A:3t": {
+      "neither": 392,
+      "both": 75,
+      "current_only": 4,
+      "updated_only": 1
+    },
+    "B:2t": {
+      "neither": 267,
+      "current_only": 8,
+      "both": 184,
+      "updated_only": 13
+    },
+    "B:3t": {
+      "neither": 392,
+      "both": 76,
+      "current_only": 2,
+      "updated_only": 2
+    }
+  }
+}

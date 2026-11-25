@@ -1,0 +1,120 @@
+{
+  "captured_before_earliest_listed_deadline": true,
+  "date_jst": "2026-11-25",
+  "different_ids_among_sites": [],
+  "frozen_ids_present_on_all_three_sites": 60,
+  "held_source_status_counts": {
+    "HOLD_KDREAMS_LINE_NOT_ALL_REAL_CARS": 15
+  },
+  "held_venue_counts": {
+    "34": 5,
+    "48": 5,
+    "61": 5
+  },
+  "kdreams_prerace_page": {
+    "bytes": 197703,
+    "bytes_sha256": "71e01438386b6199c3bf3ff9fb4ff23a6caec90c543ddcd82e044adb9ee47fe8",
+    "captured_at": "2026-11-24T18:15:17.575533+00:00",
+    "status": 200,
+    "url": "https://keirin.kdreams.jp/kaisai/2026/11/25/"
+  },
+  "kdreams_registered": 75,
+  "listed_counts_by_venue": {
+    "26": 11,
+    "34": 7,
+    "38": 12,
+    "48": 7,
+    "51": 12,
+    "61": 7,
+    "75": 12,
+    "84": 7
+  },
+  "oddspark_by_venue": {
+    "26": 11,
+    "34": 7,
+    "38": 12,
+    "48": 7,
+    "51": 12,
+    "61": 7,
+    "75": 12,
+    "84": 7
+  },
+  "oddspark_registered": 75,
+  "official_national_register_verified": false,
+  "ordinary_prerace_pages": [
+    {
+      "http": 200,
+      "read_utc": "2026-11-24T22:29:14.022376+00:00",
+      "sha256": "9a6ba0a264d5859773e8a33110c83ad2b46a4a155f59791482d995a79812d6d3",
+      "url": "https://www.winticket.jp/keirin/racecard/20261125"
+    },
+    {
+      "http": 200,
+      "read_utc": "2026-11-24T22:29:17.566637+00:00",
+      "sha256": "b3bc2402e4e1c5eed7606e05ae110d6262c44bb359183ecadf047a4d9f25fbf4",
+      "url": "https://www.oddspark.com/keirin/"
+    },
+    {
+      "http": 200,
+      "read_utc": "2026-11-24T22:29:21.609600+00:00",
+      "sha256": "8f2c78882bbf3bf7648d1815ccc478f8bd6c38b820888b6d1f013339b8a2897f",
+      "url": "https://www.oddspark.com/keirin/AllRaceList.do?joCode=26&kaisaiBi=20261125"
+    },
+    {
+      "http": 200,
+      "read_utc": "2026-11-24T22:29:24.085112+00:00",
+      "sha256": "d0fbc9d8a33a0a3a50d0552e68d57f52a03f299b91f8524213ceae2cf386e8f3",
+      "url": "https://www.oddspark.com/keirin/AllRaceList.do?joCode=34&kaisaiBi=20261125"
+    },
+    {
+      "http": 200,
+      "read_utc": "2026-11-24T22:29:27.446874+00:00",
+      "sha256": "0d74757cedecd5def75fa217fa612d2e54b8598c277812e28f203b36aed19627",
+      "url": "https://www.oddspark.com/keirin/AllRaceList.do?joCode=38&kaisaiBi=20261125"
+    },
+    {
+      "http": 200,
+      "read_utc": "2026-11-24T22:29:30.144788+00:00",
+      "sha256": "688bded7692f2f8573c42537f7d47c52f4b2388997282c063c5444cf3063bc7c",
+      "url": "https://www.oddspark.com/keirin/AllRaceList.do?joCode=48&kaisaiBi=20261125"
+    },
+    {
+      "http": 200,
+      "read_utc": "2026-11-24T22:29:34.211970+00:00",
+      "sha256": "b476f65b5820022567d6f4720f3d648f7833e73c3c662caabe308dabf6581957",
+      "url": "https://www.oddspark.com/keirin/AllRaceList.do?joCode=51&kaisaiBi=20261125"
+    },
+    {
+      "http": 200,
+      "read_utc": "2026-11-24T22:29:36.109077+00:00",
+      "sha256": "dcf64ac7d57550bab8736ad219c4919c5d78c4aafffa71b153ca216729292ff8",
+      "url": "https://www.oddspark.com/keirin/AllRaceList.do?joCode=61&kaisaiBi=20261125"
+    },
+    {
+      "http": 200,
+      "read_utc": "2026-11-24T22:29:37.409871+00:00",
+      "sha256": "88b14a90f15f0e21a478cc114738c5cd45504310abc8669adb91d9f8fe4710a1",
+      "url": "https://www.oddspark.com/keirin/AllRaceList.do?joCode=75&kaisaiBi=20261125"
+    },
+    {
+      "http": 200,
+      "read_utc": "2026-11-24T22:29:41.052523+00:00",
+      "sha256": "713d549149397652687a433f589004499692b3afc9b8f7980df2cc56993e81f7",
+      "url": "https://www.oddspark.com/keirin/AllRaceList.do?joCode=84&kaisaiBi=20261125"
+    }
+  ],
+  "previously_frozen": 60,
+  "races_on_all_three_sites": 75,
+  "result_pages_visited": 0,
+  "winticket_by_venue": {
+    "26": 11,
+    "34": 7,
+    "38": 12,
+    "48": 7,
+    "51": 12,
+    "61": 7,
+    "75": 12,
+    "84": 7
+  },
+  "winticket_registered": 75
+}

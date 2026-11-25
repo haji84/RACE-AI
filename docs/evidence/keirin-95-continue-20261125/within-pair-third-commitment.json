@@ -1,0 +1,16 @@
+{
+  "schema": "KEIRIN_FORWARD_RECEIPT_V1",
+  "prediction_sha256": "eb556e8ffd66957b712d4087f54edab5e121571cadca44537408c3dc1d7ac613",
+  "frozen_at": "2026-11-25T10:41:47.765183+00:00",
+  "registered": 24,
+  "earliest": "2026-11-25T19:56:00+09:00",
+  "latest": "2026-11-25T23:25:00+09:00",
+  "changed": 2,
+  "comparators": {
+    "published": "site",
+    "trial": "third_in_fixed_pair_slots"
+  },
+  "published_asset_sha256": "51a98f0a048d4831eeb8c85533e28f789b17dc55ca59a7cb0cf0c920d7e4eb9e",
+  "design_sha256": "4dd44188aa7672684abfb1a71e1775a90d0d52d3eacb4f9fadb7e93fe5222498",
+  "fit_sha256": "12b71e014078cba8685ce2478a9f629b387c55b12aea7d595d2d82f8d19ecddd"
+}

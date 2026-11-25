@@ -1,0 +1,36 @@
+{
+  "counts_by_four_class": {
+    "different_line_new_leader": 3,
+    "same_leader_new_second": 5,
+    "same_line_new_leader": 0,
+    "same_ordered_pair": 32
+  },
+  "counts_only_verified_cases": true,
+  "created_at": "2026-11-25T12:48:56.289678+00:00",
+  "eligible_for_predeclared_trial": false,
+  "independent_14_excluded": true,
+  "no_new_fitting_or_weights": true,
+  "older_expansion_B_agreements": 23,
+  "older_expansion_B_conflicts": 1,
+  "older_expansion_B_unreadable": 1,
+  "older_expansion_played": 25,
+  "older_expansion_selected": 25,
+  "ordered_B4C_sample_n": 40,
+  "private_join_sha256": "dac0a7c437b941c34d384af4d1a72d8b479be465bd9420ab52e0b52721ebaa5d",
+  "source_hashes": {
+    "combined-train.owner.json": "4516733ba7cca11338ba27d82aeb59d323f0c73ad270462185a9c32176f13c7f",
+    "extend-final/new-training-candidates.owner.json": "cda8232f5d5203c505d44ce0ca294499186b955d0385dc231224009d40382418",
+    "extend-final/program.owner.json": "5699253ee56a96f14371a1625e77bb1c2cc1ffc546f0b73493a511f08de3fb40",
+    "extend-final/summary.json": "70b69403ad9972520abeb0744e03c60731c830035c99a143069d4d3caa7791e5",
+    "extend-further/new-training-candidates.owner.json": "eeb462a8735bc69164cec9a0185022a29e76502a1c1de40abe5525f79db97933",
+    "extend-further/program.owner.json": "b2b2dbb63a63d0c157ae180644a1145e9888c0e21756cc4cf5aa011651cd0821",
+    "extend-further/summary.json": "a47eceee9da7f91247556e2bae2de7799dd45a8a2856f3fbc663826a7c732b8e",
+    "extend-tail/new-training-candidates.owner.json": "81bd16d3cbfa4cc985770aed2b3701582e96eeb623a2512ac1c3c47b081502ea",
+    "extend-tail/program.owner.json": "3d004f09d26c97e324706bb3480e44ff9eb29091c96bf74f7120e726d1be0270",
+    "extend-tail/summary.json": "5d08ed643f4796d760156fec658754c4fb0a2056ba483ac5ff91b2d9988c751b",
+    "extend/new-training-candidates.owner.json": "7f801c347cb3e1e44c5bd4d58c471eb35e5a938ff9acca07ccc07e23558f0952",
+    "extend/program.owner.json": "62c858a9dd909ca4316569d3688c0429ca140dc71594a7ab36adba7eeabca117",
+    "extend/summary.json": "8f1feaa6ee5453125a22f04b644361d410f0fe417e691cab4b1b2f2e50a9dcb3"
+  },
+  "targeted_3_excluded": true
+}

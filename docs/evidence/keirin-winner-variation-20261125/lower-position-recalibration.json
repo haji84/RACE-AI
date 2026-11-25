@@ -1,0 +1,297 @@
+{
+  "status": "HISTORICAL_DATE_SEPARATED_REPLAY",
+  "cases": {
+    "all_historical": {
+      "races": 12234,
+      "days": 175,
+      "caps": {
+        "1": {
+          "exact": {
+            "totals": [
+              1248,
+              1248
+            ],
+            "gained": 0,
+            "lost": 0,
+            "paired_day_bootstrap_95_pp": [
+              0.0,
+              0.0
+            ]
+          },
+          "winner_slot": {
+            "totals": [
+              5217,
+              5217
+            ],
+            "gained": 0,
+            "lost": 0,
+            "paired_day_bootstrap_95_pp": [
+              0.0,
+              0.0
+            ]
+          },
+          "ordered_first_two": {
+            "totals": [
+              2710,
+              2710
+            ],
+            "gained": 0,
+            "lost": 0,
+            "paired_day_bootstrap_95_pp": [
+              0.0,
+              0.0
+            ]
+          },
+          "changed": 1
+        },
+        "4": {
+          "exact": {
+            "totals": [
+              3234,
+              3234
+            ],
+            "gained": 52,
+            "lost": 52,
+            "paired_day_bootstrap_95_pp": [
+              -0.15700664241347123,
+              0.16394820059288698
+            ]
+          },
+          "winner_slot": {
+            "totals": [
+              7768,
+              7944
+            ],
+            "gained": 228,
+            "lost": 52,
+            "paired_day_bootstrap_95_pp": [
+              1.1587668185694828,
+              1.7136557363004825
+            ]
+          },
+          "ordered_first_two": {
+            "totals": [
+              4946,
+              5013
+            ],
+            "gained": 121,
+            "lost": 54,
+            "paired_day_bootstrap_95_pp": [
+              0.32836479248016726,
+              0.7653343836610221
+            ]
+          },
+          "changed": 1391
+        },
+        "8": {
+          "exact": {
+            "totals": [
+              4583,
+              4602
+            ],
+            "gained": 70,
+            "lost": 51,
+            "paired_day_bootstrap_95_pp": [
+              -0.02453200100909792,
+              0.3304342768927047
+            ]
+          },
+          "winner_slot": {
+            "totals": [
+              9021,
+              9223
+            ],
+            "gained": 215,
+            "lost": 13,
+            "paired_day_bootstrap_95_pp": [
+              1.4158238639819631,
+              1.9149039337801637
+            ]
+          },
+          "ordered_first_two": {
+            "totals": [
+              6327,
+              6390
+            ],
+            "gained": 120,
+            "lost": 57,
+            "paired_day_bootstrap_95_pp": [
+              0.3153389915491722,
+              0.7223468974159514
+            ]
+          },
+          "changed": 2461
+        }
+      },
+      "win_model": {
+        "log_loss": [
+          1.487146837662642,
+          1.4834365712056763
+        ],
+        "multiclass_brier": [
+          0.7069243542801168,
+          0.7048560421105613
+        ],
+        "marginal_top_one_actual_wins": [
+          5231,
+          5230
+        ],
+        "marginal_top_three_actual_wins": [
+          9764,
+          9753
+        ],
+        "marginal_top_choice_changed": 11,
+        "old_4_pts_had_winner_only_below_first": 3271
+      }
+    },
+    "dated_cards_only": {
+      "races": 321,
+      "days": 5,
+      "caps": {
+        "1": {
+          "exact": {
+            "totals": [
+              38,
+              38
+            ],
+            "gained": 0,
+            "lost": 0,
+            "paired_day_bootstrap_95_pp": [
+              0.0,
+              0.0
+            ]
+          },
+          "winner_slot": {
+            "totals": [
+              132,
+              132
+            ],
+            "gained": 0,
+            "lost": 0,
+            "paired_day_bootstrap_95_pp": [
+              0.0,
+              0.0
+            ]
+          },
+          "ordered_first_two": {
+            "totals": [
+              66,
+              66
+            ],
+            "gained": 0,
+            "lost": 0,
+            "paired_day_bootstrap_95_pp": [
+              0.0,
+              0.0
+            ]
+          },
+          "changed": 0
+        },
+        "4": {
+          "exact": {
+            "totals": [
+              84,
+              84
+            ],
+            "gained": 1,
+            "lost": 1,
+            "paired_day_bootstrap_95_pp": [
+              -1.0714285714285714,
+              0.8547008547008547
+            ]
+          },
+          "winner_slot": {
+            "totals": [
+              198,
+              205
+            ],
+            "gained": 9,
+            "lost": 2,
+            "paired_day_bootstrap_95_pp": [
+              0.29673590504451036,
+              4.430379746835443
+            ]
+          },
+          "ordered_first_two": {
+            "totals": [
+              128,
+              127
+            ],
+            "gained": 2,
+            "lost": 3,
+            "paired_day_bootstrap_95_pp": [
+              -1.9249999999999994,
+              1.2121212121212122
+            ]
+          },
+          "changed": 44
+        },
+        "8": {
+          "exact": {
+            "totals": [
+              119,
+              119
+            ],
+            "gained": 3,
+            "lost": 3,
+            "paired_day_bootstrap_95_pp": [
+              -2.380952380952381,
+              2.1352313167259784
+            ]
+          },
+          "winner_slot": {
+            "totals": [
+              240,
+              249
+            ],
+            "gained": 9,
+            "lost": 0,
+            "paired_day_bootstrap_95_pp": [
+              1.5527950310559007,
+              4.464285714285714
+            ]
+          },
+          "ordered_first_two": {
+            "totals": [
+              164,
+              171
+            ],
+            "gained": 8,
+            "lost": 1,
+            "paired_day_bootstrap_95_pp": [
+              1.4450867052023122,
+              3.2142857142857144
+            ]
+          },
+          "changed": 69
+        }
+      },
+      "win_model": {
+        "log_loss": [
+          1.4964027778115225,
+          1.494761855523195
+        ],
+        "multiclass_brier": [
+          0.7302859306863835,
+          0.7270998567602067
+        ],
+        "marginal_top_one_actual_wins": [
+          124,
+          124
+        ],
+        "marginal_top_three_actual_wins": [
+          263,
+          263
+        ],
+        "marginal_top_choice_changed": 0,
+        "old_4_pts_had_winner_only_below_first": 89
+      }
+    }
+  },
+  "protocol_sha256": "33d7a30c68d87e38f989c52557b2f7170c1a3da9e3147db87d9ab9eb1b0f55f4",
+  "fit_sha256": "1c1ac5dc9c7f61575fed15f921b84e95d1b7045e62e5fe887105e987a8781c8a",
+  "saved_prediction_proof_sha256": "9c098edd34bd234bfbfb31fafe580878d51b2794651c73cd1f07b4e12737c1fd",
+  "source_sha256": "cc0ef09b0030ecb274c84b7cd0adeb2a47485cfb3cb63d6fd1b2193fb471e7b4",
+  "scoring_utc": "2026-11-25T13:34:52.786436+00:00",
+  "new_future_outcomes_used": 0
+}

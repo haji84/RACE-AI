@@ -1,0 +1,38 @@
+{
+  "race_id": "202611252611",
+  "venue": "西武園",
+  "published_cutoff_at": "2026-11-25T20:10:00+09:00",
+  "result_state": "matched",
+  "checked_at": "2026-11-25T12:13:05.346182+00:00",
+  "official_state_head": "d216a04e8cbf19db629cc89b695e6ff1aa9a8680",
+  "points": 4,
+  "verified_trifecta": [
+    5,
+    3,
+    1
+  ],
+  "payout": {
+    "2t": 360,
+    "3t": 840
+  },
+  "verified_exacta": [
+    5,
+    3
+  ],
+  "first_two_source_observed_at": "2026-11-25T12:12:57.179099+00:00",
+  "sources": [
+    {
+      "source_id": "kdreams",
+      "checked_at": "2026-11-25T12:12:56.278976+00:00"
+    },
+    {
+      "source_id": "netkeirin",
+      "checked_at": "2026-11-25T12:12:57.179099+00:00"
+    }
+  ],
+  "publications": {
+    "1": false,
+    "4": true,
+    "8": true
+  }
+}

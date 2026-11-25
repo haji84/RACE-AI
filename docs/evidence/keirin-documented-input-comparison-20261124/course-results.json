@@ -1,0 +1,184 @@
+{
+  "schema": "KEIRIN_COURSE_GEOMETRY_ABLATION_V1",
+  "course_snapshot_captured_after_holdout": true,
+  "latest_result": {
+    "label_source_commit": "37bda18979e902650c139e24e13dcfbf764cf1b3",
+    "checked_at": "2026-11-23T15:55:02.503459+00:00",
+    "matched_within_study": 86
+  },
+  "details": {
+    "course_data": {
+      "26": {
+        "url": "https://keirin.netkeiba.com/race/course/?jyo_cd=26",
+        "sha256": "5613bfd29825ccb90c16c209de81922bba55b4901736f84fe3654d7207355a2a",
+        "captured_at": "2026-11-23T18:24:24.865791+00:00",
+        "circumference_m": 400.0,
+        "home_straight_m": 47.6
+      },
+      "34": {
+        "url": "https://keirin.netkeiba.com/race/course/?jyo_cd=34",
+        "sha256": "0b89425567238559de0164ee92b21cb8a23c89759c2d6c0633025e31b4040f5a",
+        "captured_at": "2026-11-23T18:24:25.833896+00:00",
+        "circumference_m": 400.0,
+        "home_straight_m": 58.0
+      },
+      "36": {
+        "url": "https://keirin.netkeiba.com/race/course/?jyo_cd=36",
+        "sha256": "07657029f6f02c6fbef93cc618740c127c121f1bbe5481a50237cefaa2edc059",
+        "captured_at": "2026-11-23T18:24:26.853576+00:00",
+        "circumference_m": 333.0,
+        "home_straight_m": 36.1
+      },
+      "45": {
+        "url": "https://keirin.netkeiba.com/race/course/?jyo_cd=45",
+        "sha256": "7070bebad589f3565547db7272e650bb6d0003e76def9178ef9374e04cc68c48",
+        "captured_at": "2026-11-23T18:24:27.781055+00:00",
+        "circumference_m": 400.0,
+        "home_straight_m": 60.3
+      },
+      "48": {
+        "url": "https://keirin.netkeiba.com/race/course/?jyo_cd=48",
+        "sha256": "c72ba342f353eecd28c0c09cfc590d0f42a7942ad629dd61e779aa6acd487ecc",
+        "captured_at": "2026-11-23T18:24:28.739511+00:00",
+        "circumference_m": 400.0,
+        "home_straight_m": 62.4
+      },
+      "53": {
+        "url": "https://keirin.netkeiba.com/race/course/?jyo_cd=53",
+        "sha256": "03de229c87a0fd0cf48d269b17c6770042cb59744f2895051525bd9b3e75e844",
+        "captured_at": "2026-11-23T18:24:29.738732+00:00",
+        "circumference_m": 333.0,
+        "home_straight_m": 38.0
+      },
+      "61": {
+        "url": "https://keirin.netkeiba.com/race/course/?jyo_cd=61",
+        "sha256": "06d4d0cd31c11b60bd12116969989bf61dcfdfc2a76e742646a4676915d59337",
+        "captured_at": "2026-11-23T18:24:30.700948+00:00",
+        "circumference_m": 400.0,
+        "home_straight_m": 47.9
+      },
+      "62": {
+        "url": "https://keirin.netkeiba.com/race/course/?jyo_cd=62",
+        "sha256": "3699a4bcb12065d19f96f041b3d441c5610d1e8c8b110637969b5a8c782194f9",
+        "captured_at": "2026-11-23T18:24:31.587721+00:00",
+        "circumference_m": 400.0,
+        "home_straight_m": 57.9
+      },
+      "81": {
+        "url": "https://keirin.netkeiba.com/race/course/?jyo_cd=81",
+        "sha256": "7103b169f8c5c615be66e811f8838aa48f76c66260735d52d889832ed1796157",
+        "captured_at": "2026-11-23T18:24:32.504555+00:00",
+        "circumference_m": 400.0,
+        "home_straight_m": 56.9
+      },
+      "84": {
+        "url": "https://keirin.netkeiba.com/race/course/?jyo_cd=84",
+        "sha256": "5f8401db185ef2bfb43c96d87ecca098b8f157035385eb07a064c0a2a77309d7",
+        "captured_at": "2026-11-23T18:24:33.481740+00:00",
+        "circumference_m": 400.0,
+        "home_straight_m": 64.4
+      }
+    },
+    "complete_course_count": 10,
+    "fitting_races": 837,
+    "fit_dates": [
+      "20260801",
+      "20260930"
+    ],
+    "regularization": 0.001,
+    "holdout_without_labels": 1180,
+    "forecast_sha256": "a494b32768270f818e94e14101eb91b4db8c32f0d8a69ede353a1c944d5aef09",
+    "config_sha256": "204b42c315a562f24c5a9409c09d98e14c680e935db8bb41e3ec3abbea3e11ba",
+    "replay_sha256": "2e4ad638a1d423cb1a7a5689c87e8dbb57286bc7c6260b92d69bcebff13062da"
+  },
+  "comparisons": {
+    "all": {
+      "2t:1": {
+        "races": 1177,
+        "base_hit": 278,
+        "with_course": 278,
+        "gained": 13,
+        "lost": 13
+      },
+      "2t:2": {
+        "races": 1177,
+        "base_hit": 431,
+        "with_course": 426,
+        "gained": 12,
+        "lost": 17
+      },
+      "2t:4": {
+        "races": 1177,
+        "base_hit": 623,
+        "with_course": 618,
+        "gained": 16,
+        "lost": 21
+      },
+      "3t:1": {
+        "races": 1177,
+        "base_hit": 85,
+        "with_course": 92,
+        "gained": 24,
+        "lost": 17
+      },
+      "3t:4": {
+        "races": 1177,
+        "base_hit": 280,
+        "with_course": 295,
+        "gained": 40,
+        "lost": 25
+      },
+      "3t:8": {
+        "races": 1177,
+        "base_hit": 428,
+        "with_course": 442,
+        "gained": 31,
+        "lost": 17
+      }
+    },
+    "versioned_cards": {
+      "2t:1": {
+        "races": 261,
+        "base_hit": 64,
+        "with_course": 66,
+        "gained": 4,
+        "lost": 2
+      },
+      "2t:2": {
+        "races": 261,
+        "base_hit": 97,
+        "with_course": 96,
+        "gained": 3,
+        "lost": 4
+      },
+      "2t:4": {
+        "races": 261,
+        "base_hit": 138,
+        "with_course": 139,
+        "gained": 4,
+        "lost": 3
+      },
+      "3t:1": {
+        "races": 261,
+        "base_hit": 20,
+        "with_course": 17,
+        "gained": 2,
+        "lost": 5
+      },
+      "3t:4": {
+        "races": 261,
+        "base_hit": 63,
+        "with_course": 60,
+        "gained": 8,
+        "lost": 11
+      },
+      "3t:8": {
+        "races": 261,
+        "base_hit": 98,
+        "with_course": 99,
+        "gained": 6,
+        "lost": 5
+      }
+    }
+  }
+}

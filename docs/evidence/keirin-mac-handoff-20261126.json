@@ -1,0 +1,189 @@
+{
+  "schema": "KEIRIN_MAC_HANDOFF_READBACK_V1",
+  "checked_at": "2026-11-25T18:11:27.806764+00:00",
+  "main_commit": "b7dd5e3bcabb1cda4fab18753551563d5d8bd839",
+  "transferred_draft_commit": "4d61e0d6fda0f1e409b2066d763af01fecb770f7",
+  "official_history_review": {
+    "pull_request": 339,
+    "commit": "361725e4c730c877145fda5caff9f82fdb407d3f",
+    "archive_commit": "4a269de3357f6e5063b41f8051e91948879bb112",
+    "index_sha256": "dc4d702f5b2f0f505063259d0f8a26de5d6d9ddcf984f8443a433e2bc697cf9f",
+    "verified_envelopes": {
+      "registry": 1,
+      "original": 4,
+      "result": 2
+    },
+    "owner_rsa_replay_verified_on_new_code": false
+  },
+  "scheduled_pr71_capture": {
+    "run": 45649740425,
+    "race_schedule_count": 84,
+    "official_details": 73,
+    "starts_with_registration": 504,
+    "capture_budget_hold_races": 11,
+    "new_precutoff_originals": 0,
+    "state": "HOLD_OWNER_SOURCE_PARTIAL_NO_COMPLETE_PR71_INPUT"
+  },
+  "independent_comparison_readback": {
+    "run": 45650659086,
+    "result_publisher_run": 45650599350,
+    "safe_report_sha256": "b9cdb042a040ef28b545933d9b2641ec98dfdd10458b19ec9acbb564319b27ee",
+    "score_report_sha256": "aabd6722ea038a8304f8c8a15aaf7d415d9d363626e97f99afb9f4ffbd7612f9",
+    "matched": 10,
+    "trifecta_top4": [
+      3,
+      4
+    ],
+    "exacta_top2": [
+      3,
+      3
+    ],
+    "result_scope": "TWO_SOURCES_MATCH",
+    "organizer_cutoff_authenticated": false
+  },
+  "pages_baseline": {
+    "revision": "681edf78d15b6c33033bee6b9d129553ccc6f4fd",
+    "manifest_sha256": "637abd6cf5f640604a658f5b64540447007aa76d37ae98f5c91bd78d447f74ae",
+    "manifest_files_verified_by_http": 73
+  },
+  "native_mac_reproduction": {
+    "model": "MacBookPro18,3",
+    "cpu": "Apple M1 Pro",
+    "ram_gib": 16,
+    "macos": "26.6.2 (25G83)",
+    "python": "3.12.4",
+    "lightgbm": "4.6.0",
+    "numpy": "2.2.6",
+    "scipy": "1.17.0",
+    "scanned_races": 30713,
+    "admitted_races": 26656,
+    "archive_sha256": [
+      "1bdad22b9744c9c5563f7bb1af31875170a3e6b7f4b0dd73fba8f98d645d8fc4",
+      "d915560877493816b90df8bcd5e7bdef45557f57100b4cd40a3d017cd959334d"
+    ],
+    "archive_seconds": 6.15,
+    "fit_seconds": 69.01,
+    "evaluation_seconds": 8.79,
+    "fit_max_rss_bytes": 1591214080,
+    "fit_races": 20649,
+    "tune_races": 2787,
+    "evaluation_races": 3201,
+    "fit_end": "20260731",
+    "tune_end": "20260930",
+    "test_end": "20261122",
+    "candidate": "all_96",
+    "scope": "RETROSPECTIVE_CHRONOLOGICAL_RECONSTRUCTION_NOT_FUTURE_INDEPENDENT",
+    "examples_sha256": "8d88c7e5370d650ad48b6b494daf5711822e9b6b3822978e2d1c5009adf44875",
+    "frozen_model_sha256": "d393bbb129470e9d14aaac28bc79a5b7565035a5d1eaf7f832a56b89ccb13c02",
+    "evaluation_sha256": "3cc8800c79f7fcdabf22a843ba76216ac1523121ff194e91678f44abeb267e04",
+    "stage_sha256": [
+      "660f4420daccf3c152016c5a9c6677dca092d1994eeaf0dab3c1dca471adeaff",
+      "b28fa423694ca2f73bd3236bd4ff15b31c340cb410583465ed1d1921a21275e9",
+      "2fd5e2599f1879e7fcb585c9ffb52b05c5d0c9b7bb85c54ee4f8ead9df03db33"
+    ],
+    "stage_bytes_match_saved_comparison": true,
+    "trifecta_top4": [
+      928,
+      947
+    ],
+    "exacta_top2": [
+      1237,
+      1240
+    ],
+    "trifecta_top8": [
+      1298,
+      1323
+    ],
+    "paired_day_bootstrap_95": {
+      "brier_3t": [
+        -0.003185592548152178,
+        -0.0013650917691526555
+      ],
+      "logloss_3t": [
+        -0.040643715804941805,
+        -0.022900108211158416
+      ],
+      "top2_2t": [
+        -0.004423415677557355,
+        0.005897049978602079
+      ],
+      "top4_3t": [
+        0.0006240941083707286,
+        0.01141774882240312
+      ],
+      "top8_3t": [
+        0.000619171120819596,
+        0.015352446565454205
+      ]
+    },
+    "production_weights_promoted": false
+  },
+  "media_intake": {
+    "race_id": "202611258401",
+    "provider": "WINTICKET",
+    "date_jst": "2026-11-25",
+    "normal_owner_authorized_player_area_capture": true,
+    "owner_scope": "AUTOMATED_PLAYER_RECORDING_PRIVATE_RETENTION_ANALYSIS_AND_LEARNING",
+    "clip_sha256": "dca41082daf8cbe10cecfc697a4ccd3a853825e4d9a8f3deb4d27627fd30b18b",
+    "bytes": 27519694,
+    "decoded_frames": 1988,
+    "resolution": [
+      1280,
+      720
+    ],
+    "duration_ms": 79520,
+    "longest_black_ms": 0,
+    "longest_frozen_ms": 3040,
+    "official_receipt_sha256": "a8c377d3ef22d176b6936d98b9f9f30c93e603a1273a81ebf2655e35afd9af98",
+    "official_starters_matched": 6,
+    "official_finish_positions_matched": 6,
+    "local_cycle": {
+      "capture_state": "NO_NEW_RECORDING",
+      "census_races": 1,
+      "continuous_media_races": 1,
+      "inventory": {
+        "processed": 1,
+        "verified": 1
+      },
+      "media_races": 1,
+      "model_state": "WAITING_FOR_REVIEWED_OBSERVATIONS",
+      "observation_count": 0,
+      "recorded": 0,
+      "retained_media_races": 1,
+      "state": "VIDEO_LEDGER_CHECKED",
+      "unverified_review_inputs": 0
+    }
+  },
+  "launch_agent": {
+    "label": "com.race-ai.keirin-mac",
+    "interval_seconds": 900,
+    "runtime_commit": "ba52fcdd9a3969a560b48c9e76b6320ac49cda27",
+    "successful_process_runs_checked": 2,
+    "last_cycle_at": "2026-11-25T18:03:13.416074+00:00",
+    "last_cycle_report_sha256": "755c9d15469ba7dc2cb6db2230fe36da2e16bf4699c44a6dd656d65611e33eb8",
+    "last_cycle_verified_races": 1,
+    "last_cycle_assets_reprocessed": 0,
+    "last_cycle_reviewed_observations": 0,
+    "reboot_and_24_hour_acceptance": false
+  },
+  "later_existing_official_sp_run": {
+    "run": 45669922501,
+    "day_jst": "2026-11-26",
+    "official_roster_races": 84,
+    "new_A_B_git_archived": 3,
+    "second_runner_cipher_verified": 3,
+    "published_originals": 3,
+    "RSA_private_decryption_verified": false,
+    "paired_comparable_races": 0,
+    "all_prediction_coverage_complete": false
+  },
+  "pages_growth_release": {
+    "pull_request": 340,
+    "protected_main_commit": "19acd611ff5f981e1d910b840bc46d5f5d157761",
+    "pages_commit": "f1e5ede450425890cd9a82a606ed3b1aab80d5e2",
+    "deployment_run": 45671989202,
+    "manifest_sha256": "ef0e5ff55c378d7ebc6092091944a032bb30234048ac08f26eb215106d5707cb",
+    "http_assets_verified": 73,
+    "iphone_safari_verified": false
+  }
+}

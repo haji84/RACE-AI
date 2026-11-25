@@ -1,0 +1,46 @@
+{
+  "schema": "KEIRIN_PAIR_RESEARCH_NATIVE_RESULT_CHECKPOINT_V1",
+  "workflow_url": "https://github.com/haji84/RACE-AI/actions/runs/45616346459",
+  "workflow_result": "success",
+  "result_state_commit": "8202cd86c5232683bb49a5548c6592af73fc8324",
+  "result_sha256": "d3cc45a3a17178a2dbe0ee0321d01685f81665cc1a304ab6133618e7a3637a63",
+  "checked_at": "2026-11-25T12:42:47.214687+00:00",
+  "day_status": {
+    "listed": 75,
+    "matched": 61,
+    "pending": 1,
+    "held": 1,
+    "pre_cutoff": 12
+  },
+  "combined_site_published_days": {
+    "1": {
+      "hit_pct": 8.5714,
+      "hits": 12,
+      "matched": 140,
+      "wilson_95_pct": [
+        4.9711,
+        14.3845
+      ]
+    },
+    "4": {
+      "hit_pct": 25.7143,
+      "hits": 36,
+      "matched": 140,
+      "wilson_95_pct": [
+        19.191,
+        33.5347
+      ]
+    },
+    "8": {
+      "hit_pct": 40.7143,
+      "hits": 57,
+      "matched": 140,
+      "wilson_95_pct": [
+        32.9296,
+        48.995
+      ]
+    }
+  },
+  "combined_site_observed_count": 140,
+  "combined_site_roster_count": 156
+}

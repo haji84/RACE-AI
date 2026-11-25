@@ -1,0 +1,146 @@
+{
+  "combined": {
+    "1": {
+      "hit_pct": 7.8431,
+      "hits": 12,
+      "matched": 153,
+      "wilson_95_pct": [
+        4.5433,
+        13.208
+      ]
+    },
+    "4": {
+      "hit_pct": 24.8366,
+      "hits": 38,
+      "matched": 153,
+      "wilson_95_pct": [
+        18.663,
+        32.2428
+      ]
+    },
+    "8": {
+      "hit_pct": 39.8693,
+      "hits": 61,
+      "matched": 153,
+      "wilson_95_pct": [
+        32.4506,
+        47.7842
+      ]
+    }
+  },
+  "daily": [
+    {
+      "date": "2026-11-24",
+      "public_races": 81,
+      "state": "495fb2b8292d4544c9f8fc7a7c0a608e2829452a",
+      "status": {
+        "matched": 79,
+        "held": 1,
+        "pending": 1
+      },
+      "checked_at": "2026-11-25T14:41:49.575325+00:00",
+      "release_at": "2026-11-23T21:01:16.230394+00:00",
+      "model_id": "published_line",
+      "public_packet_sha256": "b2a3064e1621497db0b6781024c56e429bd811cfb034b32a108d10403eb7601d",
+      "roster_sha256": "19511419d30b1e9ef543588262289565c49009b5ff1815e7bbfdd8cc574ef270",
+      "results_sha256": "294cf62d86ebb3756d319578af5cf35b399aeaf58a9f5918175badab44d4da88",
+      "publication_receipt": "docs/evidence/keirin-line-forward-20261124/site-all-publication.json",
+      "publication_receipt_sha256": "7a9f8a0c9b0979dc79b08ef21ff827c255985966171b041d61c59cef86942222",
+      "verified_before_cutoff": 81,
+      "source_link_alignment": {
+        "netkeirin_forecast_kdreams_result_roster": 81
+      },
+      "cap_rates": {
+        "1": {
+          "hits": 6,
+          "matched": 79,
+          "hit_pct": 7.5949,
+          "wilson_95_pct": [
+            3.5272,
+            15.5954
+          ],
+          "correct_first_two": 18
+        },
+        "4": {
+          "hits": 17,
+          "matched": 79,
+          "hit_pct": 21.519,
+          "wilson_95_pct": [
+            13.8922,
+            31.7872
+          ],
+          "correct_first_two": 27
+        },
+        "8": {
+          "hits": 28,
+          "matched": 79,
+          "hit_pct": 35.443,
+          "wilson_95_pct": [
+            25.7954,
+            46.4407
+          ],
+          "correct_first_two": 38
+        }
+      }
+    },
+    {
+      "cap_rates": {
+        "1": {
+          "correct_first_two": 13,
+          "hit_pct": 8.1081,
+          "hits": 6,
+          "matched": 74,
+          "wilson_95_pct": [
+            3.769,
+            16.5819
+          ]
+        },
+        "4": {
+          "correct_first_two": 31,
+          "hit_pct": 28.3784,
+          "hits": 21,
+          "matched": 74,
+          "wilson_95_pct": [
+            19.3735,
+            39.5173
+          ]
+        },
+        "8": {
+          "correct_first_two": 41,
+          "hit_pct": 44.5946,
+          "hits": 33,
+          "matched": 74,
+          "wilson_95_pct": [
+            33.8158,
+            55.9069
+          ]
+        }
+      },
+      "checked_at": "2026-11-25T14:41:47.951288+00:00",
+      "date": "2026-11-25",
+      "model_id": "video_line_ordered",
+      "public_packet_sha256": "2a62f3a6cf7f2a12d62b5b49b4d9a620db49309b0522814ed904c11c942e3d35",
+      "public_races": 75,
+      "publication_receipt": "docs/evidence/keirin-pair-diagnosis-20261125/publication.json",
+      "publication_receipt_sha256": "9edde4fb25909f0d2b1b1361379488b297e9bd03b690cdd7caca64d687c09745",
+      "release_at": "2026-11-24T23:43:19.442812+00:00",
+      "results_sha256": "d80afbf50e1e39c61659255552a58546f88c6d11a4f93f5b23d57d27f26d3a1c",
+      "roster_sha256": "c96f35a0c0a9e26c34a491d162674f40a47a2e5fd0ae19f4583c86653d6aeb31",
+      "source_link_alignment": {
+        "netkeirin_forecast_kdreams_result_roster": 75
+      },
+      "state": "495fb2b8292d4544c9f8fc7a7c0a608e2829452a",
+      "status": {
+        "held": 1,
+        "matched": 74
+      },
+      "verified_before_cutoff": 75
+    }
+  ],
+  "listed_races": 156,
+  "matched_coverage_pct": 98.0769,
+  "results_matched": 153,
+  "schema": "KEIRIN_SITE_FORWARD_OBSERVED_FIXED_CAPS_V1",
+  "scope": "operational comparison across two different site model versions; not one challenger’s forward evaluation",
+  "source": "original forecasts published before every cutoff on each date"
+}

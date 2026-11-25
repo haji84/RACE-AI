@@ -1,0 +1,69 @@
+{
+  "candidate_inputs": 26637,
+  "complete_two_year_model_fit": false,
+  "earlier_listed": 23327,
+  "earlier_listed_cancelled": 7,
+  "earlier_window_jst": [
+    "2024-11-26",
+    "2025-09-30"
+  ],
+  "existing_official_sp_run": {
+    "archived_originals": 3,
+    "baseline_unverified": 1,
+    "class_hold": 57,
+    "id": 45669922501,
+    "independent_cipher_verified": 3,
+    "registered": 84,
+    "source_budget_pending": 23
+  },
+  "first_organizer_cutoff_jst": "08:47",
+  "first_provider_cutoff_jst": "08:45",
+  "full_nationwide_24h_verified": false,
+  "known_chronological_evaluation": 3201,
+  "limited_historical_lead_retention": {
+    "brier": [
+      0.211975,
+      0.19391
+    ],
+    "fit": 55,
+    "later_score": 17,
+    "races": 72,
+    "scope": "CONDITIONAL_ON_OBSERVED_B_LEADER"
+  },
+  "missing": [
+    "PHASE_AND_LINEUP_IN_EARLIER_ARCHIVE",
+    "RESTORABLE_COMPLETE_RAW_ARCHIVE_FOR_REQUESTED_DATES",
+    "REVIEWED_REPLAY_OBSERVATIONS_FOR_NATIONAL_LEARNING"
+  ],
+  "nationwide_date": "2026-11-26",
+  "nationwide_registered_races": 84,
+  "nationwide_venues": 8,
+  "official_schedule_sha256": "3f3a991b13c5f5d01e6e75248d85486467f884abfb23814708b910bc06464ccf",
+  "organizer_schedule_reparsed": true,
+  "pr71_actual_run": {
+    "complete_forecasts": 0,
+    "id": 45649740425,
+    "registered": 84,
+    "verified_details": 73
+  },
+  "production_weights_promoted": false,
+  "rank_model_scope": "RETROSPECTIVE_PINNED_TWO_SQLITE",
+  "recent_existing_official_ciphertexts": {
+    "files_verified": 26,
+    "plaintext_protected_replay_verified": false,
+    "result_envelopes": 11,
+    "source_days": 3
+  },
+  "requested_archive_jst": [
+    "2024-11-26",
+    "2026-11-25"
+  ],
+  "sources_observed": 9,
+  "takeo_roster_in_nationwide_startlist": 0,
+  "training": 20649,
+  "tuning": 2787,
+  "verified_ranking_input_jst": [
+    "2025-10-01",
+    "2026-11-22"
+  ]
+}

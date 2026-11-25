@@ -1,0 +1,23 @@
+{
+  "schema": "KEIRIN_FORWARD_RECEIPT_V1",
+  "frozen_at": "2026-11-25T10:34:26.039054+00:00",
+  "earliest": "2026-11-25T19:42:00+09:00",
+  "latest": "2026-11-25T23:25:00+09:00",
+  "registered": 25,
+  "prediction_sha256": "af1ffeaf909f472c8afa97d9e4858e262bbfcc2e3c31fcf065c69d79a817052e",
+  "design_sha256": "28cc3b98be59c97c7aec0dc6bd2c57659b4c1603c31fccc44af440704ae95c58",
+  "published_asset_sha256": "51a98f0a048d4831eeb8c85533e28f789b17dc55ca59a7cb0cf0c920d7e4eb9e",
+  "proof_sources_sha256": "bbf1a92c13671856287c2d76afd7cb571335823cd4f4ca7ec0a52f1e28d4ea43",
+  "fit_sha256": "7858ec29b33f516824fec661f3cfb0bc7b9de80096ad02cb1aee705955444890",
+  "coverage": {
+    "applicable": 19,
+    "multi_line": 4,
+    "changed": 8,
+    "individual": 6,
+    "no_line": 15
+  },
+  "comparators": {
+    "published": "site",
+    "trial": "heat_type_role_strength"
+  }
+}

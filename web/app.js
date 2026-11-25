@@ -3313,7 +3313,7 @@ if (typeof window === 'object' && typeof location === 'object') window.RaceNoteI
     need(typeof value==='string'&&value.length>0&&value.length<=max&&value.length%4===0&&!/[^A-Za-z0-9+/=]/.test(value));
     const binary=atob(value);need(btoa(binary)===value);return Uint8Array.from(binary,c=>c.charCodeAt(0));
   }
-  async function openCipher(bytes,{cipherSha,key}){
+  async function openCipher(bytes,{cipherSha,key,onSource}){
     need(bytes instanceof Uint8Array&&bytes.length<=90*1024*1024&&hex(cipherSha)&&await digest(bytes)===cipherSha);
     const envelope=JSON.parse(new TextDecoder('utf-8',{fatal:true}).decode(bytes));
     need(record(envelope)&&Object.keys(envelope).sort().join(',')==='ciphertext,header,nonce');
@@ -3325,7 +3325,9 @@ if (typeof window === 'object' && typeof location === 'object') window.RaceNoteI
     const aad=encoder.encode(JSON.stringify({schema:h.schema,source_content_sha256:h.source_content_sha256}));
     const plain=new Uint8Array(await apiCrypto().subtle.decrypt({name:'AES-GCM',iv:nonce,additionalData:aad,tagLength:128},imported,encrypted));
     need(plain.length<=LIMIT&&await digest(plain)===h.source_content_sha256);
-    return decodePacket(JSON.parse(new TextDecoder('utf-8',{fatal:true}).decode(plain)),cipherSha);
+    const result=await decodePacket(JSON.parse(new TextDecoder('utf-8',{fatal:true}).decode(plain)),cipherSha);
+    if(onSource)onSource(plain);
+    return result;
   }
   return {openPacket,openCipher,rows,historyRows,matchesHistory,historyPage,forecast,frozenArm,displayedPredictions,compare,summarize,allocate,resultUpdates,checkedDiagnostics,combineFrozen,mergeNationwide,nationwideSemantic,attachNationwide,safeUrl,digest,clock,instantMicros,sameClock,utc,day,SCHEMA};
 });
@@ -3376,12 +3378,12 @@ if (typeof window === 'object' && typeof location === 'object') window.RaceNoteI
     const jwk=await c.subtle.exportKey('jwk',privateKey),raw=new Uint8Array(65);raw[0]=4;raw.set(decode(jwk.x),1);raw.set(decode(jwk.y),33);
     return {privateKey,recipient:await M.digest(raw)};
   }
-  async function openEntry(bytes,e,cap){
+  async function openEntry(bytes,e,cap,{onSource}={}){
     const c=cryptoApi(),ephemeral=await c.subtle.importKey('raw',decode(e.ephemeral_public_key),{name:'ECDH',namedCurve:'P-256'},false,[]);
     const shared=await c.subtle.deriveBits({name:'ECDH',public:ephemeral},cap.privateKey,256),material=await c.subtle.importKey('raw',shared,'HKDF',false,['deriveBits']);
     const key=await c.subtle.deriveBits({name:'HKDF',hash:'SHA-256',salt:decode(e.salt),info:encoder.encode(INFO+cap.recipient)},material,256);
     need(await M.digest(bytes)===e.cipher_sha256);const h=JSON.parse(new TextDecoder('utf-8',{fatal:true}).decode(bytes)).header;need(h?.source_content_sha256===e.source_content_sha256);
-    const data=await M.openCipher(bytes,{cipherSha:e.cipher_sha256,key:encode(key)});
+    const data=await M.openCipher(bytes,{cipherSha:e.cipher_sha256,key:encode(key),onSource});
     need(data.dates.slice().sort().join(',')===e.days.slice().sort().join(','));
     if(e.kind==='results')need(e.captured_race_ids.length===0&&e.priority_window_race_ids.length===0&&[...data.files.keys()].every(path=>/^data\/\d{4}-\d{2}-\d{2}\/research_results\.json$/.test(path))&&data.dates.every(date=>M.rows(data,date).length===0));
     if(e.kind==='result'){

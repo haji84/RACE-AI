@@ -1,0 +1,17 @@
+{
+  "accuracy_improvement_proven": false,
+  "archive_commit": "48d8d65d16ee88236e6c1492a912448ec813b66a",
+  "archive_kind": "archive",
+  "cipher_bytes": 38668,
+  "cipher_sha256": "c07954c44c461774d8d7eb479ec06a1940a0586a0b44edc88d119c14f05d647f",
+  "formal_pre_cutoff_original_authenticated": false,
+  "github_job": 139434628098,
+  "github_run": 45679127505,
+  "observed_at": "2026-11-25T18:50:10.055002+00:00",
+  "plaintext_decrypted": false,
+  "private_key_used": false,
+  "registered_comparison_races": 1,
+  "source_pages_requested": 0,
+  "state": "INDEPENDENT_RUNNER_CIPHER_SHA_READBACK_VERIFIED",
+  "still_pre_cutoff_races": 1
+}

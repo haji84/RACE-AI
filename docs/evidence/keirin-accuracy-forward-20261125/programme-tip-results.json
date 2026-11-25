@@ -1,0 +1,559 @@
+{
+  "method": "Multiplicative offsets on the independent tip symbol for each of first, second, third, anchored to the original full probability distribution. Six symbols. No mark is the reference. Penalize average negative joint log likelihood with 0.005 * sum of squared offsets. Ranked at the same ticket count; no public ranking or point-count change.",
+  "fit_n": 16033,
+  "train_last_day": "20260523",
+  "training_source": "Kdreams active programme table td.tip (entries.forecast_mark). Earlier SQLite records may have been captured after the race.",
+  "source_resolution": "Monthly CSV lineup disagreed with the original Kdreams programme table on 15 of 23 spot checks and was excluded before opening the historical scores. Use validated symbols for listed entrants, each unique and including ◎ and ○. Exact Kdreams pre-cutoff packets for current dates; other provider marks excluded.",
+  "source_check": {
+    "verif_utc": "2026-11-25T07:12:48.091630+00:00",
+    "fixed_ref": "93c73d259b428e3d43d59b350cd87cc065fd3090",
+    "scanned_research_packets": 31,
+    "total_eligible_by_date": {
+      "20261121": 54,
+      "20261122": 67,
+      "20261123": 86,
+      "20261124": 80,
+      "20261125": 75
+    },
+    "confirmed_source_by_date": {
+      "20261121": 54,
+      "20261122": 67,
+      "20261123": 86,
+      "20261124": 75,
+      "20261125": 69
+    },
+    "conflicting_snapshots": {},
+    "duplicate_selection": "earliest qualifying source capture before deadline; packet also sealed before cutoff",
+    "source_eligibility": "Kdreams racecard statistics + primary-source time/URL/hash binding; unique recognized symbols including ◎ and ○; exact starters of timed incumbent; official odds/results/publication status excluded",
+    "dated_sha256": "4d7d34a98ff0d651333bdb19512968175f081d6cfb23f5b585641691681747fb"
+  },
+  "historical": {
+    "all": {
+      "n": 12234,
+      "date_range": [
+        "20260524",
+        "20261120"
+      ],
+      "1": {
+        "old": 1248,
+        "new": 1284,
+        "gained": 133,
+        "lost": 97,
+        "paired_pp_ci95_by_day": [
+          0.06474328957754495,
+          0.5278416480593223
+        ]
+      },
+      "4": {
+        "old": 3234,
+        "new": 3268,
+        "gained": 206,
+        "lost": 172,
+        "paired_pp_ci95_by_day": [
+          -0.00822023833805482,
+          0.5673411977691664
+        ]
+      },
+      "8": {
+        "old": 4583,
+        "new": 4646,
+        "gained": 210,
+        "lost": 147,
+        "paired_pp_ci95_by_day": [
+          0.22605211678488796,
+          0.8124168649558824
+        ]
+      }
+    },
+    "with_valid_marks": {
+      "n": 12232,
+      "date_range": [
+        "20260524",
+        "20261120"
+      ],
+      "1": {
+        "old": 1248,
+        "new": 1284,
+        "gained": 133,
+        "lost": 97,
+        "paired_pp_ci95_by_day": [
+          0.06474328957754495,
+          0.5278416480593223
+        ]
+      },
+      "4": {
+        "old": 3234,
+        "new": 3268,
+        "gained": 206,
+        "lost": 172,
+        "paired_pp_ci95_by_day": [
+          -0.00822159000693252,
+          0.5673411977691664
+        ]
+      },
+      "8": {
+        "old": 4583,
+        "new": 4646,
+        "gained": 210,
+        "lost": 147,
+        "paired_pp_ci95_by_day": [
+          0.22605393633702978,
+          0.8124168649558824
+        ]
+      }
+    }
+  },
+  "current": {
+    "all": {
+      "n": 287,
+      "date_range": [
+        "20261121",
+        "20261124"
+      ],
+      "1": {
+        "old": 32,
+        "new": 32,
+        "gained": 2,
+        "lost": 2,
+        "paired_pp_ci95_by_day": [
+          -1.0452961672473868,
+          1.2396694214876034
+        ]
+      },
+      "4": {
+        "old": 91,
+        "new": 90,
+        "gained": 6,
+        "lost": 7,
+        "paired_pp_ci95_by_day": [
+          -1.8461538461538463,
+          0.9771986970684039
+        ]
+      },
+      "8": {
+        "old": 127,
+        "new": 125,
+        "gained": 3,
+        "lost": 5,
+        "paired_pp_ci95_by_day": [
+          -3.202846975088968,
+          0.8875739644970414
+        ]
+      },
+      "displayed": {
+        "old": 93,
+        "new": 91,
+        "gained": 6,
+        "lost": 8,
+        "paired_pp_ci95_by_day": [
+          -1.8461538461538463,
+          0.0
+        ]
+      }
+    },
+    "with_marks": {
+      "n": 282,
+      "date_range": [
+        "20261121",
+        "20261124"
+      ],
+      "1": {
+        "old": 31,
+        "new": 31,
+        "gained": 2,
+        "lost": 2,
+        "paired_pp_ci95_by_day": [
+          -1.0452961672473868,
+          1.2658227848101267
+        ]
+      },
+      "4": {
+        "old": 89,
+        "new": 88,
+        "gained": 6,
+        "lost": 7,
+        "paired_pp_ci95_by_day": [
+          -1.8461538461538463,
+          1.0273972602739727
+        ]
+      },
+      "8": {
+        "old": 123,
+        "new": 121,
+        "gained": 3,
+        "lost": 5,
+        "paired_pp_ci95_by_day": [
+          -3.260869565217391,
+          0.9009009009009009
+        ]
+      },
+      "displayed": {
+        "old": 91,
+        "new": 89,
+        "gained": 6,
+        "lost": 8,
+        "paired_pp_ci95_by_day": [
+          -1.8461538461538463,
+          0.0
+        ]
+      }
+    },
+    "20261121": {
+      "n": 54,
+      "date_range": [
+        "20261121",
+        "20261121"
+      ],
+      "1": {
+        "old": 4,
+        "new": 5,
+        "gained": 1,
+        "lost": 0,
+        "paired_pp_ci95_by_day": [
+          1.8518518518518519,
+          1.8518518518518519
+        ]
+      },
+      "4": {
+        "old": 18,
+        "new": 18,
+        "gained": 0,
+        "lost": 0,
+        "paired_pp_ci95_by_day": [
+          0.0,
+          0.0
+        ]
+      },
+      "8": {
+        "old": 21,
+        "new": 21,
+        "gained": 0,
+        "lost": 0,
+        "paired_pp_ci95_by_day": [
+          0.0,
+          0.0
+        ]
+      },
+      "displayed": {
+        "old": 18,
+        "new": 18,
+        "gained": 0,
+        "lost": 0,
+        "paired_pp_ci95_by_day": [
+          0.0,
+          0.0
+        ]
+      }
+    },
+    "20261122": {
+      "n": 67,
+      "date_range": [
+        "20261122",
+        "20261122"
+      ],
+      "1": {
+        "old": 8,
+        "new": 7,
+        "gained": 1,
+        "lost": 2,
+        "paired_pp_ci95_by_day": [
+          -1.492537313432836,
+          -1.492537313432836
+        ]
+      },
+      "4": {
+        "old": 19,
+        "new": 19,
+        "gained": 2,
+        "lost": 2,
+        "paired_pp_ci95_by_day": [
+          0.0,
+          0.0
+        ]
+      },
+      "8": {
+        "old": 26,
+        "new": 23,
+        "gained": 0,
+        "lost": 3,
+        "paired_pp_ci95_by_day": [
+          -4.477611940298507,
+          -4.477611940298507
+        ]
+      },
+      "displayed": {
+        "old": 20,
+        "new": 20,
+        "gained": 2,
+        "lost": 2,
+        "paired_pp_ci95_by_day": [
+          0.0,
+          0.0
+        ]
+      }
+    },
+    "20261123": {
+      "n": 86,
+      "date_range": [
+        "20261123",
+        "20261123"
+      ],
+      "1": {
+        "old": 15,
+        "new": 15,
+        "gained": 0,
+        "lost": 0,
+        "paired_pp_ci95_by_day": [
+          0.0,
+          0.0
+        ]
+      },
+      "4": {
+        "old": 33,
+        "new": 31,
+        "gained": 0,
+        "lost": 2,
+        "paired_pp_ci95_by_day": [
+          -2.3255813953488373,
+          -2.3255813953488373
+        ]
+      },
+      "8": {
+        "old": 46,
+        "new": 47,
+        "gained": 1,
+        "lost": 0,
+        "paired_pp_ci95_by_day": [
+          1.1627906976744187,
+          1.1627906976744187
+        ]
+      },
+      "displayed": {
+        "old": 33,
+        "new": 31,
+        "gained": 0,
+        "lost": 2,
+        "paired_pp_ci95_by_day": [
+          -2.3255813953488373,
+          -2.3255813953488373
+        ]
+      }
+    },
+    "20261124": {
+      "n": 80,
+      "date_range": [
+        "20261124",
+        "20261124"
+      ],
+      "1": {
+        "old": 5,
+        "new": 5,
+        "gained": 0,
+        "lost": 0,
+        "paired_pp_ci95_by_day": [
+          0.0,
+          0.0
+        ]
+      },
+      "4": {
+        "old": 21,
+        "new": 22,
+        "gained": 4,
+        "lost": 3,
+        "paired_pp_ci95_by_day": [
+          1.25,
+          1.25
+        ]
+      },
+      "8": {
+        "old": 34,
+        "new": 34,
+        "gained": 2,
+        "lost": 2,
+        "paired_pp_ci95_by_day": [
+          0.0,
+          0.0
+        ]
+      },
+      "displayed": {
+        "old": 22,
+        "new": 22,
+        "gained": 4,
+        "lost": 4,
+        "paired_pp_ci95_by_day": [
+          0.0,
+          0.0
+        ]
+      }
+    },
+    "both_updates": {
+      "n": 249,
+      "date_range": [
+        "20261121",
+        "20261124"
+      ],
+      "1": {
+        "old": 30,
+        "new": 30,
+        "gained": 2,
+        "lost": 2,
+        "paired_pp_ci95_by_day": [
+          -1.1070110701107012,
+          1.4150943396226414
+        ]
+      },
+      "4": {
+        "old": 81,
+        "new": 80,
+        "gained": 4,
+        "lost": 5,
+        "paired_pp_ci95_by_day": [
+          -2.04778156996587,
+          1.2875536480686696
+        ]
+      },
+      "8": {
+        "old": 109,
+        "new": 106,
+        "gained": 2,
+        "lost": 5,
+        "paired_pp_ci95_by_day": [
+          -3.6437246963562755,
+          0.78125
+        ]
+      },
+      "displayed": {
+        "old": 82,
+        "new": 80,
+        "gained": 4,
+        "lost": 6,
+        "paired_pp_ci95_by_day": [
+          -2.112676056338028,
+          0.0
+        ]
+      }
+    },
+    "individual": {
+      "n": 24,
+      "date_range": [
+        "20261121",
+        "20261124"
+      ],
+      "1": {
+        "old": 2,
+        "new": 2,
+        "gained": 0,
+        "lost": 0,
+        "paired_pp_ci95_by_day": [
+          0.0,
+          0.0
+        ]
+      },
+      "4": {
+        "old": 6,
+        "new": 6,
+        "gained": 0,
+        "lost": 0,
+        "paired_pp_ci95_by_day": [
+          0.0,
+          0.0
+        ]
+      },
+      "8": {
+        "old": 11,
+        "new": 11,
+        "gained": 0,
+        "lost": 0,
+        "paired_pp_ci95_by_day": [
+          0.0,
+          0.0
+        ]
+      },
+      "displayed": {
+        "old": 7,
+        "new": 7,
+        "gained": 0,
+        "lost": 0,
+        "paired_pp_ci95_by_day": [
+          0.0,
+          0.0
+        ]
+      }
+    },
+    "unspecified": {
+      "n": 14,
+      "date_range": [
+        "20261124",
+        "20261124"
+      ],
+      "1": {
+        "old": 0,
+        "new": 0,
+        "gained": 0,
+        "lost": 0,
+        "paired_pp_ci95_by_day": [
+          0.0,
+          0.0
+        ]
+      },
+      "4": {
+        "old": 4,
+        "new": 4,
+        "gained": 2,
+        "lost": 2,
+        "paired_pp_ci95_by_day": [
+          0.0,
+          0.0
+        ]
+      },
+      "8": {
+        "old": 7,
+        "new": 8,
+        "gained": 1,
+        "lost": 0,
+        "paired_pp_ci95_by_day": [
+          7.142857142857143,
+          7.142857142857143
+        ]
+      },
+      "displayed": {
+        "old": 4,
+        "new": 4,
+        "gained": 2,
+        "lost": 2,
+        "paired_pp_ci95_by_day": [
+          0.0,
+          0.0
+        ]
+      }
+    }
+  },
+  "transfer_diagnosis": {
+    "studied": 282,
+    "mean_negative_log_probability_of_actual_trifecta": [
+      4.152594115749222,
+      4.139916887627586
+    ],
+    "displayed_switches": {
+      "gained_third_missing": 4,
+      "lost_third_missing": 4,
+      "gained_winner_missing": 1,
+      "lost_winner_missing": 3,
+      "lost_second_missing": 1,
+      "gained_second_missing": 1
+    },
+    "definition": "For a gain, diagnose old ticket set. For a loss, diagnose new ticket set. Categories are mutually exclusive by first diverging finish position."
+  },
+  "hashes": {
+    "design.json": "f5ba2b5e1421ff6c0f9d13efce186457c560c336c389c87c6fa70f780be0c0c7",
+    "source-correction.json": "9d17a71092289ee6b09d9d104a60aa100e85e2e23255a55e7337eb7e89132534",
+    "coefficients.json": "83a60af5ae8c99e3b3171afbaefcfd67142c70e8caf1365ad413ffc9388091a0",
+    "fixed.owner.npz": "bf6eadf4cb0b9b947b87b222cdcb66bb9c784e91aff4af38689f89dfdfdcc5ae",
+    "recent-predicted.owner.json": "cfa90809bad69d904a4fb51e8fdbae4f5ad9cb9adeb06e4c6ec13b18b724ee87",
+    "dated-inputs.owner.json": "4d7d34a98ff0d651333bdb19512968175f081d6cfb23f5b585641691681747fb",
+    "study.py": "31b3c06b828b4a80112cab92417a5cda47fd2d3d906ca9dc837eee1b71ab6c5e",
+    "kdreams.py": "0869a0889f50cdeda8b3dc86b74093b1d849a379425c12d70d4c10ac9167fe90",
+    "report.py": "da837ccfa37d362b9550ab1052c1dcfe2cc70546516badebea0ef87be4ff7eda",
+    "recent.py": "e4fa2684eedfc431f091db2159c9cbdd21eb7d4a30cdfe02b99083d4c47c1360"
+  }
+}

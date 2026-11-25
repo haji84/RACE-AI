@@ -1,0 +1,59 @@
+{
+  "adds_n_with_both_ordered_pairs": 2,
+  "adds_new_validated_cross_line_examples": 0,
+  "archive_gold_reference_sha256": "ec587c9ef32db994f88c1ad2801806cc082e1ba4ae98b93b5d2e3c4031d333f9",
+  "crossed_minimum_event_gate": false,
+  "frozen_plan_sha256": "9074f0c79afbb452b7128c4b9692e556f2c62f5d3c90fa493c3e6a4b620ba445",
+  "generated": "2026-11-25T12:35:02.742240+00:00",
+  "intervals": {
+    "B_C": {
+      "different_line_change": 1,
+      "same_line_change": 0,
+      "same_rider": 3,
+      "unreadable": 0
+    },
+    "C_goal": {
+      "different_line_change": 1,
+      "same_line_change": 1,
+      "same_rider": 2,
+      "unreadable": 0
+    }
+  },
+  "limitations": "Visual labels at explicit checkpoints only. The selection is date-ordered across previously unseen races; the same and cross-line second-place counts are post-outcome descriptions. No model changes evaluated here.",
+  "official_locations_sha256": "cbd2fada4265665b826a1379106013d11a193c4ea106feaedad2c13d48363d22",
+  "old_cross": 3,
+  "old_n": 31,
+  "played": 5,
+  "same_and_cross_second": {
+    "cross_line_second": {
+      "4C_actual_second_already_second": 0,
+      "4C_actual_second_not_top_two": 1,
+      "4C_pair_readable": 1,
+      "B_pair_unreadable": 1,
+      "cases": 1
+    },
+    "same_line_second": {
+      "4C_actual_second_already_second": 1,
+      "4C_actual_second_not_top_two": 0,
+      "4C_pair_readable": 2,
+      "4C_pair_unreadable": 1,
+      "B_actual_second_already_second": 1,
+      "B_actual_second_not_top_two": 1,
+      "B_pair_readable": 3,
+      "cases": 3
+    }
+  },
+  "selected": 5,
+  "total_strict_complete_pairs": 33,
+  "total_strict_cross_line_changes": 3,
+  "training_provisional_sha256": "eeb462a8735bc69164cec9a0185022a29e76502a1c1de40abe5525f79db97933",
+  "unique_venues_with_crossing": 3,
+  "verified_counts": {
+    "official_B_matched": 4,
+    "official_podium_archived_agree": 5,
+    "visual_B_conflict": 1,
+    "visual_B_unreadable": 0
+  },
+  "verified_events_sha256": "c937551fde4466033a3a06d4de4f98508f08f6c685876bf0fb28bb145dbc6a3b",
+  "visual_labels_sha256": "3fcae5ff77e50c8a094bace6316b6370c28a28a1c2771fcf7d5d3278d2a1980f"
+}

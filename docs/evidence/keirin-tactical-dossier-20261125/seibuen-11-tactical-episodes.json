@@ -1,0 +1,68 @@
+{
+  "race_id": "202611252611",
+  "status": "retrospective_confirmed_relative_moves",
+  "generated_at": "2026-11-25T12:03:12.280314+00:00",
+  "observation_digest": "18e7993de94e971715e55b4cc2dc16248a362f68112ec88da9c2d94871941eb8",
+  "opportunities": {
+    "resist_makuri": 2,
+    "inside_outside": 4
+  },
+  "events": [
+    {
+      "event_id": "202611252611/replay/solo_outer_advance",
+      "passing_car": 1,
+      "defending_car": 4,
+      "result": "pass_completed_in_visible_interval",
+      "visible_side": [
+        {
+          "car": 1,
+          "relative_side": "outside",
+          "official_finish": 3
+        },
+        {
+          "car": 4,
+          "relative_side": "inside",
+          "official_finish": 5
+        }
+      ],
+      "locator_seconds_in_digest": [
+        52.4,
+        55.65
+      ]
+    },
+    {
+      "event_id": "202611252611/replay/late_outer_pass",
+      "passing_car": 5,
+      "defending_car": 1,
+      "result": "pass_completed_in_visible_interval",
+      "visible_side": [
+        {
+          "car": 5,
+          "relative_side": "outside",
+          "official_finish": 1
+        },
+        {
+          "car": 1,
+          "relative_side": "inside",
+          "official_finish": 3
+        }
+      ],
+      "locator_seconds_in_digest": [
+        56.3,
+        62
+      ]
+    }
+  ],
+  "measurement": "relative_position",
+  "speed_established": false,
+  "unknown": [
+    "attempts outside the observed intervals",
+    "speed during parallel riding",
+    "follower acceleration after lead fade",
+    "switch from following",
+    "fatigue before final kick",
+    "absolute racing lane"
+  ],
+  "safe_predictive_rating": null,
+  "eligible_in_original_forecast": false
+}

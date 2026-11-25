@@ -1,0 +1,16 @@
+{
+  "schema": "KEIRIN_FORWARD_RECEIPT_V1",
+  "prediction_sha256": "1aa6dbdf0240375b5a5fe9b8650990cc4c954765e9f576cb62e418530318d949",
+  "frozen_at": "2026-11-25T10:30:28.276403+00:00",
+  "registered": 25,
+  "earliest": "2026-11-25T19:42:00+09:00",
+  "changed": 12,
+  "comparators": {
+    "published": "site",
+    "trial": "meeting_prior_day"
+  },
+  "design_sha256": "04053a8c07eeff455c19fac2ee0017a5e2a70d856420ab1cff6cfc2f21577a60",
+  "fit_sha256": "12b71e014078cba8685ce2478a9f629b387c55b12aea7d595d2d82f8d19ecddd",
+  "previous_day_input_last_date": "20261123",
+  "published_asset_sha256": "51a98f0a048d4831eeb8c85533e28f789b17dc55ca59a7cb0cf0c920d7e4eb9e"
+}

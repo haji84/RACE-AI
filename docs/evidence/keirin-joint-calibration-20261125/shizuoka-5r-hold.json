@@ -1,0 +1,96 @@
+{
+  "schema": "KEIRIN_PUBLIC_RESULT_HOLD_DIAGNOSIS_V1",
+  "race_id": "202611253805",
+  "venue": "静岡",
+  "race_no": 5,
+  "published_state": {
+    "branch": "state/keirin-public-results",
+    "commit": "06c17c92426ab0ff3e757f51f80152280cb994f3",
+    "checked_at": "2026-11-25T14:27:40.103471+00:00",
+    "state": "held",
+    "reason": "source_disagreement",
+    "modified_during_review": false
+  },
+  "sources": [
+    {
+      "provider": "Kdreams",
+      "url": "https://keirin.kdreams.jp/shizuoka/racedetail/3820261124020005/?pageType=result",
+      "http_status": 200,
+      "checked_at": "2026-11-25T14:32:09.160700+00:00",
+      "source_sha256": "7a7d72e37618705551028ab0f16d2a089525567df3b0315bce1edf5d518aea21",
+      "source_bytes": 259073,
+      "payout_table": {
+        "2t": {
+          "order": [
+            7,
+            6
+          ],
+          "yen_per_100_yen": 12400
+        },
+        "3t": {
+          "order": [
+            7,
+            6,
+            3
+          ],
+          "yen_per_100_yen": 27630
+        }
+      },
+      "direct_payout_special_notice": false,
+      "full_finish_tie_independently_verified": false,
+      "site_observe": "PARSED_EXACTA_AND_TRIFECTA"
+    },
+    {
+      "provider": "netkeirin",
+      "url": "https://keirin.netkeiba.com/race/result/?race_id=202611253805",
+      "http_status": 200,
+      "checked_at": "2026-11-25T14:32:10.198471+00:00",
+      "source_sha256": "428381bf7d0f5f1ae817191912b4ce48d59aef26cb6d7815ce5151dd0dc9f4f7",
+      "source_bytes": 149674,
+      "payout_table": {
+        "2t": {
+          "order": [
+            7,
+            6
+          ],
+          "yen_per_100_yen": 12400
+        },
+        "3t": {
+          "order": [
+            7,
+            6,
+            3
+          ],
+          "yen_per_100_yen": 27630
+        }
+      },
+      "direct_payout_special_notice": false,
+      "consensus_body_parser": "SPECIAL_REFUND_OR_TIE_REQUIRES_OFFICIAL",
+      "site_observe": "RESULT_SPECIAL_NOTICE_UNCONFIRMED",
+      "visible_full_finish_tie": {
+        "source_sha256": "c9a202bfef01305cfe07dfb70ffb983f026f415e87ba24b55d457feb9fec6335",
+        "source_is_separate_followup_read": true,
+        "individual_check_clock_retained": false,
+        "table_classes": [
+          "RaceCard_Table",
+          "RaceCard_Simple_Table",
+          "ResultRefund"
+        ],
+        "rank": 4,
+        "car_numbers": [
+          2,
+          4
+        ],
+        "printed_japanese_tie_label": "同着",
+        "label_car_number": 4,
+        "visible_top_three": [
+          7,
+          6,
+          3
+        ]
+      }
+    }
+  ],
+  "paid_order_and_amounts_agree_between_sources": true,
+  "assessment": "Full-page result parsing sees a genuine fourth-place tie. The current site adapter requires a matching special notice in the payout table, and the general catch records source_disagreement. Normal exacta and trifecta payout cells agree across the two pages. Kdreams full-finish tie was not independently established in this review."
+}

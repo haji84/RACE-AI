@@ -1,0 +1,147 @@
+{
+  "assessed_at": "2026-11-24T17:58:00+09:00",
+  "replay_count": 26,
+  "source": "Kdreams public digest, browser playback",
+  "training": {
+    "date_range_jst": [
+      "2026-11-18",
+      "2026-11-20"
+    ],
+    "source_video_count": 11,
+    "observed_back_followers_in_podium": 7,
+    "follow_offset": [
+      0.4520364235251886,
+      0.5154929176099287
+    ],
+    "podium_logit_offset": 0.026885158857125932
+  },
+  "historical_holdout": {
+    "date_range_jst": [
+      "2026-11-21",
+      "2026-11-23"
+    ],
+    "pre_cutoff_programs": 211,
+    "eligible_for_video_adjustment": 197,
+    "unconfirmed_trifecta_results": 4,
+    "video_phase_count": 11,
+    "candidate_adjustment_weight": 0.25,
+    "phase_scores": {
+      "follow_prior": {
+        "races": 11,
+        "following_top1": 8,
+        "following_top3": 10,
+        "leading_pair_top4": 7,
+        "mean_conditional_log_loss": 1.137675467
+      },
+      "follow_video": {
+        "races": 11,
+        "following_top1": 8,
+        "following_top3": 10,
+        "leading_pair_top4": 8,
+        "mean_conditional_log_loss": 0.950660799
+      }
+    },
+    "tally_by_starter_line_relation": {
+      "train": {
+        "same_planned_line": 9,
+        "different_planned_lines": 2
+      },
+      "holdout": {
+        "same_planned_line": 8,
+        "different_planned_lines": 3
+      }
+    },
+    "phase_scores_by_starter_line_relation": {
+      "same_planned_line": {
+        "races": 8,
+        "better_probability": 8,
+        "follow_prior_mean_log_loss": 0.766409901,
+        "follow_video_mean_log_loss": 0.392133649
+      },
+      "different_planned_lines": {
+        "races": 3,
+        "better_probability": 0,
+        "follow_prior_mean_log_loss": 2.127716977,
+        "follow_video_mean_log_loss": 2.440066535
+      }
+    },
+    "ticket_scores": {
+      "all": {
+        "reference": {
+          "races": 207,
+          "hit_1": 26,
+          "hit_4": 70,
+          "hit_8": 93
+        },
+        "video": {
+          "races": 207,
+          "hit_1": 26,
+          "hit_4": 70,
+          "hit_8": 93
+        }
+      },
+      "20261121": {
+        "reference": {
+          "races": 54,
+          "hit_1": 4,
+          "hit_4": 18,
+          "hit_8": 21
+        },
+        "video": {
+          "races": 54,
+          "hit_1": 4,
+          "hit_4": 18,
+          "hit_8": 21
+        }
+      },
+      "20261122": {
+        "reference": {
+          "races": 67,
+          "hit_1": 8,
+          "hit_4": 20,
+          "hit_8": 26
+        },
+        "video": {
+          "races": 67,
+          "hit_1": 8,
+          "hit_4": 20,
+          "hit_8": 26
+        }
+      },
+      "20261123": {
+        "reference": {
+          "races": 86,
+          "hit_1": 14,
+          "hit_4": 32,
+          "hit_8": 46
+        },
+        "video": {
+          "races": 86,
+          "hit_1": 14,
+          "hit_4": 32,
+          "hit_8": 46
+        }
+      }
+    },
+    "changes_in_ticket_sets": {
+      "top_1_ticket_membership_changed": 0,
+      "top_1_ranking_changed": 0,
+      "top_4_ticket_membership_changed": 0,
+      "top_4_ranking_changed": 0,
+      "top_8_ticket_membership_changed": 1,
+      "top_8_ranking_changed": 4
+    },
+    "gains_and_losses_at_8": {
+      "gained_at_8": 0,
+      "lost_at_8": 0
+    }
+  },
+  "provenance": {
+    "reference_commit": "3d6fc24947bd50a0436c5d6f64e498403b87b11a",
+    "frozen_at": "2026-11-24T17:51:04+09:00",
+    "learning_replay_script_sha256": "00e0ba0f9cdcc6922d75f54fcf219f69dfca43c58241545c7544d9bc960d7778",
+    "training_frame_receipts_sha256": "037d5a7049f804ecf70d22cb2ca475b74c9c63b871570c614ca95b1c6e9b2cae",
+    "local_commitment_sha256": "cc2fd8f399ad859a701136f201236717c87bf7921c33b894e029e255787a3674",
+    "rescore_matches": true
+  }
+}

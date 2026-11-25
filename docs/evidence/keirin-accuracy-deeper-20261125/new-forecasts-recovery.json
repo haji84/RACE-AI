@@ -1,0 +1,441 @@
+{
+  "candidates": {
+    "back-third": {
+      "applicable": 12,
+      "caps": {
+        "4": 29,
+        "8": 4
+      },
+      "changed_against_declared_comparator": 4,
+      "changed_against_site": 4,
+      "changed_at_published_caps_vs_site": 4,
+      "commit_time": "2026-11-25T08:49:56Z",
+      "comparators": {
+        "published": "site",
+        "trial": "back-third"
+      },
+      "first_cutoff": "2026-11-25T17:58:00+09:00",
+      "git_blob_sha256": "0cb0abd5339b1a2cd2634e6e174759452eb6adf6b47cf6a0fe4c6965a496155a",
+      "git_commit": "0265ad5e585cc9510a2c125d36dc36604537067d",
+      "git_path": "docs/evidence/keirin-accuracy-deeper-20261125/back-third-commitment.json",
+      "last_cutoff": "2026-11-25T23:25:00+09:00",
+      "native_receipt_sha256": "5d1ac824fa40f34eab7a86f7ace68e09d8cb40827b2912e273dfe1e5ac6291f7",
+      "normalized_prediction_sha256": "63060cf342669371eba71b247a5743f31043497d86bf228db654572a8d8dea20",
+      "normalized_receipt_sha256": "ba14eac815b7d2c2fedbb255dd2bbc728e35d9d96a46a83ad4f208b05b821745",
+      "normalizer_sha256": "a92b1e4fe8db5308f139efad4454802feb0584a5128336d933098c33f29a6396",
+      "original_frozen_at": "2026-11-25T08:48:56.966370+00:00",
+      "original_prediction_sha256": "753db5872a07edcd3fa31f8d89d40280e5d9210dbe13dee99cf12589c3082019",
+      "pub_sha256": "2a62f3a6cf7f2a12d62b5b49b4d9a620db49309b0522814ed904c11c942e3d35",
+      "public_caps": {
+        "4": 29,
+        "8": 4
+      },
+      "registered": 33,
+      "roster_sha256": "c96f35a0c0a9e26c34a491d162674f40a47a2e5fd0ae19f4583c86653d6aeb31"
+    },
+    "draw": {
+      "applicable": 33,
+      "caps": {
+        "4": 29,
+        "8": 4
+      },
+      "changed_against_declared_comparator": 11,
+      "changed_against_site": 11,
+      "changed_at_published_caps_vs_site": 11,
+      "commit_time": "2026-11-25T08:47:33Z",
+      "comparators": {
+        "published": "site",
+        "trial": "draw"
+      },
+      "first_cutoff": "2026-11-25T17:58:00+09:00",
+      "git_blob_sha256": "4d9b2791baadf7d8b775a2b35c959d7f4407ffdf6984ce4ff07661fc121008bf",
+      "git_commit": "481726b663241d065f34a739fdfea9323b2e85ea",
+      "git_path": "docs/evidence/keirin-accuracy-deeper-20261125/draw-commitment.json",
+      "last_cutoff": "2026-11-25T23:25:00+09:00",
+      "native_receipt_sha256": "2ef6c95f46b580214a658097fa5b8bfb55b13132ffc2780ab7b4e6bfb74bc5fb",
+      "normalized_prediction_sha256": "db270cd10f3edb6b646d23757e4318994cb952432245b4798d354ff86e0bce40",
+      "normalized_receipt_sha256": "134862235d2143c76f225ae768da1ec1fd261375ce83e055dbda2831a14c0435",
+      "normalizer_sha256": "a92b1e4fe8db5308f139efad4454802feb0584a5128336d933098c33f29a6396",
+      "original_frozen_at": "2026-11-25T08:47:18.855482+00:00",
+      "original_prediction_sha256": "e3b1bdce7f83b97734b0ed2ad757d32d9b02b6d584ceab0ec55988b5000118e2",
+      "pub_sha256": "2a62f3a6cf7f2a12d62b5b49b4d9a620db49309b0522814ed904c11c942e3d35",
+      "public_caps": {
+        "4": 29,
+        "8": 4
+      },
+      "registered": 33,
+      "roster_sha256": "c96f35a0c0a9e26c34a491d162674f40a47a2e5fd0ae19f4583c86653d6aeb31"
+    },
+    "home-field": {
+      "applicable": 5,
+      "caps": {
+        "4": 29,
+        "8": 4
+      },
+      "changed_against_declared_comparator": 0,
+      "changed_against_site": 0,
+      "changed_at_published_caps_vs_site": 0,
+      "commit_time": "2026-11-25T08:47:33Z",
+      "comparators": {
+        "published": "site",
+        "trial": "home-field"
+      },
+      "first_cutoff": "2026-11-25T17:58:00+09:00",
+      "git_blob_sha256": "a9dd98c9ca8803fb3be5c0c25fd86c06a63b57246da1e5054046124e924aedb7",
+      "git_commit": "481726b663241d065f34a739fdfea9323b2e85ea",
+      "git_path": "docs/evidence/keirin-accuracy-deeper-20261125/home-field-commitment.json",
+      "last_cutoff": "2026-11-25T23:25:00+09:00",
+      "native_receipt_sha256": "9e47d0077834f4ea89e623aa039e8108856683eb33caec9857ce0936a47f19d1",
+      "normalized_prediction_sha256": "e4d39c8de6b57d39266f5add38393d28d86227b06264c210e894ad8f32dd01ec",
+      "normalized_receipt_sha256": "45eca4258e0f9bf20f0e925e23311f05e8d69eabe0d73fd0cc7c861b7e381199",
+      "normalizer_sha256": "a92b1e4fe8db5308f139efad4454802feb0584a5128336d933098c33f29a6396",
+      "original_frozen_at": "2026-11-25T08:46:47.560733+00:00",
+      "original_prediction_sha256": "5d4ba48b7405d29a1b230d2867e2cdf0ceac61daf9fcd29f4929a54d8226254e",
+      "pub_sha256": "2a62f3a6cf7f2a12d62b5b49b4d9a620db49309b0522814ed904c11c942e3d35",
+      "public_caps": {
+        "4": 29,
+        "8": 4
+      },
+      "registered": 33,
+      "roster_sha256": "c96f35a0c0a9e26c34a491d162674f40a47a2e5fd0ae19f4583c86653d6aeb31"
+    },
+    "home-first": {
+      "applicable": 8,
+      "caps": {
+        "1": 33
+      },
+      "changed_against_declared_comparator": 1,
+      "changed_against_site": 1,
+      "changed_at_published_caps_vs_site": 0,
+      "commit_time": "2026-11-25T08:51:43Z",
+      "comparators": {
+        "published": "first_ticket_of_site_rankings_in_a_one_point_research_test",
+        "trial": "first_only_within_existing_first_four"
+      },
+      "first_cutoff": "2026-11-25T17:58:00+09:00",
+      "git_blob_sha256": "17a9c7e6dde666fa0badbfc118b1e0fb08f1bb9a0bc0820a8f4d85c5f11c3027",
+      "git_commit": "ce78c6ef346cab52bb60411913d5c55195332af2",
+      "git_path": "docs/evidence/keirin-accuracy-deeper-20261125/home-first-commitment.json",
+      "last_cutoff": "2026-11-25T23:25:00+09:00",
+      "native_receipt_sha256": "17a9c7e6dde666fa0badbfc118b1e0fb08f1bb9a0bc0820a8f4d85c5f11c3027",
+      "normalized_prediction_sha256": "3de6d077ebeed0cc839ee5fa412d28cd79260b1167175869dffcaf3d3772fe8f",
+      "normalized_receipt_sha256": "4db3ccf0d630843d7db98947d56fe9e16cebe57f499c99f6e77957b453e0f32c",
+      "normalizer_sha256": "a92b1e4fe8db5308f139efad4454802feb0584a5128336d933098c33f29a6396",
+      "original_frozen_at": "2026-11-25T08:51:14.018790+00:00",
+      "original_prediction_sha256": "3ab0009a7331bad820338e9bad9761bbb0a6977c6c12fd6a9b2a4cdbaf64d533",
+      "pub_sha256": "2a62f3a6cf7f2a12d62b5b49b4d9a620db49309b0522814ed904c11c942e3d35",
+      "public_caps": {
+        "4": 29,
+        "8": 4
+      },
+      "registered": 33,
+      "roster_sha256": "c96f35a0c0a9e26c34a491d162674f40a47a2e5fd0ae19f4583c86653d6aeb31"
+    },
+    "home-full": {
+      "applicable": 8,
+      "caps": {
+        "4": 29,
+        "8": 4
+      },
+      "changed_against_declared_comparator": 3,
+      "changed_against_site": 3,
+      "changed_at_published_caps_vs_site": 3,
+      "commit_time": "2026-11-25T08:50:53Z",
+      "comparators": {
+        "published": "site",
+        "trial": "home-full"
+      },
+      "first_cutoff": "2026-11-25T17:58:00+09:00",
+      "git_blob_sha256": "602298907d79aa69dd7725d2a0d4dcd765d90dedfa3e44d4be9edec0f7f71b20",
+      "git_commit": "416a309341c4819da4ab0ce7ecf497a46df3f063",
+      "git_path": "docs/evidence/keirin-accuracy-deeper-20261125/home-full-commitment.json",
+      "last_cutoff": "2026-11-25T23:25:00+09:00",
+      "native_receipt_sha256": "602298907d79aa69dd7725d2a0d4dcd765d90dedfa3e44d4be9edec0f7f71b20",
+      "normalized_prediction_sha256": "242557aa51339aae3281b28937f3152da3fe677610f11304cdb3219dab3d01c8",
+      "normalized_receipt_sha256": "174f005e3d397d1c1f7cb977378664dcfde8667d8a111333053650e424b6d41a",
+      "normalizer_sha256": "a92b1e4fe8db5308f139efad4454802feb0584a5128336d933098c33f29a6396",
+      "original_frozen_at": "2026-11-25T08:50:19.368694+00:00",
+      "original_prediction_sha256": "a4bc2d40333a4410c9500e656eca729ab20feed2a71004e005a10be9b890a7e6",
+      "pub_sha256": "2a62f3a6cf7f2a12d62b5b49b4d9a620db49309b0522814ed904c11c942e3d35",
+      "public_caps": {
+        "4": 29,
+        "8": 4
+      },
+      "registered": 33,
+      "roster_sha256": "c96f35a0c0a9e26c34a491d162674f40a47a2e5fd0ae19f4583c86653d6aeb31"
+    },
+    "late-line": {
+      "applicable": 15,
+      "caps": {
+        "4": 13,
+        "8": 2
+      },
+      "changed_against_declared_comparator": 15,
+      "changed_against_site": 15,
+      "changed_at_published_caps_vs_site": 15,
+      "commit_time": "2026-11-25T08:47:33Z",
+      "comparators": {
+        "published": "site_static",
+        "trial": "same_model_with_newly_published_pre_cutoff_lines"
+      },
+      "first_cutoff": "2026-11-25T21:00:00+09:00",
+      "git_blob_sha256": "cdc7fc9b8f806660aa074f7f4141cb0ec3720f97b267ce91bc3f2d5b59d0c016",
+      "git_commit": "481726b663241d065f34a739fdfea9323b2e85ea",
+      "git_path": "docs/evidence/keirin-accuracy-deeper-20261125/late-line-commitment.json",
+      "last_cutoff": "2026-11-25T23:25:00+09:00",
+      "native_receipt_sha256": "08d3196b7f879156b0bd280443d6619d3a4f1558ef81ec3b39461a228fc817a5",
+      "normalized_prediction_sha256": "bd9f0acc1339d8b94233cc30de651407d97d603c4ae9fc7cee2caeae00abc257",
+      "normalized_receipt_sha256": "c3662bf16808baa5b48cabc7c4e4ee7ee1ed15607b6a3aad72120be98383cb51",
+      "normalizer_sha256": "a92b1e4fe8db5308f139efad4454802feb0584a5128336d933098c33f29a6396",
+      "original_frozen_at": "2026-11-25T08:46:55.273509+00:00",
+      "original_prediction_sha256": "20f8aa70f5ce60e5e72228c65b67b26c7ee1dace38c80b15ca519f6edbb162b1",
+      "pub_sha256": "2a62f3a6cf7f2a12d62b5b49b4d9a620db49309b0522814ed904c11c942e3d35",
+      "public_caps": {
+        "4": 13,
+        "8": 2
+      },
+      "registered": 15,
+      "roster_sha256": "c96f35a0c0a9e26c34a491d162674f40a47a2e5fd0ae19f4583c86653d6aeb31"
+    },
+    "pair-market": {
+      "applicable": 14,
+      "caps": {
+        "4": 12,
+        "8": 2
+      },
+      "changed_against_declared_comparator": 7,
+      "changed_against_site": 7,
+      "changed_at_published_caps_vs_site": 7,
+      "commit_time": "2026-11-25T08:43:29Z",
+      "comparators": {
+        "published": "site",
+        "trial": "pair-market"
+      },
+      "first_cutoff": "2026-11-25T17:45:00+09:00",
+      "git_blob_sha256": "cff52a77326e4ba63429658e13e5db6afb6231fa77ddb066d283d42a93e198d1",
+      "git_commit": "7e30e270869dd11f9bfa66f26e266e8c6707eebe",
+      "git_path": "docs/evidence/keirin-accuracy-deeper-20261125/pair-market-commitment.json",
+      "last_cutoff": "2026-11-25T23:25:00+09:00",
+      "native_receipt_sha256": "9e6b0baaaf036aaa0c113e77eb1dcefbe78f65529e4348334a400e97a84464e7",
+      "normalized_prediction_sha256": "9460e2afeee803190fd80440cc643d961e365e6ad60925437f33b4edbda31b9a",
+      "normalized_receipt_sha256": "75c65bcdbedb526b832dc41b2e9ddcea11f9c2c81f540ce5593e790313f76078",
+      "normalizer_sha256": "a92b1e4fe8db5308f139efad4454802feb0584a5128336d933098c33f29a6396",
+      "original_frozen_at": "2026-11-25T08:43:04.211410+00:00",
+      "original_prediction_sha256": "1ed2b6fdf4c8257252a59544fe9aa947fbcadbb9780af3e1409ca6eb4759939b",
+      "pub_sha256": "2a62f3a6cf7f2a12d62b5b49b4d9a620db49309b0522814ed904c11c942e3d35",
+      "public_caps": {
+        "4": 12,
+        "8": 2
+      },
+      "registered": 14,
+      "roster_sha256": "c96f35a0c0a9e26c34a491d162674f40a47a2e5fd0ae19f4583c86653d6aeb31"
+    },
+    "partial-exacta": {
+      "applicable": 20,
+      "caps": {
+        "4": 18,
+        "8": 2
+      },
+      "changed_against_declared_comparator": 17,
+      "changed_against_site": 17,
+      "changed_at_published_caps_vs_site": 17,
+      "commit_time": "2026-11-25T08:49:56Z",
+      "comparators": {
+        "published": "site",
+        "trial": "partial-exacta"
+      },
+      "first_cutoff": "2026-11-25T18:37:00+09:00",
+      "git_blob_sha256": "e392d58b5d89138cbc07c0b602801c607aeb81abb20a64803a35e0ec3945dec3",
+      "git_commit": "0265ad5e585cc9510a2c125d36dc36604537067d",
+      "git_path": "docs/evidence/keirin-accuracy-deeper-20261125/partial-exacta-commitment.json",
+      "last_cutoff": "2026-11-25T23:16:00+09:00",
+      "native_receipt_sha256": "c3e24eebaaab942ed509f3d4635cd6c8c69e0ce7a5563a9c4f35d873fab35102",
+      "normalized_prediction_sha256": "d5338938e236da1033c6d756779bfa130a5460944628c083214709aa6ae12eec",
+      "normalized_receipt_sha256": "93891f4173b240c5d5ee8bd4897bbce4a056c1847396e62923f9d15945b1b10d",
+      "normalizer_sha256": "a92b1e4fe8db5308f139efad4454802feb0584a5128336d933098c33f29a6396",
+      "original_frozen_at": "2026-11-25T08:49:04.641205+00:00",
+      "original_prediction_sha256": "c865711ec89c77b53830f2762717422b0f8264b402f6fc35c4ca6a79332d3c9e",
+      "pub_sha256": "2a62f3a6cf7f2a12d62b5b49b4d9a620db49309b0522814ed904c11c942e3d35",
+      "public_caps": {
+        "4": 18,
+        "8": 2
+      },
+      "registered": 20,
+      "roster_sha256": "c96f35a0c0a9e26c34a491d162674f40a47a2e5fd0ae19f4583c86653d6aeb31"
+    },
+    "pressure": {
+      "applicable": 12,
+      "caps": {
+        "4": 30,
+        "8": 4
+      },
+      "changed_against_declared_comparator": 2,
+      "changed_against_site": 2,
+      "changed_at_published_caps_vs_site": 2,
+      "commit_time": "2026-11-25T08:43:42Z",
+      "comparators": {
+        "published": "site",
+        "trial": "pressure"
+      },
+      "first_cutoff": "2026-11-25T17:45:00+09:00",
+      "git_blob_sha256": "ad208ec8ba750e945f4f6251624403e7abfaa2e63cc1629d44a0b747a488a650",
+      "git_commit": "02de5dc0e6b0c8db3155382bb507c8083ba8413f",
+      "git_path": "docs/evidence/keirin-accuracy-deeper-20261125/pressure-commitment.json",
+      "last_cutoff": "2026-11-25T23:25:00+09:00",
+      "native_receipt_sha256": "ad208ec8ba750e945f4f6251624403e7abfaa2e63cc1629d44a0b747a488a650",
+      "normalized_prediction_sha256": "59c41511d34c3d90fab4f6a3842a58d7c1f71f06e345cdd5be645295177d025e",
+      "normalized_receipt_sha256": "8300d7889a635bcbf138b882eec28e49eb5ecdb01e4ff9100d899617b3b89cbd",
+      "normalizer_sha256": "a92b1e4fe8db5308f139efad4454802feb0584a5128336d933098c33f29a6396",
+      "original_frozen_at": "2026-11-25T08:43:06.981065+00:00",
+      "original_prediction_sha256": "0043ac5f19bb66efeb470f607dc3cf04e31673bd98b0e0bde44e0d07894e3e31",
+      "pub_sha256": "2a62f3a6cf7f2a12d62b5b49b4d9a620db49309b0522814ed904c11c942e3d35",
+      "public_caps": {
+        "4": 30,
+        "8": 4
+      },
+      "registered": 34,
+      "roster_sha256": "c96f35a0c0a9e26c34a491d162674f40a47a2e5fd0ae19f4583c86653d6aeb31"
+    },
+    "pressure-calibration": {
+      "applicable": 11,
+      "caps": {
+        "4": 29,
+        "8": 4
+      },
+      "changed_against_declared_comparator": 5,
+      "changed_against_site": 5,
+      "changed_at_published_caps_vs_site": 5,
+      "commit_time": "2026-11-25T08:47:48Z",
+      "comparators": {
+        "published": "site",
+        "trial": "pressure-calibration"
+      },
+      "first_cutoff": "2026-11-25T17:58:00+09:00",
+      "git_blob_sha256": "d6691ca45dc309c18817afabe7f0f716200a29a16f52424894d07d94f834c1ae",
+      "git_commit": "347293b15289329fc904d98ccdd9385545a9c8b9",
+      "git_path": "docs/evidence/keirin-accuracy-deeper-20261125/pressure-calibration-commitment.json",
+      "last_cutoff": "2026-11-25T23:25:00+09:00",
+      "native_receipt_sha256": "d6691ca45dc309c18817afabe7f0f716200a29a16f52424894d07d94f834c1ae",
+      "normalized_prediction_sha256": "5d8cf329a21246e47ac92222531b94462066d252817c7925501b8b2532e0bbaa",
+      "normalized_receipt_sha256": "d9196cae8e2951748d370eca8fc0fcebab0936ff91fec64a4d5e1b25d14606d8",
+      "normalizer_sha256": "a92b1e4fe8db5308f139efad4454802feb0584a5128336d933098c33f29a6396",
+      "original_frozen_at": "2026-11-25T08:47:06.429233+00:00",
+      "original_prediction_sha256": "63a2587ac8166422c76042b692ca479fca79d6c8c0e0fa642a7e3ac6b486d4e2",
+      "pub_sha256": "2a62f3a6cf7f2a12d62b5b49b4d9a620db49309b0522814ed904c11c942e3d35",
+      "public_caps": {
+        "4": 29,
+        "8": 4
+      },
+      "registered": 33,
+      "roster_sha256": "c96f35a0c0a9e26c34a491d162674f40a47a2e5fd0ae19f4583c86653d6aeb31"
+    },
+    "tactics": {
+      "applicable": 13,
+      "caps": {
+        "4": 30,
+        "8": 4
+      },
+      "changed_against_declared_comparator": 0,
+      "changed_against_site": 0,
+      "changed_at_published_caps_vs_site": 0,
+      "commit_time": "2026-11-25T08:43:56Z",
+      "comparators": {
+        "published": "site",
+        "trial": "tactics"
+      },
+      "first_cutoff": "2026-11-25T17:45:00+09:00",
+      "git_blob_sha256": "3fe519595c2417a324287ee73a45ec968ebc54d168efc7c9348587b8a95f431f",
+      "git_commit": "630de0ddb65d459fa3f1d9213f72e3a9fc3cf5f4",
+      "git_path": "docs/evidence/keirin-accuracy-deeper-20261125/tactics-commitment.json",
+      "last_cutoff": "2026-11-25T23:25:00+09:00",
+      "native_receipt_sha256": "c93b3c51a47a0f006058a490c24609479bd1e128c4e0ec5d87b2252d1dc25477",
+      "normalized_prediction_sha256": "5dde59997916b216750325667858eafd61869a76d591005f840fc541745375fa",
+      "normalized_receipt_sha256": "ed01c207439efbf0948b952f20cb08982fbb217994036705bd5a78bdbc4b09a6",
+      "normalizer_sha256": "a92b1e4fe8db5308f139efad4454802feb0584a5128336d933098c33f29a6396",
+      "original_frozen_at": "2026-11-25T08:43:23.384155+00:00",
+      "original_prediction_sha256": "3ab415f0b0c53748abc9992e63309a52a42f8ed6e6e31d7c40959e5b5b2de883",
+      "pub_sha256": "2a62f3a6cf7f2a12d62b5b49b4d9a620db49309b0522814ed904c11c942e3d35",
+      "public_caps": {
+        "4": 30,
+        "8": 4
+      },
+      "registered": 34,
+      "roster_sha256": "c96f35a0c0a9e26c34a491d162674f40a47a2e5fd0ae19f4583c86653d6aeb31"
+    },
+    "third": {
+      "applicable": 13,
+      "caps": {
+        "4": 30,
+        "8": 4
+      },
+      "changed_against_declared_comparator": 1,
+      "changed_against_site": 1,
+      "changed_at_published_caps_vs_site": 1,
+      "commit_time": "2026-11-25T08:44:33Z",
+      "comparators": {
+        "published": "site",
+        "trial": "third"
+      },
+      "first_cutoff": "2026-11-25T17:45:00+09:00",
+      "git_blob_sha256": "d68844172a2985d8c3451bc9ff0dd6779519a04e00178f9fa7df9aa4866a51c8",
+      "git_commit": "d618632ede2d80deb3b3fb0e900a17d0c2db5cf3",
+      "git_path": "docs/evidence/keirin-accuracy-deeper-20261125/third-commitment.json",
+      "last_cutoff": "2026-11-25T23:25:00+09:00",
+      "native_receipt_sha256": "d68844172a2985d8c3451bc9ff0dd6779519a04e00178f9fa7df9aa4866a51c8",
+      "normalized_prediction_sha256": "0ada27355acbfd798bca3b90a722e24d82d420e762760d2da8a0e4f239a16ca4",
+      "normalized_receipt_sha256": "ad5840f81bcc461b15a41f380b8cd0290f1f03565b783c6abcb1014656513b4b",
+      "normalizer_sha256": "a92b1e4fe8db5308f139efad4454802feb0584a5128336d933098c33f29a6396",
+      "original_frozen_at": "2026-11-25T08:43:42.624423+00:00",
+      "original_prediction_sha256": "e0057d5d8857e8ac108b222cf3e5815c21d98dc9d7bde0e79738d4c26a10015d",
+      "pub_sha256": "2a62f3a6cf7f2a12d62b5b49b4d9a620db49309b0522814ed904c11c942e3d35",
+      "public_caps": {
+        "4": 30,
+        "8": 4
+      },
+      "registered": 34,
+      "roster_sha256": "c96f35a0c0a9e26c34a491d162674f40a47a2e5fd0ae19f4583c86653d6aeb31"
+    },
+    "timed-odds": {
+      "applicable": 13,
+      "caps": {
+        "4": 9,
+        "8": 4
+      },
+      "changed_against_declared_comparator": 5,
+      "changed_against_site": 9,
+      "changed_at_published_caps_vs_site": 9,
+      "commit_time": "2026-11-25T08:43:29Z",
+      "comparators": {
+        "published": "earlier_full_trifecta_odds_50pct_model_50pct",
+        "trial": "later_full_trifecta_odds_50pct_model_50pct"
+      },
+      "first_cutoff": "2026-11-25T18:11:00+09:00",
+      "git_blob_sha256": "a0ededa0915d0cf42163b6faab89a1dafbe6b1224d358c7a6c024e1179e71374",
+      "git_commit": "7e30e270869dd11f9bfa66f26e266e8c6707eebe",
+      "git_path": "docs/evidence/keirin-accuracy-deeper-20261125/timed-odds-commitment.json",
+      "last_cutoff": "2026-11-25T23:25:00+09:00",
+      "native_receipt_sha256": "3f12514b4669e72c54e415d97219fe3c9b29dca77fdb876b173c6703177b6e4a",
+      "normalized_prediction_sha256": "5f0cfbeda506b628cd9150215c4051593479a716b38385b0a76c7efe76ad60f5",
+      "normalized_receipt_sha256": "707a657215a23b7508785c66e61a80620b3729c55374d762de99f1d68420dfbd",
+      "normalizer_sha256": "a92b1e4fe8db5308f139efad4454802feb0584a5128336d933098c33f29a6396",
+      "original_frozen_at": "2026-11-25T08:42:43.906273+00:00",
+      "original_prediction_sha256": "9d12da44f2c70e467b16ffe74019480609b72d89d4a08b1181408ecf6f38b240",
+      "pub_sha256": "2a62f3a6cf7f2a12d62b5b49b4d9a620db49309b0522814ed904c11c942e3d35",
+      "public_caps": {
+        "4": 9,
+        "8": 4
+      },
+      "registered": 13,
+      "roster_sha256": "c96f35a0c0a9e26c34a491d162674f40a47a2e5fd0ae19f4583c86653d6aeb31"
+    }
+  },
+  "changed_union_against_declared_comparators": 28,
+  "changed_union_against_site_at_published_caps": 27,
+  "changed_union_against_site_at_study_caps": 27,
+  "encrypted_sha256": "25b413be64ba40bf632d50e1aabdf38831ae179a9ad39a058c1f4040def523ad",
+  "included_files": 83,
+  "manifest_sha256": "c4ae54f7dbd4b7da73597e666f4ecd0928b1b6293d8dc3f9919f0e6d9f2abd66",
+  "normalized_at": "2026-11-25T08:52:46.117650+00:00",
+  "registered_union": 34,
+  "roundtrip_utc": "2026-11-25T08:52:46.365706+00:00"
+}

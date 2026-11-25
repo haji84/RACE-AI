@@ -1,0 +1,1135 @@
+{
+  "exacta": {
+    "committed": {
+      "complete": "1ed2b6fdf4c8257252a59544fe9aa947fbcadbb9780af3e1409ca6eb4759939b",
+      "partial": "c865711ec89c77b53830f2762717422b0f8264b402f6fc35c4ca6a79332d3c9e"
+    },
+    "comparison": {
+      "complete": {
+        "historic": {
+          "15_to_60": {
+            "n": 2,
+            "quantiles_min_median_max_quote_minutes": [
+              18.0,
+              37.5,
+              57.0
+            ],
+            "trifecta": {
+              "1": {
+                "changed": 0,
+                "gains": 0,
+                "losses": 0,
+                "original_covered_top_two": 1,
+                "original_hits": 0,
+                "points": 2,
+                "trial_covered_top_two": 1,
+                "trial_hits": 0
+              },
+              "4": {
+                "changed": 1,
+                "gains": 0,
+                "losses": 0,
+                "original_covered_top_two": 1,
+                "original_hits": 1,
+                "points": 8,
+                "trial_covered_top_two": 1,
+                "trial_hits": 1
+              },
+              "8": {
+                "changed": 2,
+                "gains": 0,
+                "losses": 1,
+                "original_covered_top_two": 2,
+                "original_hits": 2,
+                "points": 16,
+                "trial_covered_top_two": 1,
+                "trial_hits": 1
+              },
+              "displayed": {
+                "changed": 1,
+                "gains": 0,
+                "losses": 0,
+                "original_covered_top_two": 1,
+                "original_hits": 1,
+                "points": 8,
+                "trial_covered_top_two": 1,
+                "trial_hits": 1
+              }
+            }
+          },
+          "all": {
+            "n": 15,
+            "quantiles_min_median_max_quote_minutes": [
+              18.0,
+              337.0,
+              652.0
+            ],
+            "trifecta": {
+              "1": {
+                "changed": 6,
+                "gains": 1,
+                "losses": 0,
+                "original_covered_top_two": 3,
+                "original_hits": 2,
+                "points": 15,
+                "trial_covered_top_two": 4,
+                "trial_hits": 3
+              },
+              "4": {
+                "changed": 9,
+                "gains": 0,
+                "losses": 0,
+                "original_covered_top_two": 4,
+                "original_hits": 4,
+                "points": 60,
+                "trial_covered_top_two": 4,
+                "trial_hits": 4
+              },
+              "8": {
+                "changed": 11,
+                "gains": 0,
+                "losses": 1,
+                "original_covered_top_two": 5,
+                "original_hits": 5,
+                "points": 120,
+                "trial_covered_top_two": 5,
+                "trial_hits": 4
+              },
+              "displayed": {
+                "changed": 10,
+                "gains": 0,
+                "losses": 0,
+                "original_covered_top_two": 4,
+                "original_hits": 4,
+                "points": 64,
+                "trial_covered_top_two": 4,
+                "trial_hits": 4
+              }
+            }
+          },
+          "over60": {
+            "n": 13,
+            "quantiles_min_median_max_quote_minutes": [
+              68.0,
+              387.0,
+              652.0
+            ],
+            "trifecta": {
+              "1": {
+                "changed": 6,
+                "gains": 1,
+                "losses": 0,
+                "original_covered_top_two": 2,
+                "original_hits": 2,
+                "points": 13,
+                "trial_covered_top_two": 3,
+                "trial_hits": 3
+              },
+              "4": {
+                "changed": 8,
+                "gains": 0,
+                "losses": 0,
+                "original_covered_top_two": 3,
+                "original_hits": 3,
+                "points": 52,
+                "trial_covered_top_two": 3,
+                "trial_hits": 3
+              },
+              "8": {
+                "changed": 9,
+                "gains": 0,
+                "losses": 0,
+                "original_covered_top_two": 3,
+                "original_hits": 3,
+                "points": 104,
+                "trial_covered_top_two": 4,
+                "trial_hits": 3
+              },
+              "displayed": {
+                "changed": 9,
+                "gains": 0,
+                "losses": 0,
+                "original_covered_top_two": 3,
+                "original_hits": 3,
+                "points": 56,
+                "trial_covered_top_two": 3,
+                "trial_hits": 3
+              }
+            }
+          },
+          "within15": {
+            "n": 0,
+            "quantiles_min_median_max_quote_minutes": null,
+            "trifecta": {
+              "1": {
+                "changed": 0,
+                "gains": 0,
+                "losses": 0,
+                "original_covered_top_two": 0,
+                "original_hits": 0,
+                "points": 0,
+                "trial_covered_top_two": 0,
+                "trial_hits": 0
+              },
+              "4": {
+                "changed": 0,
+                "gains": 0,
+                "losses": 0,
+                "original_covered_top_two": 0,
+                "original_hits": 0,
+                "points": 0,
+                "trial_covered_top_two": 0,
+                "trial_hits": 0
+              },
+              "8": {
+                "changed": 0,
+                "gains": 0,
+                "losses": 0,
+                "original_covered_top_two": 0,
+                "original_hits": 0,
+                "points": 0,
+                "trial_covered_top_two": 0,
+                "trial_hits": 0
+              },
+              "displayed": {
+                "changed": 0,
+                "gains": 0,
+                "losses": 0,
+                "original_covered_top_two": 0,
+                "original_hits": 0,
+                "points": 0,
+                "trial_covered_top_two": 0,
+                "trial_hits": 0
+              }
+            }
+          }
+        },
+        "nov25_before_freeze_replay": {
+          "15_to_60": {
+            "n": 4,
+            "quantiles_min_median_max_quote_minutes": [
+              25.0,
+              39.5,
+              50.0
+            ],
+            "trifecta": {
+              "1": {
+                "changed": 0,
+                "gains": 0,
+                "losses": 0,
+                "original_covered_top_two": 1,
+                "original_hits": 0,
+                "points": 4,
+                "trial_covered_top_two": 1,
+                "trial_hits": 0
+              },
+              "4": {
+                "changed": 3,
+                "gains": 0,
+                "losses": 1,
+                "original_covered_top_two": 1,
+                "original_hits": 1,
+                "points": 16,
+                "trial_covered_top_two": 1,
+                "trial_hits": 0
+              },
+              "8": {
+                "changed": 2,
+                "gains": 0,
+                "losses": 0,
+                "original_covered_top_two": 2,
+                "original_hits": 1,
+                "points": 32,
+                "trial_covered_top_two": 2,
+                "trial_hits": 1
+              },
+              "displayed": {
+                "changed": 3,
+                "gains": 0,
+                "losses": 1,
+                "original_covered_top_two": 1,
+                "original_hits": 1,
+                "points": 16,
+                "trial_covered_top_two": 1,
+                "trial_hits": 0
+              }
+            }
+          },
+          "all": {
+            "n": 12,
+            "quantiles_min_median_max_quote_minutes": [
+              6.0,
+              50.0,
+              134.0
+            ],
+            "trifecta": {
+              "1": {
+                "changed": 1,
+                "gains": 0,
+                "losses": 0,
+                "original_covered_top_two": 2,
+                "original_hits": 1,
+                "points": 12,
+                "trial_covered_top_two": 2,
+                "trial_hits": 1
+              },
+              "4": {
+                "changed": 7,
+                "gains": 0,
+                "losses": 1,
+                "original_covered_top_two": 5,
+                "original_hits": 2,
+                "points": 48,
+                "trial_covered_top_two": 5,
+                "trial_hits": 1
+              },
+              "8": {
+                "changed": 8,
+                "gains": 0,
+                "losses": 0,
+                "original_covered_top_two": 6,
+                "original_hits": 4,
+                "points": 96,
+                "trial_covered_top_two": 7,
+                "trial_hits": 4
+              },
+              "displayed": {
+                "changed": 6,
+                "gains": 0,
+                "losses": 1,
+                "original_covered_top_two": 5,
+                "original_hits": 3,
+                "points": 60,
+                "trial_covered_top_two": 6,
+                "trial_hits": 2
+              }
+            }
+          },
+          "over60": {
+            "n": 5,
+            "quantiles_min_median_max_quote_minutes": [
+              71.0,
+              92.0,
+              134.0
+            ],
+            "trifecta": {
+              "1": {
+                "changed": 0,
+                "gains": 0,
+                "losses": 0,
+                "original_covered_top_two": 0,
+                "original_hits": 0,
+                "points": 5,
+                "trial_covered_top_two": 0,
+                "trial_hits": 0
+              },
+              "4": {
+                "changed": 3,
+                "gains": 0,
+                "losses": 0,
+                "original_covered_top_two": 3,
+                "original_hits": 0,
+                "points": 20,
+                "trial_covered_top_two": 2,
+                "trial_hits": 0
+              },
+              "8": {
+                "changed": 4,
+                "gains": 0,
+                "losses": 0,
+                "original_covered_top_two": 3,
+                "original_hits": 2,
+                "points": 40,
+                "trial_covered_top_two": 3,
+                "trial_hits": 2
+              },
+              "displayed": {
+                "changed": 2,
+                "gains": 0,
+                "losses": 0,
+                "original_covered_top_two": 3,
+                "original_hits": 1,
+                "points": 28,
+                "trial_covered_top_two": 3,
+                "trial_hits": 1
+              }
+            }
+          },
+          "within15": {
+            "n": 3,
+            "quantiles_min_median_max_quote_minutes": [
+              6.0,
+              7.0,
+              14.0
+            ],
+            "trifecta": {
+              "1": {
+                "changed": 1,
+                "gains": 0,
+                "losses": 0,
+                "original_covered_top_two": 1,
+                "original_hits": 1,
+                "points": 3,
+                "trial_covered_top_two": 1,
+                "trial_hits": 1
+              },
+              "4": {
+                "changed": 1,
+                "gains": 0,
+                "losses": 0,
+                "original_covered_top_two": 1,
+                "original_hits": 1,
+                "points": 12,
+                "trial_covered_top_two": 2,
+                "trial_hits": 1
+              },
+              "8": {
+                "changed": 2,
+                "gains": 0,
+                "losses": 0,
+                "original_covered_top_two": 1,
+                "original_hits": 1,
+                "points": 24,
+                "trial_covered_top_two": 2,
+                "trial_hits": 1
+              },
+              "displayed": {
+                "changed": 1,
+                "gains": 0,
+                "losses": 0,
+                "original_covered_top_two": 1,
+                "original_hits": 1,
+                "points": 16,
+                "trial_covered_top_two": 2,
+                "trial_hits": 1
+              }
+            }
+          }
+        }
+      },
+      "partial": {
+        "historic": {
+          "15_to_60": {
+            "n": 3,
+            "quantiles_min_median_max_quote_minutes": [
+              28.0,
+              38.0,
+              48.0
+            ],
+            "trifecta": {
+              "1": {
+                "changed": 0,
+                "gains": 0,
+                "losses": 0,
+                "original_covered_top_two": 3,
+                "original_hits": 1,
+                "points": 3,
+                "trial_covered_top_two": 3,
+                "trial_hits": 1
+              },
+              "4": {
+                "changed": 2,
+                "gains": 0,
+                "losses": 0,
+                "original_covered_top_two": 3,
+                "original_hits": 2,
+                "points": 12,
+                "trial_covered_top_two": 3,
+                "trial_hits": 2
+              },
+              "8": {
+                "changed": 2,
+                "gains": 0,
+                "losses": 0,
+                "original_covered_top_two": 3,
+                "original_hits": 3,
+                "points": 24,
+                "trial_covered_top_two": 3,
+                "trial_hits": 3
+              },
+              "displayed": {
+                "changed": 2,
+                "gains": 0,
+                "losses": 0,
+                "original_covered_top_two": 3,
+                "original_hits": 2,
+                "points": 12,
+                "trial_covered_top_two": 3,
+                "trial_hits": 2
+              }
+            }
+          },
+          "all": {
+            "n": 67,
+            "quantiles_min_median_max_quote_minutes": [
+              6.0,
+              362.0,
+              832.0
+            ],
+            "trifecta": {
+              "1": {
+                "changed": 12,
+                "gains": 1,
+                "losses": 0,
+                "original_covered_top_two": 23,
+                "original_hits": 12,
+                "points": 67,
+                "trial_covered_top_two": 23,
+                "trial_hits": 13
+              },
+              "4": {
+                "changed": 48,
+                "gains": 2,
+                "losses": 4,
+                "original_covered_top_two": 40,
+                "original_hits": 28,
+                "points": 268,
+                "trial_covered_top_two": 37,
+                "trial_hits": 26
+              },
+              "8": {
+                "changed": 58,
+                "gains": 1,
+                "losses": 6,
+                "original_covered_top_two": 48,
+                "original_hits": 40,
+                "points": 536,
+                "trial_covered_top_two": 43,
+                "trial_hits": 35
+              },
+              "displayed": {
+                "changed": 48,
+                "gains": 2,
+                "losses": 3,
+                "original_covered_top_two": 40,
+                "original_hits": 28,
+                "points": 280,
+                "trial_covered_top_two": 37,
+                "trial_hits": 27
+              }
+            }
+          },
+          "over60": {
+            "n": 63,
+            "quantiles_min_median_max_quote_minutes": [
+              67.0,
+              381.0,
+              832.0
+            ],
+            "trifecta": {
+              "1": {
+                "changed": 12,
+                "gains": 1,
+                "losses": 0,
+                "original_covered_top_two": 19,
+                "original_hits": 11,
+                "points": 63,
+                "trial_covered_top_two": 19,
+                "trial_hits": 12
+              },
+              "4": {
+                "changed": 45,
+                "gains": 1,
+                "losses": 4,
+                "original_covered_top_two": 36,
+                "original_hits": 26,
+                "points": 252,
+                "trial_covered_top_two": 33,
+                "trial_hits": 23
+              },
+              "8": {
+                "changed": 56,
+                "gains": 1,
+                "losses": 6,
+                "original_covered_top_two": 44,
+                "original_hits": 36,
+                "points": 504,
+                "trial_covered_top_two": 39,
+                "trial_hits": 31
+              },
+              "displayed": {
+                "changed": 45,
+                "gains": 1,
+                "losses": 3,
+                "original_covered_top_two": 36,
+                "original_hits": 26,
+                "points": 264,
+                "trial_covered_top_two": 33,
+                "trial_hits": 24
+              }
+            }
+          },
+          "within15": {
+            "n": 1,
+            "quantiles_min_median_max_quote_minutes": [
+              6.0,
+              6.0,
+              6.0
+            ],
+            "trifecta": {
+              "1": {
+                "changed": 0,
+                "gains": 0,
+                "losses": 0,
+                "original_covered_top_two": 1,
+                "original_hits": 0,
+                "points": 1,
+                "trial_covered_top_two": 1,
+                "trial_hits": 0
+              },
+              "4": {
+                "changed": 1,
+                "gains": 1,
+                "losses": 0,
+                "original_covered_top_two": 1,
+                "original_hits": 0,
+                "points": 4,
+                "trial_covered_top_two": 1,
+                "trial_hits": 1
+              },
+              "8": {
+                "changed": 0,
+                "gains": 0,
+                "losses": 0,
+                "original_covered_top_two": 1,
+                "original_hits": 1,
+                "points": 8,
+                "trial_covered_top_two": 1,
+                "trial_hits": 1
+              },
+              "displayed": {
+                "changed": 1,
+                "gains": 1,
+                "losses": 0,
+                "original_covered_top_two": 1,
+                "original_hits": 0,
+                "points": 4,
+                "trial_covered_top_two": 1,
+                "trial_hits": 1
+              }
+            }
+          }
+        },
+        "nov25_before_freeze_replay": {
+          "15_to_60": {
+            "n": 1,
+            "quantiles_min_median_max_quote_minutes": [
+              37.0,
+              37.0,
+              37.0
+            ],
+            "trifecta": {
+              "1": {
+                "changed": 0,
+                "gains": 0,
+                "losses": 0,
+                "original_covered_top_two": 0,
+                "original_hits": 0,
+                "points": 1,
+                "trial_covered_top_two": 0,
+                "trial_hits": 0
+              },
+              "4": {
+                "changed": 0,
+                "gains": 0,
+                "losses": 0,
+                "original_covered_top_two": 0,
+                "original_hits": 0,
+                "points": 4,
+                "trial_covered_top_two": 0,
+                "trial_hits": 0
+              },
+              "8": {
+                "changed": 1,
+                "gains": 0,
+                "losses": 0,
+                "original_covered_top_two": 0,
+                "original_hits": 0,
+                "points": 8,
+                "trial_covered_top_two": 1,
+                "trial_hits": 0
+              },
+              "displayed": {
+                "changed": 0,
+                "gains": 0,
+                "losses": 0,
+                "original_covered_top_two": 0,
+                "original_hits": 0,
+                "points": 4,
+                "trial_covered_top_two": 0,
+                "trial_hits": 0
+              }
+            }
+          },
+          "all": {
+            "n": 2,
+            "quantiles_min_median_max_quote_minutes": [
+              37.0,
+              50.0,
+              63.0
+            ],
+            "trifecta": {
+              "1": {
+                "changed": 0,
+                "gains": 0,
+                "losses": 0,
+                "original_covered_top_two": 0,
+                "original_hits": 0,
+                "points": 2,
+                "trial_covered_top_two": 0,
+                "trial_hits": 0
+              },
+              "4": {
+                "changed": 1,
+                "gains": 1,
+                "losses": 0,
+                "original_covered_top_two": 0,
+                "original_hits": 0,
+                "points": 8,
+                "trial_covered_top_two": 1,
+                "trial_hits": 1
+              },
+              "8": {
+                "changed": 2,
+                "gains": 0,
+                "losses": 0,
+                "original_covered_top_two": 1,
+                "original_hits": 1,
+                "points": 16,
+                "trial_covered_top_two": 2,
+                "trial_hits": 1
+              },
+              "displayed": {
+                "changed": 1,
+                "gains": 1,
+                "losses": 0,
+                "original_covered_top_two": 0,
+                "original_hits": 0,
+                "points": 8,
+                "trial_covered_top_two": 1,
+                "trial_hits": 1
+              }
+            }
+          },
+          "over60": {
+            "n": 1,
+            "quantiles_min_median_max_quote_minutes": [
+              63.0,
+              63.0,
+              63.0
+            ],
+            "trifecta": {
+              "1": {
+                "changed": 0,
+                "gains": 0,
+                "losses": 0,
+                "original_covered_top_two": 0,
+                "original_hits": 0,
+                "points": 1,
+                "trial_covered_top_two": 0,
+                "trial_hits": 0
+              },
+              "4": {
+                "changed": 1,
+                "gains": 1,
+                "losses": 0,
+                "original_covered_top_two": 0,
+                "original_hits": 0,
+                "points": 4,
+                "trial_covered_top_two": 1,
+                "trial_hits": 1
+              },
+              "8": {
+                "changed": 1,
+                "gains": 0,
+                "losses": 0,
+                "original_covered_top_two": 1,
+                "original_hits": 1,
+                "points": 8,
+                "trial_covered_top_two": 1,
+                "trial_hits": 1
+              },
+              "displayed": {
+                "changed": 1,
+                "gains": 1,
+                "losses": 0,
+                "original_covered_top_two": 0,
+                "original_hits": 0,
+                "points": 4,
+                "trial_covered_top_two": 1,
+                "trial_hits": 1
+              }
+            }
+          },
+          "within15": {
+            "n": 0,
+            "quantiles_min_median_max_quote_minutes": null,
+            "trifecta": {
+              "1": {
+                "changed": 0,
+                "gains": 0,
+                "losses": 0,
+                "original_covered_top_two": 0,
+                "original_hits": 0,
+                "points": 0,
+                "trial_covered_top_two": 0,
+                "trial_hits": 0
+              },
+              "4": {
+                "changed": 0,
+                "gains": 0,
+                "losses": 0,
+                "original_covered_top_two": 0,
+                "original_hits": 0,
+                "points": 0,
+                "trial_covered_top_two": 0,
+                "trial_hits": 0
+              },
+              "8": {
+                "changed": 0,
+                "gains": 0,
+                "losses": 0,
+                "original_covered_top_two": 0,
+                "original_hits": 0,
+                "points": 0,
+                "trial_covered_top_two": 0,
+                "trial_hits": 0
+              },
+              "displayed": {
+                "changed": 0,
+                "gains": 0,
+                "losses": 0,
+                "original_covered_top_two": 0,
+                "original_hits": 0,
+                "points": 0,
+                "trial_covered_top_two": 0,
+                "trial_hits": 0
+              }
+            }
+          }
+        }
+      }
+    },
+    "diagnosis": {
+      "changes": [
+        {
+          "cap": 4,
+          "published_hit": true,
+          "race_id": "202611258402",
+          "trial_hit": false,
+          "true_pair_third_slots_before_after": [
+            2,
+            1
+          ],
+          "true_public_and_trial_rank_in_first_eight": [
+            4,
+            5
+          ]
+        }
+      ],
+      "current_incomplete_boards": {
+        "count": 20,
+        "no_numeric": 0,
+        "only_one_missing": 3
+      },
+      "current_incomplete_cells": {
+        "available": 605,
+        "capped": 191
+      },
+      "current_incomplete_coverage_min_median_max": [
+        0.476,
+        0.762,
+        0.976
+      ],
+      "examined": 27,
+      "paired": {
+        "fewer_thirds_for_true_pair": 1,
+        "more_thirds_for_true_pair": 2,
+        "sum_public_allocations_to_true_pair": 19,
+        "sum_trial_allocations_to_true_pair": 20,
+        "sum_unique_pairs_public": 78,
+        "sum_unique_pairs_trial": 76
+      }
+    },
+    "paired_reference": {
+      "complete": {
+        "1": {
+          "changed": 6,
+          "original_hits": 32,
+          "races": 287,
+          "trial_hits": 33
+        },
+        "4": {
+          "changed": 9,
+          "original_hits": 91,
+          "races": 287,
+          "trial_hits": 91
+        },
+        "8": {
+          "changed": 11,
+          "original_hits": 127,
+          "races": 287,
+          "trial_hits": 126
+        },
+        "displayed": {
+          "changed": 10,
+          "original_hits": 93,
+          "races": 287,
+          "trial_hits": 93
+        }
+      },
+      "partial": {
+        "1": {
+          "changed": 12,
+          "original_hits": 32,
+          "races": 287,
+          "trial_hits": 33
+        },
+        "4": {
+          "changed": 48,
+          "original_hits": 91,
+          "races": 287,
+          "trial_hits": 89
+        },
+        "8": {
+          "changed": 58,
+          "original_hits": 127,
+          "races": 287,
+          "trial_hits": 122
+        },
+        "displayed": {
+          "changed": 48,
+          "original_hits": 93,
+          "races": 287,
+          "trial_hits": 92
+        }
+      }
+    },
+    "proofs": {
+      "archived.mjs": "063113ec99ab49d9183cb3d96474e8686b920501833c6dc62b49dd7547e6c05a",
+      "design.json": "7366776c6f1f063c4347bc4f5e8195d81e090a7929fc08b931cdca448166bb46",
+      "forward-commitment.json": "9e6b0baaaf036aaa0c113e77eb1dcefbe78f65529e4348334a400e97a84464e7",
+      "historic.py": "f4dda7a8275a0102602ffc26f301f85f5fc0e9a8e8e0466d96c196fec4747204",
+      "history-receipt.json": "c3709dc4ab52f76e8bf890da1b972fd9225238eafe5d04877d8fd0b3ce935e85",
+      "partial-design.json": "34aa86d373a1992aac1f09177505a7cac1a7378f89ee95fecfb0bc9b6820951a",
+      "partial-forward-commitment.json": "c3e24eebaaab942ed509f3d4635cd6c8c69e0ce7a5563a9c4f35d873fab35102",
+      "partial-history-receipt.json": "fa69b1d2c4608a1e42538fae7ea81516267dc611aef94d4b4f7dee7064c7be03",
+      "partial-result.json": "4a47f50003e78e9396c630777493b74d44a93f6da42886bc062ce91164ce8547",
+      "partial.py": "3bee81bc1ad50409a468a94a0645506dc82273f7bf747beeb2452de3f88486b9",
+      "result.json": "3020c9119500b2561c20a1b333266e4e675f8da531dd52e497dc8738d08c6b5e"
+    },
+    "prospective": {
+      "complete": {
+        "cap_counts": {
+          "4": 12,
+          "8": 2
+        },
+        "changed": 7,
+        "earliest": "2026-11-25T17:45:00+09:00",
+        "forecast_sha256": "1ed2b6fdf4c8257252a59544fe9aa947fbcadbb9780af3e1409ca6eb4759939b",
+        "frozen_utc": "2026-11-25T08:43:04.211410+00:00",
+        "latest": "2026-11-25T23:25:00+09:00",
+        "registered": 14
+      },
+      "partial": {
+        "cap_counts": {
+          "4": 18,
+          "8": 2
+        },
+        "changed": 17,
+        "earliest": "2026-11-25T18:37:00+09:00",
+        "forecast_sha256": "c865711ec89c77b53830f2762717422b0f8264b402f6fc35c4ca6a79332d3c9e",
+        "frozen_utc": "2026-11-25T08:49:04.641205+00:00",
+        "latest": "2026-11-25T23:16:00+09:00",
+        "registered": 20
+      }
+    },
+    "rules": {
+      "complete": "Normalize independent inverse exacta odds across all pairs. Mix 50/50 with model pair probabilities. Preserve P(third|first,second).",
+      "limits": "Fully observed prices in previous dates were from November 23. Gold labels were known in earlier studies; this is a retrospective comparison. Source marks and initial actual forecasts are frozen separately.",
+      "partial": "Complementary board cohort, no eligible complete board. For each unknown pair preserve original pair marginal; preserve the total mass of observed pairs. Adjust only the relative shares of known pairs. No imputed cap values.",
+      "times": "Strict T15 requires both source quote time and fetched time within fifteen minutes of published cutoff. Fallback to historical incumbent on unqualified forecasts; Nov25 already-closed replays separated from forward registry."
+    },
+    "unions": {
+      "all_287_with_unchanged_missing": {
+        "1": {
+          "original": 32,
+          "races": 287,
+          "trial": 34
+        },
+        "4": {
+          "original": 91,
+          "races": 287,
+          "trial": 89
+        },
+        "8": {
+          "original": 127,
+          "races": 287,
+          "trial": 121
+        },
+        "displayed": {
+          "original": 93,
+          "races": 287,
+          "trial": 92
+        }
+      },
+      "historic": {
+        "by_cap": {
+          "1": {
+            "changed": 18,
+            "gains": 2,
+            "losses": 0,
+            "original_hits": 14,
+            "points": 82,
+            "trial_hits": 16
+          },
+          "4": {
+            "changed": 57,
+            "gains": 2,
+            "losses": 4,
+            "original_hits": 32,
+            "points": 328,
+            "trial_hits": 30
+          },
+          "8": {
+            "changed": 69,
+            "gains": 1,
+            "losses": 7,
+            "original_hits": 45,
+            "points": 656,
+            "trial_hits": 39
+          },
+          "displayed": {
+            "changed": 58,
+            "gains": 2,
+            "losses": 3,
+            "original_hits": 32,
+            "points": 344,
+            "trial_hits": 31
+          }
+        },
+        "races": 82
+      },
+      "nov25_before_freeze_replay": {
+        "by_cap": {
+          "1": {
+            "changed": 1,
+            "gains": 0,
+            "losses": 0,
+            "original_hits": 1,
+            "points": 14,
+            "trial_hits": 1
+          },
+          "4": {
+            "changed": 8,
+            "gains": 1,
+            "losses": 1,
+            "original_hits": 2,
+            "points": 56,
+            "trial_hits": 2
+          },
+          "8": {
+            "changed": 10,
+            "gains": 0,
+            "losses": 0,
+            "original_hits": 5,
+            "points": 112,
+            "trial_hits": 5
+          },
+          "displayed": {
+            "changed": 7,
+            "gains": 1,
+            "losses": 1,
+            "original_hits": 3,
+            "points": 68,
+            "trial_hits": 3
+          }
+        },
+        "races": 14
+      }
+    }
+  },
+  "threeway_earlier_and_later": {
+    "frozen_before_results_sha256": "abe6bc2a1f8633cd6ab49381385490e3363a7d4fbe5ff3d8c1ae06f838d8f182",
+    "nov23": {
+      "1": {
+        "changed": 0,
+        "early_hits": 1,
+        "gained": 0,
+        "late_hits": 1,
+        "lost": 0,
+        "n": 7,
+        "published_hits": 1
+      },
+      "4": {
+        "changed": 1,
+        "early_hits": 2,
+        "gained": 0,
+        "late_hits": 2,
+        "lost": 0,
+        "n": 7,
+        "published_hits": 2
+      },
+      "8": {
+        "changed": 0,
+        "early_hits": 5,
+        "gained": 0,
+        "late_hits": 5,
+        "lost": 0,
+        "n": 7,
+        "published_hits": 5
+      },
+      "displayed": {
+        "changed": 1,
+        "early_hits": 2,
+        "gained": 0,
+        "late_hits": 2,
+        "lost": 0,
+        "n": 7,
+        "published_hits": 2
+      }
+    },
+    "nov23_at_least_one_complete": 26,
+    "nov23_late_capture_and_provider_quote_both_T10_to_T15": 0,
+    "nov23_multi_captures_with_later_source_update": 7,
+    "nov23_target": 86,
+    "nov25_already_closed_0730UTC_snapshot": {
+      "1": {
+        "changed": false,
+        "early_hits": true,
+        "gained": false,
+        "late_hits": true,
+        "lost": false,
+        "n": 1,
+        "published_hits": true
+      },
+      "4": {
+        "changed": false,
+        "early_hits": true,
+        "gained": false,
+        "late_hits": true,
+        "lost": false,
+        "n": 1,
+        "published_hits": true
+      },
+      "8": {
+        "changed": false,
+        "early_hits": true,
+        "gained": false,
+        "late_hits": true,
+        "lost": false,
+        "n": 1,
+        "published_hits": true
+      },
+      "displayed": {
+        "changed": false,
+        "early_hits": true,
+        "gained": false,
+        "late_hits": true,
+        "lost": false,
+        "n": 1,
+        "published_hits": true
+      }
+    }
+  }
+}

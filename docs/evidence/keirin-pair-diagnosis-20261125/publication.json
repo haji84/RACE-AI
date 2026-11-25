@@ -1,0 +1,83 @@
+{
+  "date": "2026-11-25",
+  "site_version": 30,
+  "site_source": "902cef2c794bc93ed65b43bf94f38146d29d94f1",
+  "deployment_time_utc": "2026-11-24T23:43:19.442812+00:00",
+  "earliest_cutoff": "2026-11-25T08:45:00+09:00",
+  "retrospective": {
+    "scope": "2026-11-21 through 23, derived from dated inputs, retrospective model selection",
+    "n": 207,
+    "caps": {
+      "4": 202,
+      "8": 5
+    },
+    "hits": {
+      "previous_both": 71,
+      "more_B_to_corner": 71,
+      "more_corner_to_finish": 71,
+      "both_updates": 71,
+      "baseline": 62,
+      "third_line": 70,
+      "pair_and_third": 67
+    },
+    "predeadline_commit_minutes": {
+      "minimum": 176.28333333333333,
+      "median": 474.7,
+      "maximum": 1098.4333333333334
+    },
+    "card_archive_sha256": "4d0d9719e50fdaef160a2bbc8e029ea0f95fc74fcba87f61bf29dfd2b3f0482b"
+  },
+  "anonymous_readback": {
+    "checked_utc": "2026-11-24T23:43:54.227859+00:00",
+    "mode": "anonymous_public_readback",
+    "url": "https://keirin-20261119-race-note.chankuma.chatgpt.site/",
+    "endpoint": "/data/keirin_20261125_ranked_v3_public.json",
+    "previous": "/data/keirin_20261124_ranked_v2_public.json",
+    "races": 75,
+    "venues": 8,
+    "rider_entries": 516,
+    "independently_compared_forecast_tickets": {
+      "video": 60,
+      "static": 15,
+      "exacta": 75
+    },
+    "default_point_counts": {
+      "3t": {
+        "8": 15,
+        "4": 60
+      },
+      "2t": {
+        "2": 59,
+        "4": 16
+      }
+    },
+    "default_ticket_odds": {
+      "3t": {
+        "displayed": 360,
+        "priced": 275,
+        "races_some": 69,
+        "races_all": 42
+      },
+      "2t": {
+        "displayed": 182,
+        "priced": 90,
+        "races_some": 50,
+        "races_all": 22
+      }
+    },
+    "normalized_sha256": "2a62f3a6cf7f2a12d62b5b49b4d9a620db49309b0522814ed904c11c942e3d35",
+    "local_gzip_sha256": "51a98f0a048d4831eeb8c85533e28f789b17dc55ca59a7cb0cf0c920d7e4eb9e",
+    "wire_sha256": "51a98f0a048d4831eeb8c85533e28f789b17dc55ca59a7cb0cf0c920d7e4eb9e",
+    "wire_encoding": "gzip",
+    "view": {
+      "rendered_markets": 150,
+      "priced_ticket_cells": 564,
+      "unquoted_or_capped_ticket_cells": 336,
+      "anonymous_view": true,
+      "results_view": true
+    }
+  },
+  "result_roster_sha256": "c96f35a0c0a9e26c34a491d162674f40a47a2e5fd0ae19f4583c86653d6aeb31",
+  "result_roster_count": 75,
+  "site_tests_passed": 166
+}

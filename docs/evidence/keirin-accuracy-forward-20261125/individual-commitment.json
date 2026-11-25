@@ -1,0 +1,9 @@
+{
+  "utc": "2026-11-25T07:08:12.676693+00:00",
+  "design_sha": "96b3bb07e29aaf8a03c6f4e511513e7bbebbb9247c36aa059f4729f28eb1402a",
+  "weights_sha": "f890060be7c74cb9df662b5277db7ef2b567b2f4d96a3f29ab61e0d9f989e974",
+  "forward_sha": "28e66e067458300db279c68744306a66937633da2e70f4f39a7118eee72ab56b",
+  "forward_changes": 3,
+  "included": 6,
+  "event_scope": "All entrants classified L1."
+}

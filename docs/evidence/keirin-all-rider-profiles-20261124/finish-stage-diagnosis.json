@@ -1,0 +1,87 @@
+{
+  "interpretation": "Post-score diagnosis only, on the same evaluation outcomes. The sealed comparison remains primary.",
+  "sealed_commit": "df813a323db74735ad88b3b1b800baeb7853fa8a",
+  "scored_races": 557,
+  "per_cap": {
+    "2t:2:current_B": {
+      "races": 557,
+      "hits": 181,
+      "points": 1114
+    },
+    "2t:2:first_two_with_profile": {
+      "races": 557,
+      "hits": 175,
+      "points": 1114
+    },
+    "2t:2:third_only_with_profile": {
+      "races": 557,
+      "hits": 181,
+      "points": 1114
+    },
+    "2t:2:all_three_with_profile": {
+      "races": 557,
+      "hits": 175,
+      "points": 1114
+    },
+    "3t:1:current_B": {
+      "races": 557,
+      "hits": 37,
+      "points": 557
+    },
+    "3t:1:first_two_with_profile": {
+      "races": 557,
+      "hits": 35,
+      "points": 557
+    },
+    "3t:1:third_only_with_profile": {
+      "races": 557,
+      "hits": 39,
+      "points": 557
+    },
+    "3t:1:all_three_with_profile": {
+      "races": 557,
+      "hits": 36,
+      "points": 557
+    },
+    "3t:4:current_B": {
+      "races": 557,
+      "hits": 106,
+      "points": 2228
+    },
+    "3t:4:first_two_with_profile": {
+      "races": 557,
+      "hits": 108,
+      "points": 2228
+    },
+    "3t:4:third_only_with_profile": {
+      "races": 557,
+      "hits": 105,
+      "points": 2228
+    },
+    "3t:4:all_three_with_profile": {
+      "races": 557,
+      "hits": 111,
+      "points": 2228
+    },
+    "3t:8:current_B": {
+      "races": 557,
+      "hits": 151,
+      "points": 4454
+    },
+    "3t:8:first_two_with_profile": {
+      "races": 557,
+      "hits": 157,
+      "points": 4454
+    },
+    "3t:8:third_only_with_profile": {
+      "races": 557,
+      "hits": 150,
+      "points": 4454
+    },
+    "3t:8:all_three_with_profile": {
+      "races": 557,
+      "hits": 157,
+      "points": 4454
+    }
+  }
+}

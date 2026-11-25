@@ -1,0 +1,914 @@
+{
+  "schema": "KEIRIN_RESEARCH_RANK_ADJUSTMENT_RESULT_V1",
+  "protocol": {
+    "fit_start": "2025-11-23",
+    "fit_end": "2026-07-31",
+    "fit_unique_results": 18608,
+    "selection_period": [
+      "2026-08-01",
+      "2026-09-30"
+    ],
+    "selection_races": 4608,
+    "holdout_period": [
+      "2026-10-01",
+      "2026-11-22"
+    ],
+    "with_lines_holdout_period": [
+      "2026-11-16",
+      "2026-11-22"
+    ],
+    "equal_top_ticket_cap_per_race_and_market": 4,
+    "variable_ticket_budget": "Smaller of both versions' selected counts per race and market.",
+    "prediction_inputs": "Archived entry-only snapshots, plus documented pre-cutoff refresh for live Tamano 7R.",
+    "annual_comparison_scope": "Ability-only A, no lineup data in this panel.",
+    "with_lines_comparison_scope": "A/B with lineup, comparing tactical v2 and reranking the same tactical paths.",
+    "closed_historical_label_sources": "Archived payout combinations admitted when all available records agree; a single available source is sufficient. Independent two-source agreements are reported separately.",
+    "historical_scope": "Scored after this forecast commitment. The earlier one-year aggregate was already available; none of these outcomes were input to fitting or variant selection."
+  },
+  "canonical_validation_recheck": {
+    "validation_races": 4608,
+    "original_validation_hits": {
+      "2t": 1953,
+      "3t": 785
+    },
+    "candidates": [
+      {
+        "variant": "cumulative",
+        "blend": 0.35,
+        "hits": {
+          "2t": 2076,
+          "3t": 868
+        }
+      },
+      {
+        "variant": "cumulative",
+        "blend": 0.65,
+        "hits": {
+          "2t": 2142,
+          "3t": 911
+        }
+      },
+      {
+        "variant": "cumulative",
+        "blend": 1.0,
+        "hits": {
+          "2t": 2188,
+          "3t": 948
+        }
+      },
+      {
+        "variant": "separate_finish_rates",
+        "blend": 0.35,
+        "hits": {
+          "2t": 2081,
+          "3t": 869
+        }
+      },
+      {
+        "variant": "separate_finish_rates",
+        "blend": 0.65,
+        "hits": {
+          "2t": 2142,
+          "3t": 907
+        }
+      },
+      {
+        "variant": "separate_finish_rates",
+        "blend": 1.0,
+        "hits": {
+          "2t": 2179,
+          "3t": 961
+        }
+      },
+      {
+        "variant": "separate_finish_rates_and_style",
+        "blend": 0.35,
+        "hits": {
+          "2t": 2097,
+          "3t": 856
+        }
+      },
+      {
+        "variant": "separate_finish_rates_and_style",
+        "blend": 0.65,
+        "hits": {
+          "2t": 2159,
+          "3t": 898
+        }
+      },
+      {
+        "variant": "separate_finish_rates_and_style",
+        "blend": 1.0,
+        "hits": {
+          "2t": 2189,
+          "3t": 938
+        }
+      }
+    ],
+    "selected": {
+      "variant": "separate_finish_rates",
+      "blend": 1.0,
+      "hits": {
+        "2t": 2179,
+        "3t": 961
+      }
+    },
+    "feature_ablation_validation_hits": {
+      "points": {
+        "2t": 2077,
+        "3t": 923
+      },
+      "marks": {
+        "2t": 1965,
+        "3t": 783
+      },
+      "rates": {
+        "2t": 2125,
+        "3t": 924
+      }
+    },
+    "fit_end": "20260731",
+    "validation_end": "20260930",
+    "scorer": "Existing A forecast engine and the same ranking adjustment, including tie handling.",
+    "same_coefficients_as_frozen": true,
+    "same_selection_as_frozen": true
+  },
+  "holdout": {
+    "scope": "holdout",
+    "commitment_head": "f255eb36fc093e47c8b0e72ea644927a2fb3c3f1",
+    "witness_ci": 45185353509,
+    "github_created_at": "2026-11-23T13:35:01Z",
+    "label_phase_started": "2026-11-23T13:36:47.845808+00:00",
+    "result_state_head": null,
+    "coverage": {
+      "annual": {
+        "frozen": 3912,
+        "scored": 3905
+      },
+      "with_lines": {
+        "frozen": 474,
+        "scored": 472
+      }
+    },
+    "metrics": {
+      "annual:current_A:2t": {
+        "equal_points_hits": 1669,
+        "equal_points_races": 3905,
+        "equal_points_total": 15620,
+        "first_hit": 621,
+        "selected_points": 30634,
+        "selected_races": 3901,
+        "selected_hits": 2226
+      },
+      "annual:current_A:3t": {
+        "equal_points_hits": 634,
+        "equal_points_races": 3905,
+        "equal_points_total": 15620,
+        "first_hit": 197,
+        "selected_points": 96358,
+        "selected_races": 3903,
+        "selected_hits": 1771
+      },
+      "annual:learned_A:2t": {
+        "equal_points_hits": 1780,
+        "equal_points_races": 3905,
+        "equal_points_total": 15620,
+        "first_hit": 803,
+        "selected_points": 16051,
+        "selected_races": 3905,
+        "selected_hits": 1687
+      },
+      "annual:learned_A:3t": {
+        "equal_points_hits": 767,
+        "equal_points_races": 3905,
+        "equal_points_total": 15620,
+        "first_hit": 248,
+        "selected_points": 43844,
+        "selected_races": 3905,
+        "selected_hits": 1258
+      },
+      "with_lines:current_A:2t": {
+        "equal_points_hits": 193,
+        "equal_points_races": 472,
+        "equal_points_total": 1887,
+        "first_hit": 68,
+        "selected_points": 2068,
+        "selected_races": 472,
+        "selected_hits": 206
+      },
+      "with_lines:current_A:3t": {
+        "equal_points_hits": 79,
+        "equal_points_races": 472,
+        "equal_points_total": 1888,
+        "first_hit": 26,
+        "selected_points": 2548,
+        "selected_races": 472,
+        "selected_hits": 93
+      },
+      "with_lines:current_B:2t": {
+        "equal_points_hits": 192,
+        "equal_points_races": 472,
+        "equal_points_total": 1887,
+        "first_hit": 77,
+        "selected_points": 1872,
+        "selected_races": 472,
+        "selected_hits": 205
+      },
+      "with_lines:current_B:3t": {
+        "equal_points_hits": 78,
+        "equal_points_races": 472,
+        "equal_points_total": 1888,
+        "first_hit": 27,
+        "selected_points": 2257,
+        "selected_races": 472,
+        "selected_hits": 84
+      },
+      "with_lines:learned_A:2t": {
+        "equal_points_hits": 203,
+        "equal_points_races": 472,
+        "equal_points_total": 1887,
+        "first_hit": 80,
+        "selected_points": 1714,
+        "selected_races": 472,
+        "selected_hits": 196
+      },
+      "with_lines:learned_A:3t": {
+        "equal_points_hits": 79,
+        "equal_points_races": 472,
+        "equal_points_total": 1888,
+        "first_hit": 30,
+        "selected_points": 2278,
+        "selected_races": 472,
+        "selected_hits": 89
+      },
+      "with_lines:learned_B:2t": {
+        "equal_points_hits": 206,
+        "equal_points_races": 472,
+        "equal_points_total": 1887,
+        "first_hit": 83,
+        "selected_points": 1548,
+        "selected_races": 472,
+        "selected_hits": 193
+      },
+      "with_lines:learned_B:3t": {
+        "equal_points_hits": 81,
+        "equal_points_races": 472,
+        "equal_points_total": 1888,
+        "first_hit": 30,
+        "selected_points": 2028,
+        "selected_races": 472,
+        "selected_hits": 86
+      },
+      "with_lines:tactical_A:2t": {
+        "equal_points_hits": 197,
+        "equal_points_races": 472,
+        "equal_points_total": 1887,
+        "first_hit": 67,
+        "selected_points": 2184,
+        "selected_races": 472,
+        "selected_hits": 219
+      },
+      "with_lines:tactical_A:3t": {
+        "equal_points_hits": 76,
+        "equal_points_races": 472,
+        "equal_points_total": 1888,
+        "first_hit": 26,
+        "selected_points": 2649,
+        "selected_races": 472,
+        "selected_hits": 93
+      },
+      "with_lines:tactical_B:2t": {
+        "equal_points_hits": 197,
+        "equal_points_races": 472,
+        "equal_points_total": 1887,
+        "first_hit": 76,
+        "selected_points": 1959,
+        "selected_races": 472,
+        "selected_hits": 217
+      },
+      "with_lines:tactical_B:3t": {
+        "equal_points_hits": 78,
+        "equal_points_races": 472,
+        "equal_points_total": 1888,
+        "first_hit": 27,
+        "selected_points": 2331,
+        "selected_races": 472,
+        "selected_hits": 85
+      }
+    },
+    "paired": {
+      "annual:A:2t": {
+        "both_hit": 1519,
+        "both_missed": 1975,
+        "only_learned": 261,
+        "only_baseline": 150
+      },
+      "annual:A:3t": {
+        "both_hit": 497,
+        "only_baseline": 137,
+        "both_missed": 3001,
+        "only_learned": 270
+      },
+      "with_lines:A:2t": {
+        "both_missed": 258,
+        "both_hit": 186,
+        "only_baseline": 11,
+        "only_learned": 17
+      },
+      "with_lines:A:3t": {
+        "both_missed": 385,
+        "both_hit": 68,
+        "only_baseline": 8,
+        "only_learned": 11
+      },
+      "with_lines:B:2t": {
+        "both_missed": 257,
+        "both_hit": 188,
+        "only_baseline": 9,
+        "only_learned": 18
+      },
+      "with_lines:B:3t": {
+        "both_missed": 386,
+        "both_hit": 73,
+        "only_learned": 8,
+        "only_baseline": 5
+      }
+    },
+    "day_block_95_interval_percentage_points": {
+      "annual:A:2t": [
+        1.799,
+        3.955
+      ],
+      "annual:A:3t": [
+        2.295,
+        4.498
+      ],
+      "with_lines:A:2t": null,
+      "with_lines:A:3t": null,
+      "with_lines:B:2t": null,
+      "with_lines:B:3t": null
+    },
+    "diagnostics": {
+      "annual": {
+        "regular_races": 3887,
+        "current_wrong_single_head_3t": 706,
+        "learned_wrong_single_head_3t": 1147,
+        "current_miss_winning_head_omitted_from_four": 1560,
+        "recovered_winning_head_omitted_from_four": 24,
+        "current_miss_correct_head_wrong_second": 1051,
+        "recovered_correct_head_wrong_second": 114,
+        "winning_editorial_favorite": 1204,
+        "winning_editorial_favorite_absent_current_3t_head": 82,
+        "winning_editorial_favorite_absent_learned_3t_head": 22,
+        "current_miss_correct_pair_wrong_third": 644,
+        "recovered_correct_pair_wrong_third": 132
+      },
+      "with_lines": {
+        "regular_races": 470,
+        "current_A_2t_pool_hit": 302,
+        "current_A_3t_pool_hit": 193,
+        "current_A_correct_head_missing_second": 121,
+        "tactical_A_2t_pool_hit": 328,
+        "tactical_A_3t_pool_hit": 199,
+        "tactical_A_correct_head_missing_second": 98,
+        "current_B_2t_pool_hit": 302,
+        "current_B_3t_pool_hit": 193,
+        "current_B_correct_head_missing_second": 121,
+        "tactical_B_2t_pool_hit": 328,
+        "tactical_B_3t_pool_hit": 199,
+        "tactical_B_correct_head_missing_second": 98,
+        "current_A_correct_pair_missing_third": 109,
+        "current_A_missing_third_on_different_line": 87,
+        "tactical_A_correct_pair_missing_third": 129,
+        "tactical_A_missing_third_on_different_line": 99,
+        "current_B_correct_pair_missing_third": 109,
+        "current_B_missing_third_on_different_line": 87,
+        "tactical_B_correct_pair_missing_third": 129,
+        "tactical_B_missing_third_on_different_line": 99,
+        "current_A_winning_head_missing": 47,
+        "tactical_A_winning_head_missing": 44,
+        "current_B_winning_head_missing": 47,
+        "tactical_B_winning_head_missing": 44
+      }
+    }
+  },
+  "independent_label_sensitivity": {
+    "scope": "Same forecasts and dates, limited to exact Kdreams/netkeirin agreement or the existing matched two-source public result archive.",
+    "label_coverage": {
+      "annual": {
+        "frozen": 3912,
+        "admitted": 3905,
+        "independent_agreement": 984,
+        "conflicting_sources": 2,
+        "no_admitted_source": 5
+      },
+      "with_lines": {
+        "frozen": 474,
+        "admitted": 472,
+        "independent_agreement": 192,
+        "no_admitted_source": 2
+      }
+    },
+    "metrics": {
+      "annual:current_A:2t": {
+        "equal_points_hits": 437,
+        "equal_points_races": 984,
+        "equal_points_total": 3936,
+        "first_hit": 171,
+        "selected_points": 7841,
+        "selected_races": 984,
+        "selected_hits": 570
+      },
+      "annual:current_A:3t": {
+        "equal_points_hits": 172,
+        "equal_points_races": 984,
+        "equal_points_total": 3936,
+        "first_hit": 62,
+        "selected_points": 25281,
+        "selected_races": 984,
+        "selected_hits": 457
+      },
+      "annual:learned_A:2t": {
+        "equal_points_hits": 445,
+        "equal_points_races": 984,
+        "equal_points_total": 3936,
+        "first_hit": 204,
+        "selected_points": 4771,
+        "selected_races": 984,
+        "selected_hits": 473
+      },
+      "annual:learned_A:3t": {
+        "equal_points_hits": 198,
+        "equal_points_races": 984,
+        "equal_points_total": 3936,
+        "first_hit": 64,
+        "selected_points": 13599,
+        "selected_races": 984,
+        "selected_hits": 354
+      },
+      "with_lines:current_A:2t": {
+        "equal_points_hits": 84,
+        "equal_points_races": 192,
+        "equal_points_total": 767,
+        "first_hit": 31,
+        "selected_points": 786,
+        "selected_races": 192,
+        "selected_hits": 86
+      },
+      "with_lines:current_A:3t": {
+        "equal_points_hits": 39,
+        "equal_points_races": 192,
+        "equal_points_total": 768,
+        "first_hit": 9,
+        "selected_points": 993,
+        "selected_races": 192,
+        "selected_hits": 48
+      },
+      "with_lines:current_B:2t": {
+        "equal_points_hits": 81,
+        "equal_points_races": 192,
+        "equal_points_total": 767,
+        "first_hit": 35,
+        "selected_points": 731,
+        "selected_races": 192,
+        "selected_hits": 86
+      },
+      "with_lines:current_B:3t": {
+        "equal_points_hits": 38,
+        "equal_points_races": 192,
+        "equal_points_total": 768,
+        "first_hit": 10,
+        "selected_points": 926,
+        "selected_races": 192,
+        "selected_hits": 44
+      },
+      "with_lines:learned_A:2t": {
+        "equal_points_hits": 85,
+        "equal_points_races": 192,
+        "equal_points_total": 767,
+        "first_hit": 38,
+        "selected_points": 609,
+        "selected_races": 192,
+        "selected_hits": 78
+      },
+      "with_lines:learned_A:3t": {
+        "equal_points_hits": 36,
+        "equal_points_races": 192,
+        "equal_points_total": 768,
+        "first_hit": 11,
+        "selected_points": 867,
+        "selected_races": 192,
+        "selected_hits": 42
+      },
+      "with_lines:learned_B:2t": {
+        "equal_points_hits": 87,
+        "equal_points_races": 192,
+        "equal_points_total": 767,
+        "first_hit": 43,
+        "selected_points": 566,
+        "selected_races": 192,
+        "selected_hits": 79
+      },
+      "with_lines:learned_B:3t": {
+        "equal_points_hits": 39,
+        "equal_points_races": 192,
+        "equal_points_total": 768,
+        "first_hit": 12,
+        "selected_points": 799,
+        "selected_races": 192,
+        "selected_hits": 43
+      },
+      "with_lines:tactical_A:2t": {
+        "equal_points_hits": 86,
+        "equal_points_races": 192,
+        "equal_points_total": 767,
+        "first_hit": 31,
+        "selected_points": 848,
+        "selected_races": 192,
+        "selected_hits": 93
+      },
+      "with_lines:tactical_A:3t": {
+        "equal_points_hits": 36,
+        "equal_points_races": 192,
+        "equal_points_total": 768,
+        "first_hit": 9,
+        "selected_points": 1013,
+        "selected_races": 192,
+        "selected_hits": 47
+      },
+      "with_lines:tactical_B:2t": {
+        "equal_points_hits": 85,
+        "equal_points_races": 192,
+        "equal_points_total": 767,
+        "first_hit": 38,
+        "selected_points": 775,
+        "selected_races": 192,
+        "selected_hits": 91
+      },
+      "with_lines:tactical_B:3t": {
+        "equal_points_hits": 38,
+        "equal_points_races": 192,
+        "equal_points_total": 768,
+        "first_hit": 10,
+        "selected_points": 950,
+        "selected_races": 192,
+        "selected_hits": 45
+      }
+    },
+    "paired": {
+      "annual:A:2t": {
+        "both_hit": 396,
+        "both_missed": 498,
+        "only_learned": 49,
+        "only_baseline": 41
+      },
+      "annual:A:3t": {
+        "both_hit": 143,
+        "only_baseline": 29,
+        "both_missed": 757,
+        "only_learned": 55
+      },
+      "with_lines:A:2t": {
+        "both_missed": 101,
+        "both_hit": 80,
+        "only_baseline": 6,
+        "only_learned": 5
+      },
+      "with_lines:A:3t": {
+        "both_missed": 152,
+        "both_hit": 32,
+        "only_baseline": 4,
+        "only_learned": 4
+      },
+      "with_lines:B:2t": {
+        "both_missed": 102,
+        "both_hit": 82,
+        "only_baseline": 3,
+        "only_learned": 5
+      },
+      "with_lines:B:3t": {
+        "both_missed": 151,
+        "both_hit": 36,
+        "only_learned": 3,
+        "only_baseline": 2
+      }
+    },
+    "day_block_95_interval_percentage_points": {
+      "annual:A:2t": [
+        -0.711,
+        2.193
+      ],
+      "annual:A:3t": [
+        1.151,
+        3.954
+      ],
+      "with_lines:A:2t": null,
+      "with_lines:A:3t": null,
+      "with_lines:B:2t": null,
+      "with_lines:B:3t": null
+    }
+  },
+  "equal_variable_ticket_budgets": {
+    "annual:A:2t": {
+      "races": 3901,
+      "points_per_arm": 15323,
+      "baseline_hits": 1472,
+      "learned_hits": 1655
+    },
+    "annual:A:3t": {
+      "races": 3903,
+      "points_per_arm": 41564,
+      "baseline_hits": 1056,
+      "learned_hits": 1213
+    },
+    "with_lines:A:2t": {
+      "races": 472,
+      "points_per_arm": 1588,
+      "baseline_hits": 186,
+      "learned_hits": 193
+    },
+    "with_lines:A:3t": {
+      "races": 472,
+      "points_per_arm": 2071,
+      "baseline_hits": 79,
+      "learned_hits": 86
+    },
+    "with_lines:B:2t": {
+      "races": 472,
+      "points_per_arm": 1452,
+      "baseline_hits": 183,
+      "learned_hits": 190
+    },
+    "with_lines:B:3t": {
+      "races": 472,
+      "points_per_arm": 1840,
+      "baseline_hits": 77,
+      "learned_hits": 80
+    }
+  },
+  "wrong_winner_concentration_at_editorial_favorite": {
+    "learned_wrong_single_editorial_favorite": 800,
+    "current_wrong_single_editorial_favorite": 378
+  },
+  "validation_head_concentration_control": {
+    "validation_races": 4608,
+    "only_pre_october_validation_used": true,
+    "variants": {
+      "1.0": {
+        "hits": {
+          "2t": 2179,
+          "3t": 961
+        },
+        "wrong_single_head": 1338,
+        "single_head": 2646
+      },
+      "0.8": {
+        "hits": {
+          "2t": 2192,
+          "3t": 947
+        },
+        "wrong_single_head": 997,
+        "single_head": 2053
+      },
+      "0.66": {
+        "hits": {
+          "2t": 2165,
+          "3t": 941
+        },
+        "wrong_single_head": 635,
+        "single_head": 1416
+      },
+      "0.5": {
+        "hits": {
+          "2t": 2143,
+          "3t": 906
+        },
+        "wrong_single_head": 240,
+        "single_head": 577
+      }
+    },
+    "qualified": []
+  },
+  "tactical_other_line_third_mechanism": {
+    "other_line_third_missing": 99,
+    "earliest_4c_position_counts": {
+      "5": 39,
+      "6": 33,
+      "7": 18,
+      "4": 6,
+      "9": 2,
+      "8": 1
+    },
+    "always_ranked_fifth_or_lower_at_4c": 93,
+    "straight_model_limit": "One independent adjacent move for second or third after any required branch move.",
+    "example": {
+      "race_id": "202611222205",
+      "actual_order": [
+        1,
+        5,
+        2
+      ],
+      "candidate_paths_with_pair": 1,
+      "third_car_predicted_4c_ranks": [
+        7
+      ],
+      "third_line_position": 1,
+      "separate_listed_line": true,
+      "title": "前橋競輪 ニッカン・コム杯 FII 2026年11月22日 5R 特一般 結果・払戻金",
+      "markers_by_car": {
+        "1": "S",
+        "3": "B"
+      },
+      "first_finishing_style": "差",
+      "result_source_url": "https://keirin.netkeiba.com/race/result/?race_id=202611222205",
+      "result_page_sha256": "4d877bcb8b19db5f0d0dc2cbab8722d634f4ef400994d20aae0ad4a235105dea",
+      "independently_saved_two_publisher_result": true,
+      "explicit_replay_links": 0,
+      "actual_fourth_corner_order_verified": false,
+      "actual_attack_phase_verified": false,
+      "second_result_source_url": "https://keirin.kdreams.jp/maebashi/racedetail/2220261120030005/?pageType=result"
+    }
+  },
+  "live": {
+    "scope": "live",
+    "commitment_head": "f255eb36fc093e47c8b0e72ea644927a2fb3c3f1",
+    "witness_ci": 45185353509,
+    "github_created_at": "2026-11-23T13:35:01Z",
+    "label_phase_started": "2026-11-23T14:03:05.872907+00:00",
+    "result_state_head": "bcf41a4a207af5a8595ad9ef1361aff4293502ec",
+    "coverage": {
+      "with_lines": {
+        "frozen": 6,
+        "scored": 1
+      }
+    },
+    "metrics": {
+      "with_lines:current_A:2t": {
+        "equal_points_hits": 1,
+        "equal_points_races": 1,
+        "equal_points_total": 4,
+        "first_hit": 1,
+        "selected_points": 2,
+        "selected_races": 1,
+        "selected_hits": 1
+      },
+      "with_lines:current_A:3t": {
+        "equal_points_hits": 1,
+        "equal_points_races": 1,
+        "equal_points_total": 4,
+        "first_hit": 1,
+        "selected_points": 5,
+        "selected_races": 1,
+        "selected_hits": 1
+      },
+      "with_lines:current_B:2t": {
+        "equal_points_hits": 1,
+        "equal_points_races": 1,
+        "equal_points_total": 4,
+        "first_hit": 1,
+        "selected_points": 2,
+        "selected_races": 1,
+        "selected_hits": 1
+      },
+      "with_lines:current_B:3t": {
+        "equal_points_hits": 1,
+        "equal_points_races": 1,
+        "equal_points_total": 4,
+        "first_hit": 1,
+        "selected_points": 2,
+        "selected_races": 1,
+        "selected_hits": 1
+      },
+      "with_lines:learned_A:2t": {
+        "equal_points_hits": 1,
+        "equal_points_races": 1,
+        "equal_points_total": 4,
+        "first_hit": 0,
+        "selected_points": 2,
+        "selected_races": 1,
+        "selected_hits": 1
+      },
+      "with_lines:learned_A:3t": {
+        "equal_points_hits": 1,
+        "equal_points_races": 1,
+        "equal_points_total": 4,
+        "first_hit": 0,
+        "selected_points": 6,
+        "selected_races": 1,
+        "selected_hits": 1
+      },
+      "with_lines:learned_B:2t": {
+        "equal_points_hits": 1,
+        "equal_points_races": 1,
+        "equal_points_total": 4,
+        "first_hit": 0,
+        "selected_points": 2,
+        "selected_races": 1,
+        "selected_hits": 1
+      },
+      "with_lines:learned_B:3t": {
+        "equal_points_hits": 1,
+        "equal_points_races": 1,
+        "equal_points_total": 4,
+        "first_hit": 0,
+        "selected_points": 5,
+        "selected_races": 1,
+        "selected_hits": 1
+      },
+      "with_lines:tactical_A:2t": {
+        "equal_points_hits": 1,
+        "equal_points_races": 1,
+        "equal_points_total": 4,
+        "first_hit": 1,
+        "selected_points": 2,
+        "selected_races": 1,
+        "selected_hits": 1
+      },
+      "with_lines:tactical_A:3t": {
+        "equal_points_hits": 1,
+        "equal_points_races": 1,
+        "equal_points_total": 4,
+        "first_hit": 1,
+        "selected_points": 5,
+        "selected_races": 1,
+        "selected_hits": 1
+      },
+      "with_lines:tactical_B:2t": {
+        "equal_points_hits": 1,
+        "equal_points_races": 1,
+        "equal_points_total": 4,
+        "first_hit": 1,
+        "selected_points": 2,
+        "selected_races": 1,
+        "selected_hits": 1
+      },
+      "with_lines:tactical_B:3t": {
+        "equal_points_hits": 1,
+        "equal_points_races": 1,
+        "equal_points_total": 4,
+        "first_hit": 1,
+        "selected_points": 2,
+        "selected_races": 1,
+        "selected_hits": 1
+      }
+    },
+    "paired": {
+      "with_lines:A:2t": {
+        "both_hit": 1
+      },
+      "with_lines:A:3t": {
+        "both_hit": 1
+      },
+      "with_lines:B:2t": {
+        "both_hit": 1
+      },
+      "with_lines:B:3t": {
+        "both_hit": 1
+      }
+    },
+    "day_block_95_interval_percentage_points": {
+      "with_lines:A:2t": null,
+      "with_lines:A:3t": null,
+      "with_lines:B:2t": null,
+      "with_lines:B:3t": null
+    },
+    "diagnostics": {
+      "with_lines": {
+        "regular_races": 1,
+        "current_A_2t_pool_hit": 1,
+        "current_A_3t_pool_hit": 1,
+        "tactical_A_2t_pool_hit": 1,
+        "tactical_A_3t_pool_hit": 1,
+        "current_B_2t_pool_hit": 1,
+        "current_B_3t_pool_hit": 1,
+        "tactical_B_2t_pool_hit": 1,
+        "tactical_B_3t_pool_hit": 1
+      }
+    },
+    "date": "2026-11-23",
+    "first_cutoff_at": "2026-11-23T22:40:00+09:00",
+    "last_cutoff_at": "2026-11-23T23:25:00+09:00",
+    "passed_cutoff_as_of_readback": 3,
+    "post_cutoff_archive_states": {
+      "held": 1,
+      "matched": 1,
+      "not_in_state": 0,
+      "pending": 1
+    },
+    "archive_checked_at": "2026-11-23T14:02:22.212055+00:00",
+    "result_url": "https://github.com/haji84/RACE-AI/blob/bcf41a4a207af5a8595ad9ef1361aff4293502ec/results/2026-11-23.json"
+  },
+  "verification": {
+    "fitted_weights_sha256": "d53220b078617acdb15f1ae07860e03f003493887f514fe39783b6f7c65ed8ef",
+    "cohort_preparation_sha256": "7d0628d6f4f2f952568da6ab1c8fccd5377b408d05919967d565eb13d92271c0",
+    "outcome_comparison_sha256": "64b76aeaaa4d27a2c91851d2fd41d378b7d6ad8b471d3dc2ec837495e3b676f3",
+    "forecast_generator_sha256": "c86a1ae50cef14c89ca877f85b754fe150eeab91c3cf238bd3dceef57623aef5",
+    "future_validation_source_sha256": "02fb4d185b77c12a28c0f1ddece5d16c7667d453358e6a4803fa09297d68eb56",
+    "frozen_holdout_exact_replay": {
+      "forecast_rows": 4386,
+      "matches_sealed_forecast_bytes": true
+    },
+    "private_forecast_backup_ciphertext_sha256": "69d0461056ab9f63da769354b1869a937b870c52cbac6785525fe8abef054466",
+    "ci_witness_url": "https://github.com/haji84/RACE-AI/actions/runs/45185353509"
+  }
+}

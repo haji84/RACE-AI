@@ -1,0 +1,10 @@
+{
+  "races": 41,
+  "adjusted": 20,
+  "sha256": "862337a522204fc64fb5470bb5f6e40942934809894ef8a4d337456d3f1bb0ad",
+  "weights": "d02d7b3fa16b06b18153b3bf493af8a8fb2ed50f7f79a0636551b8a57ff0b280",
+  "changes_by_cap": 1,
+  "source": "6675a576ecc53f362cfda3201ea686c7a58a9c740a5f46583c8a9353db618389",
+  "frozen_at": "2026-11-25T07:11:42.726183+00:00",
+  "earliest": "2026-11-25T16:17:00+09:00"
+}

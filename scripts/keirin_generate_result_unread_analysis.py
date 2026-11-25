@@ -353,6 +353,35 @@ def check_tickets(tickets, cars, length):
          and len({tuple(ticket) for ticket in tickets}) == len(tickets), 'INVALID_ANALYSIS_TICKETS')
 
 
+def check_market_tickets(analysis, cars, market):
+    key, length = ('ranked_tickets', 3) if market == '3t' else ('ranked_2ren_tan', 2)
+    selected = analysis[key]
+    listed = analysis['markets'][market]
+    need(type(selected) is list and listed['tickets'] == selected and listed['point_count'] == len(selected),
+         'INVALID_ANALYSIS_TICKETS')
+    if selected == []:
+        selection = analysis['selection'][market]
+        need(selection.get('point_count') == 0 and
+             selection.get('recommendation') == 'ABSTAIN_INSUFFICIENT_SEPARATION' and
+             selection.get('abstention_code') in ('INDISTINGUISHABLE_RIDER_EVIDENCE',
+                                                 'ALL_CANDIDATES_WITHIN_SUPPORT_WINDOW'),
+             'INVALID_ANALYSIS_TICKETS')
+        candidates = analysis['candidate_tickets'][market]
+        check_tickets(candidates, cars, length)
+        need(selection['abstention_code'] != 'ALL_CANDIDATES_WITHIN_SUPPORT_WINDOW' or len(candidates) > 1,
+             'INVALID_ANALYSIS_TICKETS')
+    else:
+        check_tickets(selected, cars, length)
+
+
+def published_cutoff(day, value):
+    if value is None:
+        return None
+    need(isinstance(value,str) and re.fullmatch(r'(?:[01]?[0-9]|2[0-3]):[0-5][0-9]',value), 'INVALID_CUTOFF_TEXT')
+    hour, minute = map(int,value.split(':'))
+    return datetime.fromisoformat(f'{day}T{hour:02}:{minute:02}:00').replace(tzinfo=JST)
+
+
 def analyze(row, model, generated_at, observations=None):
     check_no_result_fields(row)
     need(row.get('date') == DAY and re.fullmatch(DAY.replace('-', '') + '[0-9]{4}', str(row.get('race_id', ''))),
@@ -377,11 +406,7 @@ def analyze(row, model, generated_at, observations=None):
     cars = [rider['car'] for rider in riders]
     lines, line_status, line_hypotheses, line_warnings = resolve_lines(row, riders)
     cutoff_text = row.get('deadline_time')
-    cutoff = None
-    if cutoff_text is not None:
-        need(re.fullmatch(r'(?:[01]?[0-9]|2[0-3]):[0-5][0-9]', cutoff_text), 'INVALID_CUTOFF_TEXT')
-        hour, minute = map(int, cutoff_text.split(':'))
-        cutoff = datetime.fromisoformat(f'{DAY}T{hour:02}:{minute:02}:00').replace(tzinfo=JST)
+    cutoff = published_cutoff(DAY,cutoff_text)
     after = generated >= cutoff if cutoff else None
     condition = []
     names = {rider['car']: rider['name'] for rider in riders}
@@ -406,8 +431,8 @@ def analyze(row, model, generated_at, observations=None):
     A, B = revised['A'], revised['B']
     for arm in (A, B):
         if arm.get('state') == 'GENERATED_RESEARCH_ONLY':
-            check_tickets(arm['ranked_tickets'], cars, 3)
-            check_tickets(arm['ranked_2ren_tan'], cars, 2)
+            for market in ('3t', '2t'):
+                check_market_tickets(arm, cars, market)
         for scenario in arm.get('six_phase_scenarios', []):
             need([phase['phase'] for phase in scenario['six_phases']] == list(model.PHASES),
                  'SIX_PHASES_MISSING')

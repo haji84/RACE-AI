@@ -94,6 +94,32 @@ def selected_net_page(number,title):
     return net_page(number).replace(b'<body>',('<body>'+header).encode())
 
 
+def kd_trifecta_board(number, *, update='11:59', price='15.2'):
+    blocks=[]
+    cars=range(1,7)
+    for first in cars:
+        others=[car for car in cars if car!=first]
+        header=''.join(f'<th class="n{car}">{car}</th>' for car in others)
+        rows=[]
+        for third in others:
+            cells=''.join(f'<td>{price if second!=third else ""}</td>' for second in others)
+            rows.append(f'<tr><th class="n{third}">{third}</th>{cells}</tr>')
+        blocks.append(f'<table class="bt5"><tr><th><span class="number">{first}</span></th></tr>'
+                      f'<tr>{header}</tr><tr></tr>{"".join(rows)}</table>')
+    return (f'<title>例示競輪 2030年1月15日 {number}R オッズ</title>'
+            '<li class="active" kaisaidate="20300115"></li><p class="raceinfo_contents-title">例示</p>'
+            '<div id="ODDS_CAUTION">AM 9:30 AM 8:00 Kドリームスグループ 全ての票数</div>'
+            '<div id="JS_ODDSSTATUS_2shatan"><p class="time">2030/01/15 11:58現在</p>'
+            f'<p class="btn_reload"><a href="{urls(number)[1]}?pageType=odds&amp;kakeshikiType=2shatan">更新</a></p></div>'
+            '<div id="JS_ODDSSTATUS_3rentan">'
+            f'<p class="time">2030/01/15 {update}現在</p><p class="btn_reload">'
+            f'<a href="{urls(number)[1]}?pageType=odds&amp;kakeshikiType=3rentan">更新</a></p></div>'
+            '<div id="JS_ODDSCONTENTS_3rentan">'
+            '<div class="oddspop_table_wrapper"><table><tr><td>'
+            f'<span class="num">1-2-3</span><span class="odds">{price}</span></td></tr></table></div>'
+            '<div class="odds_table_wrapper">'+''.join(blocks)+'</div></div>').encode()
+
+
 class NoteInputCollectionTests(unittest.TestCase):
     def setUp(self):
         self.temp=TemporaryDirectory()
@@ -419,6 +445,55 @@ class NoteInputCollectionTests(unittest.TestCase):
         self.assertEqual(self.calls,[CALENDAR,MEETING,*urls(2)])
         self.assertEqual(result['safe_report']['captured_race_ids'],[rid(2)])
         self.assertEqual(result['safe_report']['already_captured_races_skipped'],2)
+
+    def test_priority_record_separately_verifies_the_actual_trifecta_market_clock_and_board(self):
+        page=self.pages[urls(2)[1]].replace(b'</body>',kd_trifecta_board(2)+b'</body>')
+        self.pages[urls(2)[1]]=page
+        races,_,_=self.documents(self.collect())
+        row=races['races'][0]
+        proof=row['trifecta_market_verification']
+        self.assertEqual(proof['source_sha256'],sha256(page).hexdigest())
+        self.assertEqual(proof['source_updated_at'],DAY+'T11:59:00+09:00')
+        self.assertEqual(proof['numeric_quotes'],120)
+        self.assertTrue(proof['complete_numeric_board'])
+        self.assertTrue(proof['priority_window'])
+        self.assertTrue(proof['eligible_full_priority'])
+        self.assertEqual(row['odds_3t']['1-2-3'],15.2)
+
+    def test_trifecta_market_invalid_or_capped_data_never_admits_as_a_complete_priority_board(self):
+        url=urls(2)[1]
+        page=self.pages[url]
+        boards=[kd_trifecta_board(2,update='11:56'),kd_trifecta_board(2,price='9999.9'),
+                kd_trifecta_board(1),kd_trifecta_board(2).replace(b'15.2</span>',b'15.3</span>',1),
+                kd_trifecta_board(2).replace(b'<th class="n2">2</th>',b'<th class="n3">3</th>',1),
+                kd_trifecta_board(2,update='12:01'),
+                kd_trifecta_board(2)+b'<div id="JS_ODDSSTATUS_3rentan"></div>']
+        for board in boards:
+            with self.subTest(board_sha=sha256(board).hexdigest()), TemporaryDirectory() as directory:
+                self.root=Path(directory)
+                self.pages[url]=page.replace(b'</body>',board+b'</body>')
+                races,_,_=self.documents(self.collect())
+                proof=races['races'][0].get('trifecta_market_verification') or {}
+                self.assertFalse(proof.get('eligible_full_priority'))
+                if b'9999.9' in board:
+                    self.assertEqual((proof['capped_quotes'],proof['numeric_quotes']),(120,0))
+                if b'11:56' in board:
+                    self.assertTrue(proof['complete_numeric_board'])
+                    self.assertFalse(proof['priority_window'])
+
+    def test_provisional_early_quotes_stay_out_of_the_full_market_comparison(self):
+        self.pages=pages_for([(2,'09:12')])
+        url=urls(2)[1]
+        board=kd_trifecta_board(2,update='08:59').replace(b'11:58',b'08:58')
+        self.pages[url]=self.pages[url].replace(b'</body>',board+b'</body>')
+        result=self.api().collect_day(day_jst=DAY,private_root=self.root,
+            fetch=self.fetch,clock=lambda:datetime.fromisoformat(DAY+'T09:00:00+09:00'),
+            model_source_commit='a'*40)
+        races,_,_=self.documents(result)
+        proof=races['races'][0]['trifecta_market_verification']
+        self.assertEqual(proof['scope'],'kdreams_group_early_provisional')
+        self.assertTrue(proof['priority_window'] and proof['complete_numeric_board'])
+        self.assertFalse(proof['eligible_full_priority'])
 
     def test_daily_coverage_accounts_for_every_observed_race_without_inventing_results(self):
         result=self.collect()

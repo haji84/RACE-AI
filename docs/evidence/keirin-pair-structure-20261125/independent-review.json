@@ -1,0 +1,85 @@
+{
+  "validation": {
+    "7": {
+      "repeats": 8,
+      "max_abs_err_gradient": 4.7725445123658616e-11,
+      "max_abs_err_win": 1.294631069015395e-12,
+      "max_abs_err_second": 5.551115123125783e-17,
+      "max_abs_err_p3_given_pair": 1.1102230246251565e-16,
+      "max_abs_err_new_pair_reconstruction": 5.551115123125783e-17,
+      "max_abs_diag": 0.0
+    },
+    "9": {
+      "repeats": 8,
+      "max_abs_err_gradient": 7.838490967415623e-11,
+      "max_abs_err_win": 1.898536883260249e-12,
+      "max_abs_err_second": 5.551115123125783e-17,
+      "max_abs_err_p3_given_pair": 2.220446049250313e-16,
+      "max_abs_err_new_pair_reconstruction": 1.1102230246251565e-16,
+      "max_abs_diag": 0.0
+    }
+  },
+  "historical_ranking_diagnostic": {
+    "cohorts": {
+      "historical_all": {
+        "races": 12234,
+        "median": 16.0,
+        "rank_p95": 131,
+        "hits_by_cap": {
+          "1": 1248,
+          "4": 3234,
+          "8": 4583,
+          "16": 6273,
+          "32": 8268,
+          "64": 10134,
+          "96": 11058,
+          "120": 11463,
+          "130": 11604,
+          "131": 11625
+        }
+      },
+      "historical_timestamped": {
+        "races": 321,
+        "median": 16.0,
+        "rank_p95": 111,
+        "hits_by_cap": {
+          "1": 38,
+          "4": 84,
+          "8": 119,
+          "16": 165,
+          "32": 228,
+          "64": 283,
+          "96": 299,
+          "110": 304,
+          "111": 305,
+          "120": 307
+        }
+      }
+    },
+    "full_by_starter_count": {
+      "5": {
+        "races": 113,
+        "rank_p95": 34
+      },
+      "6": {
+        "races": 541,
+        "rank_p95": 77
+      },
+      "7": {
+        "races": 10567,
+        "rank_p95": 124
+      },
+      "8": {
+        "races": 56,
+        "rank_p95": 259
+      },
+      "9": {
+        "races": 957,
+        "rank_p95": 286
+      }
+    },
+    "original_probability_receipt_sha256": "d4cb9eeae3d05e48c534bdca404e37b09e5193a30e850ce81ac9c735dfa7da58",
+    "verified_finish_label_sha256": "68d4c89c5630e3254f9265a5abc7d32acd73af29fa8ed76fa9de983014b20449",
+    "interpretation": "Empirical historical correct trifecta rank under the frozen original distribution. Historical rank coverage is neither prospective accuracy nor a deployable recommended point budget."
+  }
+}

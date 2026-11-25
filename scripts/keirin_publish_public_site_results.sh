@@ -1,6 +1,11 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+discover=false
+if [[ ${1:-} == --discover ]]; then
+  discover=true
+  shift
+fi
 watch_minutes=${1:-0}
 if [[ ! "$watch_minutes" =~ ^(0|[1-9][0-9]{0,2})$ ]] || ((watch_minutes > 345)); then
   echo 'Expected a watch window in minutes between 0 and 345.' >&2
@@ -21,6 +26,12 @@ while true; do
     git worktree add --detach "$state" "$state_sha"
   fi
 
+  discovery_status=0
+  if [[ "$discover" == true ]]; then
+    python -m scripts.keirin_public_site_rosters --state-directory "$state" \
+      | tee -a "${GITHUB_STEP_SUMMARY:?}" || discovery_status=$?
+  fi
+  # A missing forecast or an unavailable Site must not block today's registered races.
   status=0
   python -m scripts.keirin_public_site_results --state-directory "$state" --stop-when-complete \
     | tee -a "${GITHUB_STEP_SUMMARY:?}" || status=$?
@@ -29,7 +40,7 @@ while true; do
     exit "$status"
   fi
 
-  git -C "$state" add -- results
+  git -C "$state" add -- rosters results
   if ! git -C "$state" diff --cached --quiet; then
     git -C "$state" -c user.name='github-actions[bot]' \
       -c user.email='41898282+github-actions[bot]@users.noreply.github.com' \
@@ -39,6 +50,9 @@ while true; do
 
   if ((status == 75)); then
     exit "$status"
+  fi
+  if ((discovery_status != 0)); then
+    exit "$discovery_status"
   fi
   now=$SECONDS
   if ((status == 10 || watch_minutes == 0 || now >= deadline)); then

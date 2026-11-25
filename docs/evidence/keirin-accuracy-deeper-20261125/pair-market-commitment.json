@@ -1,0 +1,17 @@
+{
+  "registration": "pair-market",
+  "receipt_sha256": "9e6b0baaaf036aaa0c113e77eb1dcefbe78f65529e4348334a400e97a84464e7",
+  "changed": 7,
+  "closed_replay_only": 12,
+  "code_sha": "e1a7ce3f8d3d7efa80f6c6c5aea73f4388fd82308f9ad1d815a582902b5c2807",
+  "design_sha": "7366776c6f1f063c4347bc4f5e8195d81e090a7929fc08b931cdca448166bb46",
+  "earliest": "2026-11-25T17:45:00+09:00",
+  "eligibility": "Actual independent complete two-car exacta board; pre-cutoff source update and page capture. All agents shared one fresh scan, current public point counts fixed.",
+  "forecast_sha256": "1ed2b6fdf4c8257252a59544fe9aa947fbcadbb9780af3e1409ca6eb4759939b",
+  "frozen_utc": "2026-11-25T08:43:04.211410+00:00",
+  "latest": "2026-11-25T23:25:00+09:00",
+  "model_sha": "d69b323e5f8f49851e6cf52cc4095a1fc638d8378b903faa5af1fb6594dc7494",
+  "registered": 14,
+  "t15": 1,
+  "verified_utc": "2026-11-25T08:43:04.253475+00:00"
+}

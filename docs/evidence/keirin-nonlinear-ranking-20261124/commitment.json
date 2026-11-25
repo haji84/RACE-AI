@@ -1,0 +1,35 @@
+{
+  "schema": "KEIRIN_NONLINEAR_CONDITIONAL_FINISH_V1",
+  "experiment_driver_sha256": "a6e007cb61e8f275b34009a7f84e45e35f5b6a85fd225ec2b5bc09261932cb62",
+  "research_model_sha256": "63c91a3a04f076534090ff3df49a56c5083d2f3a9ec48c5340d864c9e52a72fd",
+  "baseline_anchor_sha256": "a63a6090ebe2bb9fb019aa50aca7ba131ab97eaa55dd661d75170663132a9dc7",
+  "versions": {
+    "earlier": {
+      "config_sha256": "54c5851e3e95e454e31866c4c32b317dbf3eefd504aa2424f540ec7e8573abcd",
+      "tree_sha256": [
+        "77e465cc3351b0bd395ea3d243b1b1e58a313ed70e2a4c1cc0124c739494c68d",
+        "5d54905c8c0eb81aaf9ebe326932e87f3c46017cf03f70e1584a982fc039dcf7",
+        "12f203e62aacc6fc71652d6866080e536ac789b2380063c27075d625204a4037"
+      ]
+    },
+    "recent": {
+      "config_sha256": "f4779635400ffcba246d734c47f5a01a52e021b37bb574ae03cd922f1a677999",
+      "tree_sha256": [
+        "fca7a6c497a90b982e4f5f1b14fe7fdf9760a2dbcf41c677ce56d992fd554112",
+        "43b3e0bac796fa6290dbaf5793b5ea5d736e328e0d544a5d3b136304051bc12f",
+        "f932332fb59214d2c267d3689fe26306bcec11bba8b8f57e2c0d8d00f6823c9f"
+      ]
+    }
+  },
+  "holdout_forecast_digests": {
+    "april_may": "c2759a0b392d31d65b367a81bf2eaa0a40b1aa44d1b811a215a28e64c2cbba50",
+    "june_july": "69a93683ab6dca6c2a43328d132d1fd4e3e1a5dc56d73962f11e5204f7a9f0ca",
+    "oct_nov": "49cfe37158e179f1f8453b72fe47c3e1aa2e29057e7b3dea975aa8e3041bc285",
+    "reconstructed": "dc80a3aacb4d18538759d2fd9c2942c1a70607ef4cdbcf87ca24583740605659"
+  },
+  "truth_or_final_odds_given_at_inference": false,
+  "acquisition_scope": "historical through 2026-11-23 JST",
+  "owner_private_forecast_cipher_sha256": "a6f070127b963578e893596abaaf096a9a64d07581834438e0f93f729c8dec60",
+  "owner_private_fit_cipher_sha256": "4ae7ac8fcbf334194244cdd4fc4d545bff29fcb63c49765079dbd76b33e7232b",
+  "fixed_at": "2026-11-24T00:21:34.311957+00:00"
+}

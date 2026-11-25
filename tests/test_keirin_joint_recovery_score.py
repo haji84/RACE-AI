@@ -86,9 +86,10 @@ class JointRecoveryScoreTests(unittest.TestCase):
         except ModuleNotFoundError:
             self.fail('The recovery-to-existing-joint-score adapter is not implemented.')
 
-    def call(self,module=None):
+    def call(self,module=None,**options):
         return (module or self.module()).score_recovery(self.cipher,self.private,canonical(self.receipt),
-            canonical(self.publication),canonical(self.witness),canonical(self.roster),canonical(self.results),clock=lambda:NOW)
+            canonical(self.publication),canonical(self.witness),canonical(self.roster),canonical(self.results),clock=lambda:NOW,
+            **options)
 
     def mocked(self):
         stack=ExitStack()
@@ -119,6 +120,16 @@ class JointRecoveryScoreTests(unittest.TestCase):
                 self.call()
         verify.assert_not_called()
         decrypt.assert_not_called()
+
+    def test_private_probability_evaluation_requires_explicit_opt_in(self):
+        with self.mocked():
+            public = self.call()
+            private = self.call(include_probability_metrics=True)
+        self.assertNotIn('probability_evaluation', public)
+        metrics = private.pop('probability_evaluation')
+        self.assertEqual(private, public)
+        self.assertEqual(metrics['matched'], 0)
+        self.assertIsNone(metrics['published']['ordered_exacta']['log_loss'])
 
     def test_second_decrypt_note_hash_is_checked_before_any_score(self):
         self.module()

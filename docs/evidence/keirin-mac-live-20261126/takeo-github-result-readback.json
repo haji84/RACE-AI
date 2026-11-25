@@ -1,0 +1,12 @@
+{
+  "checked_at": "2026-11-25T19:00:46.436961+00:00",
+  "comparison_predictions_scored": false,
+  "external_provider_requests": 0,
+  "payout_unit_changed": false,
+  "race_id": "202611258401",
+  "registered_field_count": 6,
+  "schema": "KEIRIN_REAL_PUBLISHED_PODIUM_READBACK_V1",
+  "source_commit": "a4f33dad16f749e3ab8ee0990308633e232fcb39",
+  "source_request_scope": "CANONICAL_GITHUB_ONLY",
+  "two_source_podium_matches_official": true
+}

@@ -1,0 +1,1296 @@
+{
+  "source_sha256": "4b7f15fb8a423d005d6928b3aa70440f169ec10204eafc000d38f3ca9507137b",
+  "historical": {
+    "all": {
+      "1": {
+        "n": 12234,
+        "date_count": 175,
+        "exact": [
+          1248,
+          1250
+        ],
+        "winner": [
+          5217,
+          5217
+        ],
+        "pair": [
+          2710,
+          2711
+        ],
+        "gains": 21,
+        "losses": 19,
+        "ci95pp": [
+          -0.08270665821688288,
+          0.12220133581513211
+        ]
+      },
+      "4": {
+        "n": 12234,
+        "date_count": 175,
+        "exact": [
+          3234,
+          3231
+        ],
+        "winner": [
+          7768,
+          7791
+        ],
+        "pair": [
+          4946,
+          4952
+        ],
+        "gains": 49,
+        "losses": 52,
+        "ci95pp": [
+          -0.16536624797315927,
+          0.12194180132157977
+        ]
+      },
+      "8": {
+        "n": 12234,
+        "date_count": 175,
+        "exact": [
+          4583,
+          4597
+        ],
+        "winner": [
+          9021,
+          9030
+        ],
+        "pair": [
+          6327,
+          6320
+        ],
+        "gains": 83,
+        "losses": 69,
+        "ci95pp": [
+          -0.06660371996908486,
+          0.2983454421970485
+        ]
+      }
+    },
+    "eligible": {
+      "1": {
+        "n": 8006,
+        "date_count": 156,
+        "exact": [
+          855,
+          857
+        ],
+        "winner": [
+          3213,
+          3213
+        ],
+        "pair": [
+          1780,
+          1781
+        ],
+        "gains": 21,
+        "losses": 19,
+        "ci95pp": [
+          -0.13879120740282944,
+          0.1870400105020327
+        ]
+      },
+      "4": {
+        "n": 8006,
+        "date_count": 156,
+        "exact": [
+          2136,
+          2133
+        ],
+        "winner": [
+          5004,
+          5027
+        ],
+        "pair": [
+          3202,
+          3208
+        ],
+        "gains": 49,
+        "losses": 52,
+        "ci95pp": [
+          -0.267450959386946,
+          0.1905580702643225
+        ]
+      },
+      "8": {
+        "n": 8006,
+        "date_count": 156,
+        "exact": [
+          3002,
+          3016
+        ],
+        "winner": [
+          5865,
+          5874
+        ],
+        "pair": [
+          4088,
+          4081
+        ],
+        "gains": 83,
+        "losses": 69,
+        "ci95pp": [
+          -0.09870380915528774,
+          0.45421275763704416
+        ]
+      }
+    },
+    "same": {
+      "1": {
+        "n": 5661,
+        "date_count": 156,
+        "exact": [
+          1039,
+          1038
+        ],
+        "winner": [
+          2481,
+          2474
+        ],
+        "pair": [
+          2141,
+          2139
+        ],
+        "gains": 17,
+        "losses": 18,
+        "ci95pp": [
+          -0.23294571412401482,
+          0.19414992807704326
+        ]
+      },
+      "4": {
+        "n": 5661,
+        "date_count": 156,
+        "exact": [
+          2450,
+          2451
+        ],
+        "winner": [
+          3884,
+          3903
+        ],
+        "pair": [
+          3502,
+          3519
+        ],
+        "gains": 40,
+        "losses": 39,
+        "ci95pp": [
+          -0.28444697373881084,
+          0.31685260351909283
+        ]
+      },
+      "8": {
+        "n": 5661,
+        "date_count": 156,
+        "exact": [
+          3210,
+          3245
+        ],
+        "winner": [
+          4452,
+          4466
+        ],
+        "pair": [
+          4059,
+          4079
+        ],
+        "gains": 64,
+        "losses": 29,
+        "ci95pp": [
+          0.2780204062615503,
+          0.9698808399460276
+        ]
+      }
+    },
+    "same_eligible": {
+      "1": {
+        "n": 4595,
+        "date_count": 156,
+        "exact": [
+          838,
+          837
+        ],
+        "winner": [
+          1999,
+          1992
+        ],
+        "pair": [
+          1726,
+          1724
+        ],
+        "gains": 17,
+        "losses": 18,
+        "ci95pp": [
+          -0.2883138632524953,
+          0.23870388732664588
+        ]
+      },
+      "4": {
+        "n": 4595,
+        "date_count": 156,
+        "exact": [
+          1977,
+          1978
+        ],
+        "winner": [
+          3140,
+          3159
+        ],
+        "pair": [
+          2827,
+          2844
+        ],
+        "gains": 40,
+        "losses": 39,
+        "ci95pp": [
+          -0.3518900447471814,
+          0.39355235707527936
+        ]
+      },
+      "8": {
+        "n": 4595,
+        "date_count": 156,
+        "exact": [
+          2595,
+          2630
+        ],
+        "winner": [
+          3602,
+          3616
+        ],
+        "pair": [
+          3280,
+          3300
+        ],
+        "gains": 64,
+        "losses": 29,
+        "ci95pp": [
+          0.3420155540278112,
+          1.1915708502547921
+        ]
+      }
+    },
+    "different": {
+      "1": {
+        "n": 4196,
+        "date_count": 156,
+        "exact": [
+          25,
+          28
+        ],
+        "winner": [
+          1516,
+          1523
+        ],
+        "pair": [
+          68,
+          71
+        ],
+        "gains": 4,
+        "losses": 1,
+        "ci95pp": [
+          -0.02409058058299205,
+          0.18468395986616934
+        ]
+      },
+      "4": {
+        "n": 4196,
+        "date_count": 156,
+        "exact": [
+          192,
+          188
+        ],
+        "winner": [
+          2326,
+          2330
+        ],
+        "pair": [
+          454,
+          443
+        ],
+        "gains": 9,
+        "losses": 13,
+        "ci95pp": [
+          -0.32966195608970517,
+          0.1411208846226313
+        ]
+      },
+      "8": {
+        "n": 4196,
+        "date_count": 156,
+        "exact": [
+          490,
+          469
+        ],
+        "winner": [
+          2809,
+          2804
+        ],
+        "pair": [
+          993,
+          966
+        ],
+        "gains": 19,
+        "losses": 40,
+        "ci95pp": [
+          -0.8441894309848141,
+          -0.14534268580748572
+        ]
+      }
+    },
+    "different_eligible": {
+      "1": {
+        "n": 3411,
+        "date_count": 156,
+        "exact": [
+          17,
+          20
+        ],
+        "winner": [
+          1214,
+          1221
+        ],
+        "pair": [
+          54,
+          57
+        ],
+        "gains": 4,
+        "losses": 1,
+        "ci95pp": [
+          -0.029639290859232496,
+          0.2237545874904401
+        ]
+      },
+      "4": {
+        "n": 3411,
+        "date_count": 156,
+        "exact": [
+          159,
+          155
+        ],
+        "winner": [
+          1864,
+          1868
+        ],
+        "pair": [
+          375,
+          364
+        ],
+        "gains": 9,
+        "losses": 13,
+        "ci95pp": [
+          -0.40769376711426797,
+          0.1733615530945148
+        ]
+      },
+      "8": {
+        "n": 3411,
+        "date_count": 156,
+        "exact": [
+          407,
+          386
+        ],
+        "winner": [
+          2263,
+          2258
+        ],
+        "pair": [
+          808,
+          781
+        ],
+        "gains": 19,
+        "losses": 40,
+        "ci95pp": [
+          -1.040474537176381,
+          -0.17979952510459515
+        ]
+      }
+    },
+    "individual": {
+      "1": {
+        "n": 1010,
+        "date_count": 154,
+        "exact": [
+          116,
+          116
+        ],
+        "winner": [
+          632,
+          632
+        ],
+        "pair": [
+          282,
+          282
+        ],
+        "gains": 0,
+        "losses": 0,
+        "ci95pp": [
+          0.0,
+          0.0
+        ]
+      },
+      "4": {
+        "n": 1010,
+        "date_count": 154,
+        "exact": [
+          354,
+          354
+        ],
+        "winner": [
+          755,
+          755
+        ],
+        "pair": [
+          522,
+          522
+        ],
+        "gains": 0,
+        "losses": 0,
+        "ci95pp": [
+          0.0,
+          0.0
+        ]
+      },
+      "8": {
+        "n": 1010,
+        "date_count": 154,
+        "exact": [
+          497,
+          497
+        ],
+        "winner": [
+          828,
+          828
+        ],
+        "pair": [
+          645,
+          645
+        ],
+        "gains": 0,
+        "losses": 0,
+        "ci95pp": [
+          0.0,
+          0.0
+        ]
+      }
+    },
+    "individual_eligible": null,
+    "unknown": {
+      "1": {
+        "n": 1367,
+        "date_count": 20,
+        "exact": [
+          68,
+          68
+        ],
+        "winner": [
+          588,
+          588
+        ],
+        "pair": [
+          219,
+          219
+        ],
+        "gains": 0,
+        "losses": 0,
+        "ci95pp": [
+          0.0,
+          0.0
+        ]
+      },
+      "4": {
+        "n": 1367,
+        "date_count": 20,
+        "exact": [
+          238,
+          238
+        ],
+        "winner": [
+          803,
+          803
+        ],
+        "pair": [
+          468,
+          468
+        ],
+        "gains": 0,
+        "losses": 0,
+        "ci95pp": [
+          0.0,
+          0.0
+        ]
+      },
+      "8": {
+        "n": 1367,
+        "date_count": 20,
+        "exact": [
+          386,
+          386
+        ],
+        "winner": [
+          932,
+          932
+        ],
+        "pair": [
+          630,
+          630
+        ],
+        "gains": 0,
+        "losses": 0,
+        "ci95pp": [
+          0.0,
+          0.0
+        ]
+      }
+    },
+    "unknown_eligible": null
+  },
+  "current": {
+    "all": {
+      "1": {
+        "n": 287,
+        "date_count": 4,
+        "exact": [
+          32,
+          32
+        ],
+        "winner": [
+          131,
+          130
+        ],
+        "pair": [
+          72,
+          71
+        ],
+        "gains": 0,
+        "losses": 0,
+        "ci95pp": [
+          0.0,
+          0.0
+        ]
+      },
+      "4": {
+        "n": 287,
+        "date_count": 4,
+        "exact": [
+          91,
+          89
+        ],
+        "winner": [
+          199,
+          198
+        ],
+        "pair": [
+          126,
+          124
+        ],
+        "gains": 0,
+        "losses": 2,
+        "ci95pp": [
+          -1.8461538461538463,
+          0.0
+        ]
+      },
+      "8": {
+        "n": 287,
+        "date_count": 4,
+        "exact": [
+          127,
+          125
+        ],
+        "winner": [
+          222,
+          221
+        ],
+        "pair": [
+          160,
+          157
+        ],
+        "gains": 0,
+        "losses": 2,
+        "ci95pp": [
+          -1.3605442176870748,
+          0.0
+        ]
+      },
+      "listed": {
+        "n": 287,
+        "date_count": 4,
+        "exact": [
+          93,
+          91
+        ],
+        "winner": [
+          201,
+          199
+        ],
+        "pair": [
+          128,
+          126
+        ],
+        "gains": 0,
+        "losses": 2,
+        "ci95pp": [
+          -1.8461538461538463,
+          0.0
+        ]
+      }
+    },
+    "eligible": {
+      "1": {
+        "n": 175,
+        "date_count": 4,
+        "exact": [
+          22,
+          22
+        ],
+        "winner": [
+          78,
+          77
+        ],
+        "pair": [
+          48,
+          47
+        ],
+        "gains": 0,
+        "losses": 0,
+        "ci95pp": [
+          0.0,
+          0.0
+        ]
+      },
+      "4": {
+        "n": 175,
+        "date_count": 4,
+        "exact": [
+          65,
+          63
+        ],
+        "winner": [
+          127,
+          126
+        ],
+        "pair": [
+          86,
+          84
+        ],
+        "gains": 0,
+        "losses": 2,
+        "ci95pp": [
+          -2.8708133971291865,
+          0.0
+        ]
+      },
+      "8": {
+        "n": 175,
+        "date_count": 4,
+        "exact": [
+          88,
+          86
+        ],
+        "winner": [
+          142,
+          141
+        ],
+        "pair": [
+          106,
+          103
+        ],
+        "gains": 0,
+        "losses": 2,
+        "ci95pp": [
+          -2.2988505747126435,
+          0.0
+        ]
+      },
+      "listed": {
+        "n": 175,
+        "date_count": 4,
+        "exact": [
+          66,
+          64
+        ],
+        "winner": [
+          129,
+          127
+        ],
+        "pair": [
+          87,
+          85
+        ],
+        "gains": 0,
+        "losses": 2,
+        "ci95pp": [
+          -2.8708133971291865,
+          0.0
+        ]
+      }
+    },
+    "same": {
+      "1": {
+        "n": 131,
+        "date_count": 4,
+        "exact": [
+          28,
+          28
+        ],
+        "winner": [
+          67,
+          66
+        ],
+        "pair": [
+          60,
+          59
+        ],
+        "gains": 0,
+        "losses": 0,
+        "ci95pp": [
+          0.0,
+          0.0
+        ]
+      },
+      "4": {
+        "n": 131,
+        "date_count": 4,
+        "exact": [
+          73,
+          73
+        ],
+        "winner": [
+          106,
+          105
+        ],
+        "pair": [
+          98,
+          98
+        ],
+        "gains": 0,
+        "losses": 0,
+        "ci95pp": [
+          0.0,
+          0.0
+        ]
+      },
+      "8": {
+        "n": 131,
+        "date_count": 4,
+        "exact": [
+          90,
+          89
+        ],
+        "winner": [
+          114,
+          114
+        ],
+        "pair": [
+          109,
+          109
+        ],
+        "gains": 0,
+        "losses": 1,
+        "ci95pp": [
+          -2.830188679245283,
+          0.0
+        ]
+      },
+      "listed": {
+        "n": 131,
+        "date_count": 4,
+        "exact": [
+          73,
+          73
+        ],
+        "winner": [
+          106,
+          105
+        ],
+        "pair": [
+          98,
+          98
+        ],
+        "gains": 0,
+        "losses": 0,
+        "ci95pp": [
+          0.0,
+          0.0
+        ]
+      }
+    },
+    "same_eligible": {
+      "1": {
+        "n": 101,
+        "date_count": 4,
+        "exact": [
+          21,
+          21
+        ],
+        "winner": [
+          50,
+          49
+        ],
+        "pair": [
+          46,
+          45
+        ],
+        "gains": 0,
+        "losses": 0,
+        "ci95pp": [
+          0.0,
+          0.0
+        ]
+      },
+      "4": {
+        "n": 101,
+        "date_count": 4,
+        "exact": [
+          58,
+          58
+        ],
+        "winner": [
+          82,
+          81
+        ],
+        "pair": [
+          75,
+          75
+        ],
+        "gains": 0,
+        "losses": 0,
+        "ci95pp": [
+          0.0,
+          0.0
+        ]
+      },
+      "8": {
+        "n": 101,
+        "date_count": 4,
+        "exact": [
+          73,
+          72
+        ],
+        "winner": [
+          89,
+          89
+        ],
+        "pair": [
+          85,
+          85
+        ],
+        "gains": 0,
+        "losses": 1,
+        "ci95pp": [
+          -3.3333333333333335,
+          0.0
+        ]
+      },
+      "listed": {
+        "n": 101,
+        "date_count": 4,
+        "exact": [
+          58,
+          58
+        ],
+        "winner": [
+          82,
+          81
+        ],
+        "pair": [
+          75,
+          75
+        ],
+        "gains": 0,
+        "losses": 0,
+        "ci95pp": [
+          0.0,
+          0.0
+        ]
+      }
+    },
+    "different": {
+      "1": {
+        "n": 118,
+        "date_count": 4,
+        "exact": [
+          2,
+          2
+        ],
+        "winner": [
+          43,
+          43
+        ],
+        "pair": [
+          3,
+          3
+        ],
+        "gains": 0,
+        "losses": 0,
+        "ci95pp": [
+          0.0,
+          0.0
+        ]
+      },
+      "4": {
+        "n": 118,
+        "date_count": 4,
+        "exact": [
+          8,
+          6
+        ],
+        "winner": [
+          66,
+          66
+        ],
+        "pair": [
+          12,
+          10
+        ],
+        "gains": 0,
+        "losses": 2,
+        "ci95pp": [
+          -5.357142857142857,
+          0.0
+        ]
+      },
+      "8": {
+        "n": 118,
+        "date_count": 4,
+        "exact": [
+          19,
+          18
+        ],
+        "winner": [
+          78,
+          77
+        ],
+        "pair": [
+          26,
+          23
+        ],
+        "gains": 0,
+        "losses": 1,
+        "ci95pp": [
+          -2.3255813953488373,
+          0.0
+        ]
+      },
+      "listed": {
+        "n": 118,
+        "date_count": 4,
+        "exact": [
+          9,
+          7
+        ],
+        "winner": [
+          68,
+          67
+        ],
+        "pair": [
+          13,
+          11
+        ],
+        "gains": 0,
+        "losses": 2,
+        "ci95pp": [
+          -5.357142857142857,
+          0.0
+        ]
+      }
+    },
+    "different_eligible": {
+      "1": {
+        "n": 74,
+        "date_count": 4,
+        "exact": [
+          1,
+          1
+        ],
+        "winner": [
+          28,
+          28
+        ],
+        "pair": [
+          2,
+          2
+        ],
+        "gains": 0,
+        "losses": 0,
+        "ci95pp": [
+          0.0,
+          0.0
+        ]
+      },
+      "4": {
+        "n": 74,
+        "date_count": 4,
+        "exact": [
+          7,
+          5
+        ],
+        "winner": [
+          45,
+          45
+        ],
+        "pair": [
+          11,
+          9
+        ],
+        "gains": 0,
+        "losses": 2,
+        "ci95pp": [
+          -8.108108108108109,
+          0.0
+        ]
+      },
+      "8": {
+        "n": 74,
+        "date_count": 4,
+        "exact": [
+          15,
+          14
+        ],
+        "winner": [
+          53,
+          52
+        ],
+        "pair": [
+          21,
+          18
+        ],
+        "gains": 0,
+        "losses": 1,
+        "ci95pp": [
+          -4.285714285714286,
+          0.0
+        ]
+      },
+      "listed": {
+        "n": 74,
+        "date_count": 4,
+        "exact": [
+          8,
+          6
+        ],
+        "winner": [
+          47,
+          46
+        ],
+        "pair": [
+          12,
+          10
+        ],
+        "gains": 0,
+        "losses": 2,
+        "ci95pp": [
+          -8.108108108108109,
+          0.0
+        ]
+      }
+    },
+    "individual": {
+      "1": {
+        "n": 24,
+        "date_count": 4,
+        "exact": [
+          2,
+          2
+        ],
+        "winner": [
+          13,
+          13
+        ],
+        "pair": [
+          5,
+          5
+        ],
+        "gains": 0,
+        "losses": 0,
+        "ci95pp": [
+          0.0,
+          0.0
+        ]
+      },
+      "4": {
+        "n": 24,
+        "date_count": 4,
+        "exact": [
+          6,
+          6
+        ],
+        "winner": [
+          17,
+          17
+        ],
+        "pair": [
+          9,
+          9
+        ],
+        "gains": 0,
+        "losses": 0,
+        "ci95pp": [
+          0.0,
+          0.0
+        ]
+      },
+      "8": {
+        "n": 24,
+        "date_count": 4,
+        "exact": [
+          11,
+          11
+        ],
+        "winner": [
+          20,
+          20
+        ],
+        "pair": [
+          15,
+          15
+        ],
+        "gains": 0,
+        "losses": 0,
+        "ci95pp": [
+          0.0,
+          0.0
+        ]
+      },
+      "listed": {
+        "n": 24,
+        "date_count": 4,
+        "exact": [
+          7,
+          7
+        ],
+        "winner": [
+          17,
+          17
+        ],
+        "pair": [
+          10,
+          10
+        ],
+        "gains": 0,
+        "losses": 0,
+        "ci95pp": [
+          0.0,
+          0.0
+        ]
+      }
+    },
+    "individual_eligible": null,
+    "unknown": {
+      "1": {
+        "n": 14,
+        "date_count": 1,
+        "exact": [
+          0,
+          0
+        ],
+        "winner": [
+          8,
+          8
+        ],
+        "pair": [
+          4,
+          4
+        ],
+        "gains": 0,
+        "losses": 0,
+        "ci95pp": null
+      },
+      "4": {
+        "n": 14,
+        "date_count": 1,
+        "exact": [
+          4,
+          4
+        ],
+        "winner": [
+          10,
+          10
+        ],
+        "pair": [
+          7,
+          7
+        ],
+        "gains": 0,
+        "losses": 0,
+        "ci95pp": null
+      },
+      "8": {
+        "n": 14,
+        "date_count": 1,
+        "exact": [
+          7,
+          7
+        ],
+        "winner": [
+          10,
+          10
+        ],
+        "pair": [
+          10,
+          10
+        ],
+        "gains": 0,
+        "losses": 0,
+        "ci95pp": null
+      },
+      "listed": {
+        "n": 14,
+        "date_count": 1,
+        "exact": [
+          4,
+          4
+        ],
+        "winner": [
+          10,
+          10
+        ],
+        "pair": [
+          7,
+          7
+        ],
+        "gains": 0,
+        "losses": 0,
+        "ci95pp": null
+      }
+    },
+    "unknown_eligible": null
+  },
+  "training": {
+    "train": {
+      "total": 16200,
+      "with_source": 11866,
+      "missing_card_or_geometry": 4334
+    },
+    "test": {
+      "total": 12234,
+      "missing_card_or_geometry": 4228,
+      "with_source": 8006
+    }
+  },
+  "current_sources": {
+    "n": 287,
+    "with_adjustment": 175,
+    "sha256": "5715f87a886c1c9b680b22e039384ab7e0c704f94b069de14e414b61e31f4f3d",
+    "source_timed_sha256": {
+      "holdout.json.gz": "4d0d9719e50fdaef160a2bbc8e029ea0f95fc74fcba87f61bf29dfd2b3f0482b",
+      "target-program.json": "26c3a2c61edee2f70d85823b7e3891aea6ba95145cd4e1cd12de005b4d8c73ec"
+    },
+    "original_sha256": "2694aba006671653466d9376f659f60f4e9658757e0f3a034c8e11e8be5bbaac"
+  },
+  "past_source_documentation": "Kdreams geometry records cross-checked with prior course metadata and physical venue codes; historical line/starting cards may be archived after close. Nov21-24 styles are separately captured pre-cutoff as designated.",
+  "limitations": "Use mode exact baseline three-year past and full current public. Known same or different lines are only post-result diagnostic categories.",
+  "predeclared_protocol_sha256": "2d90c3b0373b57274e193417a3deaae92dcaeb1a5c7d99e89ab1f717a936cf84",
+  "source": {
+    "hist.owner.json": "0cf463bb1e4576c61ed661dedb094572b5cfcfd4301e6db5660d8dbef479250d",
+    "panel.owner.json": "5715f87a886c1c9b680b22e039384ab7e0c704f94b069de14e414b61e31f4f3d",
+    "geometry.json": "15ecb21ff28d594583f273cfe4ab352cf9537abfbcfb2cabf6266d620e55b05c",
+    "fit.json": "5cb304b47f7816f751908076d85e3323dabca4373cba367f6d43aab610325bde",
+    "bank.py": "199bd4f2b8d651c7b35a26652e19e1f0acccfc1e78c7eb0c56dcf38360e38fd3",
+    "compare.py": "8df8f774c42f1112b05bbfaf7dadcaa52f533bf28212ca04e8ee525abb48b4ff"
+  }
+}

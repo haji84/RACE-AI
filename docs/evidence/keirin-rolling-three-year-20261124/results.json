@@ -1,0 +1,1302 @@
+{
+  "schema": "keirin-registration-profile-three-year-chronology-v1",
+  "source_audit": {
+    "scope_jst": [
+      "20231124",
+      "20261123"
+    ],
+    "month_counts": {
+      "202311": {
+        "races": 483,
+        "starts": 3422,
+        "registered_starts": 3072,
+        "phase_s": 0,
+        "phase_h": 0,
+        "phase_b": 0,
+        "valid_lines": 0,
+        "lines_and_back": 0,
+        "dated_pre_cutoff": 0,
+        "known_finish_method": 966,
+        "field_with_known_points": 483,
+        "incomplete_finished_field": 44
+      },
+      "202312": {
+        "races": 2143,
+        "starts": 15186,
+        "registered_starts": 13516,
+        "phase_s": 0,
+        "phase_h": 0,
+        "phase_b": 0,
+        "valid_lines": 0,
+        "lines_and_back": 0,
+        "dated_pre_cutoff": 0,
+        "known_finish_method": 4286,
+        "field_with_known_points": 2143,
+        "incomplete_finished_field": 164
+      },
+      "202401": {
+        "races": 2090,
+        "starts": 14719,
+        "registered_starts": 13359,
+        "phase_s": 1,
+        "phase_h": 1,
+        "phase_b": 1,
+        "valid_lines": 1,
+        "lines_and_back": 1,
+        "dated_pre_cutoff": 0,
+        "known_finish_method": 4180,
+        "field_with_known_points": 2090,
+        "incomplete_finished_field": 193
+      },
+      "202402": {
+        "races": 1987,
+        "starts": 14096,
+        "registered_starts": 12758,
+        "phase_s": 1,
+        "phase_h": 1,
+        "phase_b": 1,
+        "valid_lines": 1,
+        "lines_and_back": 1,
+        "dated_pre_cutoff": 0,
+        "known_finish_method": 3974,
+        "field_with_known_points": 1987,
+        "incomplete_finished_field": 201
+      },
+      "202403": {
+        "races": 2118,
+        "starts": 15054,
+        "registered_starts": 13657,
+        "phase_s": 0,
+        "phase_h": 1,
+        "phase_b": 1,
+        "valid_lines": 1,
+        "lines_and_back": 1,
+        "dated_pre_cutoff": 0,
+        "known_finish_method": 4236,
+        "field_with_known_points": 2118,
+        "incomplete_finished_field": 180
+      },
+      "202404": {
+        "races": 2111,
+        "starts": 14879,
+        "registered_starts": 13554,
+        "phase_s": 1,
+        "phase_h": 1,
+        "phase_b": 1,
+        "valid_lines": 1,
+        "lines_and_back": 1,
+        "dated_pre_cutoff": 0,
+        "known_finish_method": 4222,
+        "field_with_known_points": 2111,
+        "incomplete_finished_field": 177
+      },
+      "202405": {
+        "races": 2189,
+        "starts": 15441,
+        "registered_starts": 14058,
+        "phase_s": 1,
+        "phase_h": 1,
+        "phase_b": 1,
+        "valid_lines": 1,
+        "lines_and_back": 1,
+        "dated_pre_cutoff": 0,
+        "known_finish_method": 4378,
+        "field_with_known_points": 2168,
+        "incomplete_finished_field": 185
+      },
+      "202406": {
+        "races": 2148,
+        "starts": 15333,
+        "registered_starts": 14006,
+        "phase_s": 0,
+        "phase_h": 0,
+        "phase_b": 0,
+        "valid_lines": 0,
+        "lines_and_back": 0,
+        "dated_pre_cutoff": 0,
+        "known_finish_method": 4296,
+        "field_with_known_points": 2148,
+        "incomplete_finished_field": 169
+      },
+      "202407": {
+        "races": 2271,
+        "starts": 16044,
+        "registered_starts": 14869,
+        "phase_s": 1,
+        "phase_h": 1,
+        "phase_b": 1,
+        "valid_lines": 1,
+        "lines_and_back": 1,
+        "dated_pre_cutoff": 0,
+        "known_finish_method": 4542,
+        "field_with_known_points": 2271,
+        "incomplete_finished_field": 171
+      },
+      "202408": {
+        "races": 2184,
+        "starts": 15434,
+        "registered_starts": 14346,
+        "phase_s": 1,
+        "phase_h": 1,
+        "phase_b": 1,
+        "valid_lines": 1,
+        "lines_and_back": 1,
+        "dated_pre_cutoff": 0,
+        "known_finish_method": 4368,
+        "field_with_known_points": 2184,
+        "incomplete_finished_field": 203
+      },
+      "202409": {
+        "races": 2165,
+        "starts": 15350,
+        "registered_starts": 14304,
+        "phase_s": 0,
+        "phase_h": 0,
+        "phase_b": 0,
+        "valid_lines": 0,
+        "lines_and_back": 0,
+        "dated_pre_cutoff": 0,
+        "known_finish_method": 4330,
+        "field_with_known_points": 2165,
+        "incomplete_finished_field": 166
+      },
+      "202410": {
+        "races": 2185,
+        "starts": 15534,
+        "registered_starts": 14455,
+        "phase_s": 1,
+        "phase_h": 1,
+        "phase_b": 1,
+        "valid_lines": 1,
+        "lines_and_back": 1,
+        "dated_pre_cutoff": 0,
+        "known_finish_method": 4370,
+        "field_with_known_points": 2185,
+        "incomplete_finished_field": 151
+      },
+      "202411": {
+        "races": 2086,
+        "starts": 14834,
+        "registered_starts": 13874,
+        "phase_s": 0,
+        "phase_h": 0,
+        "phase_b": 0,
+        "valid_lines": 0,
+        "lines_and_back": 0,
+        "dated_pre_cutoff": 0,
+        "known_finish_method": 4172,
+        "field_with_known_points": 2086,
+        "incomplete_finished_field": 182
+      },
+      "202412": {
+        "races": 2082,
+        "starts": 14710,
+        "registered_starts": 13722,
+        "phase_s": 1,
+        "phase_h": 1,
+        "phase_b": 1,
+        "valid_lines": 1,
+        "lines_and_back": 1,
+        "dated_pre_cutoff": 0,
+        "known_finish_method": 4164,
+        "field_with_known_points": 2082,
+        "incomplete_finished_field": 177
+      },
+      "202501": {
+        "incomplete_finished_field": 162,
+        "races": 2198,
+        "starts": 15417,
+        "registered_starts": 14613,
+        "phase_s": 0,
+        "phase_h": 0,
+        "phase_b": 0,
+        "valid_lines": 0,
+        "lines_and_back": 0,
+        "dated_pre_cutoff": 0,
+        "known_finish_method": 4396,
+        "field_with_known_points": 2198
+      },
+      "202502": {
+        "races": 1974,
+        "starts": 14002,
+        "registered_starts": 13258,
+        "phase_s": 0,
+        "phase_h": 0,
+        "phase_b": 0,
+        "valid_lines": 0,
+        "lines_and_back": 0,
+        "dated_pre_cutoff": 0,
+        "known_finish_method": 3948,
+        "field_with_known_points": 1974,
+        "incomplete_finished_field": 159
+      },
+      "202503": {
+        "races": 2092,
+        "starts": 15002,
+        "registered_starts": 14233,
+        "phase_s": 1,
+        "phase_h": 1,
+        "phase_b": 1,
+        "valid_lines": 1,
+        "lines_and_back": 1,
+        "dated_pre_cutoff": 0,
+        "known_finish_method": 4184,
+        "field_with_known_points": 2092,
+        "incomplete_finished_field": 200
+      },
+      "202504": {
+        "races": 2010,
+        "starts": 14216,
+        "registered_starts": 13452,
+        "phase_s": 0,
+        "phase_h": 0,
+        "phase_b": 0,
+        "valid_lines": 0,
+        "lines_and_back": 0,
+        "dated_pre_cutoff": 0,
+        "known_finish_method": 4020,
+        "field_with_known_points": 2010,
+        "incomplete_finished_field": 167
+      },
+      "202505": {
+        "races": 2159,
+        "starts": 15287,
+        "registered_starts": 14517,
+        "phase_s": 0,
+        "phase_h": 1,
+        "phase_b": 1,
+        "valid_lines": 1,
+        "lines_and_back": 1,
+        "dated_pre_cutoff": 0,
+        "known_finish_method": 4318,
+        "field_with_known_points": 2138,
+        "incomplete_finished_field": 171
+      },
+      "202506": {
+        "races": 2132,
+        "starts": 15201,
+        "registered_starts": 14353,
+        "phase_s": 1,
+        "phase_h": 1,
+        "phase_b": 1,
+        "valid_lines": 1,
+        "lines_and_back": 1,
+        "dated_pre_cutoff": 0,
+        "known_finish_method": 4264,
+        "field_with_known_points": 2132,
+        "incomplete_finished_field": 162
+      },
+      "202507": {
+        "races": 2255,
+        "starts": 15964,
+        "registered_starts": 15311,
+        "phase_s": 0,
+        "phase_h": 0,
+        "phase_b": 0,
+        "valid_lines": 0,
+        "lines_and_back": 0,
+        "dated_pre_cutoff": 0,
+        "known_finish_method": 4510,
+        "field_with_known_points": 2255,
+        "incomplete_finished_field": 175
+      },
+      "202508": {
+        "races": 2136,
+        "starts": 15195,
+        "registered_starts": 14612,
+        "phase_s": 1,
+        "phase_h": 1,
+        "phase_b": 1,
+        "valid_lines": 1,
+        "lines_and_back": 1,
+        "dated_pre_cutoff": 0,
+        "known_finish_method": 4272,
+        "field_with_known_points": 2136,
+        "incomplete_finished_field": 166
+      },
+      "202509": {
+        "races": 2176,
+        "starts": 15394,
+        "registered_starts": 14745,
+        "phase_s": 1,
+        "phase_h": 1,
+        "phase_b": 1,
+        "valid_lines": 1,
+        "lines_and_back": 1,
+        "dated_pre_cutoff": 0,
+        "known_finish_method": 4352,
+        "field_with_known_points": 2176,
+        "incomplete_finished_field": 172
+      },
+      "202510": {
+        "races": 2117,
+        "starts": 15101,
+        "registered_starts": 14522,
+        "phase_s": 1992,
+        "phase_h": 14,
+        "phase_b": 2117,
+        "valid_lines": 2117,
+        "lines_and_back": 2117,
+        "dated_pre_cutoff": 0,
+        "known_finish_method": 4234,
+        "field_with_known_points": 2117,
+        "incomplete_finished_field": 180
+      },
+      "202511": {
+        "races": 2061,
+        "starts": 14641,
+        "registered_starts": 14096,
+        "phase_s": 1762,
+        "phase_h": 14,
+        "phase_b": 1894,
+        "valid_lines": 1894,
+        "lines_and_back": 1894,
+        "dated_pre_cutoff": 0,
+        "known_finish_method": 4122,
+        "field_with_known_points": 2061,
+        "incomplete_finished_field": 161
+      },
+      "202512": {
+        "races": 2115,
+        "starts": 14951,
+        "registered_starts": 14407,
+        "phase_s": 1970,
+        "phase_h": 15,
+        "phase_b": 2115,
+        "valid_lines": 2115,
+        "lines_and_back": 2115,
+        "dated_pre_cutoff": 0,
+        "known_finish_method": 4230,
+        "field_with_known_points": 2115,
+        "incomplete_finished_field": 132
+      },
+      "202601": {
+        "races": 2142,
+        "starts": 15257,
+        "registered_starts": 14910,
+        "phase_s": 2007,
+        "phase_h": 16,
+        "phase_b": 2142,
+        "valid_lines": 2142,
+        "lines_and_back": 2142,
+        "dated_pre_cutoff": 0,
+        "known_finish_method": 4284,
+        "field_with_known_points": 2142,
+        "incomplete_finished_field": 163
+      },
+      "202602": {
+        "races": 1979,
+        "starts": 14019,
+        "registered_starts": 13689,
+        "phase_s": 1847,
+        "phase_h": 12,
+        "phase_b": 1979,
+        "valid_lines": 1979,
+        "lines_and_back": 1979,
+        "dated_pre_cutoff": 0,
+        "known_finish_method": 3958,
+        "field_with_known_points": 1979,
+        "incomplete_finished_field": 179
+      },
+      "202603": {
+        "races": 2045,
+        "starts": 14612,
+        "registered_starts": 14318,
+        "phase_s": 1939,
+        "phase_h": 18,
+        "phase_b": 2045,
+        "valid_lines": 2045,
+        "lines_and_back": 2045,
+        "dated_pre_cutoff": 0,
+        "known_finish_method": 4079,
+        "field_with_known_points": 2045,
+        "incomplete_finished_field": 229
+      },
+      "202604": {
+        "races": 2171,
+        "starts": 15311,
+        "registered_starts": 15051,
+        "phase_s": 2050,
+        "phase_h": 17,
+        "phase_b": 2171,
+        "valid_lines": 2171,
+        "lines_and_back": 2171,
+        "dated_pre_cutoff": 0,
+        "known_finish_method": 4176,
+        "field_with_known_points": 2171,
+        "incomplete_finished_field": 170
+      },
+      "202605": {
+        "incomplete_finished_field": 177,
+        "races": 2135,
+        "starts": 15146,
+        "registered_starts": 14884,
+        "phase_s": 2039,
+        "phase_h": 15,
+        "phase_b": 2135,
+        "valid_lines": 2116,
+        "lines_and_back": 2116,
+        "dated_pre_cutoff": 0,
+        "known_finish_method": 3087,
+        "field_with_known_points": 2116
+      },
+      "202606": {
+        "incomplete_finished_field": 180,
+        "races": 2094,
+        "starts": 14865,
+        "registered_starts": 14638,
+        "phase_s": 1959,
+        "phase_h": 15,
+        "phase_b": 2094,
+        "valid_lines": 2094,
+        "lines_and_back": 2094,
+        "dated_pre_cutoff": 0,
+        "known_finish_method": 2509,
+        "field_with_known_points": 2094
+      },
+      "202607": {
+        "races": 2249,
+        "starts": 15903,
+        "registered_starts": 15845,
+        "phase_s": 2117,
+        "phase_h": 18,
+        "phase_b": 2249,
+        "valid_lines": 2249,
+        "lines_and_back": 2249,
+        "dated_pre_cutoff": 0,
+        "known_finish_method": 3293,
+        "field_with_known_points": 2249,
+        "incomplete_finished_field": 167
+      },
+      "202608": {
+        "races": 2170,
+        "starts": 15458,
+        "registered_starts": 15417,
+        "phase_s": 2057,
+        "phase_h": 18,
+        "phase_b": 2168,
+        "valid_lines": 1831,
+        "lines_and_back": 1831,
+        "dated_pre_cutoff": 0,
+        "known_finish_method": 3592,
+        "field_with_known_points": 2170,
+        "incomplete_finished_field": 182
+      },
+      "202609": {
+        "races": 2025,
+        "starts": 14373,
+        "registered_starts": 14368,
+        "phase_s": 1929,
+        "phase_h": 19,
+        "phase_b": 2025,
+        "valid_lines": 997,
+        "lines_and_back": 997,
+        "dated_pre_cutoff": 0,
+        "known_finish_method": 2047,
+        "field_with_known_points": 2025,
+        "incomplete_finished_field": 240
+      },
+      "202610": {
+        "races": 1733,
+        "starts": 12302,
+        "registered_starts": 12302,
+        "phase_s": 1683,
+        "phase_h": 23,
+        "phase_b": 1733,
+        "valid_lines": 1733,
+        "lines_and_back": 1733,
+        "dated_pre_cutoff": 0,
+        "known_finish_method": 1733,
+        "field_with_known_points": 1733,
+        "incomplete_finished_field": 207
+      },
+      "202611": {
+        "races": 1595,
+        "starts": 11385,
+        "registered_starts": 11385,
+        "phase_s": 1527,
+        "phase_h": 22,
+        "phase_b": 1595,
+        "valid_lines": 1595,
+        "lines_and_back": 1595,
+        "dated_pre_cutoff": 516,
+        "known_finish_method": 1677,
+        "field_with_known_points": 1595,
+        "incomplete_finished_field": 219,
+        "timed_field_mismatch": 2
+      }
+    },
+    "accepted_races": 76005,
+    "programme_sha256": "afd1a3814c92b6172d17c5d02ce7a261945372ea945352c933c6e6ebc498db01",
+    "outcomes_sha256": "68d4c89c5630e3254f9265a5abc7d32acd73af29fa8ed76fa9de983014b20449",
+    "monthly_inventory": 80388,
+    "calendar_blocks": [
+      "20240524",
+      "20241124",
+      "20250524",
+      "20251124",
+      "20260524",
+      "20261124"
+    ],
+    "accepted_days": 1090,
+    "previously_verified_official_checkpoints_merged": {
+      "excluded_roster_mismatch": 23,
+      "added_s": 12,
+      "added_early_s": 12,
+      "added_h": 14,
+      "added_early_h": 14,
+      "added_b": 14,
+      "added_early_b": 14,
+      "added_planned_line": 14
+    },
+    "last_day": {
+      "date": "20261123",
+      "source_listing": "https://keirin.kdreams.jp/raceresult/2026/11/23/",
+      "date_index_races": 89,
+      "versioned_programmes": 88,
+      "readable_valid_results": {
+        "races": 82,
+        "dated_pre_cutoff": 82,
+        "starts": 588,
+        "registered_starts": 588,
+        "valid_lines": 82,
+        "phase_s": 75,
+        "phase_h": 0,
+        "phase_b": 82,
+        "lines_and_back": 82,
+        "known_finish_method": 164,
+        "field_with_known_points": 82
+      },
+      "exclusion_counts": {
+        "no_verified_paid_order": 2,
+        "special_result": 4
+      },
+      "listing_races_without_dated_programme": 1,
+      "source_binding_receipt_sha256": "1709c8e014f6a18d47dc0b3a71d95efde32b2b76176f45686c41f05d76cfaf8a"
+    },
+    "previous_source_audit_sha256": "9266d47e01e726ce5431bc45efdf8282530254861277e659be3985e706eef9f7"
+  },
+  "accepted_counts": {
+    "races": 76005,
+    "starts": 539038,
+    "registered_starts": 512476,
+    "phase_s": 26890,
+    "phase_h": 250,
+    "phase_b": 28476,
+    "valid_lines": 27092,
+    "lines_and_back": 27092,
+    "dated_pre_cutoff": 516,
+    "known_finish_method": 141769,
+    "field_with_known_points": 75944,
+    "incomplete_finished_field": 6483,
+    "timed_field_mismatch": 2
+  },
+  "chronological_replay": {
+    "commitment_sha256": "ac1cbdde2dd98cc291cf99e84f310988b50ce44c0994e533a612398b7884c505",
+    "cohorts": {
+      "all": {
+        "scored_races": 63487,
+        "phase_back_truth": 23518,
+        "phase_predicted_B_match": 14522,
+        "metrics": {
+          "entry": {
+            "1": 4661,
+            "4": 13107,
+            "8": 20024,
+            "first_pair_in_8": 29393
+          },
+          "last365": {
+            "1": 4867,
+            "4": 13551,
+            "8": 20576,
+            "first_pair_in_8": 29844
+          },
+          "three_year": {
+            "1": 4851,
+            "4": 13524,
+            "8": 20542,
+            "first_pair_in_8": 29780
+          },
+          "three_year_phases": {
+            "1": 4877,
+            "4": 13595,
+            "8": 20635,
+            "first_pair_in_8": 29892
+          }
+        }
+      },
+      "dated_pre_cutoff": {
+        "scored_races": 516,
+        "phase_back_truth": 516,
+        "phase_predicted_B_match": 348,
+        "metrics": {
+          "entry": {
+            "1": 59,
+            "4": 141,
+            "8": 198,
+            "first_pair_in_8": 272
+          },
+          "last365": {
+            "1": 60,
+            "4": 140,
+            "8": 201,
+            "first_pair_in_8": 271
+          },
+          "three_year": {
+            "1": 59,
+            "4": 144,
+            "8": 201,
+            "first_pair_in_8": 273
+          },
+          "three_year_phases": {
+            "1": 62,
+            "4": 148,
+            "8": 206,
+            "first_pair_in_8": 273
+          }
+        }
+      },
+      "later_same_date_range_as_previous": {
+        "scored_races": 3328,
+        "phase_back_truth": 3328,
+        "phase_predicted_B_match": 2055,
+        "metrics": {
+          "entry": {
+            "1": 383,
+            "4": 905,
+            "8": 1308,
+            "first_pair_in_8": 1775
+          },
+          "last365": {
+            "1": 393,
+            "4": 922,
+            "8": 1310,
+            "first_pair_in_8": 1771
+          },
+          "three_year": {
+            "1": 387,
+            "4": 923,
+            "8": 1311,
+            "first_pair_in_8": 1776
+          },
+          "three_year_phases": {
+            "1": 397,
+            "4": 929,
+            "8": 1327,
+            "first_pair_in_8": 1784
+          }
+        }
+      },
+      "planned_lines_confirmed": {
+        "scored_races": 27087,
+        "phase_back_truth": 23518,
+        "phase_predicted_B_match": 14522,
+        "metrics": {
+          "entry": {
+            "1": 2696,
+            "4": 6830,
+            "8": 9840,
+            "first_pair_in_8": 13637
+          },
+          "last365": {
+            "1": 2815,
+            "4": 7045,
+            "8": 10101,
+            "first_pair_in_8": 13843
+          },
+          "three_year": {
+            "1": 2797,
+            "4": 7056,
+            "8": 10074,
+            "first_pair_in_8": 13792
+          },
+          "three_year_phases": {
+            "1": 2823,
+            "4": 7127,
+            "8": 10167,
+            "first_pair_in_8": 13904
+          }
+        }
+      },
+      "20240524-20241124": {
+        "scored_races": 13174,
+        "phase_back_truth": 0,
+        "phase_predicted_B_match": 0,
+        "metrics": {
+          "entry": {
+            "1": 690,
+            "4": 2287,
+            "8": 3691,
+            "first_pair_in_8": 5755
+          },
+          "last365": {
+            "1": 705,
+            "4": 2335,
+            "8": 3793,
+            "first_pair_in_8": 5841
+          },
+          "three_year": {
+            "1": 705,
+            "4": 2335,
+            "8": 3793,
+            "first_pair_in_8": 5841
+          },
+          "three_year_phases": {
+            "1": 705,
+            "4": 2335,
+            "8": 3793,
+            "first_pair_in_8": 5841
+          }
+        }
+      },
+      "20241124-20250524": {
+        "scored_races": 12411,
+        "phase_back_truth": 0,
+        "phase_predicted_B_match": 0,
+        "metrics": {
+          "entry": {
+            "1": 710,
+            "4": 2205,
+            "8": 3588,
+            "first_pair_in_8": 5466
+          },
+          "last365": {
+            "1": 734,
+            "4": 2285,
+            "8": 3659,
+            "first_pair_in_8": 5528
+          },
+          "three_year": {
+            "1": 743,
+            "4": 2268,
+            "8": 3656,
+            "first_pair_in_8": 5528
+          },
+          "three_year_phases": {
+            "1": 743,
+            "4": 2268,
+            "8": 3656,
+            "first_pair_in_8": 5528
+          }
+        }
+      },
+      "20250524-20251124": {
+        "scored_races": 12998,
+        "phase_back_truth": 0,
+        "phase_predicted_B_match": 0,
+        "metrics": {
+          "entry": {
+            "1": 705,
+            "4": 2159,
+            "8": 3535,
+            "first_pair_in_8": 5459
+          },
+          "last365": {
+            "1": 752,
+            "4": 2283,
+            "8": 3661,
+            "first_pair_in_8": 5565
+          },
+          "three_year": {
+            "1": 749,
+            "4": 2256,
+            "8": 3654,
+            "first_pair_in_8": 5538
+          },
+          "three_year_phases": {
+            "1": 749,
+            "4": 2256,
+            "8": 3654,
+            "first_pair_in_8": 5538
+          }
+        }
+      },
+      "20251124-20260524": {
+        "scored_races": 12473,
+        "phase_back_truth": 12454,
+        "phase_predicted_B_match": 7787,
+        "metrics": {
+          "entry": {
+            "1": 1331,
+            "4": 3304,
+            "8": 4683,
+            "first_pair_in_8": 6387
+          },
+          "last365": {
+            "1": 1403,
+            "4": 3403,
+            "8": 4818,
+            "first_pair_in_8": 6514
+          },
+          "three_year": {
+            "1": 1393,
+            "4": 3403,
+            "8": 4803,
+            "first_pair_in_8": 6481
+          },
+          "three_year_phases": {
+            "1": 1408,
+            "4": 3438,
+            "8": 4862,
+            "first_pair_in_8": 6548
+          }
+        }
+      },
+      "20260524-20261124": {
+        "scored_races": 12431,
+        "phase_back_truth": 11064,
+        "phase_predicted_B_match": 6735,
+        "metrics": {
+          "entry": {
+            "1": 1225,
+            "4": 3152,
+            "8": 4527,
+            "first_pair_in_8": 6326
+          },
+          "last365": {
+            "1": 1273,
+            "4": 3245,
+            "8": 4645,
+            "first_pair_in_8": 6396
+          },
+          "three_year": {
+            "1": 1261,
+            "4": 3262,
+            "8": 4636,
+            "first_pair_in_8": 6392
+          },
+          "three_year_phases": {
+            "1": 1272,
+            "4": 3298,
+            "8": 4670,
+            "first_pair_in_8": 6437
+          }
+        }
+      },
+      "dated_in_late_previous_range": {
+        "scored_races": 516,
+        "phase_back_truth": 516,
+        "phase_predicted_B_match": 348,
+        "metrics": {
+          "entry": {
+            "1": 59,
+            "4": 141,
+            "8": 198,
+            "first_pair_in_8": 272
+          },
+          "last365": {
+            "1": 60,
+            "4": 140,
+            "8": 201,
+            "first_pair_in_8": 271
+          },
+          "three_year": {
+            "1": 59,
+            "4": 144,
+            "8": 201,
+            "first_pair_in_8": 273
+          },
+          "three_year_phases": {
+            "1": 62,
+            "4": 148,
+            "8": 206,
+            "first_pair_in_8": 273
+          }
+        }
+      }
+    }
+  },
+  "paired_analysis": {
+    "day_resampled_difference_at_8": {
+      "all/three_year_phases_minus_entry": [
+        0.775,
+        1.149
+      ],
+      "all/three_year_phases_minus_last365": [
+        -0.011,
+        0.194
+      ],
+      "all/three_year_phases_minus_three_year": [
+        0.085,
+        0.207
+      ],
+      "phase_applicable/three_year_phases_minus_entry": [
+        0.985,
+        1.595
+      ],
+      "phase_applicable/three_year_phases_minus_last365": [
+        0.115,
+        0.536
+      ],
+      "phase_applicable/three_year_phases_minus_three_year": [
+        0.235,
+        0.554
+      ],
+      "pre_cutoff/three_year_phases_minus_entry": [
+        0.0,
+        3.066
+      ],
+      "pre_cutoff/three_year_phases_minus_last365": [
+        -0.204,
+        2.096
+      ],
+      "pre_cutoff/three_year_phases_minus_three_year": [
+        -0.418,
+        2.26
+      ]
+    },
+    "changed_hits_at_8": {
+      "all/three_year_phases_minus_entry": {
+        "new": 2035,
+        "lost": 1424
+      },
+      "all/three_year_phases_minus_last365": {
+        "new": 653,
+        "lost": 594
+      },
+      "all/three_year_phases_minus_three_year": {
+        "new": 246,
+        "lost": 153
+      },
+      "phase_applicable/three_year_phases_minus_entry": {
+        "new": 777,
+        "lost": 473
+      },
+      "phase_applicable/three_year_phases_minus_last365": {
+        "new": 379,
+        "lost": 302
+      },
+      "phase_applicable/three_year_phases_minus_three_year": {
+        "new": 246,
+        "lost": 153
+      },
+      "pre_cutoff/three_year_phases_minus_entry": {
+        "new": 19,
+        "lost": 11
+      },
+      "pre_cutoff/three_year_phases_minus_last365": {
+        "new": 12,
+        "lost": 7
+      },
+      "pre_cutoff/three_year_phases_minus_three_year": {
+        "new": 7,
+        "lost": 2
+      }
+    },
+    "previous_model_on_identical_dated_programs_and_verified_podium": {
+      "previous_reference": {
+        "scored": 516,
+        "hit_1": 67,
+        "hit_4": 160,
+        "hit_8": 211
+      },
+      "previous_with_rider_phase": {
+        "scored": 516,
+        "hit_1": 69,
+        "hit_4": 158,
+        "hit_8": 214
+      },
+      "entry": {
+        "scored": 516,
+        "hit_1": 59,
+        "hit_4": 141,
+        "hit_8": 198
+      },
+      "last365": {
+        "scored": 516,
+        "hit_1": 60,
+        "hit_4": 140,
+        "hit_8": 201
+      },
+      "three_year": {
+        "scored": 516,
+        "hit_1": 59,
+        "hit_4": 144,
+        "hit_8": 201
+      },
+      "three_year_phases": {
+        "scored": 516,
+        "hit_1": 62,
+        "hit_4": 148,
+        "hit_8": 206
+      }
+    },
+    "old_forecasts_sha256": "cf8d463674ede4df1d73673dc3127983793a9954c1d5d54c499ce519adfbef08",
+    "full_study_pre_cutoff_only_provenance": true
+  },
+  "older_film_learning": {
+    "older_films_reviewed": 12,
+    "readable_corner": 11,
+    "blocking_corner_disagreement": 1,
+    "case_rows": [
+      {
+        "race": "202311282701",
+        "source_url": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/2720231126/27202311260300/1/",
+        "back_car": 1,
+        "fourth_corner_car": 1,
+        "corner_seconds": 71.5,
+        "winner_car": 2,
+        "back_rider": "鈴木樹里",
+        "winner": "渡口まりあ",
+        "official_S": 7,
+        "official_H": 7
+      },
+      {
+        "race": "202401171310",
+        "source_url": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/1320240116/13202401160200/10/",
+        "back_car": 6,
+        "fourth_corner_car": 6,
+        "corner_seconds": 51.957,
+        "winner_car": 3,
+        "back_rider": "真鍋顕汰",
+        "winner": "川口聖二",
+        "official_S": 3,
+        "official_H": 1
+      },
+      {
+        "race": "202403162207",
+        "source_url": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/2220240315/22202403150200/7/",
+        "back_car": 6,
+        "fourth_corner_car": 4,
+        "corner_seconds": 50.8,
+        "winner_car": 5,
+        "back_rider": "又多風緑",
+        "winner": "松本詩乃",
+        "official_S": null,
+        "official_H": 6
+      },
+      {
+        "race": "202405162509",
+        "source_url": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/2520240514/25202405140300/9/",
+        "back_car": 5,
+        "fourth_corner_car": 5,
+        "corner_seconds": 67.516,
+        "winner_car": 1,
+        "back_rider": "土田武志",
+        "winner": "中川勝貴",
+        "official_S": 1,
+        "official_H": 2
+      },
+      {
+        "race": "202407167307",
+        "source_url": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/7320240716/73202407160100/7/",
+        "back_car": 2,
+        "fourth_corner_car": 2,
+        "corner_seconds": 69.696,
+        "winner_car": 1,
+        "back_rider": "戸田康平",
+        "winner": "林明宏",
+        "official_S": 2,
+        "official_H": 2
+      },
+      {
+        "race": "202409161206",
+        "source_url": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/1220240915/12202409150200/6/",
+        "back_car": 1,
+        "fourth_corner_car": 1,
+        "corner_seconds": 55.037,
+        "winner_car": 1,
+        "back_rider": "佐々木亮太",
+        "winner": "佐々木亮太",
+        "official_S": 1,
+        "official_H": 2
+      },
+      {
+        "race": "202411151310",
+        "source_url": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/1320241113/13202411130300/10/",
+        "back_car": 1,
+        "fourth_corner_car": 1,
+        "corner_seconds": 50.592,
+        "winner_car": 2,
+        "back_rider": "福田稔希",
+        "winner": "岩元叶馬",
+        "official_S": 1,
+        "official_H": 5
+      },
+      {
+        "race": "202501157505",
+        "source_url": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/7520250113/75202501130300/5/",
+        "back_car": 7,
+        "fourth_corner_car": 7,
+        "corner_seconds": 76.992,
+        "winner_car": 7,
+        "back_rider": "戸邉香奈実",
+        "winner": "戸邉香奈実",
+        "official_S": 4,
+        "official_H": 3
+      },
+      {
+        "race": "202503166306",
+        "source_url": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/6320250316/63202503160100/6/",
+        "back_car": 5,
+        "fourth_corner_car": null,
+        "corner_seconds": null,
+        "winner_car": 4,
+        "back_rider": "高橋義秋",
+        "winner": "南部翔大",
+        "official_S": 1,
+        "official_H": 5
+      },
+      {
+        "race": "202505167303",
+        "source_url": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/7320250514/73202505140300/3/",
+        "back_car": 1,
+        "fourth_corner_car": 3,
+        "corner_seconds": 65.4,
+        "winner_car": 2,
+        "back_rider": "堀航輝",
+        "winner": "甲斐康昭",
+        "official_S": null,
+        "official_H": 1
+      },
+      {
+        "race": "202507163404",
+        "source_url": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/3420250716/34202507160100/4/",
+        "back_car": 2,
+        "fourth_corner_car": 2,
+        "corner_seconds": 58.418,
+        "winner_car": 2,
+        "back_rider": "西森一稀",
+        "winner": "西森一稀",
+        "official_S": 1,
+        "official_H": 2
+      },
+      {
+        "race": "202509161105",
+        "source_url": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/1120250914/11202509140300/5/",
+        "back_car": 6,
+        "fourth_corner_car": 5,
+        "corner_seconds": 71.9,
+        "winner_car": 5,
+        "back_rider": "高谷雅彦",
+        "winner": "市本隆司",
+        "official_S": 1,
+        "official_H": 6
+      }
+    ],
+    "fitting": {
+      "recent_only": {
+        "n": 25,
+        "retains": 20,
+        "common": 0.7777777777777778
+      },
+      "earlier_plus_recent": {
+        "n": 36,
+        "retains": 28,
+        "common": 0.7631578947368421
+      }
+    },
+    "holdout": {
+      "recent_only": {
+        "races": 13,
+        "actual_hold": 10,
+        "brier": 0.16329429144243962,
+        "logloss": 0.4981027922105245
+      },
+      "earlier_plus_recent": {
+        "races": 13,
+        "actual_hold": 10,
+        "brier": 0.16288775244453915,
+        "logloss": 0.49811312433060084
+      }
+    },
+    "older_B_rider_ids_matching_later_riders": 0,
+    "private_fit_sha256": "fee1d56f2d3316097569361b416b6f5e638d8e69ccdfe75937ccea9ca1a222ab",
+    "reused_previous_holdout_days_jst": [
+      "20261121",
+      "20261123"
+    ],
+    "whole_race_source_covered_only_the_visible_checkpoints": true
+  },
+  "freeze_receipt": {
+    "forecasts_sha256": "ec44cd2347071bdee7b29a24d1b0ddeffa6ef78265e304628199f97246cdb692",
+    "features_sha256": "5a2235b92a872a7938d47b6e2cc09174d71b3276e5eff9c03f37861fd0e5d768",
+    "source_sha256": "8409d4cf2cc55ffd8c1bbe859b5151ab581b56775f574cf2f5262aa22e8c1f52",
+    "fit_scope": "each evaluation block trains on blocks before it",
+    "feature_window_days": 365,
+    "conditional_phase_blend": 0.25,
+    "minimum_earlier_phase_examples": 300,
+    "arms": [
+      "entry",
+      "last365",
+      "three_year",
+      "three_year_phases"
+    ],
+    "fixed_at_utc": "2026-11-24T12:09:24.696342+00:00",
+    "folds": [
+      {
+        "training_races": 12518,
+        "training_last": "20240523",
+        "training_phases": 5,
+        "start": "20240524",
+        "end_exclusive": "20241124",
+        "predictions": 13174,
+        "phase_enabled": false
+      },
+      {
+        "training_races": 25692,
+        "training_last": "20241123",
+        "training_phases": 8,
+        "start": "20241124",
+        "end_exclusive": "20250524",
+        "predictions": 12411,
+        "phase_enabled": false
+      },
+      {
+        "training_races": 38103,
+        "training_last": "20250523",
+        "training_phases": 11,
+        "start": "20250524",
+        "end_exclusive": "20251124",
+        "predictions": 12998,
+        "phase_enabled": false
+      },
+      {
+        "training_races": 51101,
+        "training_last": "20251123",
+        "training_phases": 3574,
+        "start": "20251124",
+        "end_exclusive": "20260524",
+        "predictions": 12473,
+        "phase_enabled": true
+      },
+      {
+        "training_races": 63574,
+        "training_last": "20260523",
+        "training_phases": 16028,
+        "start": "20260524",
+        "end_exclusive": "20261124",
+        "predictions": 12431,
+        "phase_enabled": true
+      }
+    ],
+    "predictions": 63487
+  },
+  "prior_result_prefix": {
+    "confirmed_predictions_unchanged": 63405,
+    "frozen_original_sha256": "007a09f5c6cf9663ea1c7cf93bc40547a2f18c5494bfa9c3c9d1e1324594b0c0"
+  },
+  "training_completed_after_scoring": {
+    "purpose": "research_refit_after_scoring",
+    "fit_start_jst": "20231124",
+    "fit_through_jst": "20261123",
+    "training_races": 76005,
+    "training_B_with_lines": 27092,
+    "features_sha256": "5a2235b92a872a7938d47b6e2cc09174d71b3276e5eff9c03f37861fd0e5d768",
+    "ranking_method_sha256": "8409d4cf2cc55ffd8c1bbe859b5151ab581b56775f574cf2f5262aa22e8c1f52",
+    "fitted_at_utc": "2026-11-24T12:09:40.501102+00:00",
+    "owner_settings_sha256": "79c5abb07895290b4f6d6c69efe7f88f218e52d7a618a87ff514c63c58f0136e"
+  },
+  "local_private_recovery": {
+    "ciphertext_sha256": "f75b1a2b682063945d38ad1440c15abd3e6bef394c170329edc33106ff20e633",
+    "encrypted_bytes": 5332155,
+    "archive_files_round_tripped": 16,
+    "cipher": "AES-256-GCM",
+    "local_receipt_utc": "2026-11-24T12:10:11.400968+00:00"
+  },
+  "checks": {
+    "related_tests": 44,
+    "subtests": 6,
+    "fixed_scoring_exactly_repeated": true
+  }
+}

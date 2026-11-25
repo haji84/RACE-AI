@@ -1,0 +1,198 @@
+{
+  "prior_independent_pool_key_audit": {
+    "source_sha256": "89c58ded1c89cb200c399781c985fa7dc8f46f29fde520f205ea8e0561e776fd",
+    "original_plan_sha256": "993e0e384ed90a77e66cd5c60cac6e8de9f6a418556db141c717612220a9c705",
+    "population_corrected": 225,
+    "original_reported_pre_exclusion_population": 249,
+    "unique_historical_keys_excluded_from_population": 24,
+    "original_chosen_races_match_corrected_selection": true,
+    "selected_overlap_with_old_125": 0,
+    "verified_at": "2026-11-25T11:17:47.392001+00:00",
+    "detail": "The original code compared compact race keys with display-format keys containing hyphens. Normalizing them fixes the pool count and reproduces the exact original eight in order. No observation, selection list, score, or hash of the frozen forecasts changed."
+  },
+  "new_six_cross_phase_labels": {
+    "source_sha256": "991633749a9e62a51a1ba03e76e5bc1eb1765fe00d1ad5ef3aaddfb405502f96",
+    "archived_ordinary_podium_matches": 6,
+    "label_sha256": "87e03d37bd85f27debf883d53a5fbb373617bcced0c1d90a6476439c4773ca33",
+    "new_label_sealed_at": "2026-11-25T11:22:21.906427+00:00",
+    "observed_counts_by_interval": {
+      "B→C": {
+        "different_planned_line": 0,
+        "same_planned_line_new_rider": 0,
+        "same_rider": 6
+      },
+      "B→G": {
+        "different_planned_line": 3,
+        "same_planned_line_new_rider": 2,
+        "same_rider": 1
+      },
+      "C→G": {
+        "different_planned_line": 3,
+        "same_planned_line_new_rider": 2,
+        "same_rider": 1
+      },
+      "H→B": {
+        "different_planned_line": 1,
+        "same_planned_line_new_rider": 0,
+        "same_rider": 5
+      },
+      "H→G": {
+        "different_planned_line": 3,
+        "same_planned_line_new_rider": 2,
+        "same_rider": 1
+      }
+    },
+    "observed_phase_1st_H_B_4C": 6,
+    "official_matched_B": 6,
+    "official_matched_H": 6,
+    "official_receipt_sha256": "f43846ab4ec9e3bb4a9514d17c0be4eb53b8258ff0e199f934401d4587df2f73",
+    "ordinary_playback": 6,
+    "prior_case_overlap": 0,
+    "prior_gold_reference_sha256": "c56f46a2e981787d43af4b1623ff8da88423901ac7d411ab66aebea3985ab23e",
+    "private_transitions_sha256": "9b92ea0130b0aaf5dcb391429dd522c790b989afe57e64f60bb1427352eb0001",
+    "result_source": "KEIRIN.JP official H / B / results, matched with prior frozen public result reference. 4C from the already-sealed video observation. Groups are dated public planned line, not persistent real group membership.",
+    "scored_at": "2026-11-25T11:24:15.911155+00:00"
+  },
+  "corner_to_finish_study": {
+    "source_sha256": "6408f4736466bbd11986884e0420c320bbd26861b8ce16ea1d739228e15aefcc",
+    "date_split": "train by 2026-11-20; retrospective replay 2026-11-21–24",
+    "formal_weight_switch": false,
+    "full": {
+      "1": {
+        "after": 32,
+        "after_pct": 11.149825783972126,
+        "before": 32,
+        "before_pct": 11.149825783972126,
+        "changed": 1,
+        "first_two_after": 72,
+        "first_two_before": 72,
+        "gains": 0,
+        "losses": 0,
+        "n": 287,
+        "paired_pvalue": null
+      },
+      "4": {
+        "after": 90,
+        "after_pct": 31.358885017421603,
+        "before": 91,
+        "before_pct": 31.70731707317073,
+        "changed": 8,
+        "first_two_after": 126,
+        "first_two_before": 126,
+        "gains": 0,
+        "losses": 1,
+        "n": 287,
+        "paired_pvalue": 1.0
+      },
+      "8": {
+        "after": 127,
+        "after_pct": 44.250871080139376,
+        "before": 127,
+        "before_pct": 44.250871080139376,
+        "changed": 14,
+        "first_two_after": 160,
+        "first_two_before": 160,
+        "gains": 0,
+        "losses": 0,
+        "n": 287,
+        "paired_pvalue": null
+      },
+      "selected": {
+        "after": 92,
+        "after_pct": 32.055749128919864,
+        "before": 93,
+        "before_pct": 32.40418118466899,
+        "changed": 8,
+        "first_two_after": 128,
+        "first_two_before": 128,
+        "gains": 0,
+        "losses": 1,
+        "n": 287,
+        "paired_pvalue": 1.0
+      }
+    },
+    "gold_sha256": "c56f46a2e981787d43af4b1623ff8da88423901ac7d411ab66aebea3985ab23e",
+    "maximum_unconditional_ticket_probability_mass_moved": 0.013280832978439686,
+    "median_unconditional_ticket_probability_mass_moved": 0.006295685344427742,
+    "model_applicable": {
+      "1": {
+        "after": 30,
+        "after_pct": 12.048192771084338,
+        "before": 30,
+        "before_pct": 12.048192771084338,
+        "changed": 1,
+        "first_two_after": 63,
+        "first_two_before": 63,
+        "gains": 0,
+        "losses": 0,
+        "n": 249,
+        "paired_pvalue": null
+      },
+      "4": {
+        "after": 80,
+        "after_pct": 32.1285140562249,
+        "before": 81,
+        "before_pct": 32.53012048192771,
+        "changed": 8,
+        "first_two_after": 110,
+        "first_two_before": 110,
+        "gains": 0,
+        "losses": 1,
+        "n": 249,
+        "paired_pvalue": 1.0
+      },
+      "8": {
+        "after": 109,
+        "after_pct": 43.77510040160642,
+        "before": 109,
+        "before_pct": 43.77510040160642,
+        "changed": 14,
+        "first_two_after": 135,
+        "first_two_before": 135,
+        "gains": 0,
+        "losses": 0,
+        "n": 249,
+        "paired_pvalue": null
+      },
+      "selected": {
+        "after": 81,
+        "after_pct": 32.53012048192771,
+        "before": 82,
+        "before_pct": 32.93172690763052,
+        "changed": 8,
+        "first_two_after": 111,
+        "first_two_before": 111,
+        "gains": 0,
+        "losses": 1,
+        "n": 249,
+        "paired_pvalue": 1.0
+      }
+    },
+    "novel_shadow_cases": {
+      "different_line_cases": 3,
+      "logloss_before_and_after": [
+        0.6350130679006003,
+        0.6545140895649891
+      ],
+      "mean_predicted_risk_before_and_after": [
+        0.46777784028905783,
+        0.40220818300460753
+      ],
+      "n": 6,
+      "time_labeled_historically": true
+    },
+    "predict_only_sha256": "4bc4a1bece216ce09403a656090b55d11048a3dc8c87cf1db1334fbda0891670",
+    "scored_at": "2026-11-25T11:24:37.158513+00:00"
+  },
+  "local_encrypted_recovery": {
+    "source_sha256": "885001aa749c8eb779807d4ac16bc211c88b71b62de12874198a6ff6f7a4f4ba",
+    "combined_audit_sha256": "06b51150f7476d73082bcae1748fe88ee15e0191f1b4bff8becfd16da1c7cb8f",
+    "n_files": 38,
+    "new_six_result_sha256": "991633749a9e62a51a1ba03e76e5bc1eb1765fe00d1ad5ef3aaddfb405502f96",
+    "owner_cipher_sha256": "3f554177ec3b6d873f19f0c660cf8910a83e5eddb03abbb678f50f32a18ff648",
+    "persisted_image_or_video_files": 0,
+    "readback_exact": true,
+    "restored_at": "2026-11-25T11:25:13.015266+00:00",
+    "trial_score_sha256": "6408f4736466bbd11986884e0420c320bbd26861b8ce16ea1d739228e15aefcc"
+  }
+}

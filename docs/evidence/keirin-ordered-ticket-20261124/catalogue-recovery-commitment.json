@@ -1,0 +1,15 @@
+{
+  "schema": "KEIRIN_ORDERED_TICKET_RECOVERED_SCOPE_V1",
+  "frozen_at": "2026-11-23T22:17:40.600699+00:00",
+  "recovery_races": 412,
+  "rankings_as_in_recent_experiment": true,
+  "recovered_races_have_no_proved_pre_cutoff_version": true,
+  "no_line_races_use_the_same_saved_static_fallback_for_all_arms": 18,
+  "card_sha256": "4020cd81e19d61c0e5653e44366df5febd696d1f9ab903cd4f521a14384412aa",
+  "card_proof_sha256": "23ffbb60abc6372d257dc1b018457665868d818947e91f0aaac2c584ecf5b89b",
+  "source_sha256": "ecd53ad4ec52aec73adcd143e15d184274d75740b0eaaabf4587af194de0772c",
+  "selected_config_sha256": "60e88f53496f934cb968706e38291d8d68fc664429a3356de617cc0e634c9a47",
+  "no_line_fallback_config_sha256": "421747a5e8cf38158e98005dfd127626d57465bd1aadf16acbddb674de4d5ecd",
+  "forecast_commitment_sha256": "3e5b4ae458d99ef8ed7e0b14f7d5e6da3071622f384078cf4c184e3bf53e1175",
+  "owner_cipher_sha256": "84dcbf711d0d6b6168e1c08a1887a84bf18773187467cf2dd8df4f493b13bc42"
+}

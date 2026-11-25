@@ -1,0 +1,16 @@
+{
+  "date": "2026-11-25",
+  "site_url": "https://keirin-20261119-race-note.chankuma.chatgpt.site/",
+  "version": 32,
+  "site_source_commit": "723019e96e0d18db2c1ad0575d103737f08e6921",
+  "verified_at": "2026-11-25T05:30:29.014160+00:00",
+  "result_view": "https://keirin-20261119-race-note.chankuma.chatgpt.site/#results",
+  "result_view_sha256": "fc303506ca1649a31b13edeb2ca2ffcaaa2804a6bbd66c0418f7977ce792b15e",
+  "published_forecast_days": [
+    "2026-11-22",
+    "2026-11-23",
+    "2026-11-24",
+    "2026-11-25"
+  ],
+  "public_roster_discovery_check": "https://github.com/haji84/RACE-AI/actions/runs/45553638752"
+}

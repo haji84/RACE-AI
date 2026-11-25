@@ -1,0 +1,188 @@
+{
+  "anonymous_file_digests_sha256": {
+    "canonical_catalogue_result_file": "d8258d5fe825bc997e1626180ec1517464291cbc577704c9d2ee8bacaa43ca0f",
+    "canonical_feature_recovery_model_commitment": "0d13d4949d599a3935002faaa1231c14e6e9c12527b287ded0c23bb592e6f3de",
+    "canonical_recent_model_commitment": "a63a6090ebe2bb9fb019aa50aca7ba131ab97eaa55dd661d75170663132a9dc7",
+    "canonical_recovery_model_commitment": "2c735141ae8e3ea06f7652179c72526d3eca64d94162f70dff4a96e9ce98030a"
+  },
+  "canonical_result_summary": {
+    "award_authority": "PUBLIC_ARCHIVE_PAYOUTS_AND_EXISTING_CROSS_SOURCE_REFERENCE",
+    "award_provenance_sha256": "8da777e1cc456d79fc713739c89762e57a96b58ace335e2229b7074e60e99788",
+    "catalogue": {
+      "days": 54,
+      "november_23": 89,
+      "november_to_22": 1643,
+      "october": 2270,
+      "total": 4002
+    },
+    "gold_by_source": {
+      "APP_GIT_ARCHIVED_AWARDS": {
+        "days": 37,
+        "november_23": 0,
+        "november_to_22": 1631,
+        "october": 1108,
+        "total": 2739
+      },
+      "KDREAMS_DATED_CACHED_PAID_AWARDS": {
+        "days": 1,
+        "november_23": 0,
+        "november_to_22": 0,
+        "october": 1,
+        "total": 1
+      },
+      "KDREAMS_SQL_AWARDS": {
+        "days": 48,
+        "november_23": 0,
+        "november_to_22": 1636,
+        "october": 1861,
+        "total": 3497
+      },
+      "NETKEIRIN_ARCHIVED_AWARDS": {
+        "days": 53,
+        "november_23": 0,
+        "november_to_22": 1634,
+        "october": 2256,
+        "total": 3890
+      },
+      "RACE_AI_CROSS_SOURCE_REFERENCE": {
+        "days": 2,
+        "november_23": 87,
+        "november_to_22": 67,
+        "october": 0,
+        "total": 154
+      }
+    },
+    "gold_exacta_and_trifecta": {
+      "days": 54,
+      "november_23": 87,
+      "november_to_22": 1637,
+      "october": 2265,
+      "total": 3989
+    },
+    "gold_in_prior_inputs": {
+      "days": 49,
+      "november_23": 86,
+      "november_to_22": 1632,
+      "october": 1859,
+      "total": 3577
+    },
+    "gold_in_recovered_inputs": {
+      "days": 13,
+      "november_23": 1,
+      "november_to_22": 5,
+      "october": 406,
+      "total": 412
+    },
+    "gold_sha256": "d69962dcdecae8e6803f2a772163cbd9dfd55a6b8dccbadfaab6a5a0d204bfad",
+    "held": {
+      "ARCHIVED_PAID_AWARD_CONFLICT": 6,
+      "NO_ARCHIVED_PAID_AWARD": 7
+    },
+    "holds_sha256": "584c0b2f6d14b37c1c55353a58226d9953a23e160af2f80e3db7602f37c26e87",
+    "input_sha256": "4020cd81e19d61c0e5653e44366df5febd696d1f9ab903cd4f521a14384412aa",
+    "multiple_paid_order_races": {
+      "2t": 18,
+      "3t": 18
+    },
+    "recovered_gold_sources": {
+      "APP_GIT_ARCHIVED_AWARDS+KDREAMS_SQL_AWARDS+NETKEIRIN_ARCHIVED_AWARDS": 5,
+      "APP_GIT_ARCHIVED_AWARDS+NETKEIRIN_ARCHIVED_AWARDS": 402,
+      "KDREAMS_DATED_CACHED_PAID_AWARDS": 1,
+      "KDREAMS_SQL_AWARDS+NETKEIRIN_ARCHIVED_AWARDS": 1,
+      "NETKEIRIN_ARCHIVED_AWARDS": 2,
+      "RACE_AI_CROSS_SOURCE_REFERENCE": 1
+    },
+    "result_only_award_with_legacy_live_hold_included_in_replay": 1,
+    "roster_mismatch": {
+      "days": 0,
+      "november_23": 0,
+      "november_to_22": 0,
+      "october": 0,
+      "total": 0
+    },
+    "verified_cached_one_race_payout_html_sha256": "ebd4abc4f097fbd000d57cc32a45a332ae1ffe1fe8cf0f08f799ad650ce295ac"
+  },
+  "gold_and_model_before_market_join": {
+    "all": {
+      "available": 3989,
+      "hit8": 1579
+    },
+    "november_1_to_22": {
+      "available": 1637,
+      "hit8": 633
+    },
+    "november_23": {
+      "available": 87,
+      "hit8": 42
+    },
+    "october": {
+      "available": 2265,
+      "hit8": 904
+    }
+  },
+  "gold_paid_label_rows": 3989,
+  "matching_rule": "Exact equality of all paid 3連単 orders in the gold labels and the benchmark, plus eight valid distinct frozen predictions.",
+  "ordered_forecast_mode": "pair_and_third",
+  "paired_hit_counts": {
+    "all": {
+      "hits_both": 1231,
+      "hits_either": 1696,
+      "hits_only_market": 332,
+      "hits_only_model": 133,
+      "market_hit8": 1563,
+      "matched": 3497,
+      "misses_both": 1801,
+      "model_hit8": 1364,
+      "multi_paid_order_matched": 17
+    },
+    "november_1_to_22": {
+      "hits_both": 568,
+      "hits_either": 796,
+      "hits_only_market": 164,
+      "hits_only_model": 64,
+      "market_hit8": 732,
+      "matched": 1636,
+      "misses_both": 840,
+      "model_hit8": 632,
+      "multi_paid_order_matched": 6
+    },
+    "november_23": {},
+    "october": {
+      "hits_both": 663,
+      "hits_either": 900,
+      "hits_only_market": 168,
+      "hits_only_model": 69,
+      "market_hit8": 831,
+      "matched": 1861,
+      "misses_both": 961,
+      "model_hit8": 732,
+      "multi_paid_order_matched": 11
+    }
+  },
+  "predictions_in_each_artifact": {
+    "catalogue-recovery-predictions.json.gz": 412,
+    "feature-recovery-forecast.owner.json.gz": 1,
+    "recent-predictions.json.gz": 3590
+  },
+  "scope_jst": [
+    "20261001",
+    "20261123"
+  ],
+  "success_union_rule": "Post-race OR over model top eight and published closing-market top eight on the same race. This corresponds to an up-to-16-ticket comparison; distinct combined ticket count is unobserved.",
+  "unmatched_dispositions": {
+    "all": {
+      "gold_and_model_but_market_missing_payout_field": 162,
+      "gold_and_model_but_missing_market_archive_key": 330
+    },
+    "november_1_to_22": {
+      "gold_and_model_but_market_missing_payout_field": 1
+    },
+    "november_23": {
+      "gold_and_model_but_market_missing_payout_field": 87
+    },
+    "october": {
+      "gold_and_model_but_market_missing_payout_field": 74,
+      "gold_and_model_but_missing_market_archive_key": 330
+    }
+  }
+}

@@ -1,0 +1,76 @@
+{
+  "paired_hit_counts": {
+    "all": {
+      "hits_both": 1265,
+      "hits_either": 1742,
+      "hits_only_market": 341,
+      "hits_only_model": 136,
+      "market_hit8": 1606,
+      "matched": 3582,
+      "misses_both": 1840,
+      "model_hit8": 1401,
+      "multi_paid_order_matched": 18
+    },
+    "november_1_to_22": {
+      "hits_both": 568,
+      "hits_either": 796,
+      "hits_only_market": 164,
+      "hits_only_model": 64,
+      "market_hit8": 732,
+      "matched": 1636,
+      "misses_both": 840,
+      "model_hit8": 632,
+      "multi_paid_order_matched": 6
+    },
+    "november_23": {},
+    "october": {
+      "hits_both": 697,
+      "hits_either": 946,
+      "hits_only_market": 177,
+      "hits_only_model": 72,
+      "market_hit8": 874,
+      "matched": 1946,
+      "misses_both": 1000,
+      "model_hit8": 769,
+      "multi_paid_order_matched": 12
+    }
+  },
+  "payout_page_receipt_manifest_sha256": "a538946a097877e1a9b599938fd2f11ffff4f6652a875f6f3cad0efac3f55c5e",
+  "primary_shared_aggregate_sha256": "fdc5843c495a53abf82c8987ad20b414cdc427af4f0443e38057b07d8efc2c01",
+  "raw_page_audit": {
+    "gold_and_html_available_but_outside_primary_market": 86,
+    "gold_and_primary_and_html_awards_agree": 845,
+    "supplemental_paid_order_set_disagreement": 1,
+    "verified_dated_pages_in_cohort": 13
+  },
+  "scope_qualification": "Sensitivity including separately pinned daily payout pages. Admission requires exact equality of paid 3連単 sets and bounds from the existing frozen roster. The primary three-year summary remains based on the CSV and SQLite archive union.",
+  "supplement_only": {
+    "hits_both": 34,
+    "hits_either": 46,
+    "hits_only_market": 9,
+    "hits_only_model": 3,
+    "market_hit8": 43,
+    "matched": 85,
+    "misses_both": 39,
+    "model_hit8": 37,
+    "multi_paid_order_matched": 1
+  },
+  "unmatched_dispositions": {
+    "all": {
+      "gold_and_model_but_market_missing_payout_field": 162,
+      "gold_and_model_but_missing_market_archive_key": 244,
+      "supplemental_paid_order_set_disagrees": 1
+    },
+    "november_1_to_22": {
+      "gold_and_model_but_market_missing_payout_field": 1
+    },
+    "november_23": {
+      "gold_and_model_but_market_missing_payout_field": 87
+    },
+    "october": {
+      "gold_and_model_but_market_missing_payout_field": 74,
+      "gold_and_model_but_missing_market_archive_key": 244,
+      "supplemental_paid_order_set_disagrees": 1
+    }
+  }
+}

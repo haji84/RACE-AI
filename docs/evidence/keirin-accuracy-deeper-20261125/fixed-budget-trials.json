@@ -1,0 +1,2223 @@
+{
+  "design_digests": {
+    "draw/design.json": "9e791e169d4be77d9d66d730bb72b27c7f6010b5f554b6a310ecf3d7ac796dfd",
+    "tactics/design.json": "b8585c4d08bdea5b867c9216ec89b05ea983e9c64b6767fcde074c7fd5067c97",
+    "third/design.json": "9cc8192fc52ebc8ad595770d9e28bb28aec25b41d3621c7de74496c35af7398a",
+    "pressure/design.json": "824903f2fb268a9873813455bea17fc2658c5b2afe0a9f9cdd67f5146f78603c",
+    "input-audit/protocol.json": "9250711cfc55cd2202374a66260649f23a4d56061457c10a1922dcc605e30b48",
+    "home-field/design.json": "95d4c7badb7a3498016ec15d5449f92f47e99f211a86031a98788598790bf543",
+    "pair-market/design.json": "7366776c6f1f063c4347bc4f5e8195d81e090a7929fc08b931cdca448166bb46"
+  },
+  "draw": {
+    "historical": {
+      "all": {
+        "races": 5959,
+        "days": 87,
+        "first": "20260801",
+        "last": "20261120",
+        "tickets": {
+          "1": {
+            "exact": [
+              721,
+              723
+            ],
+            "winner": [
+              2710,
+              2715
+            ],
+            "pair": [
+              1465,
+              1469
+            ],
+            "new_hits": 14,
+            "lost_hits": 12,
+            "day_ci_pp": [
+              -0.13164769857666805,
+              0.19976777010237973
+            ]
+          },
+          "4": {
+            "exact": [
+              1734,
+              1722
+            ],
+            "winner": [
+              4023,
+              4017
+            ],
+            "pair": [
+              2597,
+              2594
+            ],
+            "new_hits": 18,
+            "lost_hits": 30,
+            "day_ci_pp": [
+              -0.37948787252502797,
+              -0.016685786079090714
+            ]
+          },
+          "8": {
+            "exact": [
+              2436,
+              2426
+            ],
+            "winner": [
+              4598,
+              4599
+            ],
+            "pair": [
+              3255,
+              3256
+            ],
+            "new_hits": 26,
+            "lost_hits": 36,
+            "day_ci_pp": [
+              -0.42294385961285785,
+              0.06745933236889488
+            ]
+          }
+        }
+      },
+      "seeded/False": {
+        "races": 4467,
+        "days": 87,
+        "first": "20260801",
+        "last": "20261120",
+        "tickets": {
+          "1": {
+            "exact": [
+              505,
+              508
+            ],
+            "winner": [
+              1968,
+              1975
+            ],
+            "pair": [
+              1074,
+              1078
+            ],
+            "new_hits": 10,
+            "lost_hits": 7,
+            "day_ci_pp": [
+              -0.09139675530745375,
+              0.24374165629473876
+            ]
+          },
+          "4": {
+            "exact": [
+              1248,
+              1243
+            ],
+            "winner": [
+              2972,
+              2969
+            ],
+            "pair": [
+              1907,
+              1908
+            ],
+            "new_hits": 16,
+            "lost_hits": 21,
+            "day_ci_pp": [
+              -0.3380834391508215,
+              0.13097093302579738
+            ]
+          },
+          "8": {
+            "exact": [
+              1771,
+              1762
+            ],
+            "winner": [
+              3413,
+              3416
+            ],
+            "pair": [
+              2405,
+              2402
+            ],
+            "new_hits": 18,
+            "lost_hits": 27,
+            "day_ci_pp": [
+              -0.47696380643978603,
+              0.06704135628307234
+            ]
+          }
+        }
+      },
+      "seeded/True": {
+        "races": 1492,
+        "days": 86,
+        "first": "20260801",
+        "last": "20261120",
+        "tickets": {
+          "1": {
+            "exact": [
+              216,
+              215
+            ],
+            "winner": [
+              742,
+              740
+            ],
+            "pair": [
+              391,
+              391
+            ],
+            "new_hits": 4,
+            "lost_hits": 5,
+            "day_ci_pp": [
+              -0.4698065455397749,
+              0.33423578449269453
+            ]
+          },
+          "4": {
+            "exact": [
+              486,
+              479
+            ],
+            "winner": [
+              1051,
+              1048
+            ],
+            "pair": [
+              690,
+              686
+            ],
+            "new_hits": 2,
+            "lost_hits": 9,
+            "day_ci_pp": [
+              -0.8626840259639413,
+              -0.13236048518973734
+            ]
+          },
+          "8": {
+            "exact": [
+              665,
+              664
+            ],
+            "winner": [
+              1185,
+              1183
+            ],
+            "pair": [
+              850,
+              854
+            ],
+            "new_hits": 8,
+            "lost_hits": 9,
+            "day_ci_pp": [
+              -0.5427500527357657,
+              0.46637131838725265
+            ]
+          }
+        }
+      },
+      "relation/different": {
+        "races": 2826,
+        "days": 87,
+        "first": "20260801",
+        "last": "20261120",
+        "tickets": {
+          "1": {
+            "exact": [
+              78,
+              79
+            ],
+            "winner": [
+              1219,
+              1217
+            ],
+            "pair": [
+              182,
+              181
+            ],
+            "new_hits": 3,
+            "lost_hits": 2,
+            "day_ci_pp": [
+              -0.10806916426512968,
+              0.18221906611972705
+            ]
+          },
+          "4": {
+            "exact": [
+              268,
+              261
+            ],
+            "winner": [
+              1689,
+              1691
+            ],
+            "pair": [
+              477,
+              477
+            ],
+            "new_hits": 2,
+            "lost_hits": 9,
+            "day_ci_pp": [
+              -0.484106619901788,
+              -0.03496472943344667
+            ]
+          },
+          "8": {
+            "exact": [
+              518,
+              516
+            ],
+            "winner": [
+              2017,
+              2007
+            ],
+            "pair": [
+              853,
+              840
+            ],
+            "new_hits": 10,
+            "lost_hits": 12,
+            "day_ci_pp": [
+              -0.441712582582317,
+              0.2810000096265848
+            ]
+          }
+        }
+      },
+      "relation/same": {
+        "races": 3133,
+        "days": 87,
+        "first": "20260801",
+        "last": "20261120",
+        "tickets": {
+          "1": {
+            "exact": [
+              643,
+              644
+            ],
+            "winner": [
+              1491,
+              1498
+            ],
+            "pair": [
+              1283,
+              1288
+            ],
+            "new_hits": 11,
+            "lost_hits": 10,
+            "day_ci_pp": [
+              -0.2503951572468531,
+              0.31447531010883517
+            ]
+          },
+          "4": {
+            "exact": [
+              1466,
+              1461
+            ],
+            "winner": [
+              2334,
+              2326
+            ],
+            "pair": [
+              2120,
+              2117
+            ],
+            "new_hits": 16,
+            "lost_hits": 21,
+            "day_ci_pp": [
+              -0.5022010542591656,
+              0.19071988858085115
+            ]
+          },
+          "8": {
+            "exact": [
+              1918,
+              1910
+            ],
+            "winner": [
+              2581,
+              2592
+            ],
+            "pair": [
+              2402,
+              2416
+            ],
+            "new_hits": 16,
+            "lost_hits": 24,
+            "day_ci_pp": [
+              -0.641869148700958,
+              0.09390334473886636
+            ]
+          }
+        }
+      },
+      "period/aug_sep": {
+        "races": 2828,
+        "days": 41,
+        "first": "20260801",
+        "last": "20260930",
+        "tickets": {
+          "1": {
+            "exact": [
+              314,
+              310
+            ],
+            "winner": [
+              1261,
+              1262
+            ],
+            "pair": [
+              673,
+              671
+            ],
+            "new_hits": 4,
+            "lost_hits": 8,
+            "day_ci_pp": [
+              -0.3764965415692854,
+              0.10601081827252745
+            ]
+          },
+          "4": {
+            "exact": [
+              814,
+              809
+            ],
+            "winner": [
+              1877,
+              1877
+            ],
+            "pair": [
+              1224,
+              1225
+            ],
+            "new_hits": 9,
+            "lost_hits": 14,
+            "day_ci_pp": [
+              -0.4610010872355526,
+              0.10384485851775573
+            ]
+          },
+          "8": {
+            "exact": [
+              1149,
+              1146
+            ],
+            "winner": [
+              2156,
+              2162
+            ],
+            "pair": [
+              1528,
+              1534
+            ],
+            "new_hits": 17,
+            "lost_hits": 20,
+            "day_ci_pp": [
+              -0.4906087323257839,
+              0.25145944173731455
+            ]
+          }
+        }
+      },
+      "period/oct_nov": {
+        "races": 3131,
+        "days": 46,
+        "first": "20261001",
+        "last": "20261120",
+        "tickets": {
+          "1": {
+            "exact": [
+              407,
+              413
+            ],
+            "winner": [
+              1449,
+              1453
+            ],
+            "pair": [
+              792,
+              798
+            ],
+            "new_hits": 10,
+            "lost_hits": 4,
+            "day_ci_pp": [
+              -0.03123268165664546,
+              0.4121782839706767
+            ]
+          },
+          "4": {
+            "exact": [
+              920,
+              913
+            ],
+            "winner": [
+              2146,
+              2140
+            ],
+            "pair": [
+              1373,
+              1369
+            ],
+            "new_hits": 9,
+            "lost_hits": 16,
+            "day_ci_pp": [
+              -0.48283544838053805,
+              0.032681075703603873
+            ]
+          },
+          "8": {
+            "exact": [
+              1287,
+              1280
+            ],
+            "winner": [
+              2442,
+              2437
+            ],
+            "pair": [
+              1727,
+              1722
+            ],
+            "new_hits": 9,
+            "lost_hits": 16,
+            "day_ci_pp": [
+              -0.5409406673789007,
+              0.09618776236570042
+            ]
+          }
+        }
+      }
+    },
+    "recent": {
+      "all": {
+        "races": 287,
+        "days": 4,
+        "first": "20261121",
+        "last": "20261124",
+        "tickets": {
+          "1": {
+            "exact": [
+              32,
+              31
+            ],
+            "winner": [
+              131,
+              127
+            ],
+            "pair": [
+              72,
+              70
+            ],
+            "new_hits": 0,
+            "lost_hits": 1,
+            "day_ci_pp": [
+              -0.9230769230769231,
+              0.0
+            ]
+          },
+          "4": {
+            "exact": [
+              91,
+              90
+            ],
+            "winner": [
+              199,
+              197
+            ],
+            "pair": [
+              126,
+              125
+            ],
+            "new_hits": 1,
+            "lost_hits": 2,
+            "day_ci_pp": [
+              -0.9771986970684039,
+              0.0
+            ]
+          },
+          "8": {
+            "exact": [
+              127,
+              125
+            ],
+            "winner": [
+              222,
+              221
+            ],
+            "pair": [
+              160,
+              158
+            ],
+            "new_hits": 1,
+            "lost_hits": 3,
+            "day_ci_pp": [
+              -1.3071895424836601,
+              0.0
+            ]
+          },
+          "cap": {
+            "exact": [
+              93,
+              92
+            ],
+            "winner": [
+              201,
+              199
+            ],
+            "pair": [
+              128,
+              127
+            ],
+            "new_hits": 1,
+            "lost_hits": 2,
+            "day_ci_pp": [
+              -0.9771986970684039,
+              0.0
+            ]
+          }
+        }
+      },
+      "seeded/False": {
+        "races": 213,
+        "days": 4,
+        "first": "20261121",
+        "last": "20261124",
+        "tickets": {
+          "1": {
+            "exact": [
+              20,
+              19
+            ],
+            "winner": [
+              92,
+              89
+            ],
+            "pair": [
+              49,
+              48
+            ],
+            "new_hits": 0,
+            "lost_hits": 1,
+            "day_ci_pp": [
+              -1.1952191235059761,
+              0.0
+            ]
+          },
+          "4": {
+            "exact": [
+              60,
+              60
+            ],
+            "winner": [
+              140,
+              138
+            ],
+            "pair": [
+              86,
+              85
+            ],
+            "new_hits": 1,
+            "lost_hits": 1,
+            "day_ci_pp": [
+              0.0,
+              0.0
+            ]
+          },
+          "8": {
+            "exact": [
+              86,
+              84
+            ],
+            "winner": [
+              158,
+              158
+            ],
+            "pair": [
+              111,
+              109
+            ],
+            "new_hits": 1,
+            "lost_hits": 3,
+            "day_ci_pp": [
+              -1.7094017094017093,
+              0.0
+            ]
+          },
+          "cap": {
+            "exact": [
+              62,
+              62
+            ],
+            "winner": [
+              142,
+              140
+            ],
+            "pair": [
+              88,
+              87
+            ],
+            "new_hits": 1,
+            "lost_hits": 1,
+            "day_ci_pp": [
+              0.0,
+              0.0
+            ]
+          }
+        }
+      },
+      "seeded/True": {
+        "races": 74,
+        "days": 4,
+        "first": "20261121",
+        "last": "20261124",
+        "tickets": {
+          "1": {
+            "exact": [
+              12,
+              12
+            ],
+            "winner": [
+              39,
+              38
+            ],
+            "pair": [
+              23,
+              22
+            ],
+            "new_hits": 0,
+            "lost_hits": 0,
+            "day_ci_pp": [
+              0.0,
+              0.0
+            ]
+          },
+          "4": {
+            "exact": [
+              31,
+              30
+            ],
+            "winner": [
+              59,
+              59
+            ],
+            "pair": [
+              40,
+              40
+            ],
+            "new_hits": 0,
+            "lost_hits": 1,
+            "day_ci_pp": [
+              -3.75,
+              0.0
+            ]
+          },
+          "8": {
+            "exact": [
+              41,
+              41
+            ],
+            "winner": [
+              64,
+              63
+            ],
+            "pair": [
+              49,
+              49
+            ],
+            "new_hits": 0,
+            "lost_hits": 0,
+            "day_ci_pp": [
+              0.0,
+              0.0
+            ]
+          },
+          "cap": {
+            "exact": [
+              31,
+              30
+            ],
+            "winner": [
+              59,
+              59
+            ],
+            "pair": [
+              40,
+              40
+            ],
+            "new_hits": 0,
+            "lost_hits": 1,
+            "day_ci_pp": [
+              -3.75,
+              0.0
+            ]
+          }
+        }
+      },
+      "relation/different": {
+        "races": 142,
+        "days": 4,
+        "first": "20261121",
+        "last": "20261124",
+        "tickets": {
+          "1": {
+            "exact": [
+              4,
+              4
+            ],
+            "winner": [
+              56,
+              54
+            ],
+            "pair": [
+              8,
+              8
+            ],
+            "new_hits": 0,
+            "lost_hits": 0,
+            "day_ci_pp": [
+              0.0,
+              0.0
+            ]
+          },
+          "4": {
+            "exact": [
+              14,
+              14
+            ],
+            "winner": [
+              83,
+              80
+            ],
+            "pair": [
+              21,
+              20
+            ],
+            "new_hits": 0,
+            "lost_hits": 0,
+            "day_ci_pp": [
+              0.0,
+              0.0
+            ]
+          },
+          "8": {
+            "exact": [
+              30,
+              29
+            ],
+            "winner": [
+              98,
+              97
+            ],
+            "pair": [
+              41,
+              39
+            ],
+            "new_hits": 0,
+            "lost_hits": 1,
+            "day_ci_pp": [
+              -2.0689655172413794,
+              0.0
+            ]
+          },
+          "cap": {
+            "exact": [
+              16,
+              16
+            ],
+            "winner": [
+              85,
+              82
+            ],
+            "pair": [
+              23,
+              22
+            ],
+            "new_hits": 0,
+            "lost_hits": 0,
+            "day_ci_pp": [
+              0.0,
+              0.0
+            ]
+          }
+        }
+      },
+      "relation/same": {
+        "races": 131,
+        "days": 4,
+        "first": "20261121",
+        "last": "20261124",
+        "tickets": {
+          "1": {
+            "exact": [
+              28,
+              27
+            ],
+            "winner": [
+              67,
+              66
+            ],
+            "pair": [
+              60,
+              59
+            ],
+            "new_hits": 0,
+            "lost_hits": 1,
+            "day_ci_pp": [
+              -1.7341040462427746,
+              0.0
+            ]
+          },
+          "4": {
+            "exact": [
+              73,
+              73
+            ],
+            "winner": [
+              106,
+              107
+            ],
+            "pair": [
+              98,
+              98
+            ],
+            "new_hits": 1,
+            "lost_hits": 1,
+            "day_ci_pp": [
+              0.0,
+              0.0
+            ]
+          },
+          "8": {
+            "exact": [
+              90,
+              89
+            ],
+            "winner": [
+              114,
+              114
+            ],
+            "pair": [
+              109,
+              109
+            ],
+            "new_hits": 1,
+            "lost_hits": 2,
+            "day_ci_pp": [
+              -1.7341040462427746,
+              0.0
+            ]
+          },
+          "cap": {
+            "exact": [
+              73,
+              73
+            ],
+            "winner": [
+              106,
+              107
+            ],
+            "pair": [
+              98,
+              98
+            ],
+            "new_hits": 1,
+            "lost_hits": 1,
+            "day_ci_pp": [
+              0.0,
+              0.0
+            ]
+          }
+        }
+      },
+      "relation/undeclared": {
+        "races": 14,
+        "days": 1,
+        "first": "20261124",
+        "last": "20261124",
+        "tickets": {
+          "1": {
+            "exact": [
+              0,
+              0
+            ],
+            "winner": [
+              8,
+              7
+            ],
+            "pair": [
+              4,
+              3
+            ],
+            "new_hits": 0,
+            "lost_hits": 0,
+            "day_ci_pp": [
+              0.0,
+              0.0
+            ]
+          },
+          "4": {
+            "exact": [
+              4,
+              3
+            ],
+            "winner": [
+              10,
+              10
+            ],
+            "pair": [
+              7,
+              7
+            ],
+            "new_hits": 0,
+            "lost_hits": 1,
+            "day_ci_pp": [
+              -7.142857142857143,
+              -7.142857142857143
+            ]
+          },
+          "8": {
+            "exact": [
+              7,
+              7
+            ],
+            "winner": [
+              10,
+              10
+            ],
+            "pair": [
+              10,
+              10
+            ],
+            "new_hits": 0,
+            "lost_hits": 0,
+            "day_ci_pp": [
+              0.0,
+              0.0
+            ]
+          },
+          "cap": {
+            "exact": [
+              4,
+              3
+            ],
+            "winner": [
+              10,
+              10
+            ],
+            "pair": [
+              7,
+              7
+            ],
+            "new_hits": 0,
+            "lost_hits": 1,
+            "day_ci_pp": [
+              -7.142857142857143,
+              -7.142857142857143
+            ]
+          }
+        }
+      }
+    },
+    "fit_n": 8630,
+    "cutoff": "202607318512",
+    "excluded": {},
+    "outside_verified_rolling_roster": 862
+  },
+  "opposing_lines": {
+    "historical": {
+      "races": 12234,
+      "days": 175,
+      "metrics": {
+        "1": {
+          "exact": [
+            1248,
+            1227
+          ],
+          "gain": 23,
+          "loss": 44,
+          "ci95pp_by_day": [
+            -0.3014588258154414,
+            -0.040752536659148915
+          ],
+          "changed": 577,
+          "ordered_pair_covered": [
+            2710,
+            2676
+          ],
+          "winner_covered": [
+            5217,
+            5174
+          ],
+          "winner_was_only_second_or_third": 3618,
+          "winner_reinstated": 60
+        },
+        "4": {
+          "exact": [
+            3234,
+            3209
+          ],
+          "gain": 50,
+          "loss": 75,
+          "ci95pp_by_day": [
+            -0.38789680920069153,
+            -0.024235766512825656
+          ],
+          "changed": 1956,
+          "ordered_pair_covered": [
+            4946,
+            4905
+          ],
+          "winner_covered": [
+            7768,
+            7718
+          ],
+          "winner_was_only_second_or_third": 3271,
+          "winner_reinstated": 84
+        },
+        "8": {
+          "exact": [
+            4583,
+            4575
+          ],
+          "gain": 77,
+          "loss": 85,
+          "ci95pp_by_day": [
+            -0.24402743435560093,
+            0.11495267456455227
+          ],
+          "changed": 3437,
+          "ordered_pair_covered": [
+            6327,
+            6295
+          ],
+          "winner_covered": [
+            9021,
+            8956
+          ],
+          "winner_was_only_second_or_third": 2716,
+          "winner_reinstated": 67
+        }
+      }
+    },
+    "current": {
+      "races": 287,
+      "days": 4,
+      "metrics": {
+        "1": {
+          "exact": [
+            32,
+            31
+          ],
+          "gain": 0,
+          "loss": 1,
+          "ci95pp_by_day": [
+            -0.9230769230769231,
+            0.0
+          ],
+          "changed": 11,
+          "ordered_pair_covered": [
+            72,
+            71
+          ],
+          "winner_covered": [
+            131,
+            128
+          ],
+          "winner_was_only_second_or_third": 72,
+          "winner_reinstated": 1
+        },
+        "4": {
+          "exact": [
+            91,
+            87
+          ],
+          "gain": 0,
+          "loss": 4,
+          "ci95pp_by_day": [
+            -2.142857142857143,
+            -0.39215686274509803
+          ],
+          "changed": 65,
+          "ordered_pair_covered": [
+            126,
+            123
+          ],
+          "winner_covered": [
+            199,
+            195
+          ],
+          "winner_was_only_second_or_third": 54,
+          "winner_reinstated": 3
+        },
+        "8": {
+          "exact": [
+            127,
+            124
+          ],
+          "gain": 1,
+          "loss": 4,
+          "ci95pp_by_day": [
+            -2.662721893491124,
+            0.8733624454148472
+          ],
+          "changed": 86,
+          "ordered_pair_covered": [
+            160,
+            156
+          ],
+          "winner_covered": [
+            222,
+            222
+          ],
+          "winner_was_only_second_or_third": 54,
+          "winner_reinstated": 2
+        },
+        "displayed": {
+          "exact": [
+            93,
+            89
+          ],
+          "gain": 0,
+          "loss": 4,
+          "ci95pp_by_day": [
+            -2.142857142857143,
+            -0.39215686274509803
+          ],
+          "changed": 62,
+          "ordered_pair_covered": [
+            128,
+            125
+          ],
+          "winner_covered": [
+            201,
+            198
+          ],
+          "winner_was_only_second_or_third": 53,
+          "winner_reinstated": 3
+        }
+      }
+    }
+  },
+  "opposing_lines_calibration": {
+    "historical": {
+      "races": 12234,
+      "days": 175,
+      "metrics": {
+        "1": {
+          "exact": [
+            1248,
+            1268
+          ],
+          "gain": 34,
+          "loss": 14,
+          "ci95pp_by_day": [
+            0.05746726481200205,
+            0.26761117612504015
+          ],
+          "changed": 378,
+          "ordered_pair_covered": [
+            2710,
+            2728
+          ],
+          "winner_covered": [
+            5217,
+            5235
+          ],
+          "winner_was_only_second_or_third": 3618,
+          "winner_reinstated": 68
+        },
+        "4": {
+          "exact": [
+            3234,
+            3231
+          ],
+          "gain": 42,
+          "loss": 45,
+          "ci95pp_by_day": [
+            -0.17877748888146539,
+            0.12238129685235119
+          ],
+          "changed": 1377,
+          "ordered_pair_covered": [
+            4946,
+            4966
+          ],
+          "winner_covered": [
+            7768,
+            7829
+          ],
+          "winner_was_only_second_or_third": 3271,
+          "winner_reinstated": 92
+        },
+        "8": {
+          "exact": [
+            4583,
+            4580
+          ],
+          "gain": 65,
+          "loss": 68,
+          "ci95pp_by_day": [
+            -0.2036340536119231,
+            0.1548747857986132
+          ],
+          "changed": 2521,
+          "ordered_pair_covered": [
+            6327,
+            6361
+          ],
+          "winner_covered": [
+            9021,
+            9125
+          ],
+          "winner_was_only_second_or_third": 2716,
+          "winner_reinstated": 135
+        }
+      }
+    },
+    "current": {
+      "races": 287,
+      "days": 4,
+      "metrics": {
+        "1": {
+          "exact": [
+            32,
+            32
+          ],
+          "gain": 1,
+          "loss": 1,
+          "ci95pp_by_day": [
+            -1.0676156583629892,
+            0.8875739644970414
+          ],
+          "changed": 11,
+          "ordered_pair_covered": [
+            72,
+            71
+          ],
+          "winner_covered": [
+            131,
+            132
+          ],
+          "winner_was_only_second_or_third": 72,
+          "winner_reinstated": 3
+        },
+        "4": {
+          "exact": [
+            91,
+            90
+          ],
+          "gain": 2,
+          "loss": 3,
+          "ci95pp_by_day": [
+            -1.2396694214876034,
+            0.0
+          ],
+          "changed": 46,
+          "ordered_pair_covered": [
+            126,
+            127
+          ],
+          "winner_covered": [
+            199,
+            197
+          ],
+          "winner_was_only_second_or_third": 54,
+          "winner_reinstated": 2
+        },
+        "8": {
+          "exact": [
+            127,
+            125
+          ],
+          "gain": 0,
+          "loss": 2,
+          "ci95pp_by_day": [
+            -1.2048192771084338,
+            0.0
+          ],
+          "changed": 79,
+          "ordered_pair_covered": [
+            160,
+            162
+          ],
+          "winner_covered": [
+            222,
+            227
+          ],
+          "winner_was_only_second_or_third": 54,
+          "winner_reinstated": 5
+        },
+        "displayed": {
+          "exact": [
+            93,
+            93
+          ],
+          "gain": 2,
+          "loss": 2,
+          "ci95pp_by_day": [
+            -1.2396694214876034,
+            0.8875739644970414
+          ],
+          "changed": 46,
+          "ordered_pair_covered": [
+            128,
+            128
+          ],
+          "winner_covered": [
+            201,
+            199
+          ],
+          "winner_was_only_second_or_third": 53,
+          "winner_reinstated": 2
+        }
+      }
+    }
+  },
+  "observed_pressure": [
+    {
+      "pressure": 0,
+      "B_leads": 6304,
+      "B_to_win": 3068,
+      "B_to_top2": 4824,
+      "non_own_line_wins_head_off_podium": 509
+    },
+    {
+      "pressure": 1,
+      "B_leads": 7218,
+      "B_to_win": 2163,
+      "B_to_top2": 3994,
+      "non_own_line_wins_head_off_podium": 1612
+    },
+    {
+      "pressure": 2,
+      "B_leads": 9452,
+      "B_to_win": 1610,
+      "B_to_top2": 3396,
+      "non_own_line_wins_head_off_podium": 3695
+    }
+  ],
+  "back_from_tactic": {
+    "recent": {
+      "trifecta": {
+        "1": {
+          "n": 287,
+          "old": 32,
+          "new": 32,
+          "gained": 0,
+          "lost": 0,
+          "changed_sets": 0
+        },
+        "4": {
+          "n": 287,
+          "old": 91,
+          "new": 91,
+          "gained": 0,
+          "lost": 0,
+          "changed_sets": 3
+        },
+        "8": {
+          "n": 287,
+          "old": 127,
+          "new": 127,
+          "gained": 0,
+          "lost": 0,
+          "changed_sets": 3
+        },
+        "published": {
+          "n": 287,
+          "old": 93,
+          "new": 93,
+          "gained": 0,
+          "lost": 0,
+          "changed_sets": 3
+        }
+      },
+      "actual_back": {
+        "n": 107,
+        "old": 72,
+        "new": 71,
+        "gained": 2,
+        "lost": 3,
+        "different_top": 7,
+        "mean_logloss": [
+          0.8756671978818699,
+          0.8693867248069352
+        ]
+      },
+      "n_dates": 4
+    },
+    "recent_eligible": {
+      "trifecta": {
+        "1": {
+          "n": 107,
+          "old": 15,
+          "new": 15,
+          "gained": 0,
+          "lost": 0,
+          "changed_sets": 0
+        },
+        "4": {
+          "n": 107,
+          "old": 42,
+          "new": 42,
+          "gained": 0,
+          "lost": 0,
+          "changed_sets": 3
+        },
+        "8": {
+          "n": 107,
+          "old": 56,
+          "new": 56,
+          "gained": 0,
+          "lost": 0,
+          "changed_sets": 3
+        },
+        "published": {
+          "n": 107,
+          "old": 42,
+          "new": 42,
+          "gained": 0,
+          "lost": 0,
+          "changed_sets": 3
+        }
+      },
+      "actual_back": {
+        "n": 107,
+        "old": 72,
+        "new": 71,
+        "gained": 2,
+        "lost": 3,
+        "different_top": 7,
+        "mean_logloss": [
+          0.8756671978818699,
+          0.8693867248069352
+        ]
+      },
+      "n_dates": 2
+    },
+    "observed_oracle": {
+      "scope": "Retrospective sensitivity on fixed video model only. An oracle for checkpoint leader does not know its second rider, corner or finishing order. Not a forecast or accuracy bound.",
+      "counts": {
+        "original": {
+          "1": {
+            "races": 107,
+            "base": 15,
+            "hits": 15,
+            "gain": 0,
+            "lost": 0,
+            "intended_first_in_first": 51,
+            "intended_first_two": 32,
+            "changed_set": 0
+          },
+          "4": {
+            "races": 107,
+            "base": 42,
+            "hits": 42,
+            "gain": 0,
+            "lost": 0,
+            "intended_first_in_first": 79,
+            "intended_first_two": 57,
+            "changed_set": 0
+          },
+          "8": {
+            "races": 107,
+            "base": 56,
+            "hits": 56,
+            "gain": 0,
+            "lost": 0,
+            "intended_first_in_first": 85,
+            "intended_first_two": 67,
+            "changed_set": 0
+          },
+          "published": {
+            "races": 107,
+            "base": 42,
+            "hits": 42,
+            "gain": 0,
+            "lost": 0,
+            "intended_first_in_first": 79,
+            "intended_first_two": 57,
+            "changed_set": 0
+          }
+        },
+        "observed_h": {
+          "1": {
+            "races": 107,
+            "base": 15,
+            "hits": 14,
+            "gain": 0,
+            "lost": 1,
+            "intended_first_in_first": 50,
+            "intended_first_two": 31,
+            "changed_set": 1
+          },
+          "4": {
+            "races": 107,
+            "base": 42,
+            "hits": 42,
+            "gain": 1,
+            "lost": 1,
+            "intended_first_in_first": 80,
+            "intended_first_two": 58,
+            "changed_set": 7
+          },
+          "8": {
+            "races": 107,
+            "base": 56,
+            "hits": 56,
+            "gain": 0,
+            "lost": 0,
+            "intended_first_in_first": 85,
+            "intended_first_two": 66,
+            "changed_set": 12
+          },
+          "published": {
+            "races": 107,
+            "base": 42,
+            "hits": 42,
+            "gain": 1,
+            "lost": 1,
+            "intended_first_in_first": 80,
+            "intended_first_two": 58,
+            "changed_set": 7
+          }
+        },
+        "observed_b": {
+          "1": {
+            "races": 107,
+            "base": 15,
+            "hits": 15,
+            "gain": 0,
+            "lost": 0,
+            "intended_first_in_first": 52,
+            "intended_first_two": 33,
+            "changed_set": 1
+          },
+          "4": {
+            "races": 107,
+            "base": 42,
+            "hits": 42,
+            "gain": 1,
+            "lost": 1,
+            "intended_first_in_first": 79,
+            "intended_first_two": 58,
+            "changed_set": 10
+          },
+          "8": {
+            "races": 107,
+            "base": 56,
+            "hits": 57,
+            "gain": 1,
+            "lost": 0,
+            "intended_first_in_first": 85,
+            "intended_first_two": 67,
+            "changed_set": 24
+          },
+          "published": {
+            "races": 107,
+            "base": 42,
+            "hits": 42,
+            "gain": 1,
+            "lost": 1,
+            "intended_first_in_first": 79,
+            "intended_first_two": 58,
+            "changed_set": 10
+          }
+        },
+        "observed_h_and_b": {
+          "1": {
+            "races": 107,
+            "base": 15,
+            "hits": 15,
+            "gain": 0,
+            "lost": 0,
+            "intended_first_in_first": 52,
+            "intended_first_two": 33,
+            "changed_set": 1
+          },
+          "4": {
+            "races": 107,
+            "base": 42,
+            "hits": 42,
+            "gain": 1,
+            "lost": 1,
+            "intended_first_in_first": 79,
+            "intended_first_two": 58,
+            "changed_set": 10
+          },
+          "8": {
+            "races": 107,
+            "base": 56,
+            "hits": 57,
+            "gain": 1,
+            "lost": 0,
+            "intended_first_in_first": 85,
+            "intended_first_two": 67,
+            "changed_set": 22
+          },
+          "published": {
+            "races": 107,
+            "base": 42,
+            "hits": 42,
+            "gain": 1,
+            "lost": 1,
+            "intended_first_in_first": 79,
+            "intended_first_two": 58,
+            "changed_set": 10
+          }
+        }
+      },
+      "back_winner": {
+        "true_B_wins": 36,
+        "true_B_original_published_miss": 15,
+        "true_B_scenario_recovers_winner_B": 0,
+        "loss_winner_B": 1
+      },
+      "h_b_result_sha256": "75d8b960e761b6ac548dd4daa8c85807715f0d8fa3af6fe896fa243fd6eb300f"
+    }
+  },
+  "back_to_third": {
+    "historical": {
+      "n": 12234,
+      "1": {
+        "old": 1248,
+        "new": 1250,
+        "gains": 22,
+        "losses": 20,
+        "changed_sets": 441,
+        "paired_day_ci95_pp": [
+          -0.07451647302465775,
+          0.11259759667300993
+        ]
+      },
+      "4": {
+        "old": 3234,
+        "new": 3212,
+        "gains": 50,
+        "losses": 72,
+        "changed_sets": 1725,
+        "paired_day_ci95_pp": [
+          -0.35241353708268897,
+          0.0
+        ]
+      },
+      "8": {
+        "old": 4583,
+        "new": 4586,
+        "gains": 73,
+        "losses": 70,
+        "changed_sets": 3099,
+        "paired_day_ci95_pp": [
+          -0.1721741912016152,
+          0.22767929744673931
+        ]
+      },
+      "third_given_correct_ordered_pair": {
+        "n": 9857,
+        "mean_logloss": [
+          1.3925675211439608,
+          1.3903633339691293
+        ]
+      }
+    },
+    "recent": {
+      "n": 287,
+      "1": {
+        "old": 32,
+        "new": 31,
+        "gains": 0,
+        "losses": 1,
+        "changed_sets": 7
+      },
+      "4": {
+        "old": 91,
+        "new": 89,
+        "gains": 1,
+        "losses": 3,
+        "changed_sets": 53
+      },
+      "8": {
+        "old": 127,
+        "new": 127,
+        "gains": 1,
+        "losses": 1,
+        "changed_sets": 85
+      },
+      "published": {
+        "old": 93,
+        "new": 91,
+        "gains": 1,
+        "losses": 3,
+        "changed_sets": 53
+      },
+      "third_given_correct_ordered_pair": {
+        "n": 249,
+        "mean_logloss": [
+          1.3750652298417048,
+          1.3756496435854992
+        ]
+      }
+    }
+  },
+  "rider_third": {
+    "historic": {
+      "n": 12234,
+      "days": 175,
+      "tickets": {
+        "1": {
+          "hits": [
+            1248,
+            1250
+          ],
+          "gained": 21,
+          "lost": 19,
+          "paired_day_ci95_pp": [
+            -0.08184712615207229,
+            0.11550464416364283
+          ],
+          "correct_pair_covered": [
+            2710,
+            2705
+          ],
+          "gain_previously_correct_pair": 16,
+          "gain_previously_uncovered_pair": 5,
+          "loss_correct_pair_still_held": 13,
+          "loss_correct_pair_ejected": 6
+        },
+        "4": {
+          "hits": [
+            3234,
+            3224
+          ],
+          "gained": 31,
+          "lost": 41,
+          "paired_day_ci95_pp": [
+            -0.2230222209331459,
+            0.05709182408003204
+          ],
+          "correct_pair_covered": [
+            4946,
+            4960
+          ],
+          "gain_previously_correct_pair": 17,
+          "gain_previously_uncovered_pair": 14,
+          "loss_correct_pair_still_held": 27,
+          "loss_correct_pair_ejected": 14
+        },
+        "8": {
+          "hits": [
+            4583,
+            4595
+          ],
+          "gained": 44,
+          "lost": 32,
+          "paired_day_ci95_pp": [
+            -0.04887187423637696,
+            0.2356526497557575
+          ],
+          "correct_pair_covered": [
+            6327,
+            6356
+          ],
+          "gain_previously_correct_pair": 23,
+          "gain_previously_uncovered_pair": 21,
+          "loss_correct_pair_still_held": 22,
+          "loss_correct_pair_ejected": 10
+        }
+      },
+      "conditional_third_rank_on_true_pair": {
+        "n": 9857,
+        "mean": [
+          2.1784518616211828,
+          2.177538804910216
+        ],
+        "first": [
+          4175,
+          4164
+        ],
+        "top_two": [
+          6496,
+          6506
+        ]
+      }
+    },
+    "recent": {
+      "n": 287,
+      "days": 4,
+      "tickets": {
+        "1": {
+          "hits": [
+            32,
+            32
+          ],
+          "gained": 1,
+          "lost": 1,
+          "paired_day_ci95_pp": [
+            -1.0452961672473868,
+            1.2096774193548387
+          ],
+          "correct_pair_covered": [
+            72,
+            71
+          ],
+          "gain_previously_correct_pair": 1,
+          "gain_previously_uncovered_pair": 0,
+          "loss_correct_pair_still_held": 0,
+          "loss_correct_pair_ejected": 1
+        },
+        "4": {
+          "hits": [
+            91,
+            92
+          ],
+          "gained": 2,
+          "lost": 1,
+          "paired_day_ci95_pp": [
+            0.0,
+            1.2396694214876034
+          ],
+          "correct_pair_covered": [
+            126,
+            128
+          ],
+          "gain_previously_correct_pair": 1,
+          "gain_previously_uncovered_pair": 1,
+          "loss_correct_pair_still_held": 1,
+          "loss_correct_pair_ejected": 0
+        },
+        "8": {
+          "hits": [
+            127,
+            127
+          ],
+          "gained": 1,
+          "lost": 1,
+          "paired_day_ci95_pp": [
+            -1.0452961672473868,
+            0.9202453987730062
+          ],
+          "correct_pair_covered": [
+            160,
+            159
+          ],
+          "gain_previously_correct_pair": 1,
+          "gain_previously_uncovered_pair": 0,
+          "loss_correct_pair_still_held": 0,
+          "loss_correct_pair_ejected": 1
+        },
+        "cap": {
+          "hits": [
+            93,
+            94
+          ],
+          "gained": 2,
+          "lost": 1,
+          "paired_day_ci95_pp": [
+            0.0,
+            1.2396694214876034
+          ],
+          "correct_pair_covered": [
+            128,
+            130
+          ],
+          "gain_previously_correct_pair": 1,
+          "gain_previously_uncovered_pair": 1,
+          "loss_correct_pair_still_held": 1,
+          "loss_correct_pair_ejected": 0
+        }
+      },
+      "conditional_third_rank_on_true_pair": {
+        "n": 249,
+        "mean": [
+          2.21285140562249,
+          2.216867469879518
+        ],
+        "first": [
+          108,
+          107
+        ],
+        "top_two": [
+          162,
+          162
+        ]
+      }
+    },
+    "coverage": {
+      "hit_definition": "Correct ordered three among displayed tickets. Full current probabilities across 287 retrospective races; conditional order given actual pair used solely post-hoc to diagnose.",
+      "by_cap": {
+        "published": {
+          "total": 287,
+          "unfunded_pair": 159,
+          "unfunded_conditional_third_already_first": 60,
+          "unfunded_conditional_third_already_in_first_two": 94,
+          "funded_pair": 128,
+          "hit": 93,
+          "funded_without_third": 35,
+          "lost_by_one_slot": 14,
+          "lost_by_two_slots": 16,
+          "lost_by_three_or_more_slots": 5,
+          "only_one_ticket_on_funded_pair": 21,
+          "two_or_more_tickets_on_funded_pair": 14
+        },
+        "four": {
+          "total": 287,
+          "unfunded_pair": 161,
+          "unfunded_conditional_third_already_first": 61,
+          "unfunded_conditional_third_already_in_first_two": 96,
+          "funded_pair": 126,
+          "hit": 91,
+          "funded_without_third": 35,
+          "lost_by_one_slot": 14,
+          "lost_by_two_slots": 16,
+          "lost_by_three_or_more_slots": 5,
+          "only_one_ticket_on_funded_pair": 21,
+          "two_or_more_tickets_on_funded_pair": 14
+        },
+        "eight": {
+          "total": 287,
+          "unfunded_pair": 127,
+          "unfunded_conditional_third_already_first": 45,
+          "unfunded_conditional_third_already_in_first_two": 73,
+          "funded_pair": 160,
+          "hit": 127,
+          "funded_without_third": 33,
+          "lost_by_one_slot": 15,
+          "lost_by_two_slots": 13,
+          "lost_by_three_or_more_slots": 5,
+          "only_one_ticket_on_funded_pair": 17,
+          "two_or_more_tickets_on_funded_pair": 16
+        }
+      },
+      "misses_given_funded_pair": {
+        "eight": {
+          "true_third_rank_3_slots_1": 7,
+          "true_third_rank_3_slots_2": 6,
+          "true_third_rank_4_slots_2": 5,
+          "true_third_rank_2_slots_1": 6,
+          "true_third_rank_4_slots_3": 3,
+          "true_third_rank_4_slots_1": 2,
+          "true_third_rank_5_slots_3": 1,
+          "true_third_rank_5_slots_1": 2,
+          "true_third_rank_5_slots_2": 1
+        },
+        "published": {
+          "true_third_rank_3_slots_1": 8,
+          "true_third_rank_4_slots_2": 8,
+          "true_third_rank_4_slots_3": 3,
+          "true_third_rank_2_slots_1": 8,
+          "true_third_rank_3_slots_2": 3,
+          "true_third_rank_5_slots_1": 3,
+          "true_third_rank_4_slots_1": 2
+        },
+        "four": {
+          "true_third_rank_3_slots_1": 8,
+          "true_third_rank_4_slots_2": 8,
+          "true_third_rank_4_slots_3": 3,
+          "true_third_rank_2_slots_1": 8,
+          "true_third_rank_3_slots_2": 3,
+          "true_third_rank_5_slots_1": 3,
+          "true_third_rank_4_slots_1": 2
+        }
+      }
+    },
+    "budget_decomposition": {
+      "classification": "Retrospective attribution after fit, not independent candidate selection. Hold each exact first/second pair ticket count as originally budgeted.",
+      "historic": {
+        "1": {
+          "n": 12234,
+          "incumbent": 1248,
+          "third_with_allocation_per_pair_fixed": 1251,
+          "third_and_reallocated": 1250,
+          "winner_of_fixed_only": 16,
+          "loser_of_fixed_only": 13,
+          "gain_only_from_reallocation_after_new_third": 5,
+          "loss_only_from_reallocation_after_new_third": 6
+        },
+        "4": {
+          "n": 12234,
+          "incumbent": 3234,
+          "third_with_allocation_per_pair_fixed": 3230,
+          "third_and_reallocated": 3224,
+          "winner_of_fixed_only": 9,
+          "loser_of_fixed_only": 13,
+          "gain_only_from_reallocation_after_new_third": 23,
+          "loss_only_from_reallocation_after_new_third": 29
+        },
+        "8": {
+          "n": 12234,
+          "incumbent": 4583,
+          "third_with_allocation_per_pair_fixed": 4588,
+          "third_and_reallocated": 4595,
+          "winner_of_fixed_only": 8,
+          "loser_of_fixed_only": 3,
+          "gain_only_from_reallocation_after_new_third": 36,
+          "loss_only_from_reallocation_after_new_third": 29
+        }
+      },
+      "recent": {
+        "1": {
+          "n": 287,
+          "incumbent": 32,
+          "third_with_allocation_per_pair_fixed": 33,
+          "third_and_reallocated": 32,
+          "winner_of_fixed_only": 1,
+          "loser_of_fixed_only": 0,
+          "gain_only_from_reallocation_after_new_third": 0,
+          "loss_only_from_reallocation_after_new_third": 1
+        },
+        "4": {
+          "n": 287,
+          "incumbent": 91,
+          "third_with_allocation_per_pair_fixed": 92,
+          "third_and_reallocated": 92,
+          "winner_of_fixed_only": 1,
+          "loser_of_fixed_only": 0,
+          "gain_only_from_reallocation_after_new_third": 1,
+          "loss_only_from_reallocation_after_new_third": 1
+        },
+        "8": {
+          "n": 287,
+          "incumbent": 127,
+          "third_with_allocation_per_pair_fixed": 127,
+          "third_and_reallocated": 127,
+          "winner_of_fixed_only": 0,
+          "loser_of_fixed_only": 0,
+          "gain_only_from_reallocation_after_new_third": 1,
+          "loss_only_from_reallocation_after_new_third": 1
+        },
+        "published": {
+          "n": 287,
+          "incumbent": 93,
+          "third_with_allocation_per_pair_fixed": 94,
+          "third_and_reallocated": 94,
+          "winner_of_fixed_only": 1,
+          "loser_of_fixed_only": 0,
+          "gain_only_from_reallocation_after_new_third": 1,
+          "loss_only_from_reallocation_after_new_third": 1
+        }
+      }
+    }
+  },
+  "home": {
+    "historical": {
+      "n": 12234,
+      "date_range": [
+        "20260524",
+        "20261120"
+      ],
+      "1": {
+        "old": 1248,
+        "new": 1262,
+        "gained": 43,
+        "lost": 29,
+        "paired_pp_ci95_by_day": [
+          -0.04030048079040426,
+          0.26727898689396307
+        ]
+      },
+      "4": {
+        "old": 3234,
+        "new": 3259,
+        "gained": 73,
+        "lost": 48,
+        "paired_pp_ci95_by_day": [
+          0.03262190811482607,
+          0.3745630946031143
+        ]
+      },
+      "8": {
+        "old": 4583,
+        "new": 4621,
+        "gained": 92,
+        "lost": 54,
+        "paired_pp_ci95_by_day": [
+          0.11610284459206689,
+          0.5063558088149085
+        ]
+      }
+    },
+    "recent": {
+      "n": 287,
+      "date_range": [
+        "20261121",
+        "20261124"
+      ],
+      "1": {
+        "old": 32,
+        "new": 35,
+        "gained": 3,
+        "lost": 0,
+        "paired_pp_ci95_by_day": [
+          0.0,
+          2.479338842975207
+        ]
+      },
+      "4": {
+        "old": 91,
+        "new": 88,
+        "gained": 1,
+        "lost": 4,
+        "paired_pp_ci95_by_day": [
+          -2.3529411764705883,
+          0.0
+        ]
+      },
+      "8": {
+        "old": 127,
+        "new": 128,
+        "gained": 3,
+        "lost": 2,
+        "paired_pp_ci95_by_day": [
+          -1.3071895424836601,
+          2.8925619834710745
+        ]
+      },
+      "displayed": {
+        "old": 93,
+        "new": 91,
+        "gained": 1,
+        "lost": 3,
+        "paired_pp_ci95_by_day": [
+          -2.1352313167259784,
+          0.0
+        ]
+      }
+    },
+    "family": {
+      "n": 10867,
+      "date_range": [
+        "20260524",
+        "20261120"
+      ],
+      "1": {
+        "old": 1302,
+        "new": 1314,
+        "gained": 47,
+        "lost": 35,
+        "paired_pp_ci95_by_day": [
+          -0.055492107151629874,
+          0.27716980128496727
+        ]
+      },
+      "4": {
+        "old": 3181,
+        "new": 3172,
+        "gained": 44,
+        "lost": 53,
+        "paired_pp_ci95_by_day": [
+          -0.25564414964369037,
+          0.08292429308423244
+        ]
+      },
+      "8": {
+        "old": 4451,
+        "new": 4465,
+        "gained": 83,
+        "lost": 69,
+        "paired_pp_ci95_by_day": [
+          -0.0834107586151446,
+          0.34821254888859793
+        ]
+      }
+    }
+  }
+}

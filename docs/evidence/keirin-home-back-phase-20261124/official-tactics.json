@@ -1,0 +1,216 @@
+{
+  "scope": "2023-01-01 through 2026-09-30; editorial reports selected by meeting and coverage for a manual pilot",
+  "phase_codes": {
+    "S": "スタート・号砲",
+    "S_TO_J": "スタート後〜打鐘前",
+    "J": "打鐘",
+    "AROUND_J": "打鐘付近",
+    "J_TO_H": "打鐘後〜最終ホーム前",
+    "H": "最終ホーム",
+    "AROUND_H": "最終ホーム付近",
+    "H_TO_B": "最終ホーム後〜最終バック前",
+    "B": "最終バック",
+    "AROUND_B": "最終バック付近",
+    "B_TO_STRAIGHT": "最終バック後〜最後の直線前",
+    "STRAIGHT": "最後の直線",
+    "UNKNOWN": "区間不明"
+  },
+  "plan_archive_context": "Retrospectively observed, roster-bound published forecast or signed-source publication date; no frozen pre-cutoff capture is asserted.",
+  "use_considerations": [
+    "Outcome annotation and source audit only",
+    "Moves, following and gaps are positive text observations and lack exhaustive exposure denominators",
+    "Selection favored featured G2/G3 races and their semis/finals",
+    "Mention frequency, ignoring omission, cannot estimate individual or population following skill, rates or prediction gain",
+    "No video verification, speed measurement or frame-based timings",
+    "Single reviewer annotations in this pilot"
+  ],
+  "report_count": 12,
+  "reports": [
+    {
+      "report_url": "https://keirin.jp/pc/dfw/portal/guest/report/graderace/kyodo/2023/report_1.html",
+      "sha256": "5109773b1fa05196bb974c96f80246af26b46683d09bbb66b1f4f34e05b8ca08",
+      "report_title": "『第39回共同通信社杯（GII）レポート』　初日編"
+    },
+    {
+      "report_url": "https://keirin.jp/pc/dfw/portal/guest/report/graderace/kyodo/2023/report_4.html",
+      "sha256": "1cad0ea82d4d773df3ab54c550907ae2214a57e116e95b9d13884115d0abf9ee",
+      "report_title": "『第39回共同通信社杯（GII）レポート』　最終日編"
+    },
+    {
+      "report_url": "https://keirin.jp/pc/dfw/portal/guest/report/GIII/27keiokaku/2023_2/report_4.html",
+      "sha256": "0cd041eb08ab9c7ec08c8bfffad5918dc8ac5fb5430abc42080d4a82d51e5de3",
+      "report_title": "『京王閣競輪開設74周年記念（GIII）レポート』　最終日編"
+    },
+    {
+      "report_url": "https://keirin.jp/pc/dfw/portal/guest/report/GIII/85sasebo/2024/report_2.html",
+      "sha256": "48126835deeee4e1d458ce3eb1074c65ee40c89b07d98e158a0f873a34f19fa4",
+      "report_title": "『佐世保競輪WTミッドナイト（GIII）レポート』　2日目編"
+    },
+    {
+      "report_url": "https://keirin.jp/pc/dfw/portal/guest/report/GIII/85sasebo/2024/report_3.html",
+      "sha256": "ab7322c147179e709680e1ffebe635a6e0827c95c30a5c446a07f26dd21ca605",
+      "report_title": "『佐世保競輪WTミッドナイト（GIII）レポート』　最終日編"
+    },
+    {
+      "report_url": "https://keirin.jp/pc/dfw/portal/guest/report/GIII/27keiokaku/2024/report_4.html",
+      "sha256": "9c72e5d42ec9e4fc7199ccacf2341c895587278301b138b41e03c5cf4db383d1",
+      "report_title": "『京王閣競輪開設75周年記念（GIII）レポート』　最終日編"
+    },
+    {
+      "report_url": "https://keirin.jp/pc/dfw/portal/guest/report/GIII/47matsusaka/2025/report_2.html",
+      "sha256": "1c960c3e81df92724680fda0cd3f502ea283bdf48c81b904d47029971b8d87b3",
+      "report_title": "『松阪競輪WTミッドナイト（GIII）レポート』　2日目編"
+    },
+    {
+      "report_url": "https://keirin.jp/pc/dfw/portal/guest/report/GIII/47matsusaka/2025/report_3.html",
+      "sha256": "93b199d7dfc9e5efbe1a2bccd2fea60c1788f3bf5b812ea780a3d38799ca0b36",
+      "report_title": "『松阪競輪WTミッドナイト（GIII）レポート』　最終日編"
+    },
+    {
+      "report_url": "https://keirin.jp/pc/dfw/portal/guest/report/GIII/12aomori/2026/report_3.html",
+      "sha256": "8d7a3db431fa879584554a1af118ea0cf2c2de42682b288ce3c900d23c09eb1c",
+      "report_title": "『青森競輪オッズパーク杯ミッドナイト（GIII）レポート』　最終日編"
+    },
+    {
+      "report_url": "https://keirin.jp/pc/dfw/portal/guest/report/GIII/37itou/2026_2/report_2.html",
+      "sha256": "a349b6525a45c0be5959cb2baa7a4c1b2730eac72930686e985bc241b3ff5037",
+      "report_title": "『伊東競輪MIDNIGHT GIII×HPCJC TIPSTAR杯（GIII）レポート』　2日目編"
+    },
+    {
+      "report_url": "https://keirin.jp/pc/dfw/portal/guest/report/GIII/37itou/2026_2/report_3.html",
+      "sha256": "fad83ae010f830162d6240a39f332ad16fe2a11ea3759fb36e13fbf5ebc462b8",
+      "report_title": "『伊東競輪MIDNIGHT GIII×HPCJC TIPSTAR杯（GIII）レポート』　最終日編"
+    },
+    {
+      "report_url": "https://keirin.jp/pc/dfw/portal/guest/report/graderace/kyodo/2026/report_4.html",
+      "sha256": "873466276ddd45e37fd7ecfa4848b6b61377a04b3f562a12db1bbeec822a12a2",
+      "report_title": "『第42回共同通信社杯競輪（GII）レポート』　最終日編"
+    }
+  ],
+  "bounded_requests": {
+    "official_html_reports_downloaded": 16,
+    "official_final_interviews_downloaded": 2,
+    "official_json_gets": 45,
+    "previous_official_json_receipts_reused": 6,
+    "kdreams_racecard_gets": 19,
+    "replay_or_video_downloads": 0
+  },
+  "coverage": {
+    "following_observations": 45,
+    "explicit_planned_second_label_events": 20,
+    "phase_bound_planned_second_label_events": 19,
+    "planned_pair_other_observations": 18,
+    "verified_planned_pairs": 61,
+    "planned_pairs_UNKNOWN": 44,
+    "planned_pairs_STAYED": 13,
+    "races": 27,
+    "races_with_any_planned_pairs": 22,
+    "races_with_any_explicit_planned_contact": 14,
+    "races_with_any_timed_planned_contact": 14,
+    "races_with_explicit_planned_loss": 4,
+    "races_with_unconfirmed_plan": 0,
+    "replay_available_flag_true": 27,
+    "rider_rows": 205,
+    "moves": 108,
+    "planned_pairs_LOST_CONTACT": 4,
+    "outside_planned_second_estimand": 7,
+    "seven_car_races": 19,
+    "seven_car_races_with_planned_pairs": 14,
+    "seven_car_races_with_any_explicit_planned_contact": 7
+  },
+  "years": {
+    "2023": {
+      "STAYED_events": 8,
+      "verified_planned_pairs": 19,
+      "planned_pairs_UNKNOWN": 12,
+      "planned_pairs_STAYED": 6,
+      "races": 7,
+      "move_events": 24,
+      "LOST_CONTACT_events": 1,
+      "planned_pairs_LOST_CONTACT": 1
+    },
+    "2024": {
+      "STAYED_events": 2,
+      "verified_planned_pairs": 14,
+      "planned_pairs_UNKNOWN": 11,
+      "planned_pairs_STAYED": 2,
+      "races": 7,
+      "move_events": 30,
+      "LOST_CONTACT_events": 1,
+      "planned_pairs_LOST_CONTACT": 1
+    },
+    "2025": {
+      "verified_planned_pairs": 11,
+      "planned_pairs_UNKNOWN": 8,
+      "races": 5,
+      "move_events": 21,
+      "LOST_CONTACT_events": 1,
+      "STAYED_events": 3,
+      "planned_pairs_LOST_CONTACT": 1,
+      "planned_pairs_STAYED": 2
+    },
+    "2026": {
+      "races": 8,
+      "move_events": 33,
+      "LOST_CONTACT_events": 1,
+      "verified_planned_pairs": 17,
+      "planned_pairs_LOST_CONTACT": 1,
+      "planned_pairs_UNKNOWN": 13,
+      "STAYED_events": 3,
+      "planned_pairs_STAYED": 3
+    }
+  },
+  "move_observation_phase_counts": {
+    "S_TO_J": 33,
+    "H_TO_B": 16,
+    "J": 4,
+    "B_TO_STRAIGHT": 10,
+    "H": 5,
+    "STRAIGHT": 3,
+    "S": 15,
+    "J_TO_H": 10,
+    "B": 6,
+    "AROUND_J": 3,
+    "AROUND_H": 2,
+    "AROUND_B": 1
+  },
+  "explicit_planned_pair_contact_by_phase": {
+    "J": {
+      "STAYED": 2
+    },
+    "STRAIGHT": {
+      "STAYED": 3
+    },
+    "S_TO_J": {
+      "STAYED": 2
+    },
+    "AROUND_J": {
+      "LOST_CONTACT": 1
+    },
+    "J_TO_H": {
+      "STAYED": 1
+    },
+    "H": {
+      "STAYED": 3
+    },
+    "H_TO_B": {
+      "STAYED": 2,
+      "LOST_CONTACT": 2
+    },
+    "AROUND_B": {
+      "LOST_CONTACT": 1
+    },
+    "UNKNOWN": {
+      "STAYED": 1
+    },
+    "B": {
+      "STAYED": 2
+    }
+  },
+  "plan_source_races": {
+    "ARCHIVED_KDREAMS_RACECARD": 19,
+    "ARCHIVED_KDREAMS_DERIVED_DB": 3
+  },
+  "official_predated_interview_races": 2,
+  "source_aggregate_sha256": "918f3f97fd0a75ecf1ede17f48e77dd8a04b13f5fbddea5f898abc44327ce5f7"
+}

@@ -5,6 +5,7 @@ import argparse
 from collections import Counter
 from datetime import datetime, timedelta, timezone
 from email.utils import parsedate_to_datetime
+from hashlib import sha256
 import json
 from pathlib import Path
 import re
@@ -16,6 +17,9 @@ SOURCE_STOP_CODES = {
     'PROVIDER_DENIED_OR_RATE_LIMITED_STOP', 'PUBLIC_PROVIDER_HTTP_ERROR_STOP',
     'PUBLIC_PROVIDER_UNAVAILABLE_STOP', 'PROVIDER_NON_HTML_OR_REDIRECT',
     'PROVIDER_EMPTY_OR_OVERSIZED_HTML',
+}
+SPECIAL_RESULT_CODES = {
+    'SPECIAL_REFUND_OR_TIE_REQUIRES_OFFICIAL', 'SPECIAL_LOWER_FINISH_TIE', 'SPECIAL_CANCELLED_REFUND_CONFIRMED',
 }
 
 
@@ -76,7 +80,68 @@ def has_special_notice(soup, provider):
     return any(cell.find('a') is None and text(cell).rstrip('。') in notices for cell in cells)
 
 
-def observe(race, provider, url, fetch, consensus, evidence):
+def has_lower_finish_tie(soup, cars, primary_payouts, consensus):
+    tables = soup.select('table.RaceCard_Table.ResultRefund')
+    if len(tables) != 1 or len(soup.select(PAYOUT_TABLES['netkeirin'])) != 1:
+        return False
+    table, = tables
+    headings = [text(cell) for cell in table.select('th')]
+    if headings[:4] != ['着', '枠番', '車番', '選手名'] or len(headings) < 5 or not headings[4].startswith('着差'):
+        return False
+    ranks, seen, marked = {}, set(), set()
+    for row in table.select('tr'):
+        cells = row.find_all('td', recursive=False)
+        if not cells:
+            continue
+        if len(cells) < 5:
+            return False
+        rank = re.fullmatch(r'([1-9])着', text(cells[0]))
+        car = re.fullmatch(r'[1-9]', text(cells[2]))
+        if rank is None or car is None or int(car[0]) not in cars or int(car[0]) in seen:
+            return False
+        place, number = int(rank[1]), int(car[0])
+        seen.add(number)
+        ranks.setdefault(place, []).append(number)
+        if cells[4].find('a') is None and text(cells[4]) == '同着':
+            marked.add(place)
+    next_rank = 1
+    for place, group in sorted(ranks.items()):
+        if place != next_rank:
+            return False
+        next_rank += len(group)
+    if (seen != cars or not all(len(ranks.get(rank, [])) == 1 for rank in (1, 2, 3)) or
+            not marked or any(place < 4 or len(ranks[place]) < 2 for place in marked)):
+        return False
+    try:
+        net = market_payouts(soup, 'netkeirin')
+    except ValueError:
+        return False
+    podium = [ranks[rank][0] for rank in (1, 2, 3)]
+    apparent = consensus.apparent_trifecta_values(text(soup), 'netkeirin')
+    return (net == primary_payouts and net['3t'][0] == podium and
+            apparent == {(tuple(podium), net['3t'][1])})
+
+
+def cancelled_with_refunds(soup):
+    if not any(text(node).rstrip('。') == '本レースは中止となりました'
+               for node in soup.select('.Race_Infomation_Box')):
+        return False
+    tables = soup.select(PAYOUT_TABLES['netkeirin'])
+    if len(tables) != 1:
+        return False
+    rows = tables[0].select('tr')
+    for label in ('2車単', '3連単'):
+        matches = [row for row in rows if row.th and text(row.th) == label]
+        if len(matches) != 1:
+            return False
+        order, amount = (matches[0].select(f'td.{name}') for name in ('Result', 'Payout'))
+        if (len(order) != 1 or len(amount) != 1 or text(order[0]) or amount[0].find('a') is not None or
+                text(amount[0]) not in {'返還', '全返還'}):
+            return False
+    return True
+
+
+def observe(race, provider, url, fetch, consensus, evidence, *, primary_payouts=None, cancellation_only=False):
     from bs4 import BeautifulSoup
     consensus.check_race_url(provider=provider, url=url, race_id=race['race_id'])
     body = fetch(url)
@@ -87,20 +152,30 @@ def observe(race, provider, url, fetch, consensus, evidence):
     checked(race['venue']+'競輪' in title
             and date.strftime('%Y年')+str(date.month)+'月'+str(date.day)+'日' in title
             and re.search(r'(?<!\d)'+str(race['race_no'])+r'\s*R(?!\d)', title), 'RACE_TITLE_NOT_CONFIRMED')
+    receipt = {'race_id':race['race_id'], 'provider':provider, 'checked_at':observed}
+    if cancellation_only:
+        if (provider == 'netkeirin' and cancelled_with_refunds(soup) and
+                not consensus.apparent_trifecta_values(text(soup), provider)):
+            evidence.append(dict(receipt, sha256=sha256(body).hexdigest()))
+            raise ValueError('SPECIAL_CANCELLED_REFUND_CONFIRMED')
+        return None
+    cars = {rider['number'] for rider in race['observed_riders']}
     try:
         triple = consensus.parse_observation(raw=body, provider=provider, source_url=url,
                                             race_id=race['race_id'], observed_at=observed)
     except consensus.ResultConsensusError as error:
         if str(error) == 'SPECIAL_REFUND_OR_TIE_REQUIRES_OFFICIAL' and not has_special_notice(soup, provider):
+            if (provider == 'netkeirin' and primary_payouts is not None and
+                    has_lower_finish_tie(soup, cars, primary_payouts, consensus)):
+                evidence.append(dict(receipt, sha256=sha256(body).hexdigest()))
+                raise ValueError('SPECIAL_LOWER_FINISH_TIE') from None
             raise ValueError('RESULT_SPECIAL_NOTICE_UNCONFIRMED') from None
         raise
     amounts = market_payouts(soup, provider)
     checked(amounts['3t'] == (triple['winning_triple'], triple['payout_per_100yen']), 'PAYOUT_TABLE_DISAGREES')
     checked(amounts['2t'][0] == amounts['3t'][0][:2], 'PAYOUT_MARKETS_DISAGREE')
-    cars = {rider['number'] for rider in race['observed_riders']}
     checked(set(amounts['3t'][0]) <= cars, 'PAYOUT_ROSTER_CHANGED')
-    evidence.append({'race_id':race['race_id'], 'provider':provider, 'checked_at':observed,
-                     'sha256':triple['source_bytes_sha256']})
+    evidence.append(dict(receipt, sha256=triple['source_bytes_sha256']))
     return amounts, {'source_id':'kdreams' if provider == 'Kdreams' else 'netkeirin',
                      'url':url, 'checked_at':observed}
 
@@ -187,9 +262,15 @@ def collect(published, fetch, consensus, *, previous=None, now=None, resume_afte
         try:
             attempted=True
             evidence.append({'race_id': rid, 'attempted': True})
-            kd, first = observe(race, 'Kdreams', race['source_url']+'?pageType=result', fetch, consensus, evidence)
-            net, second = observe(race, 'netkeirin', 'https://keirin.netkeiba.com/race/result/?race_id='+rid,
-                                  fetch, consensus, evidence)
+            net_url = 'https://keirin.netkeiba.com/race/result/?race_id='+rid
+            try:
+                kd, first = observe(race, 'Kdreams', race['source_url']+'?pageType=result', fetch, consensus, evidence)
+            except ValueError as error:
+                if (existing and existing['state'] == 'pending' and existing.get('reason') == 'result_unpublished' and
+                        str(error) == 'TRIFECTA_RESULT_NOT_PUBLISHED' and (can_poll is None or can_poll())):
+                    observe(race, 'netkeirin', net_url, fetch, consensus, evidence, cancellation_only=True)
+                raise
+            net, second = observe(race, 'netkeirin', net_url, fetch, consensus, evidence, primary_payouts=kd)
             checked(kd == net, 'PAYOUT_SOURCES_DISAGREE')
             comparison = {'race_id':rid, 'observed_at':second['checked_at'], 'authority':'cross_source_reference',
                           'comparison_scope':'POST_CUTOFF_REFERENCE', 'winning_3t':kd['3t'][0],
@@ -205,7 +286,7 @@ def collect(published, fetch, consensus, *, previous=None, now=None, resume_afte
                 reason, state = 'source_unavailable', 'pending'
             elif code in ('PAYOUT_NOT_PUBLISHED','TRIFECTA_RESULT_NOT_PUBLISHED','SOURCE_HTML_NOT_FINAL_RESULT_PAGE','RESULT_HTTP_NOT_FOUND'):
                 reason, state = 'result_unpublished', 'pending'
-            elif code == 'SPECIAL_REFUND_OR_TIE_REQUIRES_OFFICIAL':
+            elif code in SPECIAL_RESULT_CODES:
                 reason, state = 'special_result', 'held'
             else:
                 reason, state = 'source_disagreement', 'held'
@@ -257,29 +338,37 @@ def main():
         re.fullmatch(day.replace('-', '') + r'\d{4}', rid)
         for day, rid in positions.items()), 'INVALID_PUBLIC_RESULT_POLL_POSITIONS')
     previous_positions = positions.copy()
+    today = datetime.now(timezone.utc).astimezone(timezone(timedelta(hours=9))).date().isoformat()
     day_packets = []
+    catchup_needed = False
     for path in rosters:
         destination=result_dir/path.name
         previous=json.loads(destination.read_bytes()) if destination.exists() else None
-        day_packets.append((previous['checked_at'] if previous else '', path, destination, previous))
+        if path.stem < today and not catchup_needed:
+            final_ids = {entry['race_id'] for entry in (previous or {}).get('races', [])
+                         if entry['state'] == 'matched' or entry.get('reason') == 'special_result'}
+            catchup_needed = (previous is None or any(race['race_id'] not in final_ids
+                              for race in json.loads(path.read_bytes())['races']))
+        day_packets.append((path.stem != today, previous['checked_at'] if previous else '',
+                            path, destination))
 
-    # Leave time for the last pair of requests and the Git write before the job times out.
+    # Check today's due races first. Leave 90s of the existing 450s budget for prior
+    # days when they still have work. Their saved timestamps and cursors rotate retries.
     deadline = time.monotonic() + 450
-
-    def can_poll():
-        return time.monotonic() < deadline
 
     complete = True
     status = 0
-    for _, path, destination, previous in sorted(day_packets):
-        if not can_poll():
+    for other_day, _, path, destination in sorted(day_packets):
+        if time.monotonic() >= deadline:
             complete = False
             break
-        published=json.loads(path.read_bytes())
         day = path.stem
-        checked(day==published['date'],'PUBLIC_ROSTER_FILENAME_MISMATCH')
+        published = json.loads(path.read_bytes())
+        previous = json.loads(destination.read_bytes()) if destination.exists() else None
+        checked(day == published['date'], 'PUBLIC_ROSTER_FILENAME_MISMATCH')
+        day_deadline = deadline - 90 if not other_day and catchup_needed else deadline
         packet,evidence=collect(published,fetch_once,consensus,previous=previous,
-                                resume_after=positions.get(day),can_poll=can_poll)
+                                resume_after=positions.get(day),can_poll=lambda: time.monotonic() < day_deadline)
         if packet!=previous:
             destination.write_text(json.dumps(packet,ensure_ascii=False,separators=(',', ':'))+'\n')
         resolved = sum(entry['state'] == 'matched' or entry.get('reason') == 'special_result'

@@ -1,0 +1,301 @@
+{
+  "schema": "KEIRIN_ADDITIONAL_MISS_CHECK_V1",
+  "pinned_commit": "894b7e6f4b89863fce791ace143e2ad29098152c",
+  "remote_result_snapshot": {
+    "label_source_commit": "37bda18979e902650c139e24e13dcfbf764cf1b3",
+    "checked_at": "2026-11-23T15:55:02.503459+00:00",
+    "matched_within_study": 86
+  },
+  "diagnostic_sha256": "bca3514cf5926b379801cd4a7a85f18e9b5aca17a4dbd92943135c0319a17b51",
+  "post_hoc": true,
+  "subsets": {
+    "all": {
+      "races": 3582,
+      "arms": {
+        "A": {
+          "equal_total_points": {
+            "points": 16721,
+            "original_variable_hits": 686,
+            "original_variable_zero_points": 46,
+            "original_over_eight_points": 384,
+            "equal_floor": 4,
+            "extra_point_races": 2531,
+            "eligible_to_receive_extra": 3504,
+            "equal_floor_hits": 627,
+            "expected_hits_uniform_extra": 686.9523
+          },
+          "limited_rankings": {
+            "4": {
+              "races": 3582,
+              "points": 14190,
+              "baseline": 627,
+              "cap_per_pair": 612,
+              "cap_per_head": 570,
+              "sum_distinct_phase_paths": 620,
+              "pair_new_hit": 18,
+              "pair_lost_hit": 33,
+              "head_new_hit": 54,
+              "head_lost_hit": 111,
+              "one_head_only": 961,
+              "all_points_have_the_same_wrong_winner": 539,
+              "one_pair_only": 162,
+              "full_candidate_pool_hit": 1203,
+              "support_at_least_50": 2248,
+              "support_at_least_70": 1018,
+              "support_at_least_90": 265,
+              "hit_at_support_at_least_50": 445,
+              "hit_at_support_at_least_70": 236,
+              "hit_at_support_at_least_90": 55
+            },
+            "8": {
+              "races": 3582,
+              "points": 27787,
+              "baseline": 893,
+              "cap_per_pair": 840,
+              "cap_per_head": 858,
+              "sum_distinct_phase_paths": 892,
+              "pair_new_hit": 31,
+              "pair_lost_hit": 84,
+              "head_new_hit": 23,
+              "head_lost_hit": 58,
+              "one_head_only": 112,
+              "all_points_have_the_same_wrong_winner": 60,
+              "one_pair_only": 41,
+              "full_candidate_pool_hit": 1203,
+              "support_at_least_50": 3293,
+              "support_at_least_70": 2640,
+              "support_at_least_90": 1340,
+              "hit_at_support_at_least_50": 836,
+              "hit_at_support_at_least_70": 690,
+              "hit_at_support_at_least_90": 358
+            }
+          }
+        },
+        "B": {
+          "equal_total_points": {
+            "points": 15623,
+            "original_variable_hits": 651,
+            "original_variable_zero_points": 45,
+            "original_over_eight_points": 308,
+            "equal_floor": 4,
+            "extra_point_races": 1433,
+            "eligible_to_receive_extra": 3504,
+            "equal_floor_hits": 628,
+            "expected_hits_uniform_extra": 662.3527
+          },
+          "limited_rankings": {
+            "4": {
+              "races": 3582,
+              "points": 14190,
+              "baseline": 628,
+              "cap_per_pair": 613,
+              "cap_per_head": 578,
+              "sum_distinct_phase_paths": 625,
+              "pair_new_hit": 21,
+              "pair_lost_hit": 36,
+              "head_new_hit": 55,
+              "head_lost_hit": 105,
+              "one_head_only": 900,
+              "all_points_have_the_same_wrong_winner": 514,
+              "one_pair_only": 177,
+              "full_candidate_pool_hit": 1203,
+              "support_at_least_50": 2316,
+              "support_at_least_70": 1058,
+              "support_at_least_90": 268,
+              "hit_at_support_at_least_50": 465,
+              "hit_at_support_at_least_70": 247,
+              "hit_at_support_at_least_90": 55
+            },
+            "8": {
+              "races": 3582,
+              "points": 27787,
+              "baseline": 896,
+              "cap_per_pair": 839,
+              "cap_per_head": 866,
+              "sum_distinct_phase_paths": 888,
+              "pair_new_hit": 37,
+              "pair_lost_hit": 94,
+              "head_new_hit": 27,
+              "head_lost_hit": 57,
+              "one_head_only": 106,
+              "all_points_have_the_same_wrong_winner": 59,
+              "one_pair_only": 41,
+              "full_candidate_pool_hit": 1203,
+              "support_at_least_50": 3311,
+              "support_at_least_70": 2675,
+              "support_at_least_90": 1360,
+              "hit_at_support_at_least_50": 837,
+              "hit_at_support_at_least_70": 699,
+              "hit_at_support_at_least_90": 366
+            }
+          }
+        }
+      },
+      "initial_formation": {
+        "timed_races": 557,
+        "initial_leading_max_S_tied": 47,
+        "any_line_max_S_tied": 163,
+        "observed_S_available": 454,
+        "initial_actual_S_reproduced": 141,
+        "old_8_hit": 151,
+        "observed_S_was_scheduled_follower": 211,
+        "initial_actual_S_line_reproduced": 257,
+        "oracle_old_full_pool_hit": 198,
+        "oracle_new_full_pool_hit": 194,
+        "oracle_old_8_hit": 116,
+        "oracle_new_8_hit": 115,
+        "oracle_8_new_hits": 3,
+        "oracle_8_lost_hits": 4,
+        "reverse_bib_changed_initial_head": 47,
+        "reverse_bib_changed_pool": 118,
+        "reverse_bib_changed_upper_8": 67,
+        "reverse_bib_8_new_hits": 4,
+        "reverse_bib_8_lost_hits": 7
+      }
+    },
+    "dated_pre_cutoff": {
+      "races": 557,
+      "arms": {
+        "A": {
+          "equal_total_points": {
+            "points": 3179,
+            "original_variable_hits": 118,
+            "original_variable_zero_points": 0,
+            "original_over_eight_points": 99,
+            "equal_floor": 5,
+            "extra_point_races": 394,
+            "eligible_to_receive_extra": 557,
+            "equal_floor_hits": 121,
+            "expected_hits_uniform_extra": 126.6589
+          },
+          "limited_rankings": {
+            "4": {
+              "races": 557,
+              "points": 2228,
+              "baseline": 105,
+              "cap_per_pair": 101,
+              "cap_per_head": 100,
+              "sum_distinct_phase_paths": 102,
+              "pair_new_hit": 1,
+              "pair_lost_hit": 5,
+              "head_new_hit": 8,
+              "head_lost_hit": 13,
+              "one_head_only": 114,
+              "all_points_have_the_same_wrong_winner": 67,
+              "one_pair_only": 17,
+              "full_candidate_pool_hit": 248,
+              "support_at_least_50": 199,
+              "support_at_least_70": 56,
+              "support_at_least_90": 5,
+              "hit_at_support_at_least_50": 60,
+              "hit_at_support_at_least_70": 26,
+              "hit_at_support_at_least_90": 1
+            },
+            "8": {
+              "races": 557,
+              "points": 4454,
+              "baseline": 150,
+              "cap_per_pair": 139,
+              "cap_per_head": 148,
+              "sum_distinct_phase_paths": 157,
+              "pair_new_hit": 3,
+              "pair_lost_hit": 14,
+              "head_new_hit": 4,
+              "head_lost_hit": 6,
+              "one_head_only": 14,
+              "all_points_have_the_same_wrong_winner": 7,
+              "one_pair_only": 0,
+              "full_candidate_pool_hit": 248,
+              "support_at_least_50": 442,
+              "support_at_least_70": 250,
+              "support_at_least_90": 74,
+              "hit_at_support_at_least_50": 132,
+              "hit_at_support_at_least_70": 86,
+              "hit_at_support_at_least_90": 33
+            }
+          }
+        },
+        "B": {
+          "equal_total_points": {
+            "points": 2787,
+            "original_variable_hits": 108,
+            "original_variable_zero_points": 0,
+            "original_over_eight_points": 73,
+            "equal_floor": 5,
+            "extra_point_races": 2,
+            "eligible_to_receive_extra": 557,
+            "equal_floor_hits": 124,
+            "expected_hits_uniform_extra": 124.0359
+          },
+          "limited_rankings": {
+            "4": {
+              "races": 557,
+              "points": 2228,
+              "baseline": 106,
+              "cap_per_pair": 101,
+              "cap_per_head": 102,
+              "sum_distinct_phase_paths": 105,
+              "pair_new_hit": 1,
+              "pair_lost_hit": 6,
+              "head_new_hit": 7,
+              "head_lost_hit": 11,
+              "one_head_only": 100,
+              "all_points_have_the_same_wrong_winner": 59,
+              "one_pair_only": 20,
+              "full_candidate_pool_hit": 248,
+              "support_at_least_50": 222,
+              "support_at_least_70": 64,
+              "support_at_least_90": 6,
+              "hit_at_support_at_least_50": 65,
+              "hit_at_support_at_least_70": 28,
+              "hit_at_support_at_least_90": 1
+            },
+            "8": {
+              "races": 557,
+              "points": 4454,
+              "baseline": 151,
+              "cap_per_pair": 137,
+              "cap_per_head": 146,
+              "sum_distinct_phase_paths": 155,
+              "pair_new_hit": 6,
+              "pair_lost_hit": 20,
+              "head_new_hit": 6,
+              "head_lost_hit": 11,
+              "one_head_only": 14,
+              "all_points_have_the_same_wrong_winner": 7,
+              "one_pair_only": 0,
+              "full_candidate_pool_hit": 248,
+              "support_at_least_50": 453,
+              "support_at_least_70": 266,
+              "support_at_least_90": 79,
+              "hit_at_support_at_least_50": 134,
+              "hit_at_support_at_least_70": 89,
+              "hit_at_support_at_least_90": 33
+            }
+          }
+        }
+      },
+      "initial_formation": {
+        "timed_races": 557,
+        "initial_leading_max_S_tied": 47,
+        "any_line_max_S_tied": 163,
+        "observed_S_available": 454,
+        "initial_actual_S_reproduced": 141,
+        "old_8_hit": 151,
+        "observed_S_was_scheduled_follower": 211,
+        "initial_actual_S_line_reproduced": 257,
+        "oracle_old_full_pool_hit": 198,
+        "oracle_new_full_pool_hit": 194,
+        "oracle_old_8_hit": 116,
+        "oracle_new_8_hit": 115,
+        "oracle_8_new_hits": 3,
+        "oracle_8_lost_hits": 4,
+        "reverse_bib_changed_initial_head": 47,
+        "reverse_bib_changed_pool": 118,
+        "reverse_bib_changed_upper_8": 67,
+        "reverse_bib_8_new_hits": 4,
+        "reverse_bib_8_lost_hits": 7
+      }
+    }
+  }
+}

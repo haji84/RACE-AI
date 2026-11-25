@@ -1,0 +1,21 @@
+{
+  "schema": "KEIRIN_PAST_LINE_PHASES_PROSPECTIVE_V1",
+  "date": "2026-11-24",
+  "count": 66,
+  "fixed_at": "2026-11-23T22:43:09.592114+00:00",
+  "first_cutoff": "2026-11-24T08:45:00+09:00",
+  "last_cutoff": "2026-11-24T21:16:00+09:00",
+  "registry_verified_starters": 455,
+  "at_least_three_B_history_starters": 446,
+  "all_starters_have_three_races": 58,
+  "calibration_selected_method": "past_phases",
+  "forecast_sha256": "318cd05ebcbdbe68de917d15e95c8f13ea1949d9a1db5e0c8849a37a2c734299",
+  "cutoff_original_input_sha256": "215fc9a9444969abd126397a170ea1ab430a4b9a8e974c7a13a5695da80bdad2",
+  "registration_source_sha256": "26c3a2c61edee2f70d85823b7e3891aea6ba95145cd4e1cd12de005b4d8c73ec",
+  "registration_reference_sha256": "f48693892ff6dd2b30d1b16806b991c04925fbb0c064cb92e61180c378031edb",
+  "previous_forecast_sha256": "42126e4785b1bd2cd2a11db6a26f0d306a25e8af7a4b77e1cb977ae7992ad7f4",
+  "model_sha256": "12cb75f0a6cbf99e5eea3530d4be386f8ab8900e638b6a7ffd34af7e5f786535",
+  "configuration_sha256": "b9aa68d0ae87453eaffcee14568a0ba486cbb7a08fac6fb5391bc1da76be89d9",
+  "all_saved_ranking_prefixes_match_the_previous_frozen_comparison": true,
+  "owner_cipher_sha256": "e076e19fdc91f7286329fbd77a7ecdbe1f3b10fe3df5e5947b9a6abaefed3d5a"
+}

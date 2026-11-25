@@ -1,0 +1,18 @@
+{
+  "repository": "sumidatadayoshi/keirin-data",
+  "sha": "2a1260fb0940ad11160b56a36f9c24cc4fb2f6d2",
+  "blobs": [
+    {
+      "path": "data/keirin.db",
+      "size": 104706048,
+      "git_sha": "b1bbbe2ec27ccd3fdc676700e26e783a3ff0d2f6",
+      "sha256": "1bdad22b9744c9c5563f7bb1af31875170a3e6b7f4b0dd73fba8f98d645d8fc4"
+    },
+    {
+      "path": "data/keirin_2026q4.db",
+      "size": 45436928,
+      "git_sha": "3d28f8ab2eb451f0b7c40cec3759374950bb409e",
+      "sha256": "d915560877493816b90df8bcd5e7bdef45557f57100b4cd40a3d017cd959334d"
+    }
+  ]
+}

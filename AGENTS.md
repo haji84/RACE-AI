@@ -4,7 +4,7 @@
 
 - Continue against `docs/KEIRIN_DETAILED_DEVELOPMENT_SPEC_20261125.md` (the owner's 27 sections and six additional abilities). Read `docs/KEIRIN_DEVELOPMENT_ACCEPTANCE_20261125.md`, `docs/KEIRIN_JOINT_FORECAST_CONTINUATION_20261125.md` and existing Draft PR #327 first; preserve current work and avoid duplicate model/state/PDCA authorities.
 - Keep implementation, retrospective studies, independent future validation and production acceptance distinct. Neither a correct finish nor a small-cohort gain proves correct race-flow prediction or nationwide accuracy improvement.
-- Preserve the Seibuen conversation as reference unless its exact pre-cutoff original is restored. User observations, independently reviewed video, official records and AI estimates must remain distinguishable.
+- Preserve the Seibuen conversation as reference unless its exact pre-cutoff original is restored. User observations, independently reviewed video, official records and AI estimates must remain distinguishable. Keep the published forecast asset as a separate, unchanged record.
 - The GitHub-only, encrypted-original, source-access, permission-approval and protected-review constraints below remain in force. PR #327 remains an active research handoff; do not merge its unrelated work wholesale.
 
 ## Cloudflare is prohibited

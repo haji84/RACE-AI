@@ -1,0 +1,274 @@
+{
+  "source": "楽天Kドリームスの公開プレーヤーの観察記録。各秒数はダイジェスト内の経過秒。",
+  "as_of_utc": "2026-11-24T15:03:06.345010+00:00",
+  "training": {
+    "selected_by": "対象10選手が過去に実際にBを取ったレース。対象選手は既存の後日評価に登場する選手から選んだ。",
+    "reviewed": 10,
+    "admitted": 9,
+    "leader_retained": 7,
+    "leader_changed": 2,
+    "unresolved": 1,
+    "baseline_training_rows": 36,
+    "augmented_training_rows": 45,
+    "races": [
+      {
+        "race": "202608112205",
+        "source_url": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/2220260809/22202608090300/5/",
+        "back_seconds": 57.55,
+        "back_leader": 6,
+        "back_second": 4,
+        "corner_seconds": 65.0,
+        "corner_leader": 6,
+        "corner_second": null
+      },
+      {
+        "race": "202609207511",
+        "source_url": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/7520260919/75202609190200/11/",
+        "back_seconds": 59.0,
+        "back_leader": 7,
+        "back_second": 3,
+        "corner_seconds": 67.0,
+        "corner_leader": 7,
+        "corner_second": 3
+      },
+      {
+        "race": "202609284310",
+        "source_url": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/4320260926/43202609260300/10/",
+        "back_seconds": 43.0,
+        "back_leader": 2,
+        "back_second": 5,
+        "corner_seconds": 52.25,
+        "corner_leader": 2,
+        "corner_second": 5
+      },
+      {
+        "race": "202610304205",
+        "source_url": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/4220261030/42202610300100/5/",
+        "back_seconds": 51.2,
+        "back_leader": 1,
+        "back_second": null,
+        "corner_seconds": 59.85,
+        "corner_leader": 7,
+        "corner_second": 1
+      },
+      {
+        "race": "202611074805",
+        "source_url": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/4820261105/48202611050300/5/",
+        "back_seconds": 50.7,
+        "back_leader": 7,
+        "back_second": 3,
+        "corner_seconds": 57.7,
+        "corner_leader": null,
+        "corner_second": null
+      },
+      {
+        "race": "202611105309",
+        "source_url": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/5320261108/53202611080300/9/",
+        "back_seconds": 52.8,
+        "back_leader": 2,
+        "back_second": 3,
+        "corner_seconds": 61.8,
+        "corner_leader": 5,
+        "corner_second": 3
+      },
+      {
+        "race": "202611115105",
+        "source_url": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/5120261111/51202611110100/5/",
+        "back_seconds": 51.0,
+        "back_leader": 3,
+        "back_second": 7,
+        "corner_seconds": 58.2,
+        "corner_leader": 3,
+        "corner_second": 7
+      },
+      {
+        "race": "202611187304",
+        "source_url": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/7320261116/73202611160300/4/",
+        "back_seconds": 56.2,
+        "back_leader": 1,
+        "back_second": null,
+        "corner_seconds": 67.8,
+        "corner_leader": 1,
+        "corner_second": 6
+      },
+      {
+        "race": "202611198102",
+        "source_url": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/8120261118/81202611180200/2/",
+        "back_seconds": 49.5,
+        "back_leader": 3,
+        "back_second": 7,
+        "corner_seconds": 58.3,
+        "corner_leader": 3,
+        "corner_second": 7
+      },
+      {
+        "race": "202611198103",
+        "source_url": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/8120261118/81202611180200/3/",
+        "back_seconds": 51.4,
+        "back_leader": 7,
+        "back_second": 1,
+        "corner_seconds": 59.5,
+        "corner_leader": 7,
+        "corner_second": 1
+      }
+    ]
+  },
+  "conditional_fourth_corner": {
+    "reused_13": {
+      "baseline": {
+        "races": 13,
+        "actual_hold": 10,
+        "brier": 0.16288775244453915,
+        "logloss": 0.49811312433060084,
+        "correct_at_half": 10
+      },
+      "with_new": {
+        "races": 13,
+        "actual_hold": 10,
+        "brier": 0.15233243765870033,
+        "logloss": 0.46812578221078627,
+        "correct_at_half": 10
+      }
+    },
+    "selected_holdout": 5,
+    "blind_scores": {
+      "baseline": {
+        "accepted": 3,
+        "retained": 1,
+        "brier": 0.3545193392838822,
+        "logloss": 0.912497458355699,
+        "correct_at_half": 1
+      },
+      "with_new": {
+        "accepted": 3,
+        "retained": 1,
+        "brier": 0.4005960772720134,
+        "logloss": 1.0347208983237135,
+        "correct_at_half": 1
+      }
+    },
+    "holdout_predictions_frozen_utc": "2026-11-24T14:55:58.024731+00:00",
+    "holdout_predictions_sha256": "d61e41ef3c6d03f2a24f58ae4e9476a907ca652be96af08153faf6b7ffc8ad99",
+    "sample_sha256": "80fb4ba4a8b0027674714e7d74f6d2481b1a4b199efd0cedadb20b0e47c0c5ad",
+    "trained_profiles_sha256": "f6479d9ea65902847d72aa6c0cd973f89da446d69385eb16247b035b778f43d8",
+    "scope": "実際の最終B先頭が既知の条件で、その車が4角付近に先頭を保つ確率。5件は日付と公式Bで選び、映像の4角を読む前に確率を固定。",
+    "unseen_races": [
+      {
+        "race": "202611226207",
+        "source_url": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/6220261122/62202611220100/7/",
+        "back_seconds": 63.7,
+        "back_leader": 4,
+        "back_second": 3,
+        "corner_seconds": 72.4,
+        "corner_leader": 7,
+        "corner_second": null,
+        "official_back_car": 4,
+        "same_back_leader_at_corner_for_scoring": false
+      },
+      {
+        "race": "202611228109",
+        "source_url": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/8120261118/81202611180500/9/",
+        "back_seconds": 49.0,
+        "back_leader": 3,
+        "back_second": 1,
+        "corner_seconds": 56.5,
+        "corner_leader": 1,
+        "corner_second": 8,
+        "official_back_car": 3,
+        "same_back_leader_at_corner_for_scoring": false
+      },
+      {
+        "race": "202611228111",
+        "source_url": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/8120261118/81202611180500/11/",
+        "back_seconds": 48.32,
+        "back_leader": 7,
+        "back_second": 1,
+        "corner_seconds": 57.0,
+        "corner_leader": 7,
+        "corner_second": 1,
+        "official_back_car": 7,
+        "same_back_leader_at_corner_for_scoring": true
+      },
+      {
+        "race": "202611242603",
+        "source_url": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/2620261123/26202611230200/3/",
+        "back_seconds": 47.0,
+        "back_leader": 4,
+        "back_second": 5,
+        "corner_seconds": 57.3,
+        "corner_leader": 5,
+        "corner_second": 2,
+        "additional_review": {
+          "race": "202611242603",
+          "source_url": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/2620261123/26202611230200/3/",
+          "back_seconds": null,
+          "back_leader": null,
+          "back_second": null,
+          "corner_seconds": 57.3,
+          "corner_leader": 5,
+          "corner_second": 2
+        },
+        "official_back_car": 5,
+        "same_back_leader_at_corner_for_scoring": null,
+        "review_note": "47.0秒の向正面では4番が前。独立した再読でも47.85〜48.70秒に先頭が替わり、B標識と前輪の同時特定ができなかった。追加判定のB先頭・直後・通過時刻は未確認として採点から除外。"
+      },
+      {
+        "race": "202611245304",
+        "source_url": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/5320261122/53202611220300/4/",
+        "back_seconds": 49.4,
+        "back_leader": 1,
+        "back_second": 5,
+        "corner_seconds": 57.75,
+        "corner_leader": null,
+        "corner_second": null,
+        "official_back_car": 1,
+        "same_back_leader_at_corner_for_scoring": null,
+        "review_note": "4角出口で5番と7番が接近し、どちらが先頭か確定できず。"
+      }
+    ]
+  },
+  "trifecta": {
+    "period": [
+      "2026-11-21",
+      "2026-11-23"
+    ],
+    "baseline_reproduced": 211,
+    "original_training_pairs": 14,
+    "new_training_pairs": 16,
+    "added_races": [
+      "202611198102",
+      "202611198103"
+    ],
+    "frozen_utc": "2026-11-24T14:55:58.219487+00:00",
+    "frozen_sha256": "c0834e5bee1823c1a029ef5fdd3b4d8af3ce2c0da609de759dcc81c8f6abca26",
+    "forecast_races": 211,
+    "scored_races": 207,
+    "hit_counts": {
+      "original_phase": {
+        "1": 26,
+        "4": 69,
+        "8": 93
+      },
+      "plus_watched": {
+        "1": 26,
+        "4": 69,
+        "8": 93
+      }
+    },
+    "changed_ticket_sets_all_forecasts": {
+      "1": 0,
+      "4": 1,
+      "8": 2
+    },
+    "gained": {
+      "1": 0,
+      "4": 0,
+      "8": 0
+    },
+    "lost": {
+      "1": 0,
+      "4": 0,
+      "8": 0
+    }
+  }
+}

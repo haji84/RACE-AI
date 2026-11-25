@@ -1,0 +1,592 @@
+{
+  "new": {
+    "selected": 10,
+    "summary": {
+      "two_result_sources": 10,
+      "official_identity_bound": 10,
+      "verified_C_trio": 6,
+      "verified_B_trio": 4,
+      "C_trio_also_final": 4,
+      "C_order_also_final": 1,
+      "C_third_also_final_third": 4,
+      "C_top2_also_final_top2": 5,
+      "C_third_also_final_third_same_top2": 4,
+      "B_and_C_trios": 3,
+      "B_to_C_same_ordered_front_two": 2,
+      "B_to_C_third_changes_same_ordered_front_two": 0,
+      "back_path_same_path_gap": 8,
+      "corner_path_same_immediate_path": 7,
+      "corner_path_different_path": 9,
+      "back_path_same_immediate_path": 6,
+      "back_path_unknown": 6,
+      "corner_path_unknown": 4,
+      "B_and_C_front_pair_track_path_confirmed": 10,
+      "same_ordered_front_pair_same_immediate_path_at_both": 1,
+      "front_pair_kept_same_order_at_both": 8,
+      "back_front_pair_immediate_path": 5,
+      "corner_front_pair_immediate_path": 4,
+      "back_front_pair_gap_same_path": 5,
+      "corner_front_pair_different_path": 6
+    },
+    "excluded": {},
+    "labels_sha256": "22feaee3293830cf469d2595406a55aaff717f8b0f5749de4010d6353367c59d",
+    "bound_sha256": "5e7a0de01b78cea7b397cd45b5f3e37728d07cc38b124a940f5aa13c45b31d11",
+    "source_scope": "Only authenticated historical footage review. Close path denotes visible front/rear-wheel adjacency only and does not establish the start or tactical reason.",
+    "resolved_non_podium_status": "いわき平7Rの7番はKドリームス「落」・netkeirin「棄」、KEIRIN.JP「落車棄権」。着順と払戻は一致。",
+    "ordinarily_played": 10,
+    "unreplayed": 22,
+    "when": "2026-11-25"
+  },
+  "recovery": {
+    "encrypted_file_sha256": "8c566273df1e173adbd5c2a379bd45e6d2997319cc27e7a80e4b482402e4df63",
+    "files": 10,
+    "images_or_video_persisted": 0,
+    "restored_at": "2026-11-25T10:33:14.686476+00:00",
+    "summary_file_sha256": "75dbbdb913c150ced1c3c7db34b654e4d169fbeaad3daf2fa1ab0d57f6e76e1f"
+  },
+  "second_batch": {
+    "selected": 11,
+    "verified_player": 11,
+    "remaining": 11,
+    "summary": {
+      "two_result_sources": 11,
+      "official_identity_bound": 11,
+      "verified_C_trio": 7,
+      "verified_B_trio": 7,
+      "back_path_same_path_gap": 12,
+      "corner_path_different_path": 7,
+      "corner_path_unknown": 4,
+      "B_and_C_front_pair_track_path_confirmed": 11,
+      "same_ordered_front_pair_same_immediate_path_at_both": 1,
+      "back_path_unknown": 4,
+      "C_trio_also_final": 6,
+      "C_order_also_final": 3,
+      "C_third_also_final_third": 5,
+      "C_top2_also_final_top2": 5,
+      "C_third_also_final_third_same_top2": 5,
+      "corner_path_same_path_gap": 4,
+      "B_and_C_trios": 5,
+      "B_to_C_same_ordered_front_two": 3,
+      "B_to_C_third_changes_same_ordered_front_two": 1,
+      "back_path_same_immediate_path": 5,
+      "corner_path_same_immediate_path": 7,
+      "back_path_different_path": 1
+    },
+    "excluded": {},
+    "labels_sha256": "7d15f1016bfd6d32fcc3bd55245a6593f6e1f76c6ebdf5ce768a7d3ee6e13038",
+    "bound_sha256": "f6a5a5c5e35d66c2d56b7aca9b26aa9ef7563de840da1509bbc63022d9edf379",
+    "source_scope": "Only authenticated historical footage review. Close path denotes visible front/rear-wheel adjacency only and does not establish the start or tactical reason.",
+    "resolved_result_name": "函館9R、4番のnetkeirin氏名末尾1字省略。遷移先選手ID、公式フル氏名と登録番号、記録台帳、確定着順と払戻を確認。"
+  },
+  "all_66_reviewed": {
+    "checked_utc": "2026-11-25T10:39:20.731334+00:00",
+    "scope": {
+      "original_known_top_two_corner": 66,
+      "retained_verified_old_video_frames": 28,
+      "selected_ordinary_browser": 38,
+      "ordinary_browser_playable": 38,
+      "remaining_not_replayed": 0,
+      "full_4C_trio": 37,
+      "corner_third_unreadable": 29,
+      "additional_now_selected": 22,
+      "additional_now_with_both_outcomes": 22,
+      "additional_now_registered_from_keirin_jp": 22
+    },
+    "latest_22_true_trios": {
+      "races": 14,
+      "same_trio_corner_goal": 8,
+      "same_order_corner_goal": 4,
+      "third_corner_still_third_goal": 7,
+      "same_corner_goal_top_two_any_order": 8,
+      "third_corner_still_third_given_same_top_two": 6,
+      "both_B_4C_trios": 9,
+      "same_ordered_front_two_B_4C": 6,
+      "third_changes_B_4C_given_same_ordered_front_two": 1
+    },
+    "latest_22_front_pair_visible_geometry": {
+      "B_and_C_front_pair_track_path_confirmed": 18,
+      "same_ordered_front_pair_same_immediate_path_at_both": 2
+    },
+    "all_37_true_trios": {
+      "races": 37,
+      "same_trio_corner_goal": 21,
+      "same_order_corner_goal": 11,
+      "third_corner_still_third_goal": 19,
+      "same_corner_goal_top_two_any_order": 24,
+      "third_corner_still_third_given_same_top_two": 17,
+      "both_B_4C_trios": 23,
+      "same_ordered_front_two_B_4C": 17,
+      "third_changes_B_4C_given_same_ordered_front_two": 3
+    },
+    "date_slices": {
+      "through_nov20": {
+        "races": 31,
+        "same_trio_corner_goal": 16,
+        "same_order_corner_goal": 7,
+        "third_corner_still_third_goal": 15,
+        "same_corner_goal_top_two_any_order": 19,
+        "third_corner_still_third_given_same_top_two": 13,
+        "both_B_4C_trios": 19,
+        "same_ordered_front_two_B_4C": 13,
+        "third_changes_B_4C_given_same_ordered_front_two": 3
+      },
+      "from_nov21": {
+        "races": 6,
+        "same_trio_corner_goal": 5,
+        "same_order_corner_goal": 4,
+        "third_corner_still_third_goal": 4,
+        "same_corner_goal_top_two_any_order": 5,
+        "third_corner_still_third_given_same_top_two": 4,
+        "both_B_4C_trios": 4,
+        "same_ordered_front_two_B_4C": 4,
+        "third_changes_B_4C_given_same_ordered_front_two": 0
+      }
+    },
+    "proofs": {
+      "reused_verified_local_candidate": "b660fbcf60b5b774268707f14581398e555f59ed4300ff169c74d7f6d8818bea",
+      "first_six_final_results": "61ed54442fcfee43722b6852b4f5e2e9124dac00b73dea23606dc958b1ae8601",
+      "first_ten_final_results": "75dbbdb913c150ced1c3c7db34b654e4d169fbeaad3daf2fa1ab0d57f6e76e1f",
+      "next_eleven_final_results": "1615567a96bbf73133d81b75ed9efa5be20c4ebe88d7d687c2bb55b8ac99d5d9",
+      "last_eleven_results": "2501ef7abe0c4f5e1a8f9e847741ae40dc391566c863340e8cc73fdf9e993dc4",
+      "all_training_candidates_digest": "8935cff2a3216e17f11cada116259d83035dd4f200f0f1a00a49877ef5265367"
+    },
+    "recording_scope": "No external media, image bytes or provider login retained. Expert label excludes corner ambiguity, episodes indicate points in time. No observations of whole interval and no race-start or move inference. Position after race start is available for retrospective training labels only."
+  },
+  "rechecked_66_recovery": {
+    "encrypted_sha256": "c351928cbd2b5cb90e44540d382444e06030e51320eeeb3038516bfe58f3a9f2",
+    "files": 20,
+    "images_or_video_persisted": 0,
+    "restored_at": "2026-11-25T10:42:49.018159+00:00",
+    "summary_file_sha256": "b774713191958b0684f2bf43cb6b5e9b6c0a8e63ab772055d2c4e317942affa9"
+  },
+  "corner_third_replay": {
+    "candidate_historical_availability": "Reconstructed from later reviewed films. Calendar-ordered research recheck, not a prediction sealed before historical races.",
+    "date_split": "training <= 20261120, replay 20261121..20261124",
+    "full": {
+      "1": {
+        "after": 32,
+        "after_pct": 11.149825783972126,
+        "before": 32,
+        "before_pct": 11.149825783972126,
+        "changed": 0,
+        "first_two_after": 72,
+        "first_two_before": 72,
+        "gains": 0,
+        "losses": 0,
+        "n": 287,
+        "paired_pvalue": null
+      },
+      "4": {
+        "after": 91,
+        "after_pct": 31.70731707317073,
+        "before": 91,
+        "before_pct": 31.70731707317073,
+        "changed": 24,
+        "first_two_after": 127,
+        "first_two_before": 126,
+        "gains": 1,
+        "losses": 1,
+        "n": 287,
+        "paired_pvalue": 1.0
+      },
+      "8": {
+        "after": 126,
+        "after_pct": 43.90243902439025,
+        "before": 127,
+        "before_pct": 44.250871080139376,
+        "changed": 43,
+        "first_two_after": 158,
+        "first_two_before": 160,
+        "gains": 0,
+        "losses": 1,
+        "n": 287,
+        "paired_pvalue": 1.0
+      },
+      "selected": {
+        "after": 93,
+        "after_pct": 32.40418118466899,
+        "before": 93,
+        "before_pct": 32.40418118466899,
+        "changed": 27,
+        "first_two_after": 129,
+        "first_two_before": 128,
+        "gains": 1,
+        "losses": 1,
+        "n": 287,
+        "paired_pvalue": 1.0
+      }
+    },
+    "gold_sha256": "c56f46a2e981787d43af4b1623ff8da88423901ac7d411ab66aebea3985ab23e",
+    "model_applicable": {
+      "1": {
+        "after": 30,
+        "after_pct": 12.048192771084338,
+        "before": 30,
+        "before_pct": 12.048192771084338,
+        "changed": 0,
+        "first_two_after": 63,
+        "first_two_before": 63,
+        "gains": 0,
+        "losses": 0,
+        "n": 249,
+        "paired_pvalue": null
+      },
+      "4": {
+        "after": 81,
+        "after_pct": 32.53012048192771,
+        "before": 81,
+        "before_pct": 32.53012048192771,
+        "changed": 24,
+        "first_two_after": 111,
+        "first_two_before": 110,
+        "gains": 1,
+        "losses": 1,
+        "n": 249,
+        "paired_pvalue": 1.0
+      },
+      "8": {
+        "after": 108,
+        "after_pct": 43.373493975903614,
+        "before": 109,
+        "before_pct": 43.77510040160642,
+        "changed": 43,
+        "first_two_after": 133,
+        "first_two_before": 135,
+        "gains": 0,
+        "losses": 1,
+        "n": 249,
+        "paired_pvalue": 1.0
+      },
+      "selected": {
+        "after": 82,
+        "after_pct": 32.93172690763052,
+        "before": 82,
+        "before_pct": 32.93172690763052,
+        "changed": 27,
+        "first_two_after": 112,
+        "first_two_before": 111,
+        "gains": 1,
+        "losses": 1,
+        "n": 249,
+        "paired_pvalue": 1.0
+      }
+    },
+    "per_day": {
+      "20261121": {
+        "1": {
+          "after": 4,
+          "after_pct": 7.407407407407407,
+          "before": 4,
+          "before_pct": 7.407407407407407,
+          "changed": 0,
+          "first_two_after": 14,
+          "first_two_before": 14,
+          "gains": 0,
+          "losses": 0,
+          "n": 54,
+          "paired_pvalue": null
+        },
+        "4": {
+          "after": 18,
+          "after_pct": 33.333333333333336,
+          "before": 18,
+          "before_pct": 33.333333333333336,
+          "changed": 8,
+          "first_two_after": 25,
+          "first_two_before": 24,
+          "gains": 1,
+          "losses": 1,
+          "n": 54,
+          "paired_pvalue": 1.0
+        },
+        "8": {
+          "after": 21,
+          "after_pct": 38.888888888888886,
+          "before": 21,
+          "before_pct": 38.888888888888886,
+          "changed": 6,
+          "first_two_after": 29,
+          "first_two_before": 29,
+          "gains": 0,
+          "losses": 0,
+          "n": 54,
+          "paired_pvalue": null
+        },
+        "selected": {
+          "after": 18,
+          "after_pct": 33.333333333333336,
+          "before": 18,
+          "before_pct": 33.333333333333336,
+          "changed": 8,
+          "first_two_after": 25,
+          "first_two_before": 24,
+          "gains": 1,
+          "losses": 1,
+          "n": 54,
+          "paired_pvalue": 1.0
+        }
+      },
+      "20261122": {
+        "1": {
+          "after": 8,
+          "after_pct": 11.940298507462687,
+          "before": 8,
+          "before_pct": 11.940298507462687,
+          "changed": 0,
+          "first_two_after": 15,
+          "first_two_before": 15,
+          "gains": 0,
+          "losses": 0,
+          "n": 67,
+          "paired_pvalue": null
+        },
+        "4": {
+          "after": 19,
+          "after_pct": 28.35820895522388,
+          "before": 19,
+          "before_pct": 28.35820895522388,
+          "changed": 4,
+          "first_two_after": 26,
+          "first_two_before": 26,
+          "gains": 0,
+          "losses": 0,
+          "n": 67,
+          "paired_pvalue": null
+        },
+        "8": {
+          "after": 26,
+          "after_pct": 38.80597014925373,
+          "before": 26,
+          "before_pct": 38.80597014925373,
+          "changed": 6,
+          "first_two_after": 34,
+          "first_two_before": 34,
+          "gains": 0,
+          "losses": 0,
+          "n": 67,
+          "paired_pvalue": null
+        },
+        "selected": {
+          "after": 20,
+          "after_pct": 29.850746268656717,
+          "before": 20,
+          "before_pct": 29.850746268656717,
+          "changed": 4,
+          "first_two_after": 27,
+          "first_two_before": 27,
+          "gains": 0,
+          "losses": 0,
+          "n": 67,
+          "paired_pvalue": null
+        }
+      },
+      "20261123": {
+        "1": {
+          "after": 15,
+          "after_pct": 17.441860465116278,
+          "before": 15,
+          "before_pct": 17.441860465116278,
+          "changed": 0,
+          "first_two_after": 27,
+          "first_two_before": 27,
+          "gains": 0,
+          "losses": 0,
+          "n": 86,
+          "paired_pvalue": null
+        },
+        "4": {
+          "after": 33,
+          "after_pct": 38.372093023255815,
+          "before": 33,
+          "before_pct": 38.372093023255815,
+          "changed": 10,
+          "first_two_after": 47,
+          "first_two_before": 47,
+          "gains": 0,
+          "losses": 0,
+          "n": 86,
+          "paired_pvalue": null
+        },
+        "8": {
+          "after": 46,
+          "after_pct": 53.48837209302326,
+          "before": 46,
+          "before_pct": 53.48837209302326,
+          "changed": 20,
+          "first_two_after": 55,
+          "first_two_before": 56,
+          "gains": 0,
+          "losses": 0,
+          "n": 86,
+          "paired_pvalue": null
+        },
+        "selected": {
+          "after": 33,
+          "after_pct": 38.372093023255815,
+          "before": 33,
+          "before_pct": 38.372093023255815,
+          "changed": 12,
+          "first_two_after": 47,
+          "first_two_before": 47,
+          "gains": 0,
+          "losses": 0,
+          "n": 86,
+          "paired_pvalue": null
+        }
+      },
+      "20261124": {
+        "1": {
+          "after": 5,
+          "after_pct": 6.25,
+          "before": 5,
+          "before_pct": 6.25,
+          "changed": 0,
+          "first_two_after": 16,
+          "first_two_before": 16,
+          "gains": 0,
+          "losses": 0,
+          "n": 80,
+          "paired_pvalue": null
+        },
+        "4": {
+          "after": 21,
+          "after_pct": 26.25,
+          "before": 21,
+          "before_pct": 26.25,
+          "changed": 2,
+          "first_two_after": 29,
+          "first_two_before": 29,
+          "gains": 0,
+          "losses": 0,
+          "n": 80,
+          "paired_pvalue": null
+        },
+        "8": {
+          "after": 33,
+          "after_pct": 41.25,
+          "before": 34,
+          "before_pct": 42.5,
+          "changed": 11,
+          "first_two_after": 40,
+          "first_two_before": 41,
+          "gains": 0,
+          "losses": 1,
+          "n": 80,
+          "paired_pvalue": 1.0
+        },
+        "selected": {
+          "after": 22,
+          "after_pct": 27.5,
+          "before": 22,
+          "before_pct": 27.5,
+          "changed": 3,
+          "first_two_after": 30,
+          "first_two_before": 30,
+          "gains": 0,
+          "losses": 0,
+          "n": 80,
+          "paired_pvalue": null
+        }
+      }
+    },
+    "replay_sha256": "ba68be0eb77680d00568fd07dce68b8d814d1c1dd17ccad4b837c1e07e449440",
+    "scored_at": "2026-11-25T10:46:01.849812+00:00"
+  },
+  "corner_third_diagnosis": {
+    "final_pair_oracle_hit_counts": {
+      "1": 67,
+      "4": 133,
+      "8": 172
+    },
+    "latent_sha256": "1f23f6fd95780d680008aaa0cf85e4f41c7317150ceefd397bc9934ca00c8450",
+    "max_tv_mass_moved": 0.041090315874835096,
+    "median_tv_mass_moved": 0.010421586773206929,
+    "n_date_replay": 249,
+    "observed_corner_conditional_third_vs_uniform_neglogloss": [
+      1.5832808268781926,
+      1.6655166185376358
+    ],
+    "observed_corner_conditioned_c3_later_diagnostic_n": 6,
+    "phase_matched": 6,
+    "phase_missing": 0,
+    "phase_wanted": 6,
+    "rated": "2026-11-25T10:47:35.245342+00:00",
+    "verified_corner_pair_rank_median": 1.0,
+    "verified_corner_pair_recall": {
+      "1": 5,
+      "4": 6,
+      "8": 6
+    }
+  },
+  "corner_third_replay_recovery": {
+    "encrypted_sha256": "337084d10c938157dab04bd15576a84a6bc8dd6fe7deb83c977cc09d08013159",
+    "files": 15,
+    "forward_commitment_sha256": "96d4e2db320cac866597a3b4635c0721ed8f04938f13cf7d8298f29907555614",
+    "images_or_video_persisted": 0,
+    "latent_result_sha256": "3ebe34dda3aacda3ac0f3eb31ecc244629bd0b87452d80af363b9c207c52fc63",
+    "replay_result_sha256": "fff84b29ee7aef48a973b94d2b1d0e9a75c15a49ce6b9fc2bd5c047b3a72c7a3",
+    "restored_at": "2026-11-25T10:47:35.890823+00:00"
+  },
+  "corner_third_registration_recovery": {
+    "arms": {
+      "published_original": 9,
+      "verified_late_line_trial": 15
+    },
+    "checked": "2026-11-25T10:47:18.613601+00:00",
+    "cipher_sha256": "93ed127200f73054bbc2bae0283b22222cd92d5c7f1519877f26c2a22c3d799d",
+    "files": 11,
+    "first": "2026-11-25T19:56:00+09:00",
+    "first_changed": 0,
+    "git_commit": "a37b8c968de35834a036f5b8ef7b21d52dd1ce17",
+    "original_sha256": "b943e59a8ad70eecac203e530ea1451b0c41c0c83508c8619209522a30b4ecdc",
+    "second_changed": 3
+  },
+  "eight_independent_labels": {
+    "aggregate_sha256": "8b70aab8343df2bf2872698100d34a02825e355c588d0f3a8c2754fd16cd3000",
+    "actual_pair_conditional_third_logloss": [
+      1.4782326453701238,
+      1.6094379124341003
+    ],
+    "cases": 8,
+    "counts": {
+      "leader_hit_definite_1": 6,
+      "leader_hit_definite_4": 8,
+      "leader_hit_definite_8": 8,
+      "leader_labels": 8,
+      "pair_hit_definite_1": 3,
+      "pair_hit_definite_4": 3,
+      "pair_hit_definite_8": 4,
+      "pair_labels": 5,
+      "pair_possible_with_ties_1": 3,
+      "pair_possible_with_ties_4": 3,
+      "pair_possible_with_ties_8": 4,
+      "trio_hit_definite_1": 2,
+      "trio_hit_definite_4": 2,
+      "trio_hit_definite_8": 2,
+      "trio_labels": 4,
+      "trio_possible_with_ties_1": 2,
+      "trio_possible_with_ties_4": 2,
+      "trio_possible_with_ties_8": 2
+    },
+    "fixed_forecast_sha256": "ab0dfe49f0a02a8c8ed7dbb3a5aaf5587f1286881e02f68c77f943d9716b9e5d",
+    "how_to_read": "Earlier predictions fixed before review of these new phase labels, for already-raced past dates. A supplemental diagnostic conditions on actual 4C pair only after freezing; it is not a forecast score. Outcome of race is never used to label 4C.",
+    "ordinary_playable": 8,
+    "private_score_sha256": "1e940a8bc5622605ac7e02420ab59950bf742cdf101985d8b305996ce6f8e28d",
+    "replay_labels_sha256": "f4c63870e8b8d19af4da54af31ace1cfacdad1d32ba73c7a405ea4e00c913c44",
+    "scored_at": "2026-11-25T10:59:44.670102+00:00"
+  },
+  "eight_independent_encrypted_recovery": {
+    "aggregate_sha256": "508a56a1737e31523cb6f1a89e1a1768921f749b76f3d79b9fe82f3e7e7fd6b2",
+    "byte_exact_readback": true,
+    "encrypted_sha256": "68db4647454e4d468094a4aef912f7264572d10d4540ffdf265ae573053ecb48",
+    "files": 28,
+    "labels_sealed_at": "2026-11-25T10:59:44.166580+00:00",
+    "plan_sha256": "993e0e384ed90a77e66cd5c60cac6e8de9f6a418556db141c717612220a9c705",
+    "prediction_sealed_at": "2026-11-25T10:54:10.971956+00:00",
+    "predictions_sha256": "ab0dfe49f0a02a8c8ed7dbb3a5aaf5587f1286881e02f68c77f943d9716b9e5d",
+    "restored_at": "2026-11-25T11:00:22.222750+00:00",
+    "result_sha256": "8b70aab8343df2bf2872698100d34a02825e355c588d0f3a8c2754fd16cd3000",
+    "verified_labels_table_sha256": "f4c63870e8b8d19af4da54af31ace1cfacdad1d32ba73c7a405ea4e00c913c44",
+    "video_or_image_files_included": 0
+  }
+}

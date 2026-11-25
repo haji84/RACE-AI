@@ -8,6 +8,7 @@ import argparse
 from datetime import datetime, timezone
 from hashlib import sha256
 import json
+from math import fsum, log
 from pathlib import Path
 import re
 
@@ -83,6 +84,64 @@ def _ranked(record, market, cap):
             key=lambda row: (-row['probability'], row['order']))[:cap]]
 
 
+def _proper_scores(distribution, observed):
+    realized = distribution[observed]
+    brier = fsum((chance - (value == observed)) ** 2 for value, chance in distribution.items())
+    return brier, -log(realized) if realized > 0 else None
+
+
+def _summarize_proper_scores(scores):
+    count = len(scores)
+    zero = sum(loss is None for _, loss in scores)
+    return dict(scored=count, zero_probability_outcomes=zero,
+                brier=fsum(brier for brier, _ in scores) / count if count else None,
+                log_loss=fsum(loss for _, loss in scores) / count if count and not zero else None)
+
+
+def _ticket_event(distribution, observed, cap):
+    selected = sorted(distribution, key=lambda order: (-distribution[order], order))[:cap]
+    return min(1.0, fsum(distribution[order] for order in selected)), observed in selected
+
+
+def _ticket_calibration(events):
+    def summary(group):
+        count, hits = len(group), sum(hit for _, hit in group)
+        return dict(count=count, hits=hits, mean_probability=fsum(p for p, _ in group) / count if count else None,
+                    observed_frequency=hits / count if count else None,
+                    brier=fsum((p - hit) ** 2 for p, hit in group) / count if count else None)
+
+    bins = [[] for _ in range(5)]
+    for p, hit in events:
+        bins[min(int(p * len(bins)), len(bins) - 1)].append((p, hit))
+    return dict(summary(events), bins=[dict(summary(group), lower=i / len(bins), upper=(i + 1) / len(bins))
+                                      for i, group in enumerate(bins)])
+
+
+def _probability_summary(records):
+    """Score matched podiums without disclosing any individual forecast or outcome."""
+    by_rank = {str(rank): [] for rank in (1, 2, 3)}
+    scores = {market: [] for market in ('ordered_exacta', 'ordered_trifecta')}
+    picks = {str(cap): [] for cap in (1, 4, 8)}
+    exacta_top_2 = []
+    for record, winner in records:
+        for rank, car in enumerate(winner):
+            distribution = {rider['car']: rider['rank_probabilities'][rank] for rider in record['riders']}
+            by_rank[str(rank + 1)].append(_proper_scores(distribution, car))
+        exactas = {tuple(row['order']): row['probability'] for row in record['exactas']}
+        trifectas = {tuple(row['order']): row['probability'] for row in record['trifectas']}
+        exacta = tuple(winner[:2])
+        trifecta = tuple(winner)
+        scores['ordered_exacta'].append(_proper_scores(exactas, exacta))
+        scores['ordered_trifecta'].append(_proper_scores(trifectas, trifecta))
+        exacta_top_2.append(_ticket_event(exactas, exacta, 2))
+        for cap, events in picks.items():
+            events.append(_ticket_event(trifectas, trifecta, int(cap)))
+    return dict(by_rank={rank: _summarize_proper_scores(values) for rank, values in by_rank.items()},
+                trifecta_top_n={cap: _ticket_calibration(values) for cap, values in picks.items()},
+                exacta_top_2=_ticket_calibration(exacta_top_2),
+                **{market: _summarize_proper_scores(values) for market, values in scores.items()})
+
+
 def _publication(note, publication, witness, expected_sha, now):
     _need(type(publication) is dict and publication.get('schema') ==
           'KEIRIN_JOINT_COMPARISON_FREEZE_RECEIPT_V1', 'PUBLICATION_SCHEMA')
@@ -117,8 +176,9 @@ def _publication(note, publication, witness, expected_sha, now):
         commit=archive['source_commit'], path='views/'+publication['cipher_sha256']+'.json')
 
 
-def score_joint(note_raw, publication_raw, witness_raw, roster_raw, results_raw, *, expected_note_sha256, clock=None):
-    """Return safe fixed-budget aggregates; never return private forecast rows."""
+def score_joint(note_raw, publication_raw, witness_raw, roster_raw, results_raw, *, expected_note_sha256, clock=None,
+                include_probability_metrics=False):
+    """Return fixed-budget aggregates, with probability metrics optional for private callers."""
     _need(_hash(expected_note_sha256) and type(note_raw) is bytes and
           sha256(note_raw).hexdigest() == expected_note_sha256, 'NOTE_SHA256_MISMATCH')
     note, publication, witness = map(_json, (note_raw, publication_raw, witness_raw))
@@ -175,6 +235,7 @@ def score_joint(note_raw, publication_raw, witness_raw, roster_raw, results_raw,
     report = forward.score(normalized, receipt, roster_raw, results_raw)
     nested = {str(cap): dict(matched=0, tickets_per_arm=0, published_hits=0, trial_hits=0) for cap in (1, 4, 8)}
     exacta = dict(matched=0, tickets_per_arm=0, published_hits=0, trial_hits=0)
+    probability_inputs = {'published': [], 'trial': []} if include_probability_metrics else None
     results = forward.unique_races(outcomes)
     checked_at = when(outcomes['checked_at'])
     for rid in sorted(ids):
@@ -192,6 +253,8 @@ def score_joint(note_raw, publication_raw, witness_raw, roster_raw, results_raw,
         exacta['tickets_per_arm'] += 2
         for side, record in (('published', old[rid]), ('trial', new[rid])):
             exacta[side+'_hits'] += winner[:2] in _ranked(record, 'exactas', 2)
+            if probability_inputs is not None:
+                probability_inputs[side].append((record, winner))
     report.update(trifecta_by_points=nested, exacta_top2=exacta,
         original_note_sha256=expected_note_sha256, archive_pointer=archive_pointer,
         publication_receipt_sha256=sha256(publication_raw).hexdigest(),
@@ -199,6 +262,10 @@ def score_joint(note_raw, publication_raw, witness_raw, roster_raw, results_raw,
         original_plaintext_authentication='PENDING_RSA_READBACK',
         derived_predictions_pre_cutoff_authenticated=False, flow_state='NO_PRE_CUTOFF_FLOW_ORIGINAL',
         formalPR71=False, accuracy_improvement_proven=False)
+    if probability_inputs is not None:
+        report['probability_evaluation'] = dict(matched=report['matched'],
+            scope='TWO_SOURCE_MATCHED_PODIUM_ONLY', forecast_premise='ALL_FINISH_NO_TIES', full_finish_verified=False,
+            **{side: _probability_summary(records) for side, records in probability_inputs.items()})
     return report
 
 

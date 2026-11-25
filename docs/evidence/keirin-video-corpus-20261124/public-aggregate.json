@@ -1,0 +1,445 @@
+{
+  "study_dates_jst": {
+    "train_through": "2026-11-20",
+    "heldout_main": "2026-11-21 to 2026-11-23",
+    "previous_second_panel_selected": "2026-11-21 to 2026-11-24"
+  },
+  "scope": "映像上の最終バック先頭が４角でも先頭にいるかは実Bが既知という条件付き検証。三連単は出走前に得られる情報から全てのB隊列を確率で平均して計算。後日レースの実Bや4角、結果は三連単候補に入力しない。過去に検証に使用した標本。実運転の前向き精度ではない。",
+  "training": {
+    "previous_rider_rows": 45,
+    "all_rider_rows": 78,
+    "sampled_by_past_result_cases": [
+      "202609188407",
+      "202610173809",
+      "202611068609",
+      "202611183811"
+    ],
+    "pair_rows_previous": 16,
+    "pair_rows_all": 18,
+    "added_pair_source_keys": [
+      "202611177302",
+      "202611177306"
+    ],
+    "formerly_eligible_now_quarantined": {}
+  },
+  "coverage": {
+    "all_readable_transition_counts": {
+      "training": {
+        "home_to_back": {
+          "total": 17,
+          "outcomes": {
+            "same_lead_new_follower": 1,
+            "same_pair": 12,
+            "both_positions_changed": 4
+          }
+        },
+        "back_to_corner": {
+          "total": 45,
+          "outcomes": {
+            "same_pair": 34,
+            "same_lead_new_follower": 4,
+            "both_positions_changed": 5,
+            "new_lead_same_follower": 1,
+            "swap": 1
+          }
+        }
+      },
+      "later_test_only": {
+        "home_to_back": {
+          "total": 12,
+          "outcomes": {
+            "same_pair": 9,
+            "both_positions_changed": 2,
+            "swap": 1
+          }
+        },
+        "back_to_corner": {
+          "total": 15,
+          "outcomes": {
+            "both_positions_changed": 4,
+            "same_pair": 9,
+            "same_lead_new_follower": 2
+          }
+        }
+      }
+    },
+    "per_year_new": {
+      "2023": {
+        "training": {
+          "unique": 7,
+          "admissible": 6,
+          "both_front_pairs": 6,
+          "has_any_visual_checkpoint": 7,
+          "has_observed_B": 7,
+          "has_observed_corner": 6
+        },
+        "later_test_only": {
+          "unique": 0,
+          "admissible": 0,
+          "both_front_pairs": 0,
+          "has_any_visual_checkpoint": 0,
+          "has_observed_B": 0,
+          "has_observed_corner": 0
+        }
+      },
+      "2024": {
+        "training": {
+          "unique": 12,
+          "admissible": 10,
+          "both_front_pairs": 9,
+          "has_any_visual_checkpoint": 12,
+          "has_observed_B": 12,
+          "has_observed_corner": 10
+        },
+        "later_test_only": {
+          "unique": 0,
+          "admissible": 0,
+          "both_front_pairs": 0,
+          "has_any_visual_checkpoint": 0,
+          "has_observed_B": 0,
+          "has_observed_corner": 0
+        }
+      },
+      "2025": {
+        "training": {
+          "unique": 8,
+          "admissible": 8,
+          "both_front_pairs": 8,
+          "has_any_visual_checkpoint": 8,
+          "has_observed_B": 8,
+          "has_observed_corner": 8
+        },
+        "later_test_only": {
+          "unique": 0,
+          "admissible": 0,
+          "both_front_pairs": 0,
+          "has_any_visual_checkpoint": 0,
+          "has_observed_B": 0,
+          "has_observed_corner": 0
+        }
+      },
+      "2026": {
+        "training": {
+          "unique": 5,
+          "admissible": 5,
+          "both_front_pairs": 2,
+          "has_any_visual_checkpoint": 5,
+          "has_observed_B": 5,
+          "has_observed_corner": 5
+        },
+        "later_test_only": {
+          "unique": 0,
+          "admissible": 0,
+          "both_front_pairs": 0,
+          "has_any_visual_checkpoint": 0,
+          "has_observed_B": 0,
+          "has_observed_corner": 0
+        }
+      }
+    },
+    "unsuccessful_attempts_with_records": [
+      "202311241308",
+      "202311241309",
+      "202311241310"
+    ],
+    "checked_sources_with_issues": {},
+    "prior_78": {
+      "training": {
+        "unique": 59,
+        "admissible": 40,
+        "both_front_pairs": 14,
+        "has_any_visual_checkpoint": 48,
+        "has_observed_B": 37,
+        "has_observed_corner": 40
+      },
+      "later_test_only": {
+        "unique": 19,
+        "admissible": 14,
+        "both_front_pairs": 13,
+        "has_any_visual_checkpoint": 16,
+        "has_observed_B": 16,
+        "has_observed_corner": 14
+      }
+    },
+    "all_viewed": {
+      "training": {
+        "unique": 101,
+        "admissible": 78,
+        "both_front_pairs": 45,
+        "has_any_visual_checkpoint": 90,
+        "has_observed_B": 79,
+        "has_observed_corner": 78
+      },
+      "later_test_only": {
+        "unique": 24,
+        "admissible": 17,
+        "both_front_pairs": 15,
+        "has_any_visual_checkpoint": 21,
+        "has_observed_B": 20,
+        "has_observed_corner": 18
+      }
+    },
+    "newly_viewed": {
+      "training": {
+        "unique": 32,
+        "admissible": 29,
+        "both_front_pairs": 25,
+        "has_any_visual_checkpoint": 32,
+        "has_observed_B": 32,
+        "has_observed_corner": 29
+      },
+      "later_test_only": {
+        "unique": 0,
+        "admissible": 0,
+        "both_front_pairs": 0,
+        "has_any_visual_checkpoint": 0,
+        "has_observed_B": 0,
+        "has_observed_corner": 0
+      }
+    }
+  },
+  "conditional_B_retention": {
+    "previous_13": {
+      "previous45": {
+        "races": 13,
+        "held": 10,
+        "mean_brier": 0.15233243765870036,
+        "logloss": 0.46812578221078643
+      },
+      "all_eligible": {
+        "races": 13,
+        "held": 10,
+        "mean_brier": 0.15827252747252749,
+        "logloss": 0.4806540509296259
+      },
+      "excluding_named_outcome_selected": {
+        "races": 13,
+        "held": 10,
+        "mean_brier": 0.15793335758907584,
+        "logloss": 0.4807307926472773
+      }
+    },
+    "previous_separate_3": {
+      "previous45": {
+        "races": 3,
+        "held": 1,
+        "mean_brier": 0.4005960772720134,
+        "logloss": 1.0347208983237135
+      },
+      "all_eligible": {
+        "races": 3,
+        "held": 1,
+        "mean_brier": 0.4234993197278912,
+        "logloss": 1.1040219349685907
+      },
+      "excluding_named_outcome_selected": {
+        "races": 3,
+        "held": 1,
+        "mean_brier": 0.4163107015659449,
+        "logloss": 1.0814881431723657
+      }
+    },
+    "additional_archived": {
+      "previous45": {
+        "races": 1,
+        "held": 1,
+        "mean_brier": 0.05477591670439113,
+        "logloss": 0.2666286632539486
+      },
+      "all_eligible": {
+        "races": 1,
+        "held": 1,
+        "mean_brier": 0.025599999999999973,
+        "logloss": 0.17435338714477766
+      },
+      "excluding_named_outcome_selected": {
+        "races": 1,
+        "held": 1,
+        "mean_brier": 0.04432132963988919,
+        "logloss": 0.2363887780642304
+      }
+    },
+    "all_distinct": {
+      "previous45": {
+        "races": 17,
+        "held": 12,
+        "mean_brier": 0.19040504929903151,
+        "logloss": 0.556260383939136
+      },
+      "all_eligible": {
+        "races": 17,
+        "held": 12,
+        "mean_brier": 0.1972729891956783,
+        "logloss": 0.5726424620079815
+      },
+      "excluding_named_outcome_selected": {
+        "races": 17,
+        "held": 12,
+        "mean_brier": 0.19684629899974765,
+        "logloss": 0.5723737359997607
+      }
+    }
+  },
+  "trifecta": {
+    "trifecta_common_n": 207,
+    "trifecta_confirmed_hits": {
+      "unchanged_16": {
+        "1": 26,
+        "4": 69,
+        "8": 93
+      },
+      "all_observed_pairs": {
+        "1": 26,
+        "4": 69,
+        "8": 93
+      },
+      "transfer_45": {
+        "1": 25,
+        "4": 70,
+        "8": 92
+      },
+      "transfer_all": {
+        "1": 25,
+        "4": 69,
+        "8": 92
+      }
+    },
+    "changed_on_scored_panel_vs_16": {
+      "unchanged_16": {
+        "1": 0,
+        "4": 0,
+        "8": 0
+      },
+      "all_observed_pairs": {
+        "1": 1,
+        "4": 2,
+        "8": 1
+      },
+      "transfer_45": {
+        "1": 3,
+        "4": 9,
+        "8": 23
+      },
+      "transfer_all": {
+        "1": 3,
+        "4": 11,
+        "8": 26
+      }
+    },
+    "gained_lost_vs_16": {
+      "unchanged_16": {
+        "1_gained": 0,
+        "1_lost": 0,
+        "4_gained": 0,
+        "4_lost": 0,
+        "8_gained": 0,
+        "8_lost": 0
+      },
+      "all_observed_pairs": {
+        "1_gained": 0,
+        "1_lost": 0,
+        "4_gained": 0,
+        "4_lost": 0,
+        "8_gained": 0,
+        "8_lost": 0
+      },
+      "transfer_45": {
+        "1_gained": 0,
+        "1_lost": 1,
+        "4_gained": 1,
+        "4_lost": 0,
+        "8_gained": 0,
+        "8_lost": 1
+      },
+      "transfer_all": {
+        "1_gained": 0,
+        "1_lost": 1,
+        "4_gained": 1,
+        "4_lost": 1,
+        "8_gained": 0,
+        "8_lost": 1
+      }
+    },
+    "missing_settlement": 4
+  },
+  "all_roles_chronological": {
+    "model": "same Beta(1,1) pooled and four pseudo-observations per rider",
+    "rule": "all races from the same date predicted together using only the previous dates; outcomes are added after scoring the entire day; conditional on identity of actual B leader",
+    "dates": 39,
+    "observations": 95,
+    "metrics": {
+      "all": {
+        "races": 95,
+        "held": 75,
+        "population": {
+          "brier": 0.17787261806903423,
+          "logloss": 0.5439602198506333
+        },
+        "rider": {
+          "brier": 0.17725353434024385,
+          "logloss": 0.5399728553429786
+        }
+      },
+      "first_rider_observation": {
+        "races": 67,
+        "held": 52,
+        "population": {
+          "brier": 0.18945136120913345,
+          "logloss": 0.5709218151202405
+        },
+        "rider": {
+          "brier": 0.18945136120913345,
+          "logloss": 0.5709218151202405
+        }
+      },
+      "current_venue_reviews": {
+        "races": 29,
+        "held": 24,
+        "population": {
+          "brier": 0.17123504574243492,
+          "logloss": 0.5262801094894849
+        },
+        "rider": {
+          "brier": 0.17123504574243492,
+          "logloss": 0.5262801094894849
+        }
+      },
+      "previous_studies": {
+        "races": 66,
+        "held": 51,
+        "population": {
+          "brier": 0.1807891271216309,
+          "logloss": 0.5517287531911378
+        },
+        "rider": {
+          "brier": 0.17989802175443265,
+          "logloss": 0.5459893648846653
+        }
+      },
+      "earlier_rider_observed": {
+        "races": 28,
+        "held": 23,
+        "population": {
+          "brier": 0.15016633984093966,
+          "logloss": 0.47944497402693004
+        },
+        "rider": {
+          "brier": 0.1480658771896866,
+          "logloss": 0.465916415875959
+        }
+      }
+    },
+    "predictions_sha256": "10d6f23e969bb2d0efd2a6f70db32802419a4baa24789a93c5702290d7a5f76e"
+  },
+  "frozen_forecast_hashes": {
+    "ticket-predictions.owner.json": "00d91d7b1760c12844243f40a0face6bbd344c169121709356219b72b99029fc",
+    "phase-predictions.json": "c2df94acd66f77112da5fb8480028e30266a20a6b7a9476524513e04b0f424d6",
+    "registry.owner.json": "02338b3bc2b5c98e50821d7f3afeaecb1a028e85b2fb5a9c4eaa9f4959498373"
+  },
+  "limitations": [
+    "前回の独立確認3件も、今回は既知の標本の再利用。全後日例は同じ対象を重複計上せず17件など。",
+    "4件の既存選手事例は一部を結果から選んでいる。後日B先頭の選手を対象に選んだ以前の標本も含む。",
+    "選手別補正は対象を選ばず、履歴のない選手にはその日までの集団確率を使う。",
+    "4角の先頭と、その地点で実際に誰が追走したか、仕掛け始めの点、全周の隊列は別のラベル。"
+  ]
+}

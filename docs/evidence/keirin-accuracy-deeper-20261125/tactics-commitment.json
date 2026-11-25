@@ -1,0 +1,8 @@
+{
+  "freeze_receipt_sha256": "c93b3c51a47a0f006058a490c24609479bd1e128c4e0ec5d87b2252d1dc25477",
+  "forecast_sha256": "3ab415f0b0c53748abc9992e63309a52a42f8ed6e6e31d7c40959e5b5b2de883",
+  "frozen_jst": "2026-11-25T17:43:23+09:00",
+  "registered": 34,
+  "applied": 13,
+  "changed_at_published_cap": 0
+}

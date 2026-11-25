@@ -1,0 +1,467 @@
+{
+  "replay_scope": {
+    "new_public_players_reviewed": 16,
+    "source_examples": {
+      "202611163405": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/3420261114/34202611140300/5/",
+      "202611164606": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/4620261115/46202611150200/6/",
+      "202611173807": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/3820261117/38202611170100/7/",
+      "202611212205": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/2220261120/22202611200200/5/"
+    },
+    "stages": [
+      "final_home_area",
+      "final_backstretch_area",
+      "fourth_corner_area"
+    ]
+  },
+  "training": {
+    "train_end_jst": "20261120",
+    "distinct_video_training_races": 20,
+    "step_training_sizes": {
+      "home_to_back": 17,
+      "back_to_corner": 14,
+      "corner_to_finish": 14
+    },
+    "training_events": {
+      "home_to_back": {
+        "races": 17,
+        "lead_changed": 4,
+        "follower_changed": 5,
+        "same_lead_new_follower": 1,
+        "new_follower_other_line": 3,
+        "same_order": 12
+      },
+      "back_to_corner": {
+        "races": 14,
+        "lead_changed": 3,
+        "follower_changed": 4,
+        "same_lead_new_follower": 1,
+        "new_follower_other_line": 1,
+        "same_order": 10
+      },
+      "corner_to_finish": {
+        "races": 14,
+        "lead_changed": 8,
+        "follower_changed": 10,
+        "same_lead_new_follower": 2,
+        "new_follower_other_line": 4,
+        "same_order": 4
+      }
+    },
+    "mix": 0.25,
+    "features": [
+      "same_leader",
+      "same_pair_in_order",
+      "two_riders_exchange_places",
+      "one_rider_remains",
+      "same_next_rider_new_leader",
+      "different_planned_line_next_to_same_leader",
+      "different_planned_line_next_to_new_leader",
+      "new_pair_reunites_planned_neighbors"
+    ],
+    "quadratic_regularization_scale": 8,
+    "parameters": {
+      "home_to_back": [
+        0.4047791439912844,
+        1.142811673330108,
+        -0.013466149650424333,
+        0.04108769820022768,
+        -0.18712866586152696,
+        -0.47064225497417156,
+        -0.06435873059274415,
+        -0.1900626638516216
+      ],
+      "back_to_corner": [
+        1.1501589293136734,
+        1.257904904422567,
+        -0.21560316368301755,
+        -0.35166700614303403,
+        -0.2732392930759675,
+        -0.44285407231680274,
+        -0.26900165770045,
+        0.07365154292060681
+      ],
+      "corner_to_finish": [
+        0.4132689174683448,
+        0.3975961220530285,
+        1.1514148662424146,
+        -0.4260594800069669,
+        -0.2682965992259129,
+        0.3257108120993393,
+        -0.19297289603221668,
+        -0.4058032187065398
+      ]
+    }
+  },
+  "chronological_replay": {
+    "evaluation_dates_jst": [
+      "20261121",
+      "20261123"
+    ],
+    "programs": 211,
+    "extension_rows": 197,
+    "commitment_sha256": "76b99a20e5b970068252d0e09e71fe79b6e1bb6fefd998eb5e1dd6180bba4d16",
+    "distinct_admitted_video_evaluation_races": 14,
+    "phase_evaluation": {
+      "back": {
+        "events": {
+          "races": 12,
+          "lead_changed": 3,
+          "follower_changed": 3,
+          "same_lead_new_follower": 0,
+          "new_follower_other_line": 2,
+          "same_order": 9
+        },
+        "scoring": {
+          "all": {
+            "before_start_reference": {
+              "races": 14,
+              "top1": 6,
+              "top4": 10,
+              "mean_log_loss": 2.53541358
+            },
+            "before_start_transition": {
+              "races": 14,
+              "top1": 7,
+              "top4": 9,
+              "mean_log_loss": 2.58340428
+            },
+            "observed_previous_phase_reference": {
+              "races": 12,
+              "top1": 6,
+              "top4": 8,
+              "mean_log_loss": 2.38283085
+            },
+            "observed_previous_phase_transition": {
+              "races": 12,
+              "top1": 9,
+              "top4": 9,
+              "mean_log_loss": 1.78131326
+            }
+          },
+          "same_line_pair": {
+            "before_start_reference": {
+              "races": 9,
+              "top1": 6,
+              "top4": 8,
+              "mean_log_loss": 1.7189883
+            },
+            "before_start_transition": {
+              "races": 9,
+              "top1": 6,
+              "top4": 7,
+              "mean_log_loss": 1.9830467
+            },
+            "observed_previous_phase_reference": {
+              "races": 8,
+              "top1": 5,
+              "top4": 6,
+              "mean_log_loss": 2.22379672
+            },
+            "observed_previous_phase_transition": {
+              "races": 8,
+              "top1": 7,
+              "top4": 7,
+              "mean_log_loss": 1.53006996
+            }
+          },
+          "different_line_pair": {
+            "before_start_reference": {
+              "races": 5,
+              "top1": 0,
+              "top4": 2,
+              "mean_log_loss": 4.0049791
+            },
+            "before_start_transition": {
+              "races": 5,
+              "top1": 1,
+              "top4": 2,
+              "mean_log_loss": 3.66404792
+            },
+            "observed_previous_phase_reference": {
+              "races": 4,
+              "top1": 1,
+              "top4": 2,
+              "mean_log_loss": 2.70089911
+            },
+            "observed_previous_phase_transition": {
+              "races": 4,
+              "top1": 2,
+              "top4": 2,
+              "mean_log_loss": 2.28379986
+            }
+          }
+        }
+      },
+      "corner": {
+        "events": {
+          "races": 13,
+          "lead_changed": 3,
+          "follower_changed": 5,
+          "same_lead_new_follower": 2,
+          "new_follower_other_line": 2,
+          "same_order": 8
+        },
+        "scoring": {
+          "all": {
+            "before_start_reference": {
+              "races": 13,
+              "top1": 7,
+              "top4": 9,
+              "mean_log_loss": 2.15223855
+            },
+            "before_start_transition": {
+              "races": 13,
+              "top1": 9,
+              "top4": 10,
+              "mean_log_loss": 1.63142302
+            },
+            "observed_previous_phase_reference": {
+              "races": 13,
+              "top1": 7,
+              "top4": 9,
+              "mean_log_loss": 2.15223855
+            },
+            "observed_previous_phase_transition": {
+              "races": 13,
+              "top1": 8,
+              "top4": 11,
+              "mean_log_loss": 1.26988351
+            }
+          },
+          "different_line_pair": {
+            "before_start_reference": {
+              "races": 4,
+              "top1": 1,
+              "top4": 1,
+              "mean_log_loss": 3.0012784
+            },
+            "before_start_transition": {
+              "races": 4,
+              "top1": 0,
+              "top4": 1,
+              "mean_log_loss": 3.17779345
+            },
+            "observed_previous_phase_reference": {
+              "races": 4,
+              "top1": 1,
+              "top4": 1,
+              "mean_log_loss": 3.0012784
+            },
+            "observed_previous_phase_transition": {
+              "races": 4,
+              "top1": 1,
+              "top4": 2,
+              "mean_log_loss": 2.29738147
+            }
+          },
+          "same_line_pair": {
+            "before_start_reference": {
+              "races": 9,
+              "top1": 6,
+              "top4": 8,
+              "mean_log_loss": 1.7748875
+            },
+            "before_start_transition": {
+              "races": 9,
+              "top1": 9,
+              "top4": 9,
+              "mean_log_loss": 0.94414728
+            },
+            "observed_previous_phase_reference": {
+              "races": 9,
+              "top1": 6,
+              "top4": 8,
+              "mean_log_loss": 1.7748875
+            },
+            "observed_previous_phase_transition": {
+              "races": 9,
+              "top1": 7,
+              "top4": 9,
+              "mean_log_loss": 0.81321776
+            }
+          }
+        }
+      }
+    },
+    "same_races_same_ticket_counts": {
+      "all": {
+        "reference": {
+          "races": 207,
+          "hit_1": 26,
+          "hit_4": 70,
+          "hit_8": 93
+        },
+        "previous_video": {
+          "races": 207,
+          "hit_1": 26,
+          "hit_4": 70,
+          "hit_8": 93
+        },
+        "transition": {
+          "races": 207,
+          "hit_1": 26,
+          "hit_4": 69,
+          "hit_8": 93
+        }
+      },
+      "20261121": {
+        "reference": {
+          "races": 54,
+          "hit_1": 4,
+          "hit_4": 18,
+          "hit_8": 21
+        },
+        "previous_video": {
+          "races": 54,
+          "hit_1": 4,
+          "hit_4": 18,
+          "hit_8": 21
+        },
+        "transition": {
+          "races": 54,
+          "hit_1": 4,
+          "hit_4": 18,
+          "hit_8": 21
+        }
+      },
+      "20261122": {
+        "reference": {
+          "races": 67,
+          "hit_1": 8,
+          "hit_4": 20,
+          "hit_8": 26
+        },
+        "previous_video": {
+          "races": 67,
+          "hit_1": 8,
+          "hit_4": 20,
+          "hit_8": 26
+        },
+        "transition": {
+          "races": 67,
+          "hit_1": 8,
+          "hit_4": 19,
+          "hit_8": 26
+        }
+      },
+      "20261123": {
+        "reference": {
+          "races": 86,
+          "hit_1": 14,
+          "hit_4": 32,
+          "hit_8": 46
+        },
+        "previous_video": {
+          "races": 86,
+          "hit_1": 14,
+          "hit_4": 32,
+          "hit_8": 46
+        },
+        "transition": {
+          "races": 86,
+          "hit_1": 14,
+          "hit_4": 32,
+          "hit_8": 46
+        }
+      }
+    },
+    "ticket_changes": {
+      "gain_at_8": 1,
+      "loss_at_8": 1
+    },
+    "paired_day_95_percent_points_at_8": null,
+    "omissions": {
+      "unconfirmed_trifecta": 4
+    },
+    "home_estimate": {
+      "home_races": 12,
+      "home_observed_top1": 1,
+      "home_observed_top4": 10
+    },
+    "observed_pair_stability": {
+      "back": {
+        "same_pair": {
+          "without_transitions": {
+            "races": 9,
+            "hit_1": 1,
+            "hit_4": 9,
+            "log_loss_total": 11.99735785762646
+          },
+          "with_transitions": {
+            "races": 9,
+            "hit_1": 1,
+            "hit_4": 8,
+            "log_loss_total": 12.729757299849497
+          }
+        },
+        "changed_pair": {
+          "without_transitions": {
+            "races": 3,
+            "hit_1": 0,
+            "hit_4": 0,
+            "log_loss_total": 15.299773751496087
+          },
+          "with_transitions": {
+            "races": 3,
+            "hit_1": 0,
+            "hit_4": 0,
+            "log_loss_total": 15.184279730302459
+          }
+        }
+      },
+      "corner": {
+        "changed_pair": {
+          "without_transitions": {
+            "races": 5,
+            "hit_1": 1,
+            "hit_4": 3,
+            "log_loss_total": 11.894486329961872
+          },
+          "with_transitions": {
+            "races": 5,
+            "hit_1": 1,
+            "hit_4": 3,
+            "log_loss_total": 10.280577228012964
+          }
+        },
+        "same_pair": {
+          "without_transitions": {
+            "races": 8,
+            "hit_1": 1,
+            "hit_4": 6,
+            "log_loss_total": 16.084614759657196
+          },
+          "with_transitions": {
+            "races": 8,
+            "hit_1": 1,
+            "hit_4": 7,
+            "log_loss_total": 10.927922081501094
+          }
+        }
+      }
+    },
+    "new_follower_from_other_line_event": {
+      "back": {
+        "races": 12,
+        "actual_new_follower_other_line": 2,
+        "reference_brier_sum": 1.5323851273472915,
+        "transition_brier_sum": 1.5641924818766222
+      },
+      "corner": {
+        "races": 13,
+        "actual_new_follower_other_line": 2,
+        "reference_brier_sum": 2.5538647282044455,
+        "transition_brier_sum": 1.4488189193682153
+      }
+    }
+  },
+  "verification": {
+    "rankings_fixed_jst": "2026-11-24T18:24:00+09:00",
+    "recorded_jst": "2026-11-24T18:29:37+09:00",
+    "reference_commit": "0450d37080431ccf60ee6ff0af38ea03f80e6763",
+    "experiment_script_sha256": "47c9185730b8555d9b5611a53d888e1e5b0a037ec0014b10bedeca8b7dbe203b",
+    "training_label_receipts_sha256": "b1cbf0c369fd95cd05ce41d9c9f6c3bd5876083cf4105d4b19092081629d4130",
+    "score_recomputed_from_frozen_predictions": true,
+    "related_tests_passed": 16
+  }
+}

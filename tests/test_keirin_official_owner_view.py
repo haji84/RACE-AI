@@ -132,6 +132,9 @@ class OfflineOwnerView(unittest.TestCase):
     def test_world_readable_output_folder_and_private_key_are_rejected(self):
         public = self.root / "not-private"
         public.mkdir(mode=0o755)
+        # mkdir's mode is filtered by the runner umask (0077 in Codex).
+        # This negative fixture must actually be world-readable.
+        public.chmod(0o755)
         status, _ = self.invoke(out=public / "view.html")
         self.assertEqual(status, 2)
         self.assertEqual(list(public.iterdir()), [])

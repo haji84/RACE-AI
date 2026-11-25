@@ -15,6 +15,20 @@ g=module('unread_current',ROOT/'scripts/keirin_generate_result_unread_analysis.p
 c=module('stability_current',ROOT/'race_ai/keirin_research_stability.py')
 
 class CurrentMethodEvidenceTests(unittest.TestCase):
+    def test_valid_abstention_preserves_an_empty_selection(self):
+        market = {'ranked_2ren_tan': [], 'candidate_tickets': {'2t': [[1,2], [2,1]]},
+                  'markets': {'2t': {'tickets': [], 'point_count': 0}},
+                  'selection': {'2t': {'point_count': 0, 'recommendation': 'ABSTAIN_INSUFFICIENT_SEPARATION',
+                                       'abstention_code': 'ALL_CANDIDATES_WITHIN_SUPPORT_WINDOW'}}}
+        g.check_market_tickets(market, [1,2,3,4,5], '2t')
+        market['markets']['2t']['tickets'] = [[4,5]]
+        with self.assertRaisesRegex(ValueError,'INVALID_ANALYSIS_TICKETS'):
+            g.check_market_tickets(market, [1,2,3,4,5], '2t')
+        market['markets']['2t']['tickets'] = []
+        market['selection']['2t']['point_count'] = 1
+        with self.assertRaisesRegex(ValueError,'INVALID_ANALYSIS_TICKETS'):
+            g.check_market_tickets(market, [1,2,3,4,5], '2t')
+
     def test_results_are_rejected_at_any_input_depth(self):
         for field in ('official_result','results','payout','current_meeting_results'):
             with self.assertRaisesRegex(ValueError,'RESULT_FIELD_PRESENT'):

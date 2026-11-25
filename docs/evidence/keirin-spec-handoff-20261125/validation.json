@@ -1,0 +1,63 @@
+{
+  "checked_at": "2026-11-25T12:18:21.730790+00:00",
+  "inherited_base": "912947a3",
+  "final_relevant_tests": {
+    "tests": 203,
+    "failures": 0,
+    "errors": 0,
+    "command": "python -m unittest <21 relevant modules listed in validation.md> -q"
+  },
+  "original_broad_discovery": {
+    "tests": 1549,
+    "failures": 1,
+    "errors": 8,
+    "skipped": 11,
+    "error_tests": [
+      "test_keirin_cloud_owner_source_cycle (unittest.loader._FailedTest.test_keirin_cloud_owner_source_cycle)",
+      "test_keirin_cloud_pr71_state (unittest.loader._FailedTest.test_keirin_cloud_pr71_state)",
+      "test_keirin_cloud_pr71_variable (unittest.loader._FailedTest.test_keirin_cloud_pr71_variable)",
+      "test_keirin_day_four_model_audit (unittest.loader._FailedTest.test_keirin_day_four_model_audit)",
+      "test_keirin_licensed_source_readiness (unittest.loader._FailedTest.test_keirin_licensed_source_readiness)",
+      "setUpClass (test_keirin_note_browser.NoteBrowserTests)",
+      "test_keirin_source_gap_plan (unittest.loader._FailedTest.test_keirin_source_gap_plan)",
+      "test_keirin_verified_prior_day_bootstrap (unittest.loader._FailedTest.test_keirin_verified_prior_day_bootstrap)"
+    ],
+    "failure_tests": [
+      "test_world_readable_output_folder_and_private_key_are_rejected (test_keirin_official_owner_view.OfflineOwnerView.test_world_readable_output_folder_and_private_key_are_rejected)"
+    ],
+    "missing_modules": [
+      "race_ai.keirin_allowed_delivery",
+      "race_ai.keirin_daily_public_catalog",
+      "race_ai.keirin_pr71_four_model_rank"
+    ],
+    "browser_state": "PLAYWRIGHT_CHROMIUM_NOT_INSTALLED"
+  },
+  "fixture_correction": {
+    "test": "test_world_readable_output_folder_and_private_key_are_rejected",
+    "cause": "umask0077 filtered mkdir0755 to0700",
+    "change": "explicit chmod0755 on synthetic negative fixture only",
+    "isolated_owner_view_tests_passed": 9,
+    "runtime_permissions_changed": false
+  },
+  "review": {
+    "independent_reviewer": true,
+    "issues_fixed": [
+      "postcutoff normalized flow is excluded",
+      "initial front prefix shares INITIAL conflict domain",
+      "complete and compatible partial attack evidence counted once"
+    ],
+    "minor_fixed": "conversation comparison input is not labeled restored original",
+    "second_classifier_removed": true
+  },
+  "original_forecasts_modified": false,
+  "model_weights_promoted": false,
+  "production_complete": false,
+  "verified_source_commit": "c7831244b231e77ebbbe7f7525c048551268573e",
+  "ci_core": {
+    "run_id": 45612583162,
+    "job_id": 139199657631,
+    "conclusion": "success",
+    "all_job_steps_executed": true,
+    "url": "https://github.com/haji84/RACE-AI/actions/runs/45612583162"
+  }
+}

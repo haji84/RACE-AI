@@ -1,0 +1,18 @@
+{
+  "schema": "KEIRIN_REAL_RIDER_HISTORY_DISPLAY_READBACK_V1",
+  "checked_at": "2026-11-25T14:49:31.742Z",
+  "races": 75,
+  "riders": 516,
+  "with_observed_numeric_history": 516,
+  "without_observed_numeric_history": 0,
+  "observed_finish_rows": 46028,
+  "refresh_holds": 0,
+  "original_joint_distributions_preserved": true,
+  "original_cutoffs_preserved": true,
+  "source_roster_sha_bound": true,
+  "all_historical_samples_rendered": true,
+  "post_cutoff_display_only": true,
+  "pre_cutoff_performance_increment": 0,
+  "owner_browser_decryption_reobserved": false,
+  "accuracy_improvement_proven": false
+}

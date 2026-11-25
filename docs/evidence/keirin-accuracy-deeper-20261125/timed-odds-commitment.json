@@ -1,0 +1,9 @@
+{
+  "registration": "timed-odds",
+  "receipt_sha256": "3f12514b4669e72c54e415d97219fe3c9b29dca77fdb876b173c6703177b6e4a",
+  "design": "9250711cfc55cd2202374a66260649f23a4d56061457c10a1922dcc605e30b48",
+  "earliest_cutoff": "2026-11-25T18:11:00+09:00",
+  "latest_cutoff": "2026-11-25T23:25:00+09:00",
+  "registered_at": "2026-11-25T08:42:43.906273+00:00",
+  "sha256": "9d12da44f2c70e467b16ffe74019480609b72d89d4a08b1181408ecf6f38b240"
+}

@@ -1,0 +1,228 @@
+{
+  "comparison_receipt": {
+    "schema": "KEIRIN_FORWARD_RECEIPT_V1",
+    "prediction_sha256": "20f8aa70f5ce60e5e72228c65b67b26c7ee1dace38c80b15ca519f6edbb162b1",
+    "frozen_at": "2026-11-25T08:46:55.273509+00:00",
+    "comparators": {
+      "published": "site_static",
+      "trial": "same_existing_both_updates_with_new_pre_cutoff_line"
+    },
+    "design_sha256": "9250711cfc55cd2202374a66260649f23a4d56061457c10a1922dcc605e30b48",
+    "n": 15,
+    "same_tickets_on_all_original_model_races": 60,
+    "changed_sets": 15,
+    "earliest_cutoff": "2026-11-25T21:00:00+09:00",
+    "latest_cutoff": "2026-11-25T23:25:00+09:00",
+    "caps": {
+      "4": 13,
+      "8": 2
+    },
+    "acquired_commit": "93c73d259b428e3d43d59b350cd87cc065fd3090",
+    "source_receipt_sha256": "c344001a78523cc4afc2f3d02495047d0bf31416250e72f691eef596d9eb23b0",
+    "input_exposure": {
+      "entry_rows": 101,
+      "career_rows_at_least_three": 101,
+      "recent_rows_at_least_three": 97,
+      "role_rows_at_least_three": 100,
+      "track_rows_at_least_three": 35,
+      "grade_rows_at_least_three": 101,
+      "bound": 101
+    },
+    "first_observed_range": [
+      "2026-11-25T04:08:44.683113+00:00",
+      "2026-11-25T05:16:39.883189+00:00"
+    ],
+    "additional_check": "Source bytes for early and late Kdreams same event, cutoff, complete starter identities, late line+tactics; two-source input packet with H and registrations; earlier published selection unchanged. Current incumbent complete-line branch with existing weights, no re-fit."
+  },
+  "five_days": {
+    "eligible_date_counts": {
+      "20261124": 80,
+      "20261125": 75,
+      "20261123": 86,
+      "20261121": 54,
+      "20261122": 67
+    },
+    "sources": "Kdreams programme receipts (rehashed ordinary page), and separately GitHub-authenticated owner-source fields (URL/time/sha bound). Earliest vs latest observed before cutoff; compare outer line groups in arbitrary order but within-line rider order matters. No cadence presumed between captures.",
+    "by_day": {
+      "20261121": {
+        "at_least_one": 54,
+        "at_least_two_capture_times": 21,
+        "distinct_times": 21,
+        "different_page_hash": 21,
+        "same_starters": 21,
+        "none_to_complete": 17,
+        "updated_field_source_tip": 17,
+        "updated_roles": 17,
+        "unchanged_complete_line": 4,
+        "last_capture_T10_T15": 3
+      },
+      "20261122": {
+        "at_least_one": 67,
+        "at_least_two_capture_times": 6,
+        "distinct_times": 6,
+        "different_page_hash": 6,
+        "same_starters": 6,
+        "unchanged_complete_line": 6,
+        "updated_field_gear": 2,
+        "last_capture_T10_T15": 6
+      },
+      "20261123": {
+        "at_least_one": 86,
+        "at_least_two_capture_times": 82,
+        "distinct_times": 82,
+        "different_page_hash": 82,
+        "same_starters": 82,
+        "unchanged_complete_line": 82,
+        "last_capture_T10_T15": 4,
+        "last_capture_T0_T5": 1
+      },
+      "20261124": {
+        "at_least_one": 80,
+        "at_least_two_capture_times": 4,
+        "distinct_times": 4,
+        "different_page_hash": 4,
+        "same_starters": 4,
+        "unchanged_complete_line": 3,
+        "last_capture_T10_T15": 4,
+        "none_to_complete": 1,
+        "updated_field_source_tip": 1,
+        "updated_roles": 1
+      },
+      "20261125": {
+        "at_least_one": 75,
+        "at_least_two_capture_times": 75,
+        "distinct_times": 75,
+        "different_page_hash": 75,
+        "same_starters": 75,
+        "unchanged_complete_line": 54,
+        "last_capture_T10_T15": 2,
+        "none_to_complete": 21,
+        "updated_field_source_tip": 21,
+        "updated_roles": 21,
+        "last_capture_T0_T5": 2,
+        "updated_field_gear": 2
+      }
+    },
+    "source_ref": "93c73d259b428e3d43d59b350cd87cc065fd3090",
+    "all_instances_sha256": "a5ba0eca2d9926ddcb8961cadb8b455b6e4337ec23a04327b5c3538e117dd677"
+  },
+  "nov24": {
+    "actual": 15,
+    "normal_scored": 14,
+    "excluded": [
+      "202611244804"
+    ],
+    "vs": {
+      "static": {
+        "1": {
+          "n": 14,
+          "base": 0,
+          "line": 2,
+          "gains": 2,
+          "losses": 0,
+          "changed": 14,
+          "budget": 14
+        },
+        "4": {
+          "n": 14,
+          "base": 4,
+          "line": 6,
+          "gains": 2,
+          "losses": 0,
+          "changed": 14,
+          "budget": 56
+        },
+        "8": {
+          "n": 14,
+          "base": 7,
+          "line": 7,
+          "gains": 2,
+          "losses": 2,
+          "changed": 14,
+          "budget": 112
+        },
+        "listed": {
+          "n": 14,
+          "base": 4,
+          "line": 6,
+          "gains": 2,
+          "losses": 0,
+          "changed": 14,
+          "budget": 60
+        }
+      },
+      "published": {
+        "1": {
+          "n": 14,
+          "base": 0,
+          "line": 2,
+          "gains": 2,
+          "losses": 0,
+          "changed": 14,
+          "budget": 14
+        },
+        "4": {
+          "n": 14,
+          "base": 4,
+          "line": 6,
+          "gains": 2,
+          "losses": 0,
+          "changed": 14,
+          "budget": 56
+        },
+        "8": {
+          "n": 14,
+          "base": 7,
+          "line": 7,
+          "gains": 2,
+          "losses": 2,
+          "changed": 14,
+          "budget": 112
+        },
+        "listed": {
+          "n": 14,
+          "base": 4,
+          "line": 6,
+          "gains": 2,
+          "losses": 0,
+          "changed": 14,
+          "budget": 60
+        }
+      }
+    },
+    "by_grade": {
+      "A3": {
+        "n": 9,
+        "static": 4,
+        "line": 5
+      },
+      "A1 A2": {
+        "n": 5,
+        "static": 0,
+        "line": 1
+      }
+    },
+    "case_count_by_venue": {
+      "34": 5,
+      "48": 4,
+      "61": 5
+    },
+    "ids_source_checks": {
+      "field_all_match": 15,
+      "controls": 66
+    }
+  },
+  "freeze_nov24": {
+    "races": 15,
+    "unaffected_correct_replayed_controls": 66,
+    "method": "Actual timestamped static-to-line version changes, retrospective current-model ranking",
+    "inputs_through": "20261122",
+    "weights_cutoff": "20261120",
+    "weights": "1d474027b42c527aba4f1deccdc1dba786f373d07caf9a0a32582cb034411a6b",
+    "published_source_sha256": "26883c36df74d78e62d873342f587917f41fd6f854a6759947ae915da9bd7c5f",
+    "selected_sha256": "2ec0bee9aae2e86e4bf36f84d16c25865f6193658890b6fe32cb1db2693ac2a0",
+    "source_sha256": "7081c3e621d5c35a06aa5c1acbe545d6310223ecd89b5136fd6e1526323f7e2d",
+    "design_sha256": "b8fecaa276a301a74cc398c5241189efedab74e5cb2efbcba0c25f15e57af1ff",
+    "forecast_sha256": "ebce0038d0be001d3b88dfac87c221763979ad76e3704619108adbbf99293afc"
+  }
+}

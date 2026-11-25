@@ -1,0 +1,2203 @@
+{
+  "mark_transfer_to_earlier_models": {
+    "label_check": {
+      "paid_and_rolling_rank_agree": 10867
+    },
+    "marks_source": "retrospective SQLite, not timestamp validated",
+    "weights_last_training": "20260523",
+    "groups": {
+      "combined_full_base": {
+        "n": 10867,
+        "days": 156,
+        "calendar_range": [
+          "20260524",
+          "20261120"
+        ],
+        "with_matching_marks": 10866,
+        "source": {
+          "KDREAMS_RETROSPECTIVE_PROGRAM": 10544,
+          "VERSIONED_PRE_CUTOFF_PROGRAM": 322,
+          "RETROSPECTIVE_NETKEIRIN_ENTRIES_WITH_PRE_CUTOFF_ROSTER_AND_LINE": 1
+        },
+        "scores": {
+          "1": {
+            "exact": [
+              1302,
+              1308
+            ],
+            "gain": 98,
+            "lost": 92,
+            "winner_coverage": [
+              4951,
+              4949
+            ],
+            "ordered_pair_coverage": [
+              2660,
+              2667
+            ],
+            "change": 1344,
+            "delta_points": 0.05521303027514493,
+            "paired_day_ci_95_points": [
+              -0.1738509880655496,
+              0.29838710967574916
+            ]
+          },
+          "4": {
+            "exact": [
+              3181,
+              3133
+            ],
+            "gain": 114,
+            "lost": 162,
+            "winner_coverage": [
+              7276,
+              6978
+            ],
+            "ordered_pair_coverage": [
+              4708,
+              4524
+            ],
+            "change": 3722,
+            "delta_points": -0.44170424220115945,
+            "paired_day_ci_95_points": [
+              -0.7128536757905408,
+              -0.15671705726168078
+            ]
+          },
+          "8": {
+            "exact": [
+              4451,
+              4435
+            ],
+            "gain": 140,
+            "lost": 156,
+            "winner_coverage": [
+              8372,
+              8128
+            ],
+            "ordered_pair_coverage": [
+              5935,
+              5804
+            ],
+            "change": 5333,
+            "delta_points": -0.1472347474003865,
+            "paired_day_ci_95_points": [
+              -0.44109538687741223,
+              0.1466697710234501
+            ]
+          }
+        }
+      },
+      "all_matched_marks": {
+        "n": 10866,
+        "days": 156,
+        "calendar_range": [
+          "20260524",
+          "20261120"
+        ],
+        "with_matching_marks": 10866,
+        "source": {
+          "KDREAMS_RETROSPECTIVE_PROGRAM": 10544,
+          "VERSIONED_PRE_CUTOFF_PROGRAM": 321,
+          "RETROSPECTIVE_NETKEIRIN_ENTRIES_WITH_PRE_CUTOFF_ROSTER_AND_LINE": 1
+        },
+        "scores": {
+          "1": {
+            "exact": [
+              1301,
+              1307
+            ],
+            "gain": 98,
+            "lost": 92,
+            "winner_coverage": [
+              4950,
+              4948
+            ],
+            "ordered_pair_coverage": [
+              2659,
+              2666
+            ],
+            "change": 1344,
+            "delta_points": 0.05521811154058532,
+            "paired_day_ci_95_points": [
+              -0.1738509880655496,
+              0.29840172738099213
+            ]
+          },
+          "4": {
+            "exact": [
+              3180,
+              3132
+            ],
+            "gain": 114,
+            "lost": 162,
+            "winner_coverage": [
+              7275,
+              6977
+            ],
+            "ordered_pair_coverage": [
+              4707,
+              4523
+            ],
+            "change": 3722,
+            "delta_points": -0.44174489232468256,
+            "paired_day_ci_95_points": [
+              -0.7129183956910126,
+              -0.15673078861739054
+            ]
+          },
+          "8": {
+            "exact": [
+              4450,
+              4434
+            ],
+            "gain": 140,
+            "lost": 156,
+            "winner_coverage": [
+              8371,
+              8127
+            ],
+            "ordered_pair_coverage": [
+              5934,
+              5803
+            ],
+            "change": 5333,
+            "delta_points": -0.14724829744156084,
+            "paired_day_ci_95_points": [
+              -0.44109538687741223,
+              0.14667689003517262
+            ]
+          }
+        }
+      },
+      "pinned_1024": {
+        "n": 1024,
+        "days": 61,
+        "calendar_range": [
+          "20260601",
+          "20260731"
+        ],
+        "with_matching_marks": 1024,
+        "source": {
+          "KDREAMS_RETROSPECTIVE_PROGRAM": 1024
+        },
+        "scores": {
+          "1": {
+            "exact": [
+              121,
+              127
+            ],
+            "gain": 8,
+            "lost": 2,
+            "winner_coverage": [
+              488,
+              492
+            ],
+            "ordered_pair_coverage": [
+              264,
+              269
+            ],
+            "change": 110,
+            "delta_points": 0.5859375,
+            "paired_day_ci_95_points": [
+              0.0,
+              1.1904761904761905
+            ]
+          },
+          "4": {
+            "exact": [
+              296,
+              290
+            ],
+            "gain": 13,
+            "lost": 19,
+            "winner_coverage": [
+              681,
+              659
+            ],
+            "ordered_pair_coverage": [
+              448,
+              429
+            ],
+            "change": 322,
+            "delta_points": -0.5859375,
+            "paired_day_ci_95_points": [
+              -1.8620716641028447,
+              0.6744768825961662
+            ]
+          },
+          "8": {
+            "exact": [
+              424,
+              423
+            ],
+            "gain": 13,
+            "lost": 14,
+            "winner_coverage": [
+              790,
+              764
+            ],
+            "ordered_pair_coverage": [
+              567,
+              554
+            ],
+            "change": 496,
+            "delta_points": -0.09765625,
+            "paired_day_ci_95_points": [
+              -1.0806604137718079,
+              0.8547422096521672
+            ]
+          }
+        }
+      },
+      "early_stage_all": {
+        "n": 7736,
+        "days": 110,
+        "calendar_range": [
+          "20260524",
+          "20260930"
+        ],
+        "with_matching_marks": 7736,
+        "source": {
+          "KDREAMS_RETROSPECTIVE_PROGRAM": 7736
+        },
+        "scores": {
+          "1": {
+            "exact": [
+              895,
+              903
+            ],
+            "gain": 69,
+            "lost": 61,
+            "winner_coverage": [
+              3502,
+              3509
+            ],
+            "ordered_pair_coverage": [
+              1868,
+              1885
+            ],
+            "change": 949,
+            "delta_points": 0.1034126163391934,
+            "paired_day_ci_95_points": [
+              -0.1679310498798264,
+              0.3779447998416269
+            ]
+          },
+          "4": {
+            "exact": [
+              2261,
+              2229
+            ],
+            "gain": 82,
+            "lost": 114,
+            "winner_coverage": [
+              5130,
+              4938
+            ],
+            "ordered_pair_coverage": [
+              3335,
+              3214
+            ],
+            "change": 2649,
+            "delta_points": -0.4136504653567736,
+            "paired_day_ci_95_points": [
+              -0.766834489781698,
+              -0.05296249747258597
+            ]
+          },
+          "8": {
+            "exact": [
+              3164,
+              3168
+            ],
+            "gain": 113,
+            "lost": 109,
+            "winner_coverage": [
+              5930,
+              5756
+            ],
+            "ordered_pair_coverage": [
+              4208,
+              4121
+            ],
+            "change": 3807,
+            "delta_points": 0.0517063081695967,
+            "paired_day_ci_95_points": [
+              -0.32503052425675016,
+              0.4100123090103979
+            ]
+          }
+        }
+      },
+      "recent_stage_all": {
+        "n": 3131,
+        "days": 46,
+        "calendar_range": [
+          "20261001",
+          "20261120"
+        ],
+        "with_matching_marks": 3130,
+        "source": {
+          "KDREAMS_RETROSPECTIVE_PROGRAM": 2808,
+          "VERSIONED_PRE_CUTOFF_PROGRAM": 322,
+          "RETROSPECTIVE_NETKEIRIN_ENTRIES_WITH_PRE_CUTOFF_ROSTER_AND_LINE": 1
+        },
+        "scores": {
+          "1": {
+            "exact": [
+              407,
+              405
+            ],
+            "gain": 29,
+            "lost": 31,
+            "winner_coverage": [
+              1449,
+              1440
+            ],
+            "ordered_pair_coverage": [
+              792,
+              782
+            ],
+            "change": 395,
+            "delta_points": -0.06387735547748323,
+            "paired_day_ci_95_points": [
+              -0.5094873582977895,
+              0.37845398785208695
+            ]
+          },
+          "4": {
+            "exact": [
+              920,
+              904
+            ],
+            "gain": 32,
+            "lost": 48,
+            "winner_coverage": [
+              2146,
+              2040
+            ],
+            "ordered_pair_coverage": [
+              1373,
+              1310
+            ],
+            "change": 1073,
+            "delta_points": -0.5110188438198658,
+            "paired_day_ci_95_points": [
+              -0.9362464831435824,
+              -0.09531149153395753
+            ]
+          },
+          "8": {
+            "exact": [
+              1287,
+              1267
+            ],
+            "gain": 27,
+            "lost": 47,
+            "winner_coverage": [
+              2442,
+              2372
+            ],
+            "ordered_pair_coverage": [
+              1727,
+              1683
+            ],
+            "change": 1526,
+            "delta_points": -0.6387735547748323,
+            "paired_day_ci_95_points": [
+              -1.1374901668031274,
+              -0.15961564958202532
+            ]
+          }
+        }
+      },
+      "versioned_program": {
+        "n": 322,
+        "days": 5,
+        "calendar_range": [
+          "20261116",
+          "20261120"
+        ],
+        "with_matching_marks": 321,
+        "source": {
+          "VERSIONED_PRE_CUTOFF_PROGRAM": 322
+        },
+        "scores": {
+          "1": {
+            "exact": [
+              43,
+              44
+            ],
+            "gain": 5,
+            "lost": 4,
+            "winner_coverage": [
+              141,
+              142
+            ],
+            "ordered_pair_coverage": [
+              77,
+              77
+            ],
+            "change": 51,
+            "delta_points": 0.3105590062111801,
+            "paired_day_ci_95_points": [
+              -0.7220216606498195,
+              1.1627906976744187
+            ]
+          },
+          "4": {
+            "exact": [
+              93,
+              90
+            ],
+            "gain": 0,
+            "lost": 3,
+            "winner_coverage": [
+              228,
+              212
+            ],
+            "ordered_pair_coverage": [
+              145,
+              134
+            ],
+            "change": 151,
+            "delta_points": -0.9316770186335404,
+            "paired_day_ci_95_points": [
+              -1.639344262295082,
+              -0.2949852507374631
+            ]
+          },
+          "8": {
+            "exact": [
+              124,
+              119
+            ],
+            "gain": 4,
+            "lost": 9,
+            "winner_coverage": [
+              263,
+              256
+            ],
+            "ordered_pair_coverage": [
+              177,
+              168
+            ],
+            "change": 210,
+            "delta_points": -1.5527950310559007,
+            "paired_day_ci_95_points": [
+              -4.507042253521127,
+              1.2738853503184713
+            ]
+          }
+        }
+      },
+      "april_may": {
+        "n": 565,
+        "days": 8,
+        "calendar_range": [
+          "20260524",
+          "20260531"
+        ],
+        "with_matching_marks": 565,
+        "source": {
+          "KDREAMS_RETROSPECTIVE_PROGRAM": 565
+        },
+        "scores": {
+          "1": {
+            "exact": [
+              73,
+              73
+            ],
+            "gain": 4,
+            "lost": 4,
+            "winner_coverage": [
+              280,
+              281
+            ],
+            "ordered_pair_coverage": [
+              150,
+              148
+            ],
+            "change": 71,
+            "delta_points": 0.0,
+            "paired_day_ci_95_points": [
+              -0.8880994671403197,
+              0.8726003490401396
+            ]
+          },
+          "4": {
+            "exact": [
+              189,
+              190
+            ],
+            "gain": 4,
+            "lost": 3,
+            "winner_coverage": [
+              387,
+              377
+            ],
+            "ordered_pair_coverage": [
+              260,
+              256
+            ],
+            "change": 180,
+            "delta_points": 0.17699115044247787,
+            "paired_day_ci_95_points": [
+              -1.0743551272433491,
+              1.5944031255884017
+            ]
+          },
+          "8": {
+            "exact": [
+              255,
+              251
+            ],
+            "gain": 7,
+            "lost": 11,
+            "winner_coverage": [
+              437,
+              426
+            ],
+            "ordered_pair_coverage": [
+              316,
+              311
+            ],
+            "change": 270,
+            "delta_points": -0.7079646017699115,
+            "paired_day_ci_95_points": [
+              -2.3131672597864767,
+              1.0909090909090908
+            ]
+          }
+        }
+      },
+      "june_july": {
+        "n": 4343,
+        "days": 61,
+        "calendar_range": [
+          "20260601",
+          "20260731"
+        ],
+        "with_matching_marks": 4343,
+        "source": {
+          "KDREAMS_RETROSPECTIVE_PROGRAM": 4343
+        },
+        "scores": {
+          "1": {
+            "exact": [
+              508,
+              508
+            ],
+            "gain": 37,
+            "lost": 37,
+            "winner_coverage": [
+              1961,
+              1966
+            ],
+            "ordered_pair_coverage": [
+              1045,
+              1053
+            ],
+            "change": 517,
+            "delta_points": 0.0,
+            "paired_day_ci_95_points": [
+              -0.3670166754010999,
+              0.36089897820076156
+            ]
+          },
+          "4": {
+            "exact": [
+              1258,
+              1246
+            ],
+            "gain": 50,
+            "lost": 62,
+            "winner_coverage": [
+              2866,
+              2758
+            ],
+            "ordered_pair_coverage": [
+              1851,
+              1782
+            ],
+            "change": 1487,
+            "delta_points": -0.2763067004374856,
+            "paired_day_ci_95_points": [
+              -0.7794136789361168,
+              0.23070421372258554
+            ]
+          },
+          "8": {
+            "exact": [
+              1760,
+              1767
+            ],
+            "gain": 69,
+            "lost": 62,
+            "winner_coverage": [
+              3337,
+              3230
+            ],
+            "ordered_pair_coverage": [
+              2364,
+              2316
+            ],
+            "change": 2137,
+            "delta_points": 0.16117890858853326,
+            "paired_day_ci_95_points": [
+              -0.30570795754023194,
+              0.6282390246520841
+            ]
+          }
+        }
+      },
+      "aug_sep": {
+        "n": 2828,
+        "days": 41,
+        "calendar_range": [
+          "20260801",
+          "20260930"
+        ],
+        "with_matching_marks": 2828,
+        "source": {
+          "KDREAMS_RETROSPECTIVE_PROGRAM": 2828
+        },
+        "scores": {
+          "1": {
+            "exact": [
+              314,
+              322
+            ],
+            "gain": 28,
+            "lost": 20,
+            "winner_coverage": [
+              1261,
+              1262
+            ],
+            "ordered_pair_coverage": [
+              673,
+              684
+            ],
+            "change": 361,
+            "delta_points": 0.2828854314002829,
+            "paired_day_ci_95_points": [
+              -0.25063566831541967,
+              0.7911734347740315
+            ]
+          },
+          "4": {
+            "exact": [
+              814,
+              793
+            ],
+            "gain": 28,
+            "lost": 49,
+            "winner_coverage": [
+              1877,
+              1803
+            ],
+            "ordered_pair_coverage": [
+              1224,
+              1176
+            ],
+            "change": 982,
+            "delta_points": -0.7425742574257426,
+            "paired_day_ci_95_points": [
+              -1.263537906137184,
+              -0.27533283865960473
+            ]
+          },
+          "8": {
+            "exact": [
+              1149,
+              1150
+            ],
+            "gain": 37,
+            "lost": 36,
+            "winner_coverage": [
+              2156,
+              2100
+            ],
+            "ordered_pair_coverage": [
+              1528,
+              1494
+            ],
+            "change": 1400,
+            "delta_points": 0.03536067892503536,
+            "paired_day_ci_95_points": [
+              -0.6533866249898903,
+              0.6443351661950011
+            ]
+          }
+        }
+      },
+      "oct_nov": {
+        "n": 3131,
+        "days": 46,
+        "calendar_range": [
+          "20261001",
+          "20261120"
+        ],
+        "with_matching_marks": 3130,
+        "source": {
+          "KDREAMS_RETROSPECTIVE_PROGRAM": 2808,
+          "VERSIONED_PRE_CUTOFF_PROGRAM": 322,
+          "RETROSPECTIVE_NETKEIRIN_ENTRIES_WITH_PRE_CUTOFF_ROSTER_AND_LINE": 1
+        },
+        "scores": {
+          "1": {
+            "exact": [
+              407,
+              405
+            ],
+            "gain": 29,
+            "lost": 31,
+            "winner_coverage": [
+              1449,
+              1440
+            ],
+            "ordered_pair_coverage": [
+              792,
+              782
+            ],
+            "change": 395,
+            "delta_points": -0.06387735547748323,
+            "paired_day_ci_95_points": [
+              -0.5094873582977895,
+              0.37845398785208695
+            ]
+          },
+          "4": {
+            "exact": [
+              920,
+              904
+            ],
+            "gain": 32,
+            "lost": 48,
+            "winner_coverage": [
+              2146,
+              2040
+            ],
+            "ordered_pair_coverage": [
+              1373,
+              1310
+            ],
+            "change": 1073,
+            "delta_points": -0.5110188438198658,
+            "paired_day_ci_95_points": [
+              -0.9362464831435824,
+              -0.09531149153395753
+            ]
+          },
+          "8": {
+            "exact": [
+              1287,
+              1267
+            ],
+            "gain": 27,
+            "lost": 47,
+            "winner_coverage": [
+              2442,
+              2372
+            ],
+            "ordered_pair_coverage": [
+              1727,
+              1683
+            ],
+            "change": 1526,
+            "delta_points": -0.6387735547748323,
+            "paired_day_ci_95_points": [
+              -1.1374901668031274,
+              -0.15961564958202532
+            ]
+          }
+        }
+      }
+    }
+  },
+  "mark_transfer_freeze": {
+    "exact_reconstructed_baseline_top8": 10867,
+    "counts": {
+      "april_may": {
+        "total_saved_in_dates": 607,
+        "outside_rolling": 42,
+        "applicable": 565
+      },
+      "june_july": {
+        "total_saved_in_dates": 4665,
+        "outside_rolling": 322,
+        "applicable": 4343
+      },
+      "aug_sep": {
+        "total_saved_in_dates": 3050,
+        "outside_rolling": 222,
+        "applicable": 2828
+      },
+      "oct_nov": {
+        "total_saved_in_dates": 3788,
+        "outside_rolling": 657,
+        "applicable": 3130,
+        "identity_or_field_mismatch": 1
+      }
+    },
+    "rank_file_sha256": "05cb44540dd0d5a2c7b6297c7e0c2ffefa6d3ab5cae11be14f901f7d572fa5a9",
+    "weights_sha256": "83a60af5ae8c99e3b3171afbaefcfd67142c70e8caf1365ad413ffc9388091a0",
+    "plan_sha256": "ed2c52930ddad2b7fd53aff945503a8c1b5d4c4f0a17be8143a3aa44d0c79546",
+    "reference_sha256": {
+      "april_may": "440ec1cbf6f190a942f740ad8738e1819a68da0a07d3a3f370a1ae06f29ea8ed",
+      "june_july": "acd18b50afaa3a7cde18c3528766deb14828677c290dee2036bb045f047ba189",
+      "aug_sep": "a7fe6152166d7dda16ce24fdbc153eb4a8ad8d01885c6207859cbaca9bc242df",
+      "oct_nov": "15da093d0bf7138f0b17c3034f6407439e57d6d07aee1d06f23a45bb7b1ce838"
+    }
+  },
+  "leader_after_wheel_wins": {
+    "rolling": {
+      "all": {
+        "races": 12234,
+        "days": 175,
+        "tickets": {
+          "1": {
+            "hit": {
+              "original": 1248,
+              "winner": 1253,
+              "joint": 1256,
+              "both": 1254
+            },
+            "differences": {
+              "original_to_joint": {
+                "gains": 31,
+                "losses": 23,
+                "pp": 0.06539153179663233,
+                "paired_date_bootstrap95pp": [
+                  -0.04924177984284117,
+                  0.18088760936833462
+                ]
+              },
+              "original_to_both": {
+                "gains": 43,
+                "losses": 37,
+                "pp": 0.04904364884747425,
+                "paired_date_bootstrap95pp": [
+                  -0.09035204822886622,
+                  0.19520925251517973
+                ]
+              },
+              "winner_to_both": {
+                "gains": 24,
+                "losses": 23,
+                "pp": 0.008173941474579042,
+                "paired_date_bootstrap95pp": [
+                  -0.09802420012304766,
+                  0.11376865049034537
+                ]
+              }
+            }
+          },
+          "4": {
+            "hit": {
+              "original": 3234,
+              "winner": 3207,
+              "joint": 3228,
+              "both": 3216
+            },
+            "differences": {
+              "original_to_joint": {
+                "gains": 22,
+                "losses": 28,
+                "pp": -0.04904364884747425,
+                "paired_date_bootstrap95pp": [
+                  -0.16390422220171094,
+                  0.0659825541504988
+                ]
+              },
+              "original_to_both": {
+                "gains": 48,
+                "losses": 66,
+                "pp": -0.14713094654242276,
+                "paired_date_bootstrap95pp": [
+                  -0.32663726931242854,
+                  0.03327647637015737
+                ]
+              },
+              "winner_to_both": {
+                "gains": 35,
+                "losses": 26,
+                "pp": 0.07356547327121138,
+                "paired_date_bootstrap95pp": [
+                  -0.050236120368183416,
+                  0.2036514716965741
+                ]
+              }
+            }
+          },
+          "8": {
+            "hit": {
+              "original": 4583,
+              "winner": 4580,
+              "joint": 4580,
+              "both": 4581
+            },
+            "differences": {
+              "original_to_joint": {
+                "gains": 37,
+                "losses": 40,
+                "pp": -0.024521824423737126,
+                "paired_date_bootstrap95pp": [
+                  -0.16416722461712843,
+                  0.1197043838538266
+                ]
+              },
+              "original_to_both": {
+                "gains": 71,
+                "losses": 73,
+                "pp": -0.016347882949158083,
+                "paired_date_bootstrap95pp": [
+                  -0.21146936673253924,
+                  0.18625858721563532
+                ]
+              },
+              "winner_to_both": {
+                "gains": 34,
+                "losses": 33,
+                "pp": 0.008173941474579042,
+                "paired_date_bootstrap95pp": [
+                  -0.12976166042551146,
+                  0.14461378098001346
+                ]
+              }
+            }
+          }
+        },
+        "conditional_n": 3819,
+        "conditional_logloss": [
+          0.9727863073348999,
+          0.9652406573295593
+        ],
+        "head_finish_when_second_won": {
+          "2": 1141,
+          "1": 711,
+          "0": 1967
+        }
+      },
+      "second_won": {
+        "races": 3819,
+        "days": 156,
+        "tickets": {
+          "1": {
+            "hit": {
+              "original": 230,
+              "winner": 233,
+              "joint": 225,
+              "both": 230
+            },
+            "differences": {
+              "original_to_joint": {
+                "gains": 17,
+                "losses": 22,
+                "pp": -0.13092432573972246,
+                "paired_date_bootstrap95pp": [
+                  -0.42172128248343616,
+                  0.16266230446030244
+                ]
+              },
+              "original_to_both": {
+                "gains": 25,
+                "losses": 25,
+                "pp": 0.0,
+                "paired_date_bootstrap95pp": [
+                  -0.3709327034929974,
+                  0.36102248184925545
+                ]
+              },
+              "winner_to_both": {
+                "gains": 16,
+                "losses": 19,
+                "pp": -0.07855459544383347,
+                "paired_date_bootstrap95pp": [
+                  -0.3491057050839659,
+                  0.1867712637623257
+                ]
+              }
+            }
+          },
+          "4": {
+            "hit": {
+              "original": 838,
+              "winner": 829,
+              "joint": 828,
+              "both": 824
+            },
+            "differences": {
+              "original_to_joint": {
+                "gains": 15,
+                "losses": 25,
+                "pp": -0.2618486514794449,
+                "paired_date_bootstrap95pp": [
+                  -0.5829436041992963,
+                  0.05298789665839076
+                ]
+              },
+              "original_to_both": {
+                "gains": 27,
+                "losses": 41,
+                "pp": -0.3665881120712228,
+                "paired_date_bootstrap95pp": [
+                  -0.7849911618190584,
+                  0.02797824889274666
+                ]
+              },
+              "winner_to_both": {
+                "gains": 18,
+                "losses": 23,
+                "pp": -0.13092432573972246,
+                "paired_date_bootstrap95pp": [
+                  -0.44561235731501725,
+                  0.18281655042513645
+                ]
+              }
+            }
+          },
+          "8": {
+            "hit": {
+              "original": 1244,
+              "winner": 1238,
+              "joint": 1227,
+              "both": 1234
+            },
+            "differences": {
+              "original_to_joint": {
+                "gains": 19,
+                "losses": 36,
+                "pp": -0.4451427075150563,
+                "paired_date_bootstrap95pp": [
+                  -0.8010719573954485,
+                  -0.10375933176400344
+                ]
+              },
+              "original_to_both": {
+                "gains": 37,
+                "losses": 47,
+                "pp": -0.2618486514794449,
+                "paired_date_bootstrap95pp": [
+                  -0.7423117709437964,
+                  0.18739391376342088
+                ]
+              },
+              "winner_to_both": {
+                "gains": 23,
+                "losses": 27,
+                "pp": -0.10473946059177797,
+                "paired_date_bootstrap95pp": [
+                  -0.4553217506822692,
+                  0.23179601350876788
+                ]
+              }
+            }
+          }
+        },
+        "conditional_n": 3819,
+        "conditional_logloss": [
+          0.9727863073348999,
+          0.9652406573295593
+        ],
+        "head_finish_when_second_won": {
+          "2": 1141,
+          "1": 711,
+          "0": 1967
+        }
+      },
+      "head_out": {
+        "races": 1141,
+        "days": 156,
+        "tickets": {
+          "1": {
+            "hit": {
+              "original": 10,
+              "winner": 10,
+              "joint": 8,
+              "both": 8
+            },
+            "differences": {
+              "original_to_joint": {
+                "gains": 0,
+                "losses": 2,
+                "pp": -0.175284837861525,
+                "paired_date_bootstrap95pp": [
+                  -0.44131601271211546,
+                  0.0
+                ]
+              },
+              "original_to_both": {
+                "gains": 0,
+                "losses": 2,
+                "pp": -0.175284837861525,
+                "paired_date_bootstrap95pp": [
+                  -0.44131601271211546,
+                  0.0
+                ]
+              },
+              "winner_to_both": {
+                "gains": 0,
+                "losses": 2,
+                "pp": -0.175284837861525,
+                "paired_date_bootstrap95pp": [
+                  -0.44131601271211546,
+                  0.0
+                ]
+              }
+            }
+          },
+          "4": {
+            "hit": {
+              "original": 35,
+              "winner": 35,
+              "joint": 30,
+              "both": 32
+            },
+            "differences": {
+              "original_to_joint": {
+                "gains": 0,
+                "losses": 5,
+                "pp": -0.43821209465381245,
+                "paired_date_bootstrap95pp": [
+                  -0.8496357336477496,
+                  -0.08904719501335707
+                ]
+              },
+              "original_to_both": {
+                "gains": 0,
+                "losses": 3,
+                "pp": -0.26292725679228746,
+                "paired_date_bootstrap95pp": [
+                  -0.5937360947307939,
+                  0.0
+                ]
+              },
+              "winner_to_both": {
+                "gains": 0,
+                "losses": 3,
+                "pp": -0.26292725679228746,
+                "paired_date_bootstrap95pp": [
+                  -0.5937360947307939,
+                  0.0
+                ]
+              }
+            }
+          },
+          "8": {
+            "hit": {
+              "original": 78,
+              "winner": 77,
+              "joint": 70,
+              "both": 72
+            },
+            "differences": {
+              "original_to_joint": {
+                "gains": 1,
+                "losses": 9,
+                "pp": -0.7011393514461,
+                "paired_date_bootstrap95pp": [
+                  -1.262484162947575,
+                  -0.1798440171629512
+                ]
+              },
+              "original_to_both": {
+                "gains": 4,
+                "losses": 10,
+                "pp": -0.5258545135845749,
+                "paired_date_bootstrap95pp": [
+                  -1.1373578302712162,
+                  0.0
+                ]
+              },
+              "winner_to_both": {
+                "gains": 3,
+                "losses": 8,
+                "pp": -0.43821209465381245,
+                "paired_date_bootstrap95pp": [
+                  -1.0435009649222386,
+                  0.09166113068559271
+                ]
+              }
+            }
+          }
+        },
+        "conditional_n": 1141,
+        "conditional_logloss": [
+          1.0156861543655396,
+          1.0191441774368286
+        ],
+        "head_finish_when_second_won": {
+          "2": 1141
+        }
+      }
+    },
+    "recent": {
+      "all": {
+        "races": 287,
+        "days": 4,
+        "tickets": {
+          "1": {
+            "hit": {
+              "original": 32,
+              "winner": 30,
+              "joint": 31,
+              "both": 30
+            },
+            "differences": {
+              "original_to_joint": {
+                "gains": 0,
+                "losses": 1,
+                "pp": -0.34843205574912894,
+                "paired_date_bootstrap95pp": [
+                  -0.9230769230769231,
+                  0.0
+                ]
+              },
+              "original_to_both": {
+                "gains": 0,
+                "losses": 2,
+                "pp": -0.6968641114982579,
+                "paired_date_bootstrap95pp": [
+                  -1.3071895424836601,
+                  0.0
+                ]
+              },
+              "winner_to_both": {
+                "gains": 1,
+                "losses": 1,
+                "pp": 0.0,
+                "paired_date_bootstrap95pp": [
+                  0.0,
+                  0.0
+                ]
+              }
+            }
+          },
+          "4": {
+            "hit": {
+              "original": 91,
+              "winner": 91,
+              "joint": 92,
+              "both": 91
+            },
+            "differences": {
+              "original_to_joint": {
+                "gains": 1,
+                "losses": 0,
+                "pp": 0.34843205574912894,
+                "paired_date_bootstrap95pp": [
+                  0.0,
+                  1.2396694214876034
+                ]
+              },
+              "original_to_both": {
+                "gains": 2,
+                "losses": 2,
+                "pp": 0.0,
+                "paired_date_bootstrap95pp": [
+                  -0.9202453987730062,
+                  1.2096774193548387
+                ]
+              },
+              "winner_to_both": {
+                "gains": 1,
+                "losses": 1,
+                "pp": 0.0,
+                "paired_date_bootstrap95pp": [
+                  0.0,
+                  0.0
+                ]
+              }
+            }
+          },
+          "8": {
+            "hit": {
+              "original": 127,
+              "winner": 128,
+              "joint": 127,
+              "both": 127
+            },
+            "differences": {
+              "original_to_joint": {
+                "gains": 0,
+                "losses": 0,
+                "pp": 0.0,
+                "paired_date_bootstrap95pp": [
+                  0.0,
+                  0.0
+                ]
+              },
+              "original_to_both": {
+                "gains": 0,
+                "losses": 0,
+                "pp": 0.0,
+                "paired_date_bootstrap95pp": [
+                  0.0,
+                  0.0
+                ]
+              },
+              "winner_to_both": {
+                "gains": 0,
+                "losses": 1,
+                "pp": -0.34843205574912894,
+                "paired_date_bootstrap95pp": [
+                  -0.9771986970684039,
+                  0.0
+                ]
+              }
+            }
+          },
+          "cap": {
+            "hit": {
+              "original": 93,
+              "winner": 94,
+              "joint": 94,
+              "both": 94
+            },
+            "differences": {
+              "original_to_joint": {
+                "gains": 1,
+                "losses": 0,
+                "pp": 0.34843205574912894,
+                "paired_date_bootstrap95pp": [
+                  0.0,
+                  1.2396694214876034
+                ]
+              },
+              "original_to_both": {
+                "gains": 2,
+                "losses": 1,
+                "pp": 0.34843205574912894,
+                "paired_date_bootstrap95pp": [
+                  0.0,
+                  1.2396694214876034
+                ]
+              },
+              "winner_to_both": {
+                "gains": 1,
+                "losses": 1,
+                "pp": 0.0,
+                "paired_date_bootstrap95pp": [
+                  0.0,
+                  0.0
+                ]
+              }
+            }
+          }
+        },
+        "conditional_n": 88,
+        "conditional_logloss": [
+          0.9230059442981784,
+          0.930192761886202
+        ],
+        "head_finish_when_second_won": {
+          "2": 29,
+          "1": 17,
+          "0": 42
+        }
+      },
+      "second_won": {
+        "races": 88,
+        "days": 4,
+        "tickets": {
+          "1": {
+            "hit": {
+              "original": 5,
+              "winner": 3,
+              "joint": 4,
+              "both": 4
+            },
+            "differences": {
+              "original_to_joint": {
+                "gains": 0,
+                "losses": 1,
+                "pp": -1.1363636363636365,
+                "paired_date_bootstrap95pp": [
+                  -3.0303030303030303,
+                  0.0
+                ]
+              },
+              "original_to_both": {
+                "gains": 0,
+                "losses": 1,
+                "pp": -1.1363636363636365,
+                "paired_date_bootstrap95pp": [
+                  -3.0303030303030303,
+                  0.0
+                ]
+              },
+              "winner_to_both": {
+                "gains": 1,
+                "losses": 0,
+                "pp": 1.1363636363636365,
+                "paired_date_bootstrap95pp": [
+                  0.0,
+                  3.225806451612903
+                ]
+              }
+            }
+          },
+          "4": {
+            "hit": {
+              "original": 25,
+              "winner": 25,
+              "joint": 25,
+              "both": 24
+            },
+            "differences": {
+              "original_to_joint": {
+                "gains": 0,
+                "losses": 0,
+                "pp": 0.0,
+                "paired_date_bootstrap95pp": [
+                  0.0,
+                  0.0
+                ]
+              },
+              "original_to_both": {
+                "gains": 0,
+                "losses": 1,
+                "pp": -1.1363636363636365,
+                "paired_date_bootstrap95pp": [
+                  -3.0303030303030303,
+                  0.0
+                ]
+              },
+              "winner_to_both": {
+                "gains": 0,
+                "losses": 1,
+                "pp": -1.1363636363636365,
+                "paired_date_bootstrap95pp": [
+                  -3.0303030303030303,
+                  0.0
+                ]
+              }
+            }
+          },
+          "8": {
+            "hit": {
+              "original": 29,
+              "winner": 30,
+              "joint": 29,
+              "both": 29
+            },
+            "differences": {
+              "original_to_joint": {
+                "gains": 0,
+                "losses": 0,
+                "pp": 0.0,
+                "paired_date_bootstrap95pp": [
+                  0.0,
+                  0.0
+                ]
+              },
+              "original_to_both": {
+                "gains": 0,
+                "losses": 0,
+                "pp": 0.0,
+                "paired_date_bootstrap95pp": [
+                  0.0,
+                  0.0
+                ]
+              },
+              "winner_to_both": {
+                "gains": 0,
+                "losses": 1,
+                "pp": -1.1363636363636365,
+                "paired_date_bootstrap95pp": [
+                  -4.0,
+                  0.0
+                ]
+              }
+            }
+          },
+          "cap": {
+            "hit": {
+              "original": 25,
+              "winner": 25,
+              "joint": 25,
+              "both": 24
+            },
+            "differences": {
+              "original_to_joint": {
+                "gains": 0,
+                "losses": 0,
+                "pp": 0.0,
+                "paired_date_bootstrap95pp": [
+                  0.0,
+                  0.0
+                ]
+              },
+              "original_to_both": {
+                "gains": 0,
+                "losses": 1,
+                "pp": -1.1363636363636365,
+                "paired_date_bootstrap95pp": [
+                  -3.0303030303030303,
+                  0.0
+                ]
+              },
+              "winner_to_both": {
+                "gains": 0,
+                "losses": 1,
+                "pp": -1.1363636363636365,
+                "paired_date_bootstrap95pp": [
+                  -3.0303030303030303,
+                  0.0
+                ]
+              }
+            }
+          }
+        },
+        "conditional_n": 88,
+        "conditional_logloss": [
+          0.9230059442981784,
+          0.930192761886202
+        ],
+        "head_finish_when_second_won": {
+          "2": 29,
+          "1": 17,
+          "0": 42
+        }
+      },
+      "head_out": {
+        "races": 29,
+        "days": 4,
+        "tickets": {
+          "1": {
+            "hit": {
+              "original": 0,
+              "winner": 0,
+              "joint": 0,
+              "both": 0
+            },
+            "differences": {
+              "original_to_joint": {
+                "gains": 0,
+                "losses": 0,
+                "pp": 0.0,
+                "paired_date_bootstrap95pp": [
+                  0.0,
+                  0.0
+                ]
+              },
+              "original_to_both": {
+                "gains": 0,
+                "losses": 0,
+                "pp": 0.0,
+                "paired_date_bootstrap95pp": [
+                  0.0,
+                  0.0
+                ]
+              },
+              "winner_to_both": {
+                "gains": 0,
+                "losses": 0,
+                "pp": 0.0,
+                "paired_date_bootstrap95pp": [
+                  0.0,
+                  0.0
+                ]
+              }
+            }
+          },
+          "4": {
+            "hit": {
+              "original": 1,
+              "winner": 1,
+              "joint": 1,
+              "both": 1
+            },
+            "differences": {
+              "original_to_joint": {
+                "gains": 0,
+                "losses": 0,
+                "pp": 0.0,
+                "paired_date_bootstrap95pp": [
+                  0.0,
+                  0.0
+                ]
+              },
+              "original_to_both": {
+                "gains": 0,
+                "losses": 0,
+                "pp": 0.0,
+                "paired_date_bootstrap95pp": [
+                  0.0,
+                  0.0
+                ]
+              },
+              "winner_to_both": {
+                "gains": 0,
+                "losses": 0,
+                "pp": 0.0,
+                "paired_date_bootstrap95pp": [
+                  0.0,
+                  0.0
+                ]
+              }
+            }
+          },
+          "8": {
+            "hit": {
+              "original": 2,
+              "winner": 3,
+              "joint": 2,
+              "both": 2
+            },
+            "differences": {
+              "original_to_joint": {
+                "gains": 0,
+                "losses": 0,
+                "pp": 0.0,
+                "paired_date_bootstrap95pp": [
+                  0.0,
+                  0.0
+                ]
+              },
+              "original_to_both": {
+                "gains": 0,
+                "losses": 0,
+                "pp": 0.0,
+                "paired_date_bootstrap95pp": [
+                  0.0,
+                  0.0
+                ]
+              },
+              "winner_to_both": {
+                "gains": 0,
+                "losses": 1,
+                "pp": -3.4482758620689653,
+                "paired_date_bootstrap95pp": [
+                  -10.714285714285714,
+                  0.0
+                ]
+              }
+            }
+          },
+          "cap": {
+            "hit": {
+              "original": 1,
+              "winner": 1,
+              "joint": 1,
+              "both": 1
+            },
+            "differences": {
+              "original_to_joint": {
+                "gains": 0,
+                "losses": 0,
+                "pp": 0.0,
+                "paired_date_bootstrap95pp": [
+                  0.0,
+                  0.0
+                ]
+              },
+              "original_to_both": {
+                "gains": 0,
+                "losses": 0,
+                "pp": 0.0,
+                "paired_date_bootstrap95pp": [
+                  0.0,
+                  0.0
+                ]
+              },
+              "winner_to_both": {
+                "gains": 0,
+                "losses": 0,
+                "pp": 0.0,
+                "paired_date_bootstrap95pp": [
+                  0.0,
+                  0.0
+                ]
+              }
+            }
+          }
+        },
+        "conditional_n": 29,
+        "conditional_logloss": [
+          0.8233759514702976,
+          0.853746634261217
+        ],
+        "head_finish_when_second_won": {
+          "2": 29
+        }
+      }
+    }
+  },
+  "tactics": {
+    "pre_race_label_inventory": {
+      "past": {
+        "races": 519,
+        "by_day": 200,
+        "labels": {
+          "自在": 510,
+          "追上": 408,
+          "先行": 396,
+          "追込": 1551,
+          "押え先": 510,
+          "競り": 228,
+          "カマシ": 25,
+          "イン待": 19,
+          "まくり": 13
+        },
+        "girls": {
+          "自在": 180,
+          "追上": 132,
+          "先行": 18,
+          "押え先": 26,
+          "カマシ": 12,
+          "イン待": 10,
+          "まくり": 1,
+          "追込": 5
+        },
+        "girls_n": 56,
+        "complete": 519
+      },
+      "timed": {
+        "races": 198,
+        "by_day": {
+          "20261121": 39,
+          "20261123": 84,
+          "20261125": 75
+        },
+        "labels": {
+          "先行": 160,
+          "追込": 673,
+          "追上": 90,
+          "押え先": 235,
+          "自在": 230,
+          "まくり": 5,
+          "カマシ": 11,
+          "競り": 10,
+          "イン待": 1
+        },
+        "girls": {
+          "先行": 4,
+          "自在": 92,
+          "押え先": 9,
+          "追込": 5,
+          "追上": 21,
+          "カマシ": 5
+        },
+        "girls_n": 20,
+        "complete": 198
+      },
+      "audit": {
+        "outside_or_after_cutoff_versions": 181,
+        "verified_pre_cutoff_versions": 431
+      },
+      "differing_timed_snapshots": {},
+      "excluded_historical_conflict": []
+    },
+    "scores": {
+      "historical": {
+        "1": {
+          "n": 80,
+          "old": 3,
+          "new": 4,
+          "gained": 1,
+          "lost": 0,
+          "paired_date_bootstrap95pp": [
+            0.0,
+            4.125
+          ]
+        },
+        "4": {
+          "n": 80,
+          "old": 13,
+          "new": 13,
+          "gained": 1,
+          "lost": 1,
+          "paired_date_bootstrap95pp": [
+            -3.75,
+            3.751
+          ]
+        },
+        "8": {
+          "n": 80,
+          "old": 23,
+          "new": 22,
+          "gained": 0,
+          "lost": 1,
+          "paired_date_bootstrap95pp": [
+            -4.11,
+            0.0
+          ]
+        }
+      },
+      "current_with_tactics": {
+        "1": {
+          "n": 119,
+          "old": 16,
+          "new": 16,
+          "gained": 1,
+          "lost": 1
+        },
+        "4": {
+          "n": 119,
+          "old": 44,
+          "new": 44,
+          "gained": 2,
+          "lost": 2
+        },
+        "8": {
+          "n": 119,
+          "old": 60,
+          "new": 60,
+          "gained": 2,
+          "lost": 2
+        },
+        "published": {
+          "n": 119,
+          "old": 44,
+          "new": 44,
+          "gained": 2,
+          "lost": 2
+        }
+      },
+      "current_other_unchanged": {
+        "1": {
+          "n": 287,
+          "old": 32,
+          "new": 32,
+          "gained": 1,
+          "lost": 1
+        },
+        "4": {
+          "n": 287,
+          "old": 91,
+          "new": 91,
+          "gained": 2,
+          "lost": 2
+        },
+        "8": {
+          "n": 287,
+          "old": 127,
+          "new": 127,
+          "gained": 2,
+          "lost": 2
+        },
+        "published": {
+          "n": 287,
+          "old": 93,
+          "new": 93,
+          "gained": 2,
+          "lost": 2
+        }
+      },
+      "20261121": {
+        "n": 37,
+        "old": 12,
+        "new": 11,
+        "gained": 0,
+        "lost": 1
+      },
+      "20261123": {
+        "n": 82,
+        "old": 32,
+        "new": 33,
+        "gained": 2,
+        "lost": 1
+      },
+      "girls": {
+        "n": 12,
+        "old": 2,
+        "new": 2,
+        "gained": 0,
+        "lost": 0
+      },
+      "other": {
+        "n": 107,
+        "old": 42,
+        "new": 42,
+        "gained": 2,
+        "lost": 2
+      },
+      "tactics_by_historical_profile_style": {
+        "逃": {
+          "自在": 54,
+          "先行": 248,
+          "押え先": 310,
+          "追込": 30,
+          "カマシ": 9,
+          "まくり": 11,
+          "競り": 7,
+          "追上": 2
+        },
+        "両": {
+          "自在": 293,
+          "追上": 100,
+          "押え先": 104,
+          "追込": 204,
+          "競り": 25,
+          "先行": 70,
+          "カマシ": 14,
+          "イン待": 5,
+          "まくり": 1
+        },
+        "追": {
+          "追上": 234,
+          "追込": 1013,
+          "競り": 124,
+          "イン待": 8,
+          "先行": 3,
+          "自在": 58
+        }
+      }
+    }
+  },
+  "historical_input_intersection": {
+    "nov19_source_fields": {
+      "known_predeadline_rider_H_field": 61,
+      "also_current_model_context": 52,
+      "also_timed_odds": 0,
+      "also_full_board": 0,
+      "also_ctx_and_full_board": 0,
+      "overlap_all_ids": []
+    },
+    "nov20_rehashed_html": {
+      "known_predeadline_rider_H_field": 48,
+      "also_current_model_context": 43,
+      "also_timed_odds": 6,
+      "also_full_board": 4,
+      "also_ctx_and_full_board": 3,
+      "overlap_all_ids": [
+        "202611205103",
+        "202611205106",
+        "202611205107"
+      ]
+    },
+    "two_day_union": {
+      "known_predeadline_rider_H_field": 109,
+      "also_current_model_context": 95,
+      "also_timed_odds": 6,
+      "also_full_board": 4,
+      "also_ctx_and_full_board": 3,
+      "overlap_all_ids": [
+        "202611205103",
+        "202611205106",
+        "202611205107"
+      ]
+    },
+    "nov20_note_view": {
+      "known_predeadline_rider_H_field": 26,
+      "also_current_model_context": 22,
+      "also_timed_odds": 0,
+      "also_full_board": 0,
+      "also_ctx_and_full_board": 0,
+      "overlap_all_ids": []
+    }
+  },
+  "earlier_source_coverage": {
+    "coverage": {
+      "whole_12234_fold": {
+        "n": 12234,
+        "date_span": [
+          "20260524",
+          "20261120"
+        ],
+        "any_archived_result_H_leader": 111,
+        "with_verified_minutes_and_any_quotes": 6,
+        "with_verified_minutes_and_complete_board": 4,
+        "with_predeadline_entry_H_count_any": 0,
+        "with_predeadline_entry_H_count_all": 0,
+        "with_predeadline_entry_B_count_all": 323,
+        "with_timed_nonindividual_line": 293,
+        "with_timed_line_and_price_and_known_result_H": 0,
+        "with_entry_H_and_full_board": 0
+      },
+      "rolling_dated_programmes": {
+        "n": 321,
+        "date_span": [
+          "20261116",
+          "20261120"
+        ],
+        "any_archived_result_H_leader": 7,
+        "with_verified_minutes_and_any_quotes": 6,
+        "with_verified_minutes_and_complete_board": 4,
+        "with_predeadline_entry_H_count_any": 0,
+        "with_predeadline_entry_H_count_all": 0,
+        "with_predeadline_entry_B_count_all": 321,
+        "with_timed_nonindividual_line": 292,
+        "with_timed_line_and_price_and_known_result_H": 0,
+        "with_entry_H_and_full_board": 0
+      },
+      "verified_timed_programmes": {
+        "n": 351,
+        "date_span": [
+          "20261116",
+          "20261120"
+        ],
+        "any_archived_result_H_leader": 7,
+        "with_verified_minutes_and_any_quotes": 7,
+        "with_verified_minutes_and_complete_board": 4,
+        "with_predeadline_entry_H_count_any": 0,
+        "with_predeadline_entry_H_count_all": 0,
+        "with_predeadline_entry_B_count_all": 351,
+        "with_timed_nonindividual_line": 317,
+        "with_timed_line_and_price_and_known_result_H": 0,
+        "with_entry_H_and_full_board": 0
+      },
+      "intersection_timed_rolling": {
+        "n": 323,
+        "date_span": [
+          "20261116",
+          "20261120"
+        ],
+        "any_archived_result_H_leader": 7,
+        "with_verified_minutes_and_any_quotes": 6,
+        "with_verified_minutes_and_complete_board": 4,
+        "with_predeadline_entry_H_count_any": 0,
+        "with_predeadline_entry_H_count_all": 0,
+        "with_predeadline_entry_B_count_all": 323,
+        "with_timed_nonindividual_line": 293,
+        "with_timed_line_and_price_and_known_result_H": 0,
+        "with_entry_H_and_full_board": 0
+      },
+      "intersection_timed_rolling_consistent_source": {
+        "n": 321,
+        "date_span": [
+          "20261116",
+          "20261120"
+        ],
+        "any_archived_result_H_leader": 7,
+        "with_verified_minutes_and_any_quotes": 6,
+        "with_verified_minutes_and_complete_board": 4,
+        "with_predeadline_entry_H_count_any": 0,
+        "with_predeadline_entry_H_count_all": 0,
+        "with_predeadline_entry_B_count_all": 321,
+        "with_timed_nonindividual_line": 292,
+        "with_timed_line_and_price_and_known_result_H": 0,
+        "with_entry_H_and_full_board": 0
+      },
+      "overlap_timed_current_video_ctx": {
+        "n": 292,
+        "date_span": [
+          "20261116",
+          "20261120"
+        ],
+        "any_archived_result_H_leader": 7,
+        "with_verified_minutes_and_any_quotes": 5,
+        "with_verified_minutes_and_complete_board": 3,
+        "with_predeadline_entry_H_count_any": 0,
+        "with_predeadline_entry_H_count_all": 0,
+        "with_predeadline_entry_B_count_all": 292,
+        "with_timed_nonindividual_line": 292,
+        "with_timed_line_and_price_and_known_result_H": 0,
+        "with_entry_H_and_full_board": 0
+      }
+    },
+    "kinds_of_351_timed": {
+      "both_updates": 316,
+      "individual": 34,
+      "other_or_no_line": 1
+    },
+    "film_training_through": "20261120",
+    "current_video_computed_before_training_cutoff": 292,
+    "post_fit_through_nov20": 0,
+    "sample_partial_replay": {
+      "202611163401": {
+        "top8": [
+          [
+            4,
+            5,
+            2
+          ],
+          [
+            4,
+            2,
+            5
+          ],
+          [
+            4,
+            2,
+            6
+          ],
+          [
+            5,
+            4,
+            2
+          ],
+          [
+            4,
+            5,
+            1
+          ],
+          [
+            4,
+            5,
+            6
+          ],
+          [
+            4,
+            5,
+            7
+          ],
+          [
+            4,
+            6,
+            2
+          ]
+        ],
+        "entry_H_count_any": false,
+        "current_race_result_H_present": true,
+        "market_timed": false,
+        "model_is_fit_with_future_evidence": true
+      },
+      "202611163402": {
+        "top8": [
+          [
+            6,
+            4,
+            3
+          ],
+          [
+            4,
+            6,
+            3
+          ],
+          [
+            4,
+            7,
+            1
+          ],
+          [
+            4,
+            1,
+            7
+          ],
+          [
+            4,
+            1,
+            5
+          ],
+          [
+            7,
+            4,
+            1
+          ],
+          [
+            4,
+            6,
+            1
+          ],
+          [
+            4,
+            6,
+            7
+          ]
+        ],
+        "entry_H_count_any": false,
+        "current_race_result_H_present": false,
+        "market_timed": false,
+        "model_is_fit_with_future_evidence": true
+      }
+    },
+    "notes": [
+      "Result H = observed after target race, a ground-truth phase label only. Entry H = published prior H rider statistic on verified programme. Market is optional for public ranker, required to assess a market challenger. Partial boards may lack relevant quotes.",
+      "Calling current video weights on dated older cards is a retrospective output and cannot measure out-of-time accuracy before the 11/20 last learning date. Reproduced only rows with cached full group contexts. Remaining confirmed programme types counted separately."
+    ]
+  }
+}

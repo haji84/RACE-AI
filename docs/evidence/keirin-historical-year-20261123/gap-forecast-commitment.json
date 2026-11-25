@@ -1,0 +1,26 @@
+{
+  "schema": "RACE_AI_KEIRIN_HISTORICAL_GAP_FORECAST_FREEZE_V1",
+  "sealed_at_utc": "2026-11-23T12:48:00.919846+00:00",
+  "forecast_commitment_sha256": "2d913b3e429fd86d7bd58be32dfefa66f76730c1196689ccb1420696099462eb",
+  "source_receipt_sha256": "a7ad8b6b40ea4aaf97f98ac6155316745eec9ddd50a911ed565a6c7766ffcc47",
+  "acquired_detail_pages": 220,
+  "days": {
+    "2026-04-05": {
+      "linked_meetings": 8,
+      "linked_races": 75,
+      "forecasts": 75
+    },
+    "2026-04-06": {
+      "linked_meetings": 8,
+      "linked_races": 74,
+      "forecasts": 74
+    },
+    "2026-05-04": {
+      "linked_meetings": 7,
+      "linked_races": 71,
+      "forecasts": 71
+    }
+  },
+  "provider_stop": null,
+  "original_model_sha256": "b30b7940cb054fc3225f109f1f35e70cab034c704e0d701937ded8309b8f5b47"
+}

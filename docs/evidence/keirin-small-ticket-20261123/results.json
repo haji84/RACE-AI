@@ -1,0 +1,1357 @@
+{
+  "schema": "KEIRIN_SMALL_TICKET_RESULTS_V1",
+  "commitment_head": "551ca6f3a375fbff6192a0c6acb3b9b25bc65645",
+  "witness_ci": 45194534181,
+  "witness_created_at": "2026-11-23T14:28:12Z",
+  "result_columns_opened_at": "2026-11-23T14:28:46.929437+00:00",
+  "protocol": "Historical forecast and ticket thresholds frozen before target results; recent odds are separate replay.",
+  "historical": {
+    "coverage": {
+      "races": 3953
+    },
+    "fixed_same_points": {
+      "2t:current_A:1": {
+        "races": 3953,
+        "points": 3953,
+        "hits": 658
+      },
+      "2t:previous_method_refit:1": {
+        "races": 3953,
+        "points": 3953,
+        "hits": 846
+      },
+      "2t:rider_signals:1": {
+        "races": 3953,
+        "points": 3953,
+        "hits": 834
+      },
+      "2t:prior_finishers:1": {
+        "races": 3953,
+        "points": 3953,
+        "hits": 840
+      },
+      "2t:selected:1": {
+        "races": 3953,
+        "points": 3953,
+        "hits": 840
+      },
+      "2t:current_A:4": {
+        "races": 3953,
+        "points": 15812,
+        "hits": 1679
+      },
+      "2t:previous_method_refit:4": {
+        "races": 3953,
+        "points": 15812,
+        "hits": 1767
+      },
+      "2t:rider_signals:4": {
+        "races": 3953,
+        "points": 15812,
+        "hits": 1760
+      },
+      "2t:prior_finishers:4": {
+        "races": 3953,
+        "points": 15812,
+        "hits": 1811
+      },
+      "2t:selected:4": {
+        "races": 3953,
+        "points": 15812,
+        "hits": 1811
+      },
+      "2t:current_A:8": {
+        "races": 3953,
+        "points": 31624,
+        "hits": 2348
+      },
+      "2t:previous_method_refit:8": {
+        "races": 3953,
+        "points": 31624,
+        "hits": 2387
+      },
+      "2t:rider_signals:8": {
+        "races": 3953,
+        "points": 31624,
+        "hits": 2416
+      },
+      "2t:prior_finishers:8": {
+        "races": 3953,
+        "points": 31624,
+        "hits": 2413
+      },
+      "2t:selected:8": {
+        "races": 3953,
+        "points": 31624,
+        "hits": 2413
+      },
+      "3t:current_A:1": {
+        "races": 3953,
+        "points": 3953,
+        "hits": 219
+      },
+      "3t:previous_method_refit:1": {
+        "races": 3953,
+        "points": 3953,
+        "hits": 294
+      },
+      "3t:rider_signals:1": {
+        "races": 3953,
+        "points": 3953,
+        "hits": 300
+      },
+      "3t:prior_finishers:1": {
+        "races": 3953,
+        "points": 3953,
+        "hits": 290
+      },
+      "3t:selected:1": {
+        "races": 3953,
+        "points": 3953,
+        "hits": 290
+      },
+      "3t:current_A:4": {
+        "races": 3953,
+        "points": 15812,
+        "hits": 682
+      },
+      "3t:previous_method_refit:4": {
+        "races": 3953,
+        "points": 15812,
+        "hits": 810
+      },
+      "3t:rider_signals:4": {
+        "races": 3953,
+        "points": 15812,
+        "hits": 801
+      },
+      "3t:prior_finishers:4": {
+        "races": 3953,
+        "points": 15812,
+        "hits": 817
+      },
+      "3t:selected:4": {
+        "races": 3953,
+        "points": 15812,
+        "hits": 817
+      },
+      "3t:current_A:8": {
+        "races": 3953,
+        "points": 31624,
+        "hits": 1077
+      },
+      "3t:previous_method_refit:8": {
+        "races": 3953,
+        "points": 31624,
+        "hits": 1233
+      },
+      "3t:rider_signals:8": {
+        "races": 3953,
+        "points": 31624,
+        "hits": 1187
+      },
+      "3t:prior_finishers:8": {
+        "races": 3953,
+        "points": 31624,
+        "hits": 1226
+      },
+      "3t:selected:8": {
+        "races": 3953,
+        "points": 31624,
+        "hits": 1226
+      }
+    },
+    "adaptive": {
+      "2t:equal_average_four": {
+        "races": 3953,
+        "points": 15812,
+        "hits": 1811
+      },
+      "2t:four_or_eight": {
+        "races": 3953,
+        "points": 18816,
+        "hits": 1948
+      },
+      "3t:equal_average_four": {
+        "races": 3953,
+        "points": 15812,
+        "hits": 817
+      },
+      "3t:four_or_eight": {
+        "races": 3953,
+        "points": 18964,
+        "hits": 918
+      }
+    },
+    "adaptive_by_points": {
+      "2t:equal_average_four:4": {
+        "races": 3953,
+        "points": 15812,
+        "hits": 1811
+      },
+      "2t:four_or_eight:4": {
+        "races": 3202,
+        "points": 12808,
+        "hits": 1507
+      },
+      "3t:equal_average_four:4": {
+        "races": 3953,
+        "points": 15812,
+        "hits": 817
+      },
+      "3t:four_or_eight:4": {
+        "races": 3165,
+        "points": 12660,
+        "hits": 558
+      },
+      "2t:four_or_eight:8": {
+        "races": 751,
+        "points": 6008,
+        "hits": 441
+      },
+      "3t:four_or_eight:8": {
+        "races": 788,
+        "points": 6304,
+        "hits": 360
+      }
+    },
+    "paired": {
+      "2t:previous_method_refit:1": {
+        "learned_only": 118,
+        "neither": 2989,
+        "both": 722,
+        "previous_only": 124
+      },
+      "2t:previous_method_refit:4": {
+        "both": 1632,
+        "neither": 2007,
+        "previous_only": 135,
+        "learned_only": 179
+      },
+      "2t:previous_method_refit:8": {
+        "both": 2232,
+        "neither": 1385,
+        "learned_only": 181,
+        "previous_only": 155
+      },
+      "3t:previous_method_refit:1": {
+        "neither": 3602,
+        "learned_only": 57,
+        "both": 233,
+        "previous_only": 61
+      },
+      "3t:previous_method_refit:4": {
+        "learned_only": 129,
+        "neither": 3014,
+        "both": 688,
+        "previous_only": 122
+      },
+      "3t:previous_method_refit:8": {
+        "both": 1091,
+        "neither": 2585,
+        "previous_only": 142,
+        "learned_only": 135
+      }
+    },
+    "paired_day_block_95_percentage_points": {
+      "2t:previous_method_refit:1": [
+        -1.05,
+        0.669
+      ],
+      "2t:previous_method_refit:4": [
+        0.226,
+        2.054
+      ],
+      "2t:previous_method_refit:8": [
+        -0.153,
+        1.459
+      ],
+      "3t:previous_method_refit:1": [
+        -0.791,
+        0.63
+      ],
+      "3t:previous_method_refit:4": [
+        -0.621,
+        1.006
+      ],
+      "3t:previous_method_refit:8": [
+        -1.088,
+        0.742
+      ]
+    },
+    "by_field_size": {
+      "2t:selected:1:field_7": {
+        "races": 3404,
+        "points": 3404,
+        "hits": 746
+      },
+      "2t:selected:4:field_7": {
+        "races": 3404,
+        "points": 13616,
+        "hits": 1600
+      },
+      "2t:selected:8:field_7": {
+        "races": 3404,
+        "points": 27232,
+        "hits": 2130
+      },
+      "3t:selected:1:field_7": {
+        "races": 3404,
+        "points": 3404,
+        "hits": 253
+      },
+      "3t:selected:4:field_7": {
+        "races": 3404,
+        "points": 13616,
+        "hits": 724
+      },
+      "3t:selected:8:field_7": {
+        "races": 3404,
+        "points": 27232,
+        "hits": 1091
+      },
+      "2t:selected:1:field_6": {
+        "races": 132,
+        "points": 132,
+        "hits": 32
+      },
+      "2t:selected:4:field_6": {
+        "races": 132,
+        "points": 528,
+        "hits": 67
+      },
+      "2t:selected:8:field_6": {
+        "races": 132,
+        "points": 1056,
+        "hits": 87
+      },
+      "3t:selected:1:field_6": {
+        "races": 132,
+        "points": 132,
+        "hits": 14
+      },
+      "3t:selected:4:field_6": {
+        "races": 132,
+        "points": 528,
+        "hits": 33
+      },
+      "3t:selected:8:field_6": {
+        "races": 132,
+        "points": 1056,
+        "hits": 48
+      },
+      "2t:selected:1:field_9": {
+        "races": 366,
+        "points": 366,
+        "hits": 51
+      },
+      "2t:selected:4:field_9": {
+        "races": 366,
+        "points": 1464,
+        "hits": 121
+      },
+      "2t:selected:8:field_9": {
+        "races": 366,
+        "points": 2928,
+        "hits": 166
+      },
+      "3t:selected:1:field_9": {
+        "races": 366,
+        "points": 366,
+        "hits": 19
+      },
+      "3t:selected:4:field_9": {
+        "races": 366,
+        "points": 1464,
+        "hits": 51
+      },
+      "3t:selected:8:field_9": {
+        "races": 366,
+        "points": 2928,
+        "hits": 73
+      },
+      "2t:selected:1:field_5": {
+        "races": 25,
+        "points": 25,
+        "hits": 6
+      },
+      "2t:selected:4:field_5": {
+        "races": 25,
+        "points": 100,
+        "hits": 14
+      },
+      "2t:selected:8:field_5": {
+        "races": 25,
+        "points": 200,
+        "hits": 20
+      },
+      "3t:selected:1:field_5": {
+        "races": 25,
+        "points": 25,
+        "hits": 3
+      },
+      "3t:selected:4:field_5": {
+        "races": 25,
+        "points": 100,
+        "hits": 7
+      },
+      "3t:selected:8:field_5": {
+        "races": 25,
+        "points": 200,
+        "hits": 10
+      },
+      "2t:selected:1:field_8": {
+        "races": 26,
+        "points": 26,
+        "hits": 5
+      },
+      "2t:selected:4:field_8": {
+        "races": 26,
+        "points": 104,
+        "hits": 9
+      },
+      "2t:selected:8:field_8": {
+        "races": 26,
+        "points": 208,
+        "hits": 10
+      },
+      "3t:selected:1:field_8": {
+        "races": 26,
+        "points": 26,
+        "hits": 1
+      },
+      "3t:selected:4:field_8": {
+        "races": 26,
+        "points": 104,
+        "hits": 2
+      },
+      "3t:selected:8:field_8": {
+        "races": 26,
+        "points": 208,
+        "hits": 4
+      }
+    },
+    "ranking_reasons": {
+      "unique_published_favorite_won": 1462,
+      "unique_regular_races": 3918,
+      "previous_method_refit:winner_missing": 1367,
+      "rider_signals:winner_missing": 1377,
+      "selected:winner_missing": 1339,
+      "previous_method_refit:all_8_wrong_head": 491,
+      "previous_method_refit:winner_covered_wrong_seconds": 819,
+      "rider_signals:winner_covered_wrong_seconds": 817,
+      "selected:winner_covered_wrong_seconds": 820,
+      "rider_signals:all_8_wrong_head": 518,
+      "previous_method_refit:exact_pair_covered_wrong_third": 510,
+      "rider_signals:exact_pair_covered_wrong_third": 547,
+      "selected:exact_pair_covered_wrong_third": 542,
+      "selected:all_8_wrong_head": 445,
+      "previous_method_refit:favorite_won_missing_in_8_heads": 14,
+      "selected:favorite_won_missing_in_8_heads": 29,
+      "rider_signals:favorite_won_missing_in_8_heads": 28
+    },
+    "frozen": 3953,
+    "scored_days": 53,
+    "exclusions": {},
+    "actual_result_rule": "Archived confirmed payouts checked against rank and each other."
+  },
+  "final_market_diagnostic": {
+    "2t:1": {
+      "races": 3929,
+      "closed_market_hits": 1051,
+      "selected_hits_same_races": 833
+    },
+    "2t:4": {
+      "races": 3929,
+      "closed_market_hits": 2190,
+      "selected_hits_same_races": 1799
+    },
+    "2t:8": {
+      "races": 3929,
+      "closed_market_hits": 2870,
+      "selected_hits_same_races": 2398
+    },
+    "3t:1": {
+      "races": 3918,
+      "closed_market_hits": 526,
+      "selected_hits_same_races": 285
+    },
+    "3t:4": {
+      "races": 3918,
+      "closed_market_hits": 1257,
+      "selected_hits_same_races": 810
+    },
+    "3t:8": {
+      "races": 3918,
+      "closed_market_hits": 1718,
+      "selected_hits_same_races": 1217
+    }
+  },
+  "recent_odds_comparison": {
+    "coverage": {
+      "races": 79
+    },
+    "fixed_same_points": {
+      "2t:current_A:1": {
+        "races": 79,
+        "points": 79,
+        "hits": 20
+      },
+      "2t:learned_entries:1": {
+        "races": 79,
+        "points": 79,
+        "hits": 20
+      },
+      "2t:odds_only:1": {
+        "races": 79,
+        "points": 79,
+        "hits": 17
+      },
+      "2t:odds_half:1": {
+        "races": 79,
+        "points": 79,
+        "hits": 19
+      },
+      "2t:odds_three_quarters:1": {
+        "races": 79,
+        "points": 79,
+        "hits": 17
+      },
+      "2t:current_A:4": {
+        "races": 79,
+        "points": 316,
+        "hits": 41
+      },
+      "2t:learned_entries:4": {
+        "races": 79,
+        "points": 316,
+        "hits": 43
+      },
+      "2t:odds_only:4": {
+        "races": 79,
+        "points": 316,
+        "hits": 37
+      },
+      "2t:odds_half:4": {
+        "races": 79,
+        "points": 316,
+        "hits": 42
+      },
+      "2t:odds_three_quarters:4": {
+        "races": 79,
+        "points": 316,
+        "hits": 39
+      },
+      "2t:current_A:8": {
+        "races": 79,
+        "points": 625,
+        "hits": 49
+      },
+      "2t:learned_entries:8": {
+        "races": 79,
+        "points": 625,
+        "hits": 52
+      },
+      "2t:odds_only:8": {
+        "races": 79,
+        "points": 625,
+        "hits": 48
+      },
+      "2t:odds_half:8": {
+        "races": 79,
+        "points": 625,
+        "hits": 51
+      },
+      "2t:odds_three_quarters:8": {
+        "races": 79,
+        "points": 625,
+        "hits": 47
+      },
+      "3t:current_A:1": {
+        "races": 79,
+        "points": 79,
+        "hits": 10
+      },
+      "3t:learned_entries:1": {
+        "races": 79,
+        "points": 79,
+        "hits": 7
+      },
+      "3t:odds_only:1": {
+        "races": 79,
+        "points": 79,
+        "hits": 13
+      },
+      "3t:odds_half:1": {
+        "races": 79,
+        "points": 79,
+        "hits": 12
+      },
+      "3t:odds_three_quarters:1": {
+        "races": 79,
+        "points": 79,
+        "hits": 14
+      },
+      "3t:current_A:4": {
+        "races": 79,
+        "points": 316,
+        "hits": 23
+      },
+      "3t:learned_entries:4": {
+        "races": 79,
+        "points": 316,
+        "hits": 24
+      },
+      "3t:odds_only:4": {
+        "races": 79,
+        "points": 316,
+        "hits": 24
+      },
+      "3t:odds_half:4": {
+        "races": 79,
+        "points": 316,
+        "hits": 25
+      },
+      "3t:odds_three_quarters:4": {
+        "races": 79,
+        "points": 316,
+        "hits": 27
+      },
+      "3t:current_A:8": {
+        "races": 79,
+        "points": 632,
+        "hits": 26
+      },
+      "3t:learned_entries:8": {
+        "races": 79,
+        "points": 632,
+        "hits": 35
+      },
+      "3t:odds_only:8": {
+        "races": 79,
+        "points": 632,
+        "hits": 34
+      },
+      "3t:odds_half:8": {
+        "races": 79,
+        "points": 632,
+        "hits": 37
+      },
+      "3t:odds_three_quarters:8": {
+        "races": 79,
+        "points": 632,
+        "hits": 37
+      }
+    },
+    "adaptive": {},
+    "adaptive_by_points": {},
+    "paired": {},
+    "paired_day_block_95_percentage_points": {},
+    "by_field_size": {},
+    "ranking_reasons": {},
+    "frozen": 83,
+    "checked_at": "2026-11-23T14:17:22.843348+00:00",
+    "eligible_states": {
+      "matched": 79,
+      "held": 1,
+      "pending": 2,
+      "not_in_archive": 1
+    },
+    "chart_age_minutes_min_median_max": [
+      4.5,
+      360.6,
+      830.5
+    ],
+    "odds_captures_ten_to_fifteen_minutes_before_cutoff": 1,
+    "state_head": "9e1a98c71bbd9bf5652300687320f4b9be10cb38",
+    "source_url": "https://github.com/haji84/RACE-AI/blob/9e1a98c71bbd9bf5652300687320f4b9be10cb38/results/2026-11-23.json"
+  },
+  "validation": {
+    "fit_unique_results": 15826,
+    "tuning_races": 2302,
+    "calibration_races": 2345,
+    "tuning_fixed_counts": {
+      "static:rank": {
+        "2t_1": 445,
+        "2t_4": 994,
+        "2t_8": 1338,
+        "3t_1": 163,
+        "3t_4": 425,
+        "3t_8": 662
+      },
+      "static:spread": {
+        "2t_1": 445,
+        "2t_4": 971,
+        "2t_8": 1331,
+        "3t_1": 163,
+        "3t_4": 405,
+        "3t_8": 649
+      },
+      "rider_signals:rank": {
+        "2t_1": 462,
+        "2t_4": 1013,
+        "2t_8": 1384,
+        "3t_1": 155,
+        "3t_4": 447,
+        "3t_8": 705
+      },
+      "rider_signals:spread": {
+        "2t_1": 462,
+        "2t_4": 1006,
+        "2t_8": 1385,
+        "3t_1": 155,
+        "3t_4": 416,
+        "3t_8": 686
+      },
+      "prior_finishers:rank": {
+        "2t_1": 451,
+        "2t_4": 1003,
+        "2t_8": 1401,
+        "3t_1": 160,
+        "3t_4": 451,
+        "3t_8": 699
+      },
+      "prior_finishers:spread": {
+        "2t_1": 451,
+        "2t_4": 1000,
+        "2t_8": 1402,
+        "3t_1": 160,
+        "3t_4": 421,
+        "3t_8": 691
+      }
+    },
+    "selected": {
+      "mode": "prior_finishers",
+      "spread": false
+    },
+    "policies": {
+      "2t": {
+        "equal_average_four": {
+          "one_min": null,
+          "four_max_for_eight": null,
+          "extra_gain_min": 0.09171544617502503
+        },
+        "four_or_eight": {
+          "one_min": null,
+          "four_max_for_eight": 0.583124526417475,
+          "extra_gain_min": 0.19764232604497148
+        }
+      },
+      "3t": {
+        "equal_average_four": {
+          "one_min": null,
+          "four_max_for_eight": null,
+          "extra_gain_min": 0.025822684365822877
+        },
+        "four_or_eight": {
+          "one_min": null,
+          "four_max_for_eight": 0.571570519411333,
+          "extra_gain_min": 0.1321929343590659
+        }
+      }
+    },
+    "calibration_policies": {
+      "2t": {
+        "equal_average_four": {
+          "1": {
+            "races": 0,
+            "hits": 0,
+            "points": 0
+          },
+          "4": {
+            "races": 2345,
+            "hits": 1037,
+            "points": 9380
+          },
+          "8": {
+            "races": 0,
+            "hits": 0,
+            "points": 0
+          }
+        },
+        "four_or_eight": {
+          "1": {
+            "races": 0,
+            "hits": 0,
+            "points": 0
+          },
+          "4": {
+            "races": 1879,
+            "hits": 850,
+            "points": 7516
+          },
+          "8": {
+            "races": 466,
+            "hits": 277,
+            "points": 3728
+          }
+        }
+      },
+      "3t": {
+        "equal_average_four": {
+          "1": {
+            "races": 0,
+            "hits": 0,
+            "points": 0
+          },
+          "4": {
+            "races": 2345,
+            "hits": 455,
+            "points": 9380
+          },
+          "8": {
+            "races": 0,
+            "hits": 0,
+            "points": 0
+          }
+        },
+        "four_or_eight": {
+          "1": {
+            "races": 0,
+            "hits": 0,
+            "points": 0
+          },
+          "4": {
+            "races": 1876,
+            "hits": 316,
+            "points": 7504
+          },
+          "8": {
+            "races": 469,
+            "hits": 199,
+            "points": 3752
+          }
+        }
+      }
+    },
+    "calibration_confirmed_90pct": {
+      "2t": {
+        "1": null,
+        "4": null,
+        "8": null
+      },
+      "3t": {
+        "1": null,
+        "4": null,
+        "8": null
+      }
+    }
+  },
+  "input_coverage": {
+    "fit": {
+      "races": 15995,
+      "race_with_marks": 15994,
+      "race_with_finish_rates": 0,
+      "field_size_5": 179,
+      "field_size_6": 803,
+      "field_size_7": 13572,
+      "field_size_9": 1356,
+      "field_size_8": 85,
+      "all_scores_missing": 21,
+      "available_labels": 15941,
+      "outcome_exclusions": {
+        "unavailable_paid_order": 54
+      }
+    },
+    "tune": {
+      "races": 2302,
+      "race_with_marks": 2302,
+      "race_with_finish_rates": 0,
+      "field_size_7": 1950,
+      "field_size_6": 104,
+      "field_size_8": 13,
+      "field_size_9": 213,
+      "field_size_5": 22,
+      "available_labels": 2302,
+      "outcome_exclusions": {}
+    },
+    "calibrate": {
+      "races": 2348,
+      "race_with_marks": 2348,
+      "race_with_finish_rates": 0,
+      "field_size_7": 2042,
+      "field_size_6": 108,
+      "field_size_5": 18,
+      "field_size_9": 164,
+      "field_size_8": 16,
+      "available_labels": 2345,
+      "outcome_exclusions": {
+        "unavailable_paid_order": 3
+      }
+    },
+    "test": {
+      "races": 3953,
+      "race_with_marks": 3953,
+      "race_with_finish_rates": 0,
+      "field_size_7": 3404,
+      "field_size_6": 132,
+      "field_size_9": 366,
+      "field_size_5": 25,
+      "field_size_8": 26
+    }
+  },
+  "scoring_source_sha256": "5aba1d5febfaf702efce2d6210370129fc8aa9d6ed75834ae38bf27bcb4e092f",
+  "policy_targeting": {
+    "2t": {
+      "races": 3953,
+      "eight_ticket_races": 751,
+      "all_eight_gain": 602,
+      "actual_gain": 137,
+      "random_expected_gain": 114.369,
+      "excess_percentage_points": 0.572,
+      "day_block_95_percentage_points": [
+        0.17,
+        0.98
+      ]
+    },
+    "3t": {
+      "races": 3953,
+      "eight_ticket_races": 788,
+      "all_eight_gain": 409,
+      "actual_gain": 101,
+      "random_expected_gain": 81.531,
+      "excess_percentage_points": 0.493,
+      "day_block_95_percentage_points": [
+        0.107,
+        0.888
+      ]
+    }
+  },
+  "september_highest_scores_100": {
+    "2t:1": {
+      "races": 100,
+      "hits": 35
+    },
+    "2t:4": {
+      "races": 100,
+      "hits": 66
+    },
+    "2t:8": {
+      "races": 100,
+      "hits": 77
+    },
+    "3t:1": {
+      "races": 100,
+      "hits": 15
+    },
+    "3t:4": {
+      "races": 100,
+      "hits": 36
+    },
+    "3t:8": {
+      "races": 100,
+      "hits": 50
+    }
+  },
+  "latest_nov23_market_comparison": {
+    "coverage": {
+      "races": 81
+    },
+    "fixed_same_points": {
+      "2t:current_A:1": {
+        "races": 81,
+        "points": 81,
+        "hits": 22
+      },
+      "2t:learned_entries:1": {
+        "races": 81,
+        "points": 81,
+        "hits": 22
+      },
+      "2t:odds_only:1": {
+        "races": 81,
+        "points": 81,
+        "hits": 19
+      },
+      "2t:odds_half:1": {
+        "races": 81,
+        "points": 81,
+        "hits": 21
+      },
+      "2t:odds_three_quarters:1": {
+        "races": 81,
+        "points": 81,
+        "hits": 19
+      },
+      "2t:current_A:4": {
+        "races": 81,
+        "points": 324,
+        "hits": 43
+      },
+      "2t:learned_entries:4": {
+        "races": 81,
+        "points": 324,
+        "hits": 45
+      },
+      "2t:odds_only:4": {
+        "races": 81,
+        "points": 324,
+        "hits": 39
+      },
+      "2t:odds_half:4": {
+        "races": 81,
+        "points": 324,
+        "hits": 44
+      },
+      "2t:odds_three_quarters:4": {
+        "races": 81,
+        "points": 324,
+        "hits": 41
+      },
+      "2t:current_A:8": {
+        "races": 81,
+        "points": 639,
+        "hits": 51
+      },
+      "2t:learned_entries:8": {
+        "races": 81,
+        "points": 639,
+        "hits": 54
+      },
+      "2t:odds_only:8": {
+        "races": 81,
+        "points": 639,
+        "hits": 50
+      },
+      "2t:odds_half:8": {
+        "races": 81,
+        "points": 639,
+        "hits": 53
+      },
+      "2t:odds_three_quarters:8": {
+        "races": 81,
+        "points": 639,
+        "hits": 49
+      },
+      "3t:current_A:1": {
+        "races": 81,
+        "points": 81,
+        "hits": 12
+      },
+      "3t:learned_entries:1": {
+        "races": 81,
+        "points": 81,
+        "hits": 7
+      },
+      "3t:odds_only:1": {
+        "races": 81,
+        "points": 81,
+        "hits": 14
+      },
+      "3t:odds_half:1": {
+        "races": 81,
+        "points": 81,
+        "hits": 13
+      },
+      "3t:odds_three_quarters:1": {
+        "races": 81,
+        "points": 81,
+        "hits": 15
+      },
+      "3t:current_A:4": {
+        "races": 81,
+        "points": 324,
+        "hits": 25
+      },
+      "3t:learned_entries:4": {
+        "races": 81,
+        "points": 324,
+        "hits": 26
+      },
+      "3t:odds_only:4": {
+        "races": 81,
+        "points": 324,
+        "hits": 26
+      },
+      "3t:odds_half:4": {
+        "races": 81,
+        "points": 324,
+        "hits": 27
+      },
+      "3t:odds_three_quarters:4": {
+        "races": 81,
+        "points": 324,
+        "hits": 29
+      },
+      "3t:current_A:8": {
+        "races": 81,
+        "points": 648,
+        "hits": 28
+      },
+      "3t:learned_entries:8": {
+        "races": 81,
+        "points": 648,
+        "hits": 37
+      },
+      "3t:odds_only:8": {
+        "races": 81,
+        "points": 648,
+        "hits": 36
+      },
+      "3t:odds_half:8": {
+        "races": 81,
+        "points": 648,
+        "hits": 39
+      },
+      "3t:odds_three_quarters:8": {
+        "races": 81,
+        "points": 648,
+        "hits": 39
+      }
+    },
+    "adaptive": {},
+    "adaptive_by_points": {},
+    "paired": {},
+    "paired_day_block_95_percentage_points": {},
+    "by_field_size": {},
+    "ranking_reasons": {},
+    "frozen": 83,
+    "checked_at": "2026-11-23T14:32:22.747212+00:00",
+    "eligible_states": {
+      "matched": 81,
+      "held": 1,
+      "pending": 1,
+      "not_in_archive": 0
+    },
+    "chart_age_minutes_min_median_max": [
+      4.5,
+      360.6,
+      830.5
+    ],
+    "odds_captures_ten_to_fifteen_minutes_before_cutoff": 1,
+    "state_head": "7564ec451acf9366d9d02be05c20818f611d7e50",
+    "source_url": "https://github.com/haji84/RACE-AI/blob/7564ec451acf9366d9d02be05c20818f611d7e50/results/2026-11-23.json"
+  },
+  "earlier_nov20_market_replication": {
+    "scope": {
+      "schema": "KEIRIN_SMALL_TICKET_ODDS_REPLICATION_COMMITMENT_V1",
+      "fixture_date_jst": "2026-11-20",
+      "sealed_at": "2026-11-23T14:35:42.935030+00:00",
+      "salted_forecast_sha256": "a0ae0a7ad0a06ca9ee2e45715e5209751dfb3be6173fcb3296b243305fede5ed",
+      "selected_races": 7,
+      "skipped": {
+        "regular_quote_unavailable": 50
+      },
+      "source_site_commits": {
+        "quote": "d0dd9eb45f4aa2cc1d7641d1dd3bad1335d7be86",
+        "entries": "a1b7aac04a9b41f2b4b9d1cac5e6486e00b7d65e"
+      },
+      "source_site_committed_at": {
+        "quote": "2026-11-19T23:35:41+00:00",
+        "entries": "2026-11-19T22:00:26+00:00"
+      },
+      "preserved_source_file_sha256": {
+        "quote": "94d8b9c48715bf4baebb205cdb9acc1acbd8d29b9b3e4acfc7a6730e792aa587",
+        "entries": "ca53366f2b456a96d12a1fb81e2becd5f9dab600c819c5d2bddff516604ca357"
+      },
+      "quote_age_min_median_max_minutes": [
+        31.0,
+        93.0,
+        156.0
+      ],
+      "weight_config_sha256": "421747a5e8cf38158e98005dfd127626d57465bd1aadf16acbddb674de4d5ecd",
+      "odds_rank_code_sha256": "8b165ce66785861a15400c4cb234d88fdbb87618962acccca1582aa4212735ec",
+      "odds_weight": 0.75,
+      "capture_provenance": "Earlier local Site commits and embedded capture metadata. Raw remote reply bodies not restored."
+    },
+    "commitment_head": "13d12cc2b2b81d74451988aa349279819bc89b67",
+    "witness_ci": 45196066953,
+    "witness_created_at": "2026-11-23T14:36:44Z",
+    "result_read_started_at": "2026-11-23T14:37:52.563703+00:00",
+    "missing": {},
+    "label_source_counts": [
+      0,
+      7,
+      7
+    ],
+    "label_sources": [
+      "Kdreams archived entry/results",
+      "netkeirin archived results",
+      "application payout archive"
+    ],
+    "all_admitted_fixed_caps": {
+      "coverage": {
+        "races": 7
+      },
+      "fixed_same_points": {
+        "2t:learned_entries:1": {
+          "races": 7,
+          "points": 7,
+          "hits": 2
+        },
+        "2t:odds_only:1": {
+          "races": 7,
+          "points": 7,
+          "hits": 2
+        },
+        "2t:odds_three_quarters:1": {
+          "races": 7,
+          "points": 7,
+          "hits": 2
+        },
+        "2t:learned_entries:4": {
+          "races": 7,
+          "points": 28,
+          "hits": 5
+        },
+        "2t:odds_only:4": {
+          "races": 7,
+          "points": 28,
+          "hits": 5
+        },
+        "2t:odds_three_quarters:4": {
+          "races": 7,
+          "points": 28,
+          "hits": 5
+        },
+        "2t:learned_entries:8": {
+          "races": 7,
+          "points": 56,
+          "hits": 6
+        },
+        "2t:odds_only:8": {
+          "races": 7,
+          "points": 56,
+          "hits": 6
+        },
+        "2t:odds_three_quarters:8": {
+          "races": 7,
+          "points": 56,
+          "hits": 6
+        },
+        "3t:learned_entries:1": {
+          "races": 7,
+          "points": 7,
+          "hits": 2
+        },
+        "3t:odds_only:1": {
+          "races": 7,
+          "points": 7,
+          "hits": 2
+        },
+        "3t:odds_three_quarters:1": {
+          "races": 7,
+          "points": 7,
+          "hits": 2
+        },
+        "3t:learned_entries:4": {
+          "races": 7,
+          "points": 28,
+          "hits": 2
+        },
+        "3t:odds_only:4": {
+          "races": 7,
+          "points": 28,
+          "hits": 3
+        },
+        "3t:odds_three_quarters:4": {
+          "races": 7,
+          "points": 28,
+          "hits": 3
+        },
+        "3t:learned_entries:8": {
+          "races": 7,
+          "points": 56,
+          "hits": 3
+        },
+        "3t:odds_only:8": {
+          "races": 7,
+          "points": 56,
+          "hits": 4
+        },
+        "3t:odds_three_quarters:8": {
+          "races": 7,
+          "points": 56,
+          "hits": 4
+        }
+      },
+      "adaptive": {},
+      "adaptive_by_points": {},
+      "paired": {},
+      "paired_day_block_95_percentage_points": {},
+      "by_field_size": {},
+      "ranking_reasons": {}
+    },
+    "stronger_independent_labels": {
+      "coverage": {},
+      "fixed_same_points": {},
+      "adaptive": {},
+      "adaptive_by_points": {},
+      "paired": {},
+      "paired_day_block_95_percentage_points": {},
+      "by_field_size": {},
+      "ranking_reasons": {}
+    }
+  },
+  "controlled_finish_stage_diagnostic": {
+    "purpose": "Post-score stage diagnosis with fixed saved weights; no selection or tuning on these labels.",
+    "pair_stage_plus_third_stage": {
+      "static+static": {
+        "races": 3953,
+        "hits_1": 294,
+        "hits_4": 810,
+        "hits_8": 1233
+      },
+      "static+prior_finishers": {
+        "races": 3953,
+        "hits_1": 289,
+        "hits_4": 826,
+        "hits_8": 1238
+      },
+      "prior_finishers+static": {
+        "races": 3953,
+        "hits_1": 296,
+        "hits_4": 812,
+        "hits_8": 1223
+      },
+      "prior_finishers+prior_finishers": {
+        "races": 3953,
+        "hits_1": 290,
+        "hits_4": 817,
+        "hits_8": 1226
+      }
+    },
+    "third_given_actual_first_two_diagnostic_only": {
+      "regular": 3918,
+      "static_third_hit_1": 1286,
+      "static_third_hit_2": 2215,
+      "prior_finishers_third_hit_1": 1293,
+      "prior_finishers_third_hit_2": 2265
+    }
+  },
+  "independent_payout_spot_check": {
+    "samples": [
+      {
+        "race_id": "202510051101",
+        "source_url": "https://keirin.netkeiba.com/race/result/?race_id=202510051101",
+        "source_sha256": "d2930240a6e45c513bacbd7635643fd2c42784c3f41e807ab493950568b29d6d",
+        "matched_both_markets": true
+      },
+      {
+        "race_id": "202510192601",
+        "source_url": "https://keirin.netkeiba.com/race/result/?race_id=202510192601",
+        "source_sha256": "5205541fcce0413fd52b8e8a0460ae96ae2380650c435bd702fd2a817b35f187",
+        "matched_both_markets": true
+      },
+      {
+        "race_id": "202511023101",
+        "source_url": "https://keirin.netkeiba.com/race/result/?race_id=202511023101",
+        "source_sha256": "b1aa0d86a0c6f73de5b77f94765b491836c45fd656a80eb9afc3c6d75444f455",
+        "matched_both_markets": true
+      },
+      {
+        "race_id": "202511161301",
+        "source_url": "https://keirin.netkeiba.com/race/result/?race_id=202511161301",
+        "source_sha256": "79e95fe5171d432007cd9503c3356133e976f48f14339d9c576c6a5f4817691b",
+        "matched_both_markets": true
+      }
+    ],
+    "note": "Four deterministic calendar samples; does not certify every historical result."
+  },
+  "verification": {
+    "owner_backup_ciphertext_sha256": "8a8e1c9908babe12add04e957533cd9da4c0e570f0875602f4c6b1b385b02d33",
+    "canonical_tuning_and_budget_recheck_matches_frozen_settings": true,
+    "original_witness_url": "https://github.com/haji84/RACE-AI/actions/runs/45194534181",
+    "earlier_market_witness_url": "https://github.com/haji84/RACE-AI/actions/runs/45196066953"
+  }
+}

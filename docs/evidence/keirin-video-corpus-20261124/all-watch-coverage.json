@@ -1,0 +1,580 @@
+{
+  "three_year_window": [
+    "2023-11-24",
+    "2026-11-23"
+  ],
+  "rows_within": 82774,
+  "rows_outside": 2,
+  "event_outcomes": {
+    "finish_verified": 76005,
+    "unknown": 6762,
+    "cancelled_reported": 7
+  },
+  "eligible_rows": 82767,
+  "within": {
+    "original_verified_visual_source": 78,
+    "prior_positions_or_known_rider_events": 66,
+    "preceding_turn_review": 13,
+    "current_review": 32,
+    "current_attempted": 59,
+    "current_failed_only": 27,
+    "current_inconclusive_playback_only": 0,
+    "any_position_or_known_rider_event": 111,
+    "visual_inspection_or_original_verified_source": 123,
+    "match_from_another_provider_played": 3,
+    "original_backlog_direct_ref": 12818,
+    "original_backlog_calendar_only": 69871,
+    "unreviewed_including_provider_only": 82644,
+    "unreviewed_direct_ref": 12797,
+    "unreviewed_calendar_only": 69847
+  },
+  "outside": {
+    "original_verified_visual_source": 0,
+    "prior_positions_or_known_rider_events": 0,
+    "preceding_turn_review": 2,
+    "current_review": 0,
+    "current_attempted": 0,
+    "current_failed_only": 0,
+    "current_inconclusive_playback_only": 0,
+    "any_position_or_known_rider_event": 2,
+    "visual_inspection_or_original_verified_source": 2,
+    "match_from_another_provider_played": 0,
+    "original_backlog_direct_ref": 0,
+    "original_backlog_calendar_only": 0,
+    "unreviewed_including_provider_only": 0,
+    "unreviewed_direct_ref": 0,
+    "unreviewed_calendar_only": 0
+  },
+  "overlap_within_by_original_previous_new": {
+    "0/0/0": 82651,
+    "0/0/1": 32,
+    "0/1/0": 13,
+    "1/0/0": 78
+  },
+  "ledger_sha256": "a630a47a98af862fd291ad7180e276d44530a330cd9f348537224a2c93730a8f",
+  "original_nonresearch_provider_snapshots": "only viewer availability; omits assigning labels from provider playback",
+  "direct_refs_scope": "historic 82,689 queue. Derived YENJOY URL is a normal-page candidate, not live playback evidence",
+  "seen_scope": "original 78 include distinct reviewed frames, not end-to-end viewing; checkpoint or known event counts separate",
+  "full_field_start_to_goal_verified_in_original": 0,
+  "per_venue_day": {
+    "20231124-13": {
+      "attempted": 10,
+      "reviewed": 7,
+      "failed_only": 3
+    },
+    "20240611-56": {
+      "attempted": 12,
+      "reviewed": 12,
+      "failed_only": 0
+    },
+    "20250603-31": {
+      "attempted": 1,
+      "reviewed": 0,
+      "failed_only": 1
+    },
+    "20250916-11": {
+      "attempted": 8,
+      "reviewed": 8,
+      "failed_only": 0
+    },
+    "20261117-73": {
+      "attempted": 10,
+      "reviewed": 5,
+      "failed_only": 5
+    },
+    "20261118-73": {
+      "attempted": 10,
+      "reviewed": 0,
+      "failed_only": 10
+    },
+    "20261119-81": {
+      "attempted": 8,
+      "reviewed": 0,
+      "failed_only": 8
+    }
+  },
+  "newly_read_phases": {
+    "back_known": 32,
+    "corner_known": 29,
+    "both_known": 29,
+    "same": 24,
+    "changed": 5,
+    "back_second_known": 30,
+    "corner_second_known": 26
+  },
+  "independent_ledger_id_and_status_comparison": {
+    "joined_rows": 82776,
+    "all_ids_and_individual_visual_coverage_match": true,
+    "conflicting_positions": [],
+    "portable_export_sha256": "d7bb2a0a708689873a2e77252052a72adb6cd14241d0b82de3a80cd14bb1a68f"
+  },
+  "failed_to_access_or_play": [
+    {
+      "race_id": "20231124-13-08",
+      "attempts_at_public_pages": [
+        {
+          "public_page": "https://keirin.kdreams.jp/iwakitaira/racedetail/1320231124010008/",
+          "outcome": "同じ開催の結果ページが使用する配信元の通常のプレーヤー用JavaScriptがHTTP 503。9Rの標準ブラウザでレスポンスを直接確認。本レースでもエラー $ is not defined を確認。"
+        }
+      ]
+    },
+    {
+      "race_id": "20231124-13-09",
+      "attempts_at_public_pages": [
+        {
+          "public_page": "https://keirin.kdreams.jp/iwakitaira/racedetail/1320231124010009/",
+          "outcome": "同じ開催の結果ページが使用する配信元の通常のプレーヤー用JavaScriptがHTTP 503。9Rの標準ブラウザでレスポンスを直接確認。"
+        }
+      ]
+    },
+    {
+      "race_id": "20231124-13-10",
+      "attempts_at_public_pages": [
+        {
+          "public_page": "https://keirin.kdreams.jp/iwakitaira/racedetail/1320231124010010/",
+          "outcome": "同じ開催の結果ページが使用する配信元の通常のプレーヤー用JavaScriptがHTTP 503。9Rの標準ブラウザでレスポンスを直接確認。"
+        }
+      ]
+    },
+    {
+      "race_id": "20250603-31-01",
+      "attempts_at_public_pages": [
+        {
+          "public_page": "https://keirin.kdreams.jp/matsudo/racedetail/3120250601030001/?pageType=showResult",
+          "outcome": "Ordinary race-specific pages returned HTTP 503 before the player loaded; other providers are retained as route-level evidence only."
+        }
+      ]
+    },
+    {
+      "race_id": "20261117-73-07",
+      "attempts_at_public_pages": [
+        {
+          "public_page": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/7320261116/73202611160200/7/",
+          "outcome": "Regular replay button clicked on two visits, including after full page load; no visible player in 10 seconds."
+        },
+        {
+          "public_page": "https://keirin.kdreams.jp/stadium/digest/?kyogijoCd=73&kaisaiDate=20261117&gradeCd=1&raceNo=7&l-id=Highlightreel",
+          "outcome": "Attempted normal controls on publicly linked archive watch page."
+        }
+      ]
+    },
+    {
+      "race_id": "20261117-73-08",
+      "attempts_at_public_pages": [
+        {
+          "public_page": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/7320261116/73202611160200/8/",
+          "outcome": "Ordinary public page opened and replay button clicked. Multiple page scripts returned HTTP 503, no visible player on repeat visit."
+        },
+        {
+          "public_page": "https://keirin.kdreams.jp/stadium/digest/?kyogijoCd=73&kaisaiDate=20261117&gradeCd=1&raceNo=8&l-id=Highlightreel",
+          "outcome": "Attempted normal controls on publicly linked archive watch page."
+        }
+      ]
+    },
+    {
+      "race_id": "20261117-73-09",
+      "attempts_at_public_pages": [
+        {
+          "public_page": "https://keirin.kdreams.jp/stadium/digest/?kyogijoCd=73&kaisaiDate=20261117&gradeCd=1&raceNo=9&l-id=Highlightreel",
+          "outcome": "Attempted normal controls on publicly linked archive watch page."
+        }
+      ]
+    },
+    {
+      "race_id": "20261117-73-10",
+      "attempts_at_public_pages": [
+        {
+          "public_page": "https://keirin.kdreams.jp/stadium/digest/?kyogijoCd=73&kaisaiDate=20261117&gradeCd=1&raceNo=10&l-id=Highlightreel",
+          "outcome": "Attempted normal controls on publicly linked archive watch page."
+        }
+      ]
+    },
+    {
+      "race_id": "20261117-73-11",
+      "attempts_at_public_pages": [
+        {
+          "public_page": "https://keirin.kdreams.jp/stadium/digest/?kyogijoCd=73&kaisaiDate=20261117&gradeCd=1&raceNo=11&l-id=Highlightreel",
+          "outcome": "Attempted normal controls on publicly linked archive watch page."
+        }
+      ]
+    },
+    {
+      "race_id": "20261118-73-01",
+      "attempts_at_public_pages": [
+        {
+          "public_page": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/7320261116/73202611160300/01/",
+          "outcome": "Ordinary public race page and visible replay control, attempted opening; no video element decoded."
+        }
+      ]
+    },
+    {
+      "race_id": "20261118-73-02",
+      "attempts_at_public_pages": [
+        {
+          "public_page": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/7320261116/73202611160300/02/",
+          "outcome": "Ordinary public race page and visible replay control, attempted opening; no video element decoded."
+        }
+      ]
+    },
+    {
+      "race_id": "20261118-73-03",
+      "attempts_at_public_pages": [
+        {
+          "public_page": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/7320261116/73202611160300/03/",
+          "outcome": "Ordinary public race page and visible replay control, attempted opening; no video element decoded."
+        }
+      ]
+    },
+    {
+      "race_id": "20261118-73-05",
+      "attempts_at_public_pages": [
+        {
+          "public_page": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/7320261116/73202611160300/05/",
+          "outcome": "Ordinary public race page and visible replay control, attempted opening; no video element decoded."
+        }
+      ]
+    },
+    {
+      "race_id": "20261118-73-06",
+      "attempts_at_public_pages": [
+        {
+          "public_page": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/7320261116/73202611160300/06/",
+          "outcome": "Ordinary public race page and visible replay control, attempted opening; no video element decoded."
+        }
+      ]
+    },
+    {
+      "race_id": "20261118-73-07",
+      "attempts_at_public_pages": [
+        {
+          "public_page": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/7320261116/73202611160300/07/",
+          "outcome": "Ordinary public race page and visible replay control, attempted opening; no video element decoded."
+        }
+      ]
+    },
+    {
+      "race_id": "20261118-73-08",
+      "attempts_at_public_pages": [
+        {
+          "public_page": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/7320261116/73202611160300/08/",
+          "outcome": "Ordinary public race page and visible replay control, attempted opening; no video element decoded."
+        }
+      ]
+    },
+    {
+      "race_id": "20261118-73-09",
+      "attempts_at_public_pages": [
+        {
+          "public_page": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/7320261116/73202611160300/09/",
+          "outcome": "Ordinary public race page and visible replay control, attempted opening; no video element decoded."
+        }
+      ]
+    },
+    {
+      "race_id": "20261118-73-10",
+      "attempts_at_public_pages": [
+        {
+          "public_page": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/7320261116/73202611160300/10/",
+          "outcome": "Ordinary public race page and visible replay control, attempted opening; no video element decoded."
+        }
+      ]
+    },
+    {
+      "race_id": "20261118-73-11",
+      "attempts_at_public_pages": [
+        {
+          "public_page": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/7320261116/73202611160300/11/",
+          "outcome": "Ordinary public race page and visible replay control, attempted opening; no video element decoded."
+        }
+      ]
+    },
+    {
+      "race_id": "20261119-81-01",
+      "attempts_at_public_pages": [
+        {
+          "public_page": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/8120261118/81202611180200/1/",
+          "outcome": "Browser replay check recorded no video state or decoded frames and recorded HTTP resource failures."
+        }
+      ]
+    },
+    {
+      "race_id": "20261119-81-05",
+      "attempts_at_public_pages": [
+        {
+          "public_page": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/8120261118/81202611180200/5/",
+          "outcome": "Ordinary playback check reported no decoded video in this race; observed response codes are retained per race."
+        }
+      ]
+    },
+    {
+      "race_id": "20261119-81-06",
+      "attempts_at_public_pages": [
+        {
+          "public_page": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/8120261118/81202611180200/6/",
+          "outcome": "Browser replay check recorded no video state or decoded frames and recorded HTTP resource failures."
+        }
+      ]
+    },
+    {
+      "race_id": "20261119-81-07",
+      "attempts_at_public_pages": [
+        {
+          "public_page": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/8120261118/81202611180200/7/",
+          "outcome": "Browser replay check recorded no video state or decoded frames and recorded HTTP resource failures."
+        }
+      ]
+    },
+    {
+      "race_id": "20261119-81-09",
+      "attempts_at_public_pages": [
+        {
+          "public_page": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/8120261118/81202611180200/9/",
+          "outcome": "Browser replay check recorded no video state or decoded frames and recorded HTTP resource failures."
+        }
+      ]
+    },
+    {
+      "race_id": "20261119-81-10",
+      "attempts_at_public_pages": [
+        {
+          "public_page": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/8120261118/81202611180200/10/",
+          "outcome": "Browser replay check recorded no video state or decoded frames and recorded HTTP resource failures."
+        }
+      ]
+    },
+    {
+      "race_id": "20261119-81-11",
+      "attempts_at_public_pages": [
+        {
+          "public_page": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/8120261118/81202611180200/11/",
+          "outcome": "Ordinary playback check reported no decoded video in this race; observed response codes are retained per race."
+        }
+      ]
+    },
+    {
+      "race_id": "20261119-81-12",
+      "attempts_at_public_pages": [
+        {
+          "public_page": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/8120261118/81202611180200/12/",
+          "outcome": "Ordinary playback check reported no decoded video in this race; observed response codes are retained per race."
+        }
+      ]
+    }
+  ],
+  "current_after_local_reread": {
+    "reread_existing_races": 24,
+    "first_concrete_position_or_rider_event_race_ids": [
+      "20231205-37-01",
+      "20241119-25-01",
+      "20250520-11-01",
+      "20261117-24-01",
+      "20261117-73-05",
+      "20261118-26-03",
+      "20261118-81-04",
+      "20261118-81-08",
+      "20261122-36-05",
+      "20261122-42-06",
+      "20261122-81-05",
+      "20261123-26-07"
+    ],
+    "eligible_rows": 82767,
+    "visual_inspection_or_original_verified_source": 123,
+    "any_position_or_known_rider_event": 123,
+    "unreviewed_including_provider_only": 82644,
+    "three_year_replay_calendar_csv_sha256": "49a90fd7a1826c011283e05ea1df030b80b177bbd5e929b7c9f3650c5e62a7d1"
+  },
+  "current_after_public_player_recovery": {
+    "baseline_commit": "442049c9a",
+    "baseline_csv_sha256": "49a90fd7a1826c011283e05ea1df030b80b177bbd5e929b7c9f3650c5e62a7d1",
+    "attempted_unique": 40,
+    "retries_of_first_27_unreadable": 27,
+    "first_attempts_beyond_initial_59": 13,
+    "new_races_with_visual_positions": 20,
+    "of_initial_failures_now_with_visual_positions": 17,
+    "of_first_attempts_now_with_visual_positions": 3,
+    "across_initial_and_recovery_attempts": {
+      "unique_races_attempted": 72,
+      "unique_new_visual_position_races": 52,
+      "awaiting_observation": 20
+    },
+    "per_venue_day": {
+      "20231124-13": {
+        "attempted": 3,
+        "observed": 3,
+        "playback_but_no_readable_phases": 0,
+        "playback_failed": 0
+      },
+      "20231124-22": {
+        "attempted": 7,
+        "observed": 0,
+        "playback_but_no_readable_phases": 0,
+        "playback_failed": 7
+      },
+      "20250603-31": {
+        "attempted": 7,
+        "observed": 4,
+        "playback_but_no_readable_phases": 3,
+        "playback_failed": 0
+      },
+      "20261117-73": {
+        "attempted": 5,
+        "observed": 3,
+        "playback_but_no_readable_phases": 1,
+        "playback_failed": 1
+      },
+      "20261118-73": {
+        "attempted": 10,
+        "observed": 6,
+        "playback_but_no_readable_phases": 1,
+        "playback_failed": 3
+      },
+      "20261119-81": {
+        "attempted": 8,
+        "observed": 4,
+        "playback_but_no_readable_phases": 1,
+        "playback_failed": 3
+      }
+    },
+    "newly_observed_race_ids": [
+      "20231124-13-08",
+      "20231124-13-09",
+      "20231124-13-10",
+      "20250603-31-01",
+      "20250603-31-03",
+      "20250603-31-06",
+      "20250603-31-07",
+      "20261117-73-07",
+      "20261117-73-08",
+      "20261117-73-10",
+      "20261118-73-01",
+      "20261118-73-02",
+      "20261118-73-03",
+      "20261118-73-05",
+      "20261118-73-06",
+      "20261118-73-07",
+      "20261119-81-01",
+      "20261119-81-06",
+      "20261119-81-07",
+      "20261119-81-11"
+    ],
+    "without_new_observation": [
+      {
+        "race_id": "20231124-22-01",
+        "state": "playback_failed",
+        "reason": "会場の掲載ダイジェストを開くと通常プレーヤーの枠を表示。再生操作後を含め映像のHTTP 503、時間0秒、デコード0フレーム。"
+      },
+      {
+        "race_id": "20231124-22-02",
+        "state": "playback_failed",
+        "reason": "会場の掲載ダイジェストを開くと通常プレーヤーの枠を表示。再生操作後を含め映像のHTTP 503、時間0秒、デコード0フレーム。"
+      },
+      {
+        "race_id": "20231124-22-03",
+        "state": "playback_failed",
+        "reason": "会場の掲載ダイジェストを開くと通常プレーヤーの枠を表示。再生操作後を含め映像のHTTP 503、時間0秒、デコード0フレーム。"
+      },
+      {
+        "race_id": "20231124-22-04",
+        "state": "playback_failed",
+        "reason": "会場の掲載ダイジェストを開くと通常プレーヤーの枠を表示。再生操作後を含め映像のHTTP 503、時間0秒、デコード0フレーム。"
+      },
+      {
+        "race_id": "20231124-22-05",
+        "state": "playback_failed",
+        "reason": "会場の掲載ダイジェストを開くと通常プレーヤーの枠を表示。再生操作後を含め映像のHTTP 503、時間0秒、デコード0フレーム。"
+      },
+      {
+        "race_id": "20231124-22-06",
+        "state": "playback_failed",
+        "reason": "会場の掲載ダイジェストを開くと通常プレーヤーの枠を表示。再生操作後を含め映像のHTTP 503、時間0秒、デコード0フレーム。"
+      },
+      {
+        "race_id": "20231124-22-07",
+        "state": "playback_failed",
+        "reason": "会場の掲載ダイジェストを開くと通常プレーヤーの枠を表示。再生操作後を含め映像のHTTP 503、時間0秒、デコード0フレーム。"
+      },
+      {
+        "race_id": "20250603-31-02",
+        "state": "playback_but_no_readable_phases",
+        "reason": "冒頭の再生は確認。最終周へのシーク時に配信HTTP 503、別の通常再生でも終盤に到達せず。"
+      },
+      {
+        "race_id": "20250603-31-04",
+        "state": "playback_but_no_readable_phases",
+        "reason": "冒頭の再生は確認。最終周へのシーク時に配信HTTP 503、別の通常再生でも終盤に到達せず。"
+      },
+      {
+        "race_id": "20250603-31-05",
+        "state": "playback_but_no_readable_phases",
+        "reason": "冒頭の再生は確認。最終周へのシーク時に配信HTTP 503、別の通常再生でも終盤に到達せず。"
+      },
+      {
+        "race_id": "20261117-73-09",
+        "state": "playback_failed",
+        "reason": "配信HTTP 503で0秒に停止。"
+      },
+      {
+        "race_id": "20261117-73-11",
+        "state": "playback_but_no_readable_phases",
+        "reason": "冒頭0.75秒が再生。最終周のシーク時に配信HTTP 503、再訪時は0秒に停止。"
+      },
+      {
+        "race_id": "20261118-73-08",
+        "state": "playback_failed",
+        "reason": "場内プレーヤーを2回開いたが配信HTTP 503。"
+      },
+      {
+        "race_id": "20261118-73-09",
+        "state": "playback_failed",
+        "reason": "場内プレーヤーを2回開いたが配信HTTP 503。"
+      },
+      {
+        "race_id": "20261118-73-10",
+        "state": "playback_failed",
+        "reason": "場内プレーヤーを2回開いたが配信HTTP 503。"
+      },
+      {
+        "race_id": "20261118-73-11",
+        "state": "playback_but_no_readable_phases",
+        "reason": "冒頭だけデコードし、終盤シークに2回失敗。再訪時は配信HTTP 503。"
+      },
+      {
+        "race_id": "20261119-81-05",
+        "state": "playback_failed",
+        "reason": "場内プレーヤーは配信HTTP 503。再生時間が進まなかった。"
+      },
+      {
+        "race_id": "20261119-81-09",
+        "state": "playback_failed",
+        "reason": "場内プレーヤーは配信HTTP 503。再生時間が進まなかった。"
+      },
+      {
+        "race_id": "20261119-81-10",
+        "state": "playback_failed",
+        "reason": "場内プレーヤーは配信HTTP 503。再生時間が進まなかった。"
+      },
+      {
+        "race_id": "20261119-81-12",
+        "state": "playback_but_no_readable_phases",
+        "reason": "冒頭約0.08秒で配信エラー、最終周には到達できず。"
+      }
+    ],
+    "eligible_rows": 82767,
+    "visual_inspection_or_original_verified_source": 143,
+    "any_position_or_known_rider_event": 143,
+    "unreviewed_including_provider_only": 82624,
+    "unreviewed_direct_ref": 12791,
+    "unreviewed_calendar_only": 69833,
+    "historical_index_button_count_among_current_unreviewed": 12785,
+    "additional_linked_players_among_current_unreviewed": {
+      "20231124-22-03": "https://keirin.kdreams.jp/stadium/digest/?kyogijoCd=22&kaisaiDate=20231124&gradeCd=1&raceNo=3&l-id=Highlightreel",
+      "20231124-22-07": "https://keirin.kdreams.jp/stadium/digest/?kyogijoCd=22&kaisaiDate=20231124&gradeCd=1&raceNo=7&l-id=Highlightreel",
+      "20250603-31-02": "https://keirin.kdreams.jp/stadium/digest/?kyogijoCd=31&kaisaiDate=20250603&gradeCd=1&raceNo=2&l-id=Highlightreel",
+      "20250603-31-04": "https://keirin.kdreams.jp/stadium/digest/?kyogijoCd=31&kaisaiDate=20250603&gradeCd=1&raceNo=4&l-id=Highlightreel",
+      "20250603-31-05": "https://keirin.kdreams.jp/stadium/digest/?kyogijoCd=31&kaisaiDate=20250603&gradeCd=1&raceNo=5&l-id=Highlightreel",
+      "20261118-73-11": "https://keirin.kdreams.jp/stadium/digest/?kyogijoCd=73&kaisaiDate=20261118&gradeCd=1&raceNo=11&l-id=Highlightreel"
+    },
+    "race_receipt_hash_list_sha256": "ea88a8da0403ab811f6c96ba47e0db4f58b5fc87e89706c0702aa096454e067b",
+    "three_year_replay_calendar_csv_sha256": "4a52d4a9f1f0086ec0192e49b7044677e230c65bcfd68ab3bb197db0426e877c"
+  }
+}

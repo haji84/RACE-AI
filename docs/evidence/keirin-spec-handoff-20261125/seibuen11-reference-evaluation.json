@@ -1,0 +1,121 @@
+{
+  "scope": "RETROSPECTIVE_CONVERSATION_REFERENCE_NOT_FROZEN_FORECAST",
+  "race_id": "202611252611",
+  "evaluated_at": "2026-11-25T12:04:04.154993+00:00",
+  "official_primary_result_authenticated": false,
+  "eligible_for_pre_cutoff_performance": false,
+  "formal_performance_races_added": 0,
+  "case_sha256": "81c47d910e940d72cbbee135bd50e7ebd521a2c8348ba80b43fb8b9461a6b69a",
+  "result_check_sha256": "74414f5e4336fef1d891c6ff318832ed1d50bf2bb84ca51c910c4f5f675cf10d",
+  "comparison": {
+    "race_id": "202611252611",
+    "placing": {
+      "formal": false,
+      "hit": true,
+      "first_hit": true,
+      "points": 1,
+      "matched_points": 1,
+      "hit_rank": 1
+    },
+    "flow": {
+      "state": "insufficient",
+      "aspects": {
+        "INITIAL": {
+          "sources": [],
+          "state": "unobserved"
+        },
+        "BELL": {
+          "sources": [],
+          "state": "forecast_missing"
+        },
+        "FINAL_HOME": {
+          "sources": [],
+          "state": "forecast_missing"
+        },
+        "FINAL_BACK": {
+          "sources": [],
+          "state": "forecast_missing"
+        },
+        "FOURTH_CORNER": {
+          "sources": [],
+          "state": "forecast_missing"
+        },
+        "INITIATIVE": {
+          "sources": [],
+          "state": "unobserved"
+        },
+        "ATTACK_ORDER": {
+          "sources": [],
+          "state": "forecast_missing"
+        }
+      },
+      "counts": {
+        "unobserved": 2,
+        "forecast_missing": 5
+      },
+      "unverified_observations": 0
+    },
+    "grade": null,
+    "reference_grade": "B",
+    "reference_flow": {
+      "state": "different",
+      "aspects": {
+        "INITIAL": {
+          "sources": [
+            "user"
+          ],
+          "observed": [
+            5,
+            3,
+            4,
+            6,
+            1,
+            2,
+            7
+          ],
+          "predicted": [
+            2
+          ],
+          "state": "different"
+        },
+        "BELL": {
+          "sources": [],
+          "state": "forecast_missing"
+        },
+        "FINAL_HOME": {
+          "sources": [],
+          "state": "forecast_missing"
+        },
+        "FINAL_BACK": {
+          "sources": [],
+          "state": "forecast_missing"
+        },
+        "FOURTH_CORNER": {
+          "sources": [],
+          "state": "forecast_missing"
+        },
+        "INITIATIVE": {
+          "sources": [
+            "user"
+          ],
+          "observed": 2,
+          "predicted": 4,
+          "state": "different"
+        },
+        "ATTACK_ORDER": {
+          "sources": [
+            "user"
+          ],
+          "state": "forecast_missing"
+        }
+      },
+      "counts": {
+        "different": 2,
+        "forecast_missing": 5
+      }
+    }
+  },
+  "original_conversation_forecast_restored": false,
+  "comparison_flow_supplied": true,
+  "classifier": "keirin_form_fall_blind_pdca.compare_race_development"
+}

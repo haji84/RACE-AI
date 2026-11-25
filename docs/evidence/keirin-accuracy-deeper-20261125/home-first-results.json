@@ -1,0 +1,978 @@
+{
+  "design_sha256": "2c3854e92d2d79e6e83cbbc53bd9a10c85f098616e1667f6e526585658fad3e5",
+  "earlier_verified_races_with_source_prefecture_and_groups": 48,
+  "baseline_original_and_candidate_bytes": {
+    "rolling": "d86ff9e989fb860b4c5d96e25c53b280d36e91cd304ea4709894589dbf1e6687",
+    "earlier_family": "cb0f50d6433e31bf97a0682724c6a11df97bf51794fc660ef56ab4a885b503f8",
+    "current": "7a807779e880abb1ee6f74bf6f04367f8fa047bbda693fbcd77409ce4b0bcb9e"
+  },
+  "rolling_all": {
+    "n": 12234,
+    "date_range": [
+      "20260524",
+      "20261120"
+    ],
+    "1": {
+      "old": 1248,
+      "new": 1262,
+      "gained": 41,
+      "lost": 27,
+      "paired_pp_ci95_by_day": [
+        -0.03262962150902824,
+        0.2632802542013815
+      ]
+    },
+    "4": {
+      "old": 3234,
+      "new": 3234,
+      "gained": 0,
+      "lost": 0,
+      "paired_pp_ci95_by_day": [
+        0.0,
+        0.0
+      ]
+    },
+    "8": {
+      "old": 4583,
+      "new": 4583,
+      "gained": 0,
+      "lost": 0,
+      "paired_pp_ci95_by_day": [
+        0.0,
+        0.0
+      ]
+    },
+    "changed_first": 473,
+    "gained_ids": [
+      "202605308707",
+      "202606015507",
+      "202606034503",
+      "202606052507",
+      "202606094405",
+      "202606098603",
+      "202606233704",
+      "202606302308",
+      "202606302311",
+      "202606307405",
+      "202607025305",
+      "202607032105",
+      "202607102207",
+      "202607104411",
+      "202607192704",
+      "202607194306",
+      "202607303508",
+      "202607305503",
+      "202608028506",
+      "202608054205",
+      "202608104807",
+      "202608128408",
+      "202608172201",
+      "202608172203",
+      "202608223110",
+      "202608232602",
+      "202608236312",
+      "202608314801",
+      "202609062607",
+      "202609217406",
+      "202609264308",
+      "202609296105",
+      "202610022509",
+      "202610034712",
+      "202610051304",
+      "202610104303",
+      "202610108403",
+      "202610153801",
+      "202610298401",
+      "202611048611",
+      "202611183803"
+    ],
+    "lost_ids": [
+      "202605313112",
+      "202606022407",
+      "202606043507",
+      "202606215606",
+      "202606252701",
+      "202606264407",
+      "202606274407",
+      "202607141102",
+      "202607194508",
+      "202607212709",
+      "202607248104",
+      "202607265301",
+      "202608093504",
+      "202608188507",
+      "202608202106",
+      "202608267407",
+      "202608268703",
+      "202609165604",
+      "202610128108",
+      "202610128704",
+      "202610151204",
+      "202610152209",
+      "202610192705",
+      "202610314202",
+      "202611068611",
+      "202611084808",
+      "202611114601"
+    ]
+  },
+  "rolling_local": {
+    "n": 3930,
+    "date_range": [
+      "20260524",
+      "20261120"
+    ],
+    "1": {
+      "old": 412,
+      "new": 426,
+      "gained": 41,
+      "lost": 27,
+      "paired_pp_ci95_by_day": [
+        -0.10083631882220236,
+        0.8225375295206377
+      ]
+    },
+    "4": {
+      "old": 1052,
+      "new": 1052,
+      "gained": 0,
+      "lost": 0,
+      "paired_pp_ci95_by_day": [
+        0.0,
+        0.0
+      ]
+    },
+    "8": {
+      "old": 1473,
+      "new": 1473,
+      "gained": 0,
+      "lost": 0,
+      "paired_pp_ci95_by_day": [
+        0.0,
+        0.0
+      ]
+    },
+    "changed_first": 473,
+    "gained_ids": [
+      "202605308707",
+      "202606015507",
+      "202606034503",
+      "202606052507",
+      "202606094405",
+      "202606098603",
+      "202606233704",
+      "202606302308",
+      "202606302311",
+      "202606307405",
+      "202607025305",
+      "202607032105",
+      "202607102207",
+      "202607104411",
+      "202607192704",
+      "202607194306",
+      "202607303508",
+      "202607305503",
+      "202608028506",
+      "202608054205",
+      "202608104807",
+      "202608128408",
+      "202608172201",
+      "202608172203",
+      "202608223110",
+      "202608232602",
+      "202608236312",
+      "202608314801",
+      "202609062607",
+      "202609217406",
+      "202609264308",
+      "202609296105",
+      "202610022509",
+      "202610034712",
+      "202610051304",
+      "202610104303",
+      "202610108403",
+      "202610153801",
+      "202610298401",
+      "202611048611",
+      "202611183803"
+    ],
+    "lost_ids": [
+      "202605313112",
+      "202606022407",
+      "202606043507",
+      "202606215606",
+      "202606252701",
+      "202606264407",
+      "202606274407",
+      "202607141102",
+      "202607194508",
+      "202607212709",
+      "202607248104",
+      "202607265301",
+      "202608093504",
+      "202608188507",
+      "202608202106",
+      "202608267407",
+      "202608268703",
+      "202609165604",
+      "202610128108",
+      "202610128704",
+      "202610151204",
+      "202610152209",
+      "202610192705",
+      "202610314202",
+      "202611068611",
+      "202611084808",
+      "202611114601"
+    ]
+  },
+  "rolling_independent_pretime": {
+    "n": 48,
+    "date_range": [
+      "20261120",
+      "20261120"
+    ],
+    "1": {
+      "old": 8,
+      "new": 8,
+      "gained": 0,
+      "lost": 0,
+      "paired_pp_ci95_by_day": [
+        0.0,
+        0.0
+      ]
+    },
+    "4": {
+      "old": 16,
+      "new": 16,
+      "gained": 0,
+      "lost": 0,
+      "paired_pp_ci95_by_day": [
+        0.0,
+        0.0
+      ]
+    },
+    "8": {
+      "old": 20,
+      "new": 20,
+      "gained": 0,
+      "lost": 0,
+      "paired_pp_ci95_by_day": [
+        0.0,
+        0.0
+      ]
+    },
+    "changed_first": 2,
+    "gained_ids": [],
+    "lost_ids": []
+  },
+  "earlier_family_fallback_need_full_probability": 1,
+  "family_all": {
+    "n": 10867,
+    "date_range": [
+      "20260524",
+      "20261120"
+    ],
+    "1": {
+      "old": 1302,
+      "new": 1315,
+      "gained": 47,
+      "lost": 34,
+      "paired_pp_ci95_by_day": [
+        -0.046706503254070705,
+        0.28981275083162233
+      ]
+    },
+    "4": {
+      "old": 3181,
+      "new": 3181,
+      "gained": 0,
+      "lost": 0,
+      "paired_pp_ci95_by_day": [
+        0.0,
+        0.0
+      ]
+    },
+    "8": {
+      "old": 4451,
+      "new": 4451,
+      "gained": 0,
+      "lost": 0,
+      "paired_pp_ci95_by_day": [
+        0.0,
+        0.0
+      ]
+    },
+    "changed_first": 476,
+    "gained_ids": [
+      "202606081311",
+      "202606123810",
+      "202606212408",
+      "202606272309",
+      "202606302308",
+      "202607017404",
+      "202607025305",
+      "202607086312",
+      "202607088311",
+      "202607152407",
+      "202607183811",
+      "202607185309",
+      "202607204507",
+      "202607226108",
+      "202607228504",
+      "202607292603",
+      "202607316307",
+      "202608023612",
+      "202608036103",
+      "202608092804",
+      "202608117510",
+      "202608141201",
+      "202608145304",
+      "202608215310",
+      "202608225309",
+      "202608236312",
+      "202609193408",
+      "202609197508",
+      "202609198303",
+      "202609264308",
+      "202609268706",
+      "202609276105",
+      "202610022509",
+      "202610051304",
+      "202610082508",
+      "202610108403",
+      "202610153801",
+      "202610194606",
+      "202610262704",
+      "202611038310",
+      "202611041206",
+      "202611058608",
+      "202611072107",
+      "202611097509",
+      "202611135111",
+      "202611143103",
+      "202611194408"
+    ],
+    "lost_ids": [
+      "202605294306",
+      "202606022407",
+      "202606023102",
+      "202606092204",
+      "202606255511",
+      "202606264604",
+      "202606268109",
+      "202607041205",
+      "202607058505",
+      "202607068601",
+      "202607113709",
+      "202607114302",
+      "202607161102",
+      "202607257506",
+      "202607272809",
+      "202607293506",
+      "202608052601",
+      "202608054205",
+      "202608054211",
+      "202608134307",
+      "202608141209",
+      "202608267407",
+      "202609162810",
+      "202609173402",
+      "202609193810",
+      "202609217406",
+      "202610021203",
+      "202610151204",
+      "202610182701",
+      "202611078705",
+      "202611084808",
+      "202611108409",
+      "202611114601",
+      "202611183803"
+    ]
+  },
+  "family_independent_pretime": {
+    "n": 48,
+    "date_range": [
+      "20261120",
+      "20261120"
+    ],
+    "1": {
+      "old": 12,
+      "new": 12,
+      "gained": 0,
+      "lost": 0,
+      "paired_pp_ci95_by_day": [
+        0.0,
+        0.0
+      ]
+    },
+    "4": {
+      "old": 17,
+      "new": 17,
+      "gained": 0,
+      "lost": 0,
+      "paired_pp_ci95_by_day": [
+        0.0,
+        0.0
+      ]
+    },
+    "8": {
+      "old": 26,
+      "new": 26,
+      "gained": 0,
+      "lost": 0,
+      "paired_pp_ci95_by_day": [
+        0.0,
+        0.0
+      ]
+    },
+    "changed_first": 3,
+    "gained_ids": [],
+    "lost_ids": []
+  },
+  "family_local": {
+    "n": 3930,
+    "date_range": [
+      "20260524",
+      "20261120"
+    ],
+    "1": {
+      "old": 462,
+      "new": 475,
+      "gained": 47,
+      "lost": 34,
+      "paired_pp_ci95_by_day": [
+        -0.12824295084587345,
+        0.8012446762449432
+      ]
+    },
+    "4": {
+      "old": 1122,
+      "new": 1122,
+      "gained": 0,
+      "lost": 0,
+      "paired_pp_ci95_by_day": [
+        0.0,
+        0.0
+      ]
+    },
+    "8": {
+      "old": 1573,
+      "new": 1573,
+      "gained": 0,
+      "lost": 0,
+      "paired_pp_ci95_by_day": [
+        0.0,
+        0.0
+      ]
+    },
+    "changed_first": 476,
+    "gained_ids": [
+      "202606081311",
+      "202606123810",
+      "202606212408",
+      "202606272309",
+      "202606302308",
+      "202607017404",
+      "202607025305",
+      "202607086312",
+      "202607088311",
+      "202607152407",
+      "202607183811",
+      "202607185309",
+      "202607204507",
+      "202607226108",
+      "202607228504",
+      "202607292603",
+      "202607316307",
+      "202608023612",
+      "202608036103",
+      "202608092804",
+      "202608117510",
+      "202608141201",
+      "202608145304",
+      "202608215310",
+      "202608225309",
+      "202608236312",
+      "202609193408",
+      "202609197508",
+      "202609198303",
+      "202609264308",
+      "202609268706",
+      "202609276105",
+      "202610022509",
+      "202610051304",
+      "202610082508",
+      "202610108403",
+      "202610153801",
+      "202610194606",
+      "202610262704",
+      "202611038310",
+      "202611041206",
+      "202611058608",
+      "202611072107",
+      "202611097509",
+      "202611135111",
+      "202611143103",
+      "202611194408"
+    ],
+    "lost_ids": [
+      "202605294306",
+      "202606022407",
+      "202606023102",
+      "202606092204",
+      "202606255511",
+      "202606264604",
+      "202606268109",
+      "202607041205",
+      "202607058505",
+      "202607068601",
+      "202607113709",
+      "202607114302",
+      "202607161102",
+      "202607257506",
+      "202607272809",
+      "202607293506",
+      "202608052601",
+      "202608054205",
+      "202608054211",
+      "202608134307",
+      "202608141209",
+      "202608267407",
+      "202609162810",
+      "202609173402",
+      "202609193810",
+      "202609217406",
+      "202610021203",
+      "202610151204",
+      "202610182701",
+      "202611078705",
+      "202611084808",
+      "202611108409",
+      "202611114601",
+      "202611183803"
+    ]
+  },
+  "current_all": {
+    "n": 287,
+    "date_range": [
+      "20261121",
+      "20261124"
+    ],
+    "1": {
+      "old": 32,
+      "new": 35,
+      "gained": 3,
+      "lost": 0,
+      "paired_pp_ci95_by_day": [
+        0.0,
+        2.479338842975207
+      ]
+    },
+    "4": {
+      "old": 91,
+      "new": 91,
+      "gained": 0,
+      "lost": 0,
+      "paired_pp_ci95_by_day": [
+        0.0,
+        0.0
+      ]
+    },
+    "8": {
+      "old": 127,
+      "new": 127,
+      "gained": 0,
+      "lost": 0,
+      "paired_pp_ci95_by_day": [
+        0.0,
+        0.0
+      ]
+    },
+    "changed_first": 19,
+    "gained_ids": [
+      "202611214203",
+      "202611222204",
+      "202611223606"
+    ],
+    "lost_ids": []
+  },
+  "current_with_verified_home_data": {
+    "n": 253,
+    "date_range": [
+      "20261121",
+      "20261124"
+    ],
+    "1": {
+      "old": 29,
+      "new": 32,
+      "gained": 3,
+      "lost": 0,
+      "paired_pp_ci95_by_day": [
+        0.0,
+        2.608695652173913
+      ]
+    },
+    "4": {
+      "old": 81,
+      "new": 81,
+      "gained": 0,
+      "lost": 0,
+      "paired_pp_ci95_by_day": [
+        0.0,
+        0.0
+      ]
+    },
+    "8": {
+      "old": 112,
+      "new": 112,
+      "gained": 0,
+      "lost": 0,
+      "paired_pp_ci95_by_day": [
+        0.0,
+        0.0
+      ]
+    },
+    "changed_first": 19,
+    "gained_ids": [
+      "202611214203",
+      "202611222204",
+      "202611223606"
+    ],
+    "lost_ids": []
+  },
+  "current_with_local": {
+    "n": 96,
+    "date_range": [
+      "20261121",
+      "20261124"
+    ],
+    "1": {
+      "old": 7,
+      "new": 10,
+      "gained": 3,
+      "lost": 0,
+      "paired_pp_ci95_by_day": [
+        0.0,
+        6.521739130434782
+      ]
+    },
+    "4": {
+      "old": 33,
+      "new": 33,
+      "gained": 0,
+      "lost": 0,
+      "paired_pp_ci95_by_day": [
+        0.0,
+        0.0
+      ]
+    },
+    "8": {
+      "old": 44,
+      "new": 44,
+      "gained": 0,
+      "lost": 0,
+      "paired_pp_ci95_by_day": [
+        0.0,
+        0.0
+      ]
+    },
+    "changed_first": 19,
+    "gained_ids": [
+      "202611214203",
+      "202611222204",
+      "202611223606"
+    ],
+    "lost_ids": []
+  },
+  "current_last_day": {
+    "n": 80,
+    "date_range": [
+      "20261124",
+      "20261124"
+    ],
+    "1": {
+      "old": 5,
+      "new": 5,
+      "gained": 0,
+      "lost": 0,
+      "paired_pp_ci95_by_day": [
+        0.0,
+        0.0
+      ]
+    },
+    "4": {
+      "old": 21,
+      "new": 21,
+      "gained": 0,
+      "lost": 0,
+      "paired_pp_ci95_by_day": [
+        0.0,
+        0.0
+      ]
+    },
+    "8": {
+      "old": 34,
+      "new": 34,
+      "gained": 0,
+      "lost": 0,
+      "paired_pp_ci95_by_day": [
+        0.0,
+        0.0
+      ]
+    },
+    "changed_first": 2,
+    "gained_ids": [],
+    "lost_ids": []
+  },
+  "source_restrictions": "Previous evaluation days used to propose this subsequent ranking rule; all historical comparisons are exploratory. The stricter Nov20 cohort requires predeadline original-source bytes and same published lineup and verified registrations and home codes. The model itself was not registered then.",
+  "code_sha256": "b5bb8ffdda6e7e872d490cfd00450b5fa8a0fec6eed6ba2b37bc63d545058d57",
+  "ignored_venue": "62, stadium renovation and substitute-host uncertainty",
+  "address_urls": {
+    "12": {
+      "venue": "青森",
+      "prefecture": "青森県",
+      "source": "https://keirin.kdreams.jp/aomori/",
+      "sha256": "43196cc35180fcbfe1f1d2c226733127fe4965309ee9b5f0a6c972b9be52aae3"
+    },
+    "24": {
+      "venue": "宇都宮",
+      "prefecture": "栃木県",
+      "source": "https://keirin.kdreams.jp/utsunomiya/",
+      "sha256": "89301807625203ef1e2d6f9bcff6ab258af32ef635ff9f61d2f78bfafb4ac172"
+    },
+    "28": {
+      "venue": "立川",
+      "prefecture": "東京都",
+      "source": "https://keirin.kdreams.jp/tachikawa/",
+      "sha256": "7a1a55eadf3f4691b3d94d3d0ac99f1067b659abc891e3516fd67a54796d46d0"
+    },
+    "31": {
+      "venue": "松戸",
+      "prefecture": "千葉県",
+      "source": "https://keirin.kdreams.jp/matsudo/",
+      "sha256": "37f52b27436ceedf433651c8de585d7168dcdcf5e2852884c01cfd3169a1a66e"
+    },
+    "43": {
+      "venue": "岐阜",
+      "prefecture": "岐阜県",
+      "source": "https://keirin.kdreams.jp/gifu/",
+      "sha256": "ef48f71704e963da38ffd8c85f6f79e8fe647f07924e859e7c8fa7b32e432303"
+    },
+    "55": {
+      "venue": "和歌山",
+      "prefecture": "和歌山県",
+      "source": "https://keirin.kdreams.jp/wakayama/",
+      "sha256": "823ff52bc78bd7c9ded2e3ab68562f43a3fcbe9e1f644e025aaf5d3adfd7eab1"
+    },
+    "63": {
+      "venue": "防府",
+      "prefecture": "山口県",
+      "source": "https://keirin.kdreams.jp/hofu/",
+      "sha256": "6add1e36efaa7173a97621d81f8dcd07125bc7e38febc7b964ce394511f8528b"
+    },
+    "87": {
+      "venue": "熊本",
+      "prefecture": "熊本県",
+      "source": "https://keirin.kdreams.jp/kumamoto/",
+      "sha256": "668a3691ebaf0dbdd55101c8fbda140b572cbb107f3179a4dd1a38214774babc"
+    },
+    "22": {
+      "venue": "前橋",
+      "prefecture": "群馬県",
+      "source": "https://keirin.kdreams.jp/maebashi/",
+      "sha256": "996e0046a8b12073cebf02f46c96ae758e957b63c81d1b7216cbb1544ebf52b6"
+    },
+    "37": {
+      "venue": "伊東",
+      "prefecture": "静岡県",
+      "source": "https://keirin.kdreams.jp/ito/",
+      "sha256": "e40939991fd0e968ef2fa2675a38b7e3e02b01cfeb616a31283bbb625c01baf2"
+    },
+    "47": {
+      "venue": "松阪",
+      "prefecture": "三重県",
+      "source": "https://keirin.kdreams.jp/matsusaka/",
+      "sha256": "13dcd14b18c5a3f5af2d5b2c7083864510f804da154ff9adfe5105973df37d8e"
+    },
+    "53": {
+      "venue": "奈良",
+      "prefecture": "奈良県",
+      "source": "https://keirin.kdreams.jp/nara/",
+      "sha256": "ad87bc726333e2c33e69564a2665009981e85b131135b478323e1c029842041b"
+    },
+    "56": {
+      "venue": "岸和田",
+      "prefecture": "大阪府",
+      "source": "https://keirin.kdreams.jp/kishiwada/",
+      "sha256": "d8b7e8aa2678725c8d033f6f25c27e152e367e732420ad7c829270846974a50c"
+    },
+    "61": {
+      "venue": "玉野",
+      "prefecture": "岡山県",
+      "source": "https://keirin.kdreams.jp/tamano/",
+      "sha256": "b8da33112635838a99869523211bab97d5b1604e5f7d20786791dcc855197f01"
+    },
+    "73": {
+      "venue": "小松島",
+      "prefecture": "徳島県",
+      "source": "https://keirin.kdreams.jp/komatsushima/",
+      "sha256": "bbdd49d8d4a02b3383b17c19af5045eca9aa92c190b5c216159125906e057b52"
+    },
+    "74": {
+      "venue": "高知",
+      "prefecture": "高知県",
+      "source": "https://keirin.kdreams.jp/kochi/",
+      "sha256": "cf5313c7fd62c6364f2083f4c503d48f3f9f175dc381a46ab9e222475fd54f80"
+    },
+    "81": {
+      "venue": "小倉",
+      "prefecture": "福岡県",
+      "source": "https://keirin.kdreams.jp/kokura/",
+      "sha256": "40dbf433550b52169627355ba7a1caa5370340cb72648100ed47fe1acebecaa8"
+    },
+    "48": {
+      "venue": "四日市",
+      "prefecture": "三重県",
+      "source": "https://keirin.kdreams.jp/yokkaichi/",
+      "sha256": "dc85968ff1a648e009844037b3ba2d0393f0c965e5e221237079fee9caae6001"
+    },
+    "13": {
+      "venue": "いわき平",
+      "prefecture": "福島県",
+      "source": "https://keirin.kdreams.jp/iwakitaira/",
+      "sha256": "1f6e3027cd11e804e3444b064f1301b56be3a85451fa20d425015880241b3281"
+    },
+    "34": {
+      "venue": "川崎",
+      "prefecture": "神奈川県",
+      "source": "https://keirin.kdreams.jp/kawasaki/",
+      "sha256": "cfcd7d4b24f31be494b75ed7b61b46589f884dd09c112a50f00fb1c0ccda60d0"
+    },
+    "38": {
+      "venue": "静岡",
+      "prefecture": "静岡県",
+      "source": "https://keirin.kdreams.jp/shizuoka/",
+      "sha256": "a29d8c9bbac72ae06e26031c3032d1eda734fb66f99a5d4a1b09ed501998bfda"
+    },
+    "26": {
+      "venue": "西武園",
+      "prefecture": "埼玉県",
+      "source": "https://keirin.kdreams.jp/seibuen/",
+      "sha256": "ee3211a5b4f0aaa3e1408bd9a129a09ae47be1bb67f138fd61e3fe2b1a2c9048"
+    },
+    "75": {
+      "venue": "松山",
+      "prefecture": "愛媛県",
+      "source": "https://keirin.kdreams.jp/matsuyama/",
+      "sha256": "d19a7859aa75a0347bd175eb27b0215d7bfe9a2acac39794e009fe7a5a964698"
+    },
+    "21": {
+      "venue": "弥彦",
+      "prefecture": "新潟県",
+      "source": "https://keirin.kdreams.jp/yahiko/",
+      "sha256": "c7bc69242ff49c1319b4cfcb3cd0b420894f2304ac918fd40822cf151cdb6ecf"
+    },
+    "46": {
+      "venue": "富山",
+      "prefecture": "富山県",
+      "source": "https://keirin.kdreams.jp/toyama/",
+      "sha256": "13289e0b5ed5e995227617e3a9d368099cd8714034e9493b86f3829de596166c"
+    },
+    "84": {
+      "venue": "武雄",
+      "prefecture": "佐賀県",
+      "source": "https://keirin.kdreams.jp/takeo/",
+      "sha256": "930989b3c94cc64d07d7ec9c69e7f153a0484914822dac56fc150af51cf27f28"
+    },
+    "45": {
+      "venue": "豊橋",
+      "prefecture": "愛知県",
+      "source": "https://keirin.kdreams.jp/toyohashi/",
+      "sha256": "20e45778c0762feb908f020a930ee790b30637a2cbfd808e5fca0f449b92b741"
+    },
+    "83": {
+      "venue": "久留米",
+      "prefecture": "福岡県",
+      "source": "https://keirin.kdreams.jp/kurume/",
+      "sha256": "96bb5b185acb6bfccbf383457f94a06b4c3048ea07569d9b4e8001c1d8b00cb5"
+    },
+    "44": {
+      "venue": "大垣",
+      "prefecture": "岐阜県",
+      "source": "https://keirin.kdreams.jp/ogaki/",
+      "sha256": "fb4b31a02768103ca17bda966ae8570f6906dd8adf83cb24c6d28bffe30c7d54"
+    },
+    "27": {
+      "venue": "京王閣",
+      "prefecture": "東京都",
+      "source": "https://keirin.kdreams.jp/keiokaku/",
+      "sha256": "4f2078e6083fc7daa2e2e857717be1d5da816acb4aa533fe9c7f0eb33f656827"
+    },
+    "85": {
+      "venue": "佐世保",
+      "prefecture": "長崎県",
+      "source": "https://keirin.kdreams.jp/sasebo/",
+      "sha256": "ac5b30acbf190e01f9c93d6bd2c45a9f24fc62102e10823cdd1eca2234255d79"
+    },
+    "25": {
+      "venue": "大宮",
+      "prefecture": "埼玉県",
+      "source": "https://keirin.kdreams.jp/omiya/",
+      "sha256": "67f81c671514d22d152031f5df0faf7c00be98f69dd1c5ab40aaad42e51ca9fa"
+    },
+    "86": {
+      "venue": "別府",
+      "prefecture": "大分県",
+      "source": "https://keirin.kdreams.jp/beppu/",
+      "sha256": "add315aca13e8994d292e8d66f8febe7c04062c222a9a024c18fd58303d38767"
+    },
+    "11": {
+      "venue": "函館",
+      "prefecture": "北海道",
+      "source": "https://keirin.kdreams.jp/hakodate/",
+      "sha256": "b772fd5aac1427c9a458b5d842f37cedcd9a8d252b2c37bb863a9df39921fd0f"
+    },
+    "36": {
+      "venue": "小田原",
+      "prefecture": "神奈川県",
+      "source": "https://keirin.kdreams.jp/odawara/",
+      "sha256": "3400a3bbf56b1d41d472925f5334401f4ee56681bae0dbcdbc88ae0f86fa1720"
+    },
+    "42": {
+      "venue": "名古屋",
+      "prefecture": "愛知県",
+      "source": "https://keirin.kdreams.jp/nagoya/",
+      "sha256": "e41af90d3660ec811fadfdcf078d2dd319b3b093a07959ea447810bb339c5eb9"
+    },
+    "35": {
+      "venue": "平塚",
+      "prefecture": "神奈川県",
+      "source": "https://keirin.kdreams.jp/hiratsuka/",
+      "sha256": "67b04e6a8a997c80e36490822bfc22d6eb8d7ff6b9826befbb129246d21daf39"
+    },
+    "23": {
+      "venue": "取手",
+      "prefecture": "茨城県",
+      "source": "https://keirin.kdreams.jp/toride/",
+      "sha256": "9fe3e1af0b6f578a780335c6119e31e1cd3564a06fe30e6e5104a67587c681ea"
+    },
+    "62": {
+      "venue": "広島",
+      "prefecture": "広島県",
+      "source": "https://keirin.kdreams.jp/hiroshima/",
+      "sha256": "8dc551ca888583072f2a0dea6ac8ba88ec67237576f08e1cdb6c3771c0c814e6"
+    },
+    "51": {
+      "venue": "福井",
+      "prefecture": "福井県",
+      "source": "https://keirin.kdreams.jp/fukui/",
+      "sha256": "247bfc48fd6e238761333555e469425cc6553ea59a0e0e2658e95fe0b9ae3bbf"
+    }
+  },
+  "fit_n": 5392,
+  "fit_until": "2026-05-23",
+  "geographic_definition": "Physical velodrome premises (所在地) compared with the same programme’s registered prefecture; current domicile and rider track statistics are not used.",
+  "limitations": "Hypothesis selected after seeing previous validation. Strict independently dated earlier sample spans one day. The prospective comparison differs on a single race at top 1; full archive source timings are retrospective.",
+  "invariants": "Swap first with one of four old tickets, original contents of every 4/8-point set and other ranks preserved confirmed for all rows across 12,234 historic, 10,867 earlier-family, 287 current, 33 before-deadline rows. Historical panels overlap; never sum."
+}

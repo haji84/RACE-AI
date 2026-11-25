@@ -1,0 +1,65 @@
+{
+  "date_jst": "2026-11-24",
+  "scope_jst": [
+    "2023-11-24",
+    "2026-11-23"
+  ],
+  "listed": 82774,
+  "eligible": 82767,
+  "previously_viewed": 78,
+  "unverified": 82689,
+  "index_audit": {
+    "archived_documents_with_target_links": 894,
+    "archived_target_races_with_published_replay_link": 12808,
+    "calendar_races_with_explicit_replay_link": 0,
+    "receipts_sha256": "a09de385aacf2f5429fdcb102070ae0a438d853f8078529812c3ab224f43f448",
+    "saved_calendar_days": 1096,
+    "saved_official_detail_or_venue_documents": 901,
+    "separate_venue_races_already_in_archive": 2,
+    "separate_venue_target_races": 12,
+    "source_queue_sha256": "a9bc541c55cf5529ab5d256b2f76ff032991f16c8a09444f4cc454ff13d93782",
+    "target_races": 82689,
+    "target_races_with_link_in_normal_markup": 12,
+    "target_races_with_link_only_in_past_runs_tab": 12806,
+    "target_races_with_only_calendar_detail": 69871,
+    "target_races_with_published_replay_link": 12818,
+    "venue_indices_covering_targets": 8288
+  },
+  "unverified_by_year": {
+    "2023": {
+      "pending": 2832,
+      "published_replay_button": 756
+    },
+    "2024": {
+      "pending": 27775,
+      "published_replay_button": 3327
+    },
+    "2025": {
+      "pending": 27444,
+      "published_replay_button": 2189
+    },
+    "2026": {
+      "pending": 24638,
+      "published_replay_button": 6546
+    }
+  },
+  "replay_check": {
+    "attempted": 1,
+    "completed": 0,
+    "training_rows_added": 0,
+    "temporary_partial_recordings_removed": 1,
+    "new_recordings_retained": 0,
+    "previous_study_artifacts_hash_matched": 4
+  },
+  "historical_sources": {
+    "workspace_zip_archives_checked": 24,
+    "movie_members": 0,
+    "ciphertext_artifacts_listed": 15,
+    "ciphertext_artifacts_confirmed_as_new_usable_film": 0,
+    "open_license_catalog_candidates_in_scope_and_race_identified": 0
+  },
+  "source_terms": "https://keirin.kdreams.jp/info/sitepolicy/",
+  "rights_contact": "https://www.jc-infinity.co.jp/others/detail/20240531135713.html",
+  "public_info_only_venue_observation_sha256": "5f0fc478abbd3b441c916ecb8a3aae9a0298d259650ace05c4008c51d9c9337a",
+  "csv_gz_sha256": "4edb648d0558f8d33b19444ece88ed20caf8d74cf2550111c9725f32e1fcf0e5"
+}

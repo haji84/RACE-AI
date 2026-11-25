@@ -1,0 +1,16 @@
+{
+  "frozen_at": "2026-11-25T10:09:36.069551+00:00",
+  "registered": 6,
+  "earliest": "2026-11-25T19:16:00+09:00",
+  "latest": "2026-11-25T20:25:00+09:00",
+  "coverage": {
+    "still_open": 27,
+    "changed": 1,
+    "no_multi_line_published": 21,
+    "published_sha256": "51a98f0a048d4831eeb8c85533e28f789b17dc55ca59a7cb0cf0c920d7e4eb9e"
+  },
+  "prediction_sha256": "0ca650024dc1e556fbf895abebaf6ec75a99c1db24a5fc91ef5b6e60eb2e2221",
+  "source_sha256": "ed6f0adf0a7583ecb973a5f8ffc1dca0c46be9735649a9e3d7f891377b9aa3e3",
+  "fit_sha256": "4ddb152040f22566aab5eb94d8e491080ae6b6431ecd0201dfb22a2cb881ea37",
+  "prototype_sha256": "749fd0fd1d32d189deafca7d955331bb0bbfb4aa4ec730a65e20e4314d261d83"
+}

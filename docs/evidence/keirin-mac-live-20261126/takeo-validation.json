@@ -1,0 +1,133 @@
+{
+  "automatic_tactical_labels_admitted": 0,
+  "independent_label_scope": "Two blinded replay readings, adjudicated footage, official result reparsed separately",
+  "local_trial": {
+    "automatic_tracks": {
+      "analysis_ms": 84942,
+      "engine_sha256": "5d8c54b5d8674d5f8ba0d49aa3dba9914f62dae039aaccc91651064b8c29a623",
+      "sampled_frames": 398,
+      "state": "TRACKS_GENERATED",
+      "tracks_sha256": "502279b69f83318244cae0b982df745d4fd254b31cb9d6ebf7556244254b628d"
+    },
+    "checked_at": "2026-11-25T18:38:02.772517+00:00",
+    "elapsed_ms": 87525,
+    "learned_observations": 2,
+    "model_state": "TRIAL_PROFILE_FITTED",
+    "national_operation_admitted": false,
+    "runtime_commit": "76598d1c8fab7e7f6c002a600c728cbf5064f0bb",
+    "trial_sha256": "631e2a73035d7bd1883f50c7161fe52ee86920c1d760072fc66ca10061dd2f1b"
+  },
+  "official": {
+    "car_3_checkpoints": [
+      "H",
+      "B"
+    ],
+    "car_3_finishing_method": "逃げ",
+    "car_4_finishing_method": "マーク",
+    "finish_positions_confirmed": 6,
+    "roster_confirmed": 6,
+    "saved_receipt_sha256": "a8c377d3ef22d176b6936d98b9f9f30c93e603a1273a81ebf2655e35afd9af98",
+    "trifecta_payout_for_100_yen": 250,
+    "winning_triple": [
+      3,
+      4,
+      1
+    ]
+  },
+  "production_weights_promoted": false,
+  "race_id": "202611258401",
+  "reviewed_observations_sha256": "7929cb32d925840440646cd55e42a9e62a6400a3f57e44991fdd351b78aa5851",
+  "schema": "KEIRIN_MAC_TAKEO_VALIDATION_V1",
+  "scope": "SINGLE_REPLAY_CLIP_LOCAL_CANDIDATE",
+  "selected_intervals": [
+    {
+      "car": 3,
+      "label": "bell_to_H",
+      "phase": "bell_to_H",
+      "task": "attack"
+    },
+    {
+      "car": 4,
+      "label": "held",
+      "phase": "bell_to_H",
+      "target": 3,
+      "task": "follow"
+    }
+  ],
+  "source": "authorized ordinary WINTICKET player recording",
+  "timing": {
+    "first_evaluation_offset_ms": 80,
+    "review_timepoints": 12,
+    "source_fps": 25,
+    "subsampling_clock_corrected": true,
+    "tracking_fps": 5
+  },
+  "unresolved": [
+    "complete_attack_sequence",
+    "precision_recall_of_tactical_detector",
+    "continuous_id_switch_rate",
+    "actual_speed_distance",
+    "bell_audio_timestamp",
+    "obscured_finish_crossings"
+  ],
+  "vehicle_identification": {
+    "agreed_points": 65,
+    "annotated_frames": 12,
+    "by_car": {
+      "1": {
+        "agreed_points": 12,
+        "localized_car_correctly": 7,
+        "localized_car_incorrectly": 5
+      },
+      "2": {
+        "agreed_points": 10,
+        "localized_car_correctly": 1,
+        "localized_car_incorrectly": 2,
+        "reference_unknown": 2,
+        "tracker_abstentions": 7,
+        "unscored_predictions": 1
+      },
+      "3": {
+        "agreed_points": 11,
+        "localized_car_correctly": 11,
+        "reference_unknown": 1,
+        "unscored_predictions": 1
+      },
+      "4": {
+        "agreed_points": 11,
+        "localized_car_correctly": 11,
+        "reference_unknown": 1,
+        "unscored_predictions": 1
+      },
+      "5": {
+        "agreed_points": 11,
+        "localized_car_correctly": 9,
+        "reference_unknown": 1,
+        "tracker_abstentions": 2,
+        "unscored_predictions": 1
+      },
+      "6": {
+        "agreed_points": 10,
+        "localized_car_correctly": 7,
+        "reference_unknown": 2,
+        "tracker_abstentions": 3,
+        "unscored_predictions": 1
+      }
+    },
+    "localized_car_correctly": 46,
+    "localized_car_incorrectly": 7,
+    "media_sha256": "dca41082daf8cbe10cecfc697a4ccd3a853825e4d9a8f3deb4d27627fd30b18b",
+    "race_id": "20261125-84-01",
+    "reference_unknown": 7,
+    "review_sha256s": [
+      "1b71765194be98ee0b87976ad9c9a524ad3f8ebdf5d7c514fb794d3e607c3195",
+      "bd01b6e72a78be67baa697ee75774ca54d1f4ca67ab020ee5ffaba347a5f0ec5"
+    ],
+    "reviewer_disagreements": 0,
+    "schema": "KEIRIN_REPLAY_BIB_VALIDATION_V1",
+    "tracker_abstentions": 12,
+    "tracker_source_sha256": "5d8c54b5d8674d5f8ba0d49aa3dba9914f62dae039aaccc91651064b8c29a623",
+    "tracks_sha256": "502279b69f83318244cae0b982df745d4fd254b31cb9d6ebf7556244254b628d",
+    "unscored_predictions": 5
+  }
+}

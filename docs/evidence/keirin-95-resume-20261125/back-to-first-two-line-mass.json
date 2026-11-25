@@ -1,0 +1,1837 @@
+{
+  "source_sha256": "d74611f407a4c8c9452db1326cb8ac0bb37a5b7c2bac149e6616846388b74034",
+  "classification": "exploratory projection of fixed B model onto unchanged original same/different line probabilities",
+  "commitments": {
+    "archive_sha256": "d01564e89def3d8822858928e9631c203b410d4fbcc4cf2b76eb0d9cf35dab1f",
+    "coefficient_sha256": "8e630ece40f0dde67ab997784d46faf9628592c628271f710aa3352de3defb0e",
+    "current_sha256": "98e37517dd6d08ff175b1f235636ca9eed2bbf09ac9d49584bc2e465ed854a9b",
+    "design_sha256": "612b9a7be681fb4209e53915b477ae84f23e4ec3928afa935854dbb4487187fb",
+    "original_archive_sha256": "9cfc189d85358c467e1eec839ddc622c6e21517667d097a8970ebc0a6fe46925",
+    "original_current_sha256": "92e6b3947a36bbc0bb71fe2a755d7263c6d6acb67b503d84ea757844ec77aacd"
+  },
+  "results": {
+    "historical": {
+      "all": {
+        "caps": {
+          "1": {
+            "exact": [
+              1248,
+              1274
+            ],
+            "lost": 91,
+            "ordered_pair": [
+              2710,
+              2734
+            ],
+            "paired_delta_95pp": [
+              -0.024486448444100476,
+              0.4476430784811161
+            ],
+            "rescued": 117
+          },
+          "4": {
+            "exact": [
+              3234,
+              3246
+            ],
+            "lost": 155,
+            "ordered_pair": [
+              4946,
+              4985
+            ],
+            "paired_delta_95pp": [
+              -0.19479254794160378,
+              0.3997509372119613
+            ],
+            "rescued": 167
+          },
+          "8": {
+            "exact": [
+              4583,
+              4625
+            ],
+            "lost": 157,
+            "ordered_pair": [
+              6327,
+              6373
+            ],
+            "paired_delta_95pp": [
+              0.04010393766226817,
+              0.6571369375299351
+            ],
+            "rescued": 199
+          }
+        },
+        "races": 12234,
+        "rank": {
+          "conditional_second_rank": {
+            "better": 475,
+            "eligible": 9857,
+            "median": [
+              1.0,
+              1.0
+            ],
+            "top2": [
+              6831,
+              6845
+            ],
+            "top8": [
+              9857,
+              9857
+            ],
+            "worse": 443
+          },
+          "distinct_first_rank": {
+            "better": 2337,
+            "eligible": 9857,
+            "median": [
+              4.0,
+              4.0
+            ],
+            "top2": [
+              3524,
+              3564
+            ],
+            "top8": [
+              6576,
+              6629
+            ],
+            "worse": 2084
+          },
+          "pair_rank": {
+            "better": 2417,
+            "eligible": 9857,
+            "median": [
+              4.0,
+              4.0
+            ],
+            "top2": [
+              3541,
+              3592
+            ],
+            "top8": [
+              6585,
+              6639
+            ],
+            "worse": 2187
+          },
+          "win_rank": {
+            "better": 903,
+            "eligible": 9857,
+            "median": [
+              2.0,
+              2.0
+            ],
+            "top2": [
+              6304,
+              6380
+            ],
+            "top8": [
+              9850,
+              9850
+            ],
+            "worse": 750
+          }
+        }
+      },
+      "applied": {
+        "caps": {
+          "1": {
+            "exact": [
+              1064,
+              1090
+            ],
+            "lost": 91,
+            "ordered_pair": [
+              2209,
+              2233
+            ],
+            "paired_delta_95pp": [
+              -0.030298058834369885,
+              0.5516480535997683
+            ],
+            "rescued": 117
+          },
+          "4": {
+            "exact": [
+              2642,
+              2654
+            ],
+            "lost": 155,
+            "ordered_pair": [
+              3956,
+              3995
+            ],
+            "paired_delta_95pp": [
+              -0.24185998051208604,
+              0.49005828310069105
+            ],
+            "rescued": 167
+          },
+          "8": {
+            "exact": [
+              3700,
+              3742
+            ],
+            "lost": 157,
+            "ordered_pair": [
+              5052,
+              5098
+            ],
+            "paired_delta_95pp": [
+              0.05026906963432945,
+              0.8190258997608665
+            ],
+            "rescued": 199
+          }
+        },
+        "races": 9857,
+        "rank": {
+          "conditional_second_rank": {
+            "better": 475,
+            "eligible": 9857,
+            "median": [
+              1.0,
+              1.0
+            ],
+            "top2": [
+              6831,
+              6845
+            ],
+            "top8": [
+              9857,
+              9857
+            ],
+            "worse": 443
+          },
+          "distinct_first_rank": {
+            "better": 2337,
+            "eligible": 9857,
+            "median": [
+              4.0,
+              4.0
+            ],
+            "top2": [
+              3524,
+              3564
+            ],
+            "top8": [
+              6576,
+              6629
+            ],
+            "worse": 2084
+          },
+          "pair_rank": {
+            "better": 2417,
+            "eligible": 9857,
+            "median": [
+              4.0,
+              4.0
+            ],
+            "top2": [
+              3541,
+              3592
+            ],
+            "top8": [
+              6585,
+              6639
+            ],
+            "worse": 2187
+          },
+          "win_rank": {
+            "better": 903,
+            "eligible": 9857,
+            "median": [
+              2.0,
+              2.0
+            ],
+            "top2": [
+              6304,
+              6380
+            ],
+            "top8": [
+              9850,
+              9850
+            ],
+            "worse": 750
+          }
+        }
+      },
+      "authentic_pre_cutoff_rows": {
+        "caps": {
+          "1": {
+            "exact": [
+              38,
+              37
+            ],
+            "lost": 3,
+            "ordered_pair": [
+              66,
+              69
+            ],
+            "paired_delta_95pp": [
+              -1.8018018018018018,
+              0.8698849104859346
+            ],
+            "rescued": 2
+          },
+          "4": {
+            "exact": [
+              84,
+              81
+            ],
+            "lost": 5,
+            "ordered_pair": [
+              128,
+              127
+            ],
+            "paired_delta_95pp": [
+              -1.7123287671232876,
+              -0.2849002849002849
+            ],
+            "rescued": 2
+          },
+          "8": {
+            "exact": [
+              119,
+              118
+            ],
+            "lost": 4,
+            "ordered_pair": [
+              164,
+              162
+            ],
+            "paired_delta_95pp": [
+              -1.4492753623188406,
+              1.4285714285714286
+            ],
+            "rescued": 3
+          }
+        },
+        "races": 321,
+        "rank": {
+          "conditional_second_rank": {
+            "better": 9,
+            "eligible": 292,
+            "median": [
+              1.0,
+              1.0
+            ],
+            "top2": [
+              216,
+              214
+            ],
+            "top8": [
+              292,
+              292
+            ],
+            "worse": 17
+          },
+          "distinct_first_rank": {
+            "better": 68,
+            "eligible": 292,
+            "median": [
+              4.0,
+              4.0
+            ],
+            "top2": [
+              106,
+              106
+            ],
+            "top8": [
+              208,
+              207
+            ],
+            "worse": 64
+          },
+          "pair_rank": {
+            "better": 64,
+            "eligible": 292,
+            "median": [
+              5.0,
+              4.0
+            ],
+            "top2": [
+              104,
+              105
+            ],
+            "top8": [
+              205,
+              205
+            ],
+            "worse": 64
+          },
+          "win_rank": {
+            "better": 30,
+            "eligible": 292,
+            "median": [
+              2.0,
+              2.0
+            ],
+            "top2": [
+              191,
+              195
+            ],
+            "top8": [
+              292,
+              292
+            ],
+            "worse": 21
+          }
+        }
+      },
+      "cross": {
+        "caps": {
+          "1": {
+            "exact": [
+              25,
+              25
+            ],
+            "lost": 2,
+            "ordered_pair": [
+              68,
+              69
+            ],
+            "paired_delta_95pp": [
+              -0.09567089213106912,
+              0.09445156123560383
+            ],
+            "rescued": 2
+          },
+          "4": {
+            "exact": [
+              192,
+              186
+            ],
+            "lost": 21,
+            "ordered_pair": [
+              454,
+              445
+            ],
+            "paired_delta_95pp": [
+              -0.4420845360152066,
+              0.1639979469305735
+            ],
+            "rescued": 15
+          },
+          "8": {
+            "exact": [
+              490,
+              480
+            ],
+            "lost": 41,
+            "ordered_pair": [
+              993,
+              990
+            ],
+            "paired_delta_95pp": [
+              -0.6444068020803518,
+              0.16769704616834408
+            ],
+            "rescued": 31
+          }
+        },
+        "races": 4196,
+        "rank": {
+          "conditional_second_rank": {
+            "better": 369,
+            "eligible": 4196,
+            "median": [
+              3.0,
+              3.0
+            ],
+            "top2": [
+              1698,
+              1740
+            ],
+            "top8": [
+              4196,
+              4196
+            ],
+            "worse": 243
+          },
+          "distinct_first_rank": {
+            "better": 1248,
+            "eligible": 4196,
+            "median": [
+              10.0,
+              10.0
+            ],
+            "top2": [
+              325,
+              318
+            ],
+            "top8": [
+              1857,
+              1881
+            ],
+            "worse": 1013
+          },
+          "pair_rank": {
+            "better": 1287,
+            "eligible": 4196,
+            "median": [
+              10.0,
+              10.0
+            ],
+            "top2": [
+              332,
+              329
+            ],
+            "top8": [
+              1893,
+              1922
+            ],
+            "worse": 1103
+          },
+          "win_rank": {
+            "better": 347,
+            "eligible": 4196,
+            "median": [
+              2.0,
+              2.0
+            ],
+            "top2": [
+              2461,
+              2462
+            ],
+            "top8": [
+              4192,
+              4192
+            ],
+            "worse": 387
+          }
+        }
+      },
+      "cross_missing_top8_distinct": {
+        "caps": {
+          "1": {
+            "exact": [
+              0,
+              0
+            ],
+            "lost": 0,
+            "ordered_pair": [
+              0,
+              0
+            ],
+            "paired_delta_95pp": [
+              0.0,
+              0.0
+            ],
+            "rescued": 0
+          },
+          "4": {
+            "exact": [
+              0,
+              0
+            ],
+            "lost": 0,
+            "ordered_pair": [
+              0,
+              0
+            ],
+            "paired_delta_95pp": [
+              0.0,
+              0.0
+            ],
+            "rescued": 0
+          },
+          "8": {
+            "exact": [
+              0,
+              1
+            ],
+            "lost": 0,
+            "ordered_pair": [
+              0,
+              2
+            ],
+            "paired_delta_95pp": [
+              0.0,
+              0.13129534344513336
+            ],
+            "rescued": 1
+          }
+        },
+        "races": 2339,
+        "rank": {
+          "conditional_second_rank": {
+            "better": 221,
+            "eligible": 2339,
+            "median": [
+              4.0,
+              4.0
+            ],
+            "top2": [
+              572,
+              591
+            ],
+            "top8": [
+              2339,
+              2339
+            ],
+            "worse": 144
+          },
+          "distinct_first_rank": {
+            "better": 931,
+            "eligible": 2339,
+            "median": [
+              17.0,
+              17.0
+            ],
+            "top2": [
+              0,
+              0
+            ],
+            "top8": [
+              0,
+              95
+            ],
+            "worse": 646
+          },
+          "pair_rank": {
+            "better": 938,
+            "eligible": 2339,
+            "median": [
+              17.0,
+              17.0
+            ],
+            "top2": [
+              0,
+              0
+            ],
+            "top8": [
+              131,
+              181
+            ],
+            "worse": 697
+          },
+          "win_rank": {
+            "better": 272,
+            "eligible": 2339,
+            "median": [
+              3.0,
+              3.0
+            ],
+            "top2": [
+              835,
+              846
+            ],
+            "top8": [
+              2335,
+              2335
+            ],
+            "worse": 270
+          }
+        }
+      },
+      "cross_missing_top8_distinct_winner_and_second_below_top2": {
+        "caps": {
+          "1": {
+            "exact": [
+              0,
+              0
+            ],
+            "lost": 0,
+            "ordered_pair": [
+              0,
+              0
+            ],
+            "paired_delta_95pp": [
+              0.0,
+              0.0
+            ],
+            "rescued": 0
+          },
+          "4": {
+            "exact": [
+              0,
+              0
+            ],
+            "lost": 0,
+            "ordered_pair": [
+              0,
+              0
+            ],
+            "paired_delta_95pp": [
+              0.0,
+              0.0
+            ],
+            "rescued": 0
+          },
+          "8": {
+            "exact": [
+              0,
+              0
+            ],
+            "lost": 0,
+            "ordered_pair": [
+              0,
+              0
+            ],
+            "paired_delta_95pp": [
+              0.0,
+              0.0
+            ],
+            "rescued": 0
+          }
+        },
+        "races": 994,
+        "rank": {
+          "conditional_second_rank": {
+            "better": 107,
+            "eligible": 994,
+            "median": [
+              4.0,
+              4.0
+            ],
+            "top2": [
+              0,
+              43
+            ],
+            "top8": [
+              994,
+              994
+            ],
+            "worse": 53
+          },
+          "distinct_first_rank": {
+            "better": 392,
+            "eligible": 994,
+            "median": [
+              24.0,
+              24.0
+            ],
+            "top2": [
+              0,
+              0
+            ],
+            "top8": [
+              0,
+              8
+            ],
+            "worse": 283
+          },
+          "pair_rank": {
+            "better": 403,
+            "eligible": 994,
+            "median": [
+              24.0,
+              24.0
+            ],
+            "top2": [
+              0,
+              0
+            ],
+            "top8": [
+              8,
+              10
+            ],
+            "worse": 296
+          },
+          "win_rank": {
+            "better": 156,
+            "eligible": 994,
+            "median": [
+              4.0,
+              4.0
+            ],
+            "top2": [
+              0,
+              58
+            ],
+            "top8": [
+              991,
+              991
+            ],
+            "worse": 118
+          }
+        }
+      },
+      "same": {
+        "caps": {
+          "1": {
+            "exact": [
+              1039,
+              1065
+            ],
+            "lost": 89,
+            "ordered_pair": [
+              2141,
+              2164
+            ],
+            "paired_delta_95pp": [
+              -0.035978990089736505,
+              0.9430730902693083
+            ],
+            "rescued": 115
+          },
+          "4": {
+            "exact": [
+              2450,
+              2468
+            ],
+            "lost": 134,
+            "ordered_pair": [
+              3502,
+              3550
+            ],
+            "paired_delta_95pp": [
+              -0.23625773031926356,
+              0.8941133500365429
+            ],
+            "rescued": 152
+          },
+          "8": {
+            "exact": [
+              3210,
+              3262
+            ],
+            "lost": 116,
+            "ordered_pair": [
+              4059,
+              4108
+            ],
+            "paired_delta_95pp": [
+              0.31853086143161197,
+              1.524579429785545
+            ],
+            "rescued": 168
+          }
+        },
+        "races": 5661,
+        "rank": {
+          "conditional_second_rank": {
+            "better": 106,
+            "eligible": 5661,
+            "median": [
+              1.0,
+              1.0
+            ],
+            "top2": [
+              5133,
+              5105
+            ],
+            "top8": [
+              5661,
+              5661
+            ],
+            "worse": 200
+          },
+          "distinct_first_rank": {
+            "better": 1089,
+            "eligible": 5661,
+            "median": [
+              2.0,
+              2.0
+            ],
+            "top2": [
+              3199,
+              3246
+            ],
+            "top8": [
+              4719,
+              4748
+            ],
+            "worse": 1071
+          },
+          "pair_rank": {
+            "better": 1130,
+            "eligible": 5661,
+            "median": [
+              2.0,
+              2.0
+            ],
+            "top2": [
+              3209,
+              3263
+            ],
+            "top8": [
+              4692,
+              4717
+            ],
+            "worse": 1084
+          },
+          "win_rank": {
+            "better": 556,
+            "eligible": 5661,
+            "median": [
+              2.0,
+              2.0
+            ],
+            "top2": [
+              3843,
+              3918
+            ],
+            "top8": [
+              5658,
+              5658
+            ],
+            "worse": 363
+          }
+        }
+      },
+      "unmapped_or_individual": {
+        "caps": {
+          "1": {
+            "exact": [
+              184,
+              184
+            ],
+            "lost": 0,
+            "ordered_pair": [
+              501,
+              501
+            ],
+            "paired_delta_95pp": [
+              0.0,
+              0.0
+            ],
+            "rescued": 0
+          },
+          "4": {
+            "exact": [
+              592,
+              592
+            ],
+            "lost": 0,
+            "ordered_pair": [
+              990,
+              990
+            ],
+            "paired_delta_95pp": [
+              0.0,
+              0.0
+            ],
+            "rescued": 0
+          },
+          "8": {
+            "exact": [
+              883,
+              883
+            ],
+            "lost": 0,
+            "ordered_pair": [
+              1275,
+              1275
+            ],
+            "paired_delta_95pp": [
+              0.0,
+              0.0
+            ],
+            "rescued": 0
+          }
+        },
+        "races": 2377,
+        "rank": {}
+      }
+    },
+    "recent": {
+      "all": {
+        "caps": {
+          "1": {
+            "exact": [
+              32,
+              28
+            ],
+            "lost": 8,
+            "ordered_pair": [
+              72,
+              68
+            ],
+            "paired_delta_95pp": [
+              -3.5587188612099645,
+              0.591715976331361
+            ],
+            "rescued": 4
+          },
+          "4": {
+            "exact": [
+              91,
+              84
+            ],
+            "lost": 8,
+            "ordered_pair": [
+              126,
+              127
+            ],
+            "paired_delta_95pp": [
+              -3.3057851239669422,
+              -1.6286644951140066
+            ],
+            "rescued": 1
+          },
+          "8": {
+            "exact": [
+              127,
+              127
+            ],
+            "lost": 6,
+            "ordered_pair": [
+              160,
+              160
+            ],
+            "paired_delta_95pp": [
+              -3.9145907473309607,
+              2.142857142857143
+            ],
+            "rescued": 6
+          },
+          "displayed": {
+            "exact": [
+              93,
+              88
+            ],
+            "lost": 6,
+            "ordered_pair": [
+              128,
+              129
+            ],
+            "paired_delta_95pp": [
+              -3.3057851239669422,
+              -0.6024096385542169
+            ],
+            "rescued": 1
+          }
+        },
+        "races": 287,
+        "rank": {
+          "conditional_second_rank": {
+            "better": 15,
+            "eligible": 249,
+            "median": [
+              1.0,
+              1.0
+            ],
+            "top2": [
+              170,
+              172
+            ],
+            "top8": [
+              249,
+              249
+            ],
+            "worse": 10
+          },
+          "distinct_first_rank": {
+            "better": 62,
+            "eligible": 249,
+            "median": [
+              4.0,
+              4.0
+            ],
+            "top2": [
+              97,
+              94
+            ],
+            "top8": [
+              165,
+              170
+            ],
+            "worse": 62
+          },
+          "pair_rank": {
+            "better": 64,
+            "eligible": 249,
+            "median": [
+              4.0,
+              4.0
+            ],
+            "top2": [
+              101,
+              100
+            ],
+            "top8": [
+              172,
+              175
+            ],
+            "worse": 62
+          },
+          "win_rank": {
+            "better": 34,
+            "eligible": 249,
+            "median": [
+              2.0,
+              2.0
+            ],
+            "top2": [
+              164,
+              169
+            ],
+            "top8": [
+              249,
+              249
+            ],
+            "worse": 34
+          }
+        }
+      },
+      "applied": {
+        "caps": {
+          "1": {
+            "exact": [
+              30,
+              26
+            ],
+            "lost": 8,
+            "ordered_pair": [
+              63,
+              59
+            ],
+            "paired_delta_95pp": [
+              -3.9840637450199203,
+              0.704225352112676
+            ],
+            "rescued": 4
+          },
+          "4": {
+            "exact": [
+              81,
+              74
+            ],
+            "lost": 8,
+            "ordered_pair": [
+              110,
+              111
+            ],
+            "paired_delta_95pp": [
+              -3.4482758620689653,
+              -2.1459227467811157
+            ],
+            "rescued": 1
+          },
+          "8": {
+            "exact": [
+              109,
+              109
+            ],
+            "lost": 6,
+            "ordered_pair": [
+              135,
+              135
+            ],
+            "paired_delta_95pp": [
+              -4.382470119521912,
+              2.464788732394366
+            ],
+            "rescued": 6
+          },
+          "displayed": {
+            "exact": [
+              82,
+              77
+            ],
+            "lost": 6,
+            "ordered_pair": [
+              111,
+              112
+            ],
+            "paired_delta_95pp": [
+              -3.4188034188034186,
+              -0.7575757575757576
+            ],
+            "rescued": 1
+          }
+        },
+        "races": 249,
+        "rank": {
+          "conditional_second_rank": {
+            "better": 15,
+            "eligible": 249,
+            "median": [
+              1.0,
+              1.0
+            ],
+            "top2": [
+              170,
+              172
+            ],
+            "top8": [
+              249,
+              249
+            ],
+            "worse": 10
+          },
+          "distinct_first_rank": {
+            "better": 62,
+            "eligible": 249,
+            "median": [
+              4.0,
+              4.0
+            ],
+            "top2": [
+              97,
+              94
+            ],
+            "top8": [
+              165,
+              170
+            ],
+            "worse": 62
+          },
+          "pair_rank": {
+            "better": 64,
+            "eligible": 249,
+            "median": [
+              4.0,
+              4.0
+            ],
+            "top2": [
+              101,
+              100
+            ],
+            "top8": [
+              172,
+              175
+            ],
+            "worse": 62
+          },
+          "win_rank": {
+            "better": 34,
+            "eligible": 249,
+            "median": [
+              2.0,
+              2.0
+            ],
+            "top2": [
+              164,
+              169
+            ],
+            "top8": [
+              249,
+              249
+            ],
+            "worse": 34
+          }
+        }
+      },
+      "cross": {
+        "caps": {
+          "1": {
+            "exact": [
+              2,
+              1
+            ],
+            "lost": 1,
+            "ordered_pair": [
+              3,
+              2
+            ],
+            "paired_delta_95pp": [
+              -2.3255813953488373,
+              0.0
+            ],
+            "rescued": 0
+          },
+          "4": {
+            "exact": [
+              8,
+              6
+            ],
+            "lost": 2,
+            "ordered_pair": [
+              12,
+              12
+            ],
+            "paired_delta_95pp": [
+              -5.357142857142857,
+              0.0
+            ],
+            "rescued": 0
+          },
+          "8": {
+            "exact": [
+              19,
+              18
+            ],
+            "lost": 1,
+            "ordered_pair": [
+              26,
+              25
+            ],
+            "paired_delta_95pp": [
+              -2.3255813953488373,
+              0.0
+            ],
+            "rescued": 0
+          },
+          "displayed": {
+            "exact": [
+              9,
+              7
+            ],
+            "lost": 2,
+            "ordered_pair": [
+              13,
+              13
+            ],
+            "paired_delta_95pp": [
+              -5.357142857142857,
+              0.0
+            ],
+            "rescued": 0
+          }
+        },
+        "races": 118,
+        "rank": {
+          "conditional_second_rank": {
+            "better": 12,
+            "eligible": 118,
+            "median": [
+              3.0,
+              3.0
+            ],
+            "top2": [
+              44,
+              45
+            ],
+            "top8": [
+              118,
+              118
+            ],
+            "worse": 5
+          },
+          "distinct_first_rank": {
+            "better": 38,
+            "eligible": 118,
+            "median": [
+              11.0,
+              11.0
+            ],
+            "top2": [
+              9,
+              8
+            ],
+            "top8": [
+              47,
+              48
+            ],
+            "worse": 37
+          },
+          "pair_rank": {
+            "better": 38,
+            "eligible": 118,
+            "median": [
+              9.0,
+              10.0
+            ],
+            "top2": [
+              9,
+              8
+            ],
+            "top8": [
+              53,
+              53
+            ],
+            "worse": 38
+          },
+          "win_rank": {
+            "better": 13,
+            "eligible": 118,
+            "median": [
+              2.0,
+              2.0
+            ],
+            "top2": [
+              66,
+              67
+            ],
+            "top8": [
+              118,
+              118
+            ],
+            "worse": 19
+          }
+        }
+      },
+      "cross_missing_top8_distinct": {
+        "caps": {
+          "1": {
+            "exact": [
+              0,
+              0
+            ],
+            "lost": 0,
+            "ordered_pair": [
+              0,
+              0
+            ],
+            "paired_delta_95pp": [
+              0.0,
+              0.0
+            ],
+            "rescued": 0
+          },
+          "4": {
+            "exact": [
+              0,
+              0
+            ],
+            "lost": 0,
+            "ordered_pair": [
+              0,
+              0
+            ],
+            "paired_delta_95pp": [
+              0.0,
+              0.0
+            ],
+            "rescued": 0
+          },
+          "8": {
+            "exact": [
+              0,
+              0
+            ],
+            "lost": 0,
+            "ordered_pair": [
+              0,
+              0
+            ],
+            "paired_delta_95pp": [
+              0.0,
+              0.0
+            ],
+            "rescued": 0
+          },
+          "displayed": {
+            "exact": [
+              0,
+              0
+            ],
+            "lost": 0,
+            "ordered_pair": [
+              0,
+              0
+            ],
+            "paired_delta_95pp": [
+              0.0,
+              0.0
+            ],
+            "rescued": 0
+          }
+        },
+        "races": 71,
+        "rank": {
+          "conditional_second_rank": {
+            "better": 9,
+            "eligible": 71,
+            "median": [
+              4.0,
+              4.0
+            ],
+            "top2": [
+              16,
+              17
+            ],
+            "top8": [
+              71,
+              71
+            ],
+            "worse": 3
+          },
+          "distinct_first_rank": {
+            "better": 31,
+            "eligible": 71,
+            "median": [
+              16.0,
+              16.0
+            ],
+            "top2": [
+              0,
+              0
+            ],
+            "top8": [
+              0,
+              4
+            ],
+            "worse": 26
+          },
+          "pair_rank": {
+            "better": 31,
+            "eligible": 71,
+            "median": [
+              15.0,
+              15.0
+            ],
+            "top2": [
+              0,
+              0
+            ],
+            "top8": [
+              7,
+              9
+            ],
+            "worse": 25
+          },
+          "win_rank": {
+            "better": 12,
+            "eligible": 71,
+            "median": [
+              3.0,
+              3.0
+            ],
+            "top2": [
+              24,
+              29
+            ],
+            "top8": [
+              71,
+              71
+            ],
+            "worse": 13
+          }
+        }
+      },
+      "cross_missing_top8_distinct_winner_and_second_below_top2": {
+        "caps": {
+          "1": {
+            "exact": [
+              0,
+              0
+            ],
+            "lost": 0,
+            "ordered_pair": [
+              0,
+              0
+            ],
+            "paired_delta_95pp": [
+              0.0,
+              0.0
+            ],
+            "rescued": 0
+          },
+          "4": {
+            "exact": [
+              0,
+              0
+            ],
+            "lost": 0,
+            "ordered_pair": [
+              0,
+              0
+            ],
+            "paired_delta_95pp": [
+              0.0,
+              0.0
+            ],
+            "rescued": 0
+          },
+          "8": {
+            "exact": [
+              0,
+              0
+            ],
+            "lost": 0,
+            "ordered_pair": [
+              0,
+              0
+            ],
+            "paired_delta_95pp": [
+              0.0,
+              0.0
+            ],
+            "rescued": 0
+          },
+          "displayed": {
+            "exact": [
+              0,
+              0
+            ],
+            "lost": 0,
+            "ordered_pair": [
+              0,
+              0
+            ],
+            "paired_delta_95pp": [
+              0.0,
+              0.0
+            ],
+            "rescued": 0
+          }
+        },
+        "races": 33,
+        "rank": {
+          "conditional_second_rank": {
+            "better": 7,
+            "eligible": 33,
+            "median": [
+              4.0,
+              4.0
+            ],
+            "top2": [
+              0,
+              2
+            ],
+            "top8": [
+              33,
+              33
+            ],
+            "worse": 1
+          },
+          "distinct_first_rank": {
+            "better": 10,
+            "eligible": 33,
+            "median": [
+              21.0,
+              21.0
+            ],
+            "top2": [
+              0,
+              0
+            ],
+            "top8": [
+              0,
+              0
+            ],
+            "worse": 14
+          },
+          "pair_rank": {
+            "better": 11,
+            "eligible": 33,
+            "median": [
+              20.0,
+              21.0
+            ],
+            "top2": [
+              0,
+              0
+            ],
+            "top8": [
+              0,
+              0
+            ],
+            "worse": 13
+          },
+          "win_rank": {
+            "better": 5,
+            "eligible": 33,
+            "median": [
+              4.0,
+              4.0
+            ],
+            "top2": [
+              0,
+              3
+            ],
+            "top8": [
+              33,
+              33
+            ],
+            "worse": 9
+          }
+        }
+      },
+      "same": {
+        "caps": {
+          "1": {
+            "exact": [
+              28,
+              25
+            ],
+            "lost": 7,
+            "ordered_pair": [
+              60,
+              57
+            ],
+            "paired_delta_95pp": [
+              -5.882352941176471,
+              1.1627906976744187
+            ],
+            "rescued": 4
+          },
+          "4": {
+            "exact": [
+              73,
+              68
+            ],
+            "lost": 6,
+            "ordered_pair": [
+              98,
+              99
+            ],
+            "paired_delta_95pp": [
+              -7.017543859649122,
+              -0.5813953488372093
+            ],
+            "rescued": 1
+          },
+          "8": {
+            "exact": [
+              90,
+              91
+            ],
+            "lost": 5,
+            "ordered_pair": [
+              109,
+              110
+            ],
+            "paired_delta_95pp": [
+              -6.722689075630252,
+              4.069767441860465
+            ],
+            "rescued": 6
+          },
+          "displayed": {
+            "exact": [
+              73,
+              70
+            ],
+            "lost": 4,
+            "ordered_pair": [
+              98,
+              99
+            ],
+            "paired_delta_95pp": [
+              -7.017543859649122,
+              1.744186046511628
+            ],
+            "rescued": 1
+          }
+        },
+        "races": 131,
+        "rank": {
+          "conditional_second_rank": {
+            "better": 3,
+            "eligible": 131,
+            "median": [
+              1.0,
+              1.0
+            ],
+            "top2": [
+              126,
+              127
+            ],
+            "top8": [
+              131,
+              131
+            ],
+            "worse": 5
+          },
+          "distinct_first_rank": {
+            "better": 24,
+            "eligible": 131,
+            "median": [
+              2.0,
+              2.0
+            ],
+            "top2": [
+              88,
+              86
+            ],
+            "top8": [
+              118,
+              122
+            ],
+            "worse": 25
+          },
+          "pair_rank": {
+            "better": 26,
+            "eligible": 131,
+            "median": [
+              2.0,
+              2.0
+            ],
+            "top2": [
+              92,
+              92
+            ],
+            "top8": [
+              119,
+              122
+            ],
+            "worse": 24
+          },
+          "win_rank": {
+            "better": 21,
+            "eligible": 131,
+            "median": [
+              2.0,
+              2.0
+            ],
+            "top2": [
+              98,
+              102
+            ],
+            "top8": [
+              131,
+              131
+            ],
+            "worse": 15
+          }
+        }
+      },
+      "unmapped_or_individual": {
+        "caps": {
+          "1": {
+            "exact": [
+              2,
+              2
+            ],
+            "lost": 0,
+            "ordered_pair": [
+              9,
+              9
+            ],
+            "paired_delta_95pp": [
+              0.0,
+              0.0
+            ],
+            "rescued": 0
+          },
+          "4": {
+            "exact": [
+              10,
+              10
+            ],
+            "lost": 0,
+            "ordered_pair": [
+              16,
+              16
+            ],
+            "paired_delta_95pp": [
+              0.0,
+              0.0
+            ],
+            "rescued": 0
+          },
+          "8": {
+            "exact": [
+              18,
+              18
+            ],
+            "lost": 0,
+            "ordered_pair": [
+              25,
+              25
+            ],
+            "paired_delta_95pp": [
+              0.0,
+              0.0
+            ],
+            "rescued": 0
+          },
+          "displayed": {
+            "exact": [
+              11,
+              11
+            ],
+            "lost": 0,
+            "ordered_pair": [
+              17,
+              17
+            ],
+            "paired_delta_95pp": [
+              0.0,
+              0.0
+            ],
+            "rescued": 0
+          }
+        },
+        "races": 38,
+        "rank": {}
+      }
+    }
+  }
+}

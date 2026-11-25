@@ -1,0 +1,53 @@
+{
+  "kokura_5_report": {
+    "url": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/8120261118/81202611180500/5/",
+    "response_sha256": "6193a88eb6ba1d51900346e50cc4cd65e33c95baad1c1b865c441ae9e4838fd7",
+    "response_bytes": 7623,
+    "undisplayed_capture_checked_at_utc": "2026-11-23T17:39:21.870309+00:00",
+    "http_status": 200,
+    "direct_capture_includes_race_fields": false,
+    "public_rendered_page_read_separately": true
+  },
+  "kokura_5_result": {
+    "url": "https://keirin.netkeiba.com/race/result/?race_id=202611228105",
+    "response_sha256": "c6bc3eb4cfecb7ffd51624ef9cb1e7ea58609112807603a598ac39ff442c3f93",
+    "response_bytes": 152997,
+    "undisplayed_capture_checked_at_utc": "2026-11-23T17:39:21.678307+00:00",
+    "http_status": 200,
+    "independently_confirmed_finishing_order": true,
+    "observed_B_for_winner_verified": true
+  },
+  "kokura_11_official_report": {
+    "url": "https://keirin.jp/pc/dfw/portal/guest/report/graderace/keirinsai/2026/report_5.html",
+    "response_sha256": "7effb2cf6cfb8f8d0ee7f3d99bbd1943a329b242932be2d621813be939c24e16",
+    "response_bytes": 19947,
+    "undisplayed_capture_checked_at_utc": "2026-11-23T17:39:21.944626+00:00",
+    "http_status": 200,
+    "direct_capture_includes_race_fields": true
+  },
+  "kokura_11_result": {
+    "url": "https://keirin.netkeiba.com/race/result/?race_id=202611228111",
+    "response_sha256": "98041d451893d5c90f50c9e418e7d61f8266fa1238d13995e564b63160784014",
+    "response_bytes": 153033,
+    "undisplayed_capture_checked_at_utc": "2026-11-23T17:39:22.245627+00:00",
+    "http_status": 200,
+    "independently_confirmed_finishing_order": true
+  },
+  "fukui_3_program_result": {
+    "url": "https://keirin.kdreams.jp/fukui/racedetail/5120261119020003/?pageType=showResult",
+    "response_sha256": "d840433ff625f2c628896026c07e0bdd5cdc3bf1af6127b91cc464e8b64e7787",
+    "response_bytes": 8803,
+    "undisplayed_capture_checked_at_utc": "2026-11-23T17:40:35.801665+00:00",
+    "http_status": 200,
+    "direct_capture_includes_race_fields": false,
+    "public_rendered_page_read_separately": true
+  },
+  "fukui_3_result": {
+    "url": "https://keirin.netkeiba.com/race/result/?race_id=202611205103",
+    "response_sha256": "5894cbc018ce3049de9abbdf62401ad62dd2e32db787e3621efed7feecbe5da8",
+    "response_bytes": 141495,
+    "undisplayed_capture_checked_at_utc": "2026-11-23T17:40:36.598597+00:00",
+    "http_status": 200,
+    "independently_confirmed_finishing_order": true
+  }
+}

@@ -1,0 +1,400 @@
+{
+  "schema": "KEIRIN_MULTI_STAGE_MAKURI_CASE_V1",
+  "race_id": "202611252611",
+  "evaluated_at": "2026-11-25T11:58:49.520348+00:00",
+  "input_archive_sha256": "fccd91e7e7caa3cda753ee76ab5de4bf11f5a2eea0cca8ba86f849519062b27d",
+  "input_revision": "5f32a11393992447c79c5f631aeaf0939215f25c",
+  "input_revision_at": "2026-11-24T18:17:22.878878+00:00",
+  "published_cutoff_at": "2026-11-25T20:10:00+09:00",
+  "line_groups": [
+    [
+      2,
+      7
+    ],
+    [
+      1
+    ],
+    [
+      5,
+      3
+    ],
+    [
+      4,
+      6
+    ]
+  ],
+  "generated_hypotheses": 108,
+  "generated_distinct_initiative_and_reaction_orders": 60,
+  "observed_initiative": 2,
+  "observed_reaction_order": [
+    4,
+    1,
+    5
+  ],
+  "matches": [
+    {
+      "scenario_id": "MAKURI_RESPONSE_2-4-1-5_BY_CORNER",
+      "initiative_car": 2,
+      "moves": [
+        {
+          "actor_car": 4,
+          "countered_car": 2,
+          "window": "FINAL_BACK_TO_FOURTH_CORNER",
+          "conditional_followers": [
+            6
+          ],
+          "condition": "4番が2番を外から交わし、掲載ラインが追走する条件。",
+          "evidence": "4番：得点90.91、掲載4ヶ月勝率29.1%、H/B=12/16、逃/捲/差/マ=9/5/0/0"
+        },
+        {
+          "actor_car": 1,
+          "countered_car": 4,
+          "window": "FINAL_BACK_TO_FOURTH_CORNER",
+          "conditional_followers": [],
+          "condition": "1番が4番を外から交わし、掲載ラインが追走する条件。",
+          "evidence": "1番：得点93.52、掲載4ヶ月勝率28.5%、H/B=9/10、逃/捲/差/マ=4/4/1/0"
+        },
+        {
+          "actor_car": 5,
+          "countered_car": 1,
+          "window": "FINAL_BACK_TO_FOURTH_CORNER",
+          "conditional_followers": [
+            3
+          ],
+          "condition": "5番が1番を外から交わし、掲載ラインが追走する条件。",
+          "evidence": "5番：得点93.65、掲載4ヶ月勝率34.7%、H/B=0/4、逃/捲/差/マ=0/13/0/0"
+        }
+      ],
+      "six_phases": [
+        {
+          "phase": "INITIAL",
+          "projected_order": [
+            5,
+            3,
+            4,
+            6,
+            1,
+            2,
+            7
+          ],
+          "projected_top3": [
+            5,
+            3,
+            4
+          ],
+          "hypothesis_actions": [
+            "PREDICTED_LINE_ORDER_ONLY"
+          ],
+          "actual_rider_position_video_verified": false,
+          "explanation": "掲載並びとS回数から置く初周の仮説。実際の位置取りは未確認。",
+          "position_unknown": false
+        },
+        {
+          "phase": "BELL",
+          "projected_order": [
+            2,
+            7,
+            5,
+            3,
+            4,
+            6,
+            1
+          ],
+          "projected_top3": [
+            2,
+            7,
+            5
+          ],
+          "hypothesis_actions": [
+            "LEADER_ATTACKS",
+            "CAR_2"
+          ],
+          "actual_rider_position_video_verified": false,
+          "explanation": "2番のラインが先手を取る分岐。",
+          "position_unknown": false
+        },
+        {
+          "phase": "FINAL_HOME",
+          "projected_order": [
+            2,
+            7,
+            5,
+            3,
+            4,
+            6,
+            1
+          ],
+          "projected_top3": [
+            2,
+            7,
+            5
+          ],
+          "hypothesis_actions": [
+            "LEADER_TRIES_TO_HOLD_PACE",
+            "CAR_2"
+          ],
+          "actual_rider_position_video_verified": false,
+          "explanation": "2番が先行を続け、掲載ラインが追走する仮説。",
+          "position_unknown": false
+        },
+        {
+          "phase": "FINAL_BACK",
+          "projected_order": [
+            2,
+            7,
+            5,
+            3,
+            4,
+            6,
+            1
+          ],
+          "projected_top3": [
+            2,
+            7,
+            5
+          ],
+          "hypothesis_actions": [
+            "LEADER_TRIES_TO_HOLD_PACE",
+            "CAR_2"
+          ],
+          "actual_rider_position_video_verified": false,
+          "explanation": "元の仕掛け役2番を先頭にバックへ入る条件。",
+          "position_unknown": false
+        },
+        {
+          "phase": "FOURTH_CORNER",
+          "projected_order": [
+            5,
+            3,
+            1,
+            4,
+            6,
+            2,
+            7
+          ],
+          "projected_top3": [
+            5,
+            3,
+            1
+          ],
+          "hypothesis_actions": [
+            "CONDITIONAL_MULTI_STAGE_RESPONSE"
+          ],
+          "actual_rider_position_video_verified": false,
+          "explanation": "最終バック後から4角までに、想定した仕掛けが順に前へ出る分岐。",
+          "position_unknown": false
+        },
+        {
+          "phase": "GOAL",
+          "projected_order": [
+            5,
+            3,
+            1,
+            4,
+            6,
+            2,
+            7
+          ],
+          "projected_top3": [
+            5,
+            3,
+            1
+          ],
+          "hypothesis_actions": [
+            "CONDITIONAL_FINISH_ORDER"
+          ],
+          "actual_rider_position_video_verified": false,
+          "explanation": "想定した捲りの後、さらに位置の入れ替わりなくゴールする分岐。",
+          "position_unknown": false
+        }
+      ],
+      "probability": null,
+      "probability_status": "NO_INDEPENDENT_CALIBRATION"
+    },
+    {
+      "scenario_id": "MAKURI_RESPONSE_2-4-1-5_LATE",
+      "initiative_car": 2,
+      "moves": [
+        {
+          "actor_car": 4,
+          "countered_car": 2,
+          "window": "FINAL_BACK_TO_FOURTH_CORNER",
+          "conditional_followers": [
+            6
+          ],
+          "condition": "4番が2番を外から交わし、掲載ラインが追走する条件。",
+          "evidence": "4番：得点90.91、掲載4ヶ月勝率29.1%、H/B=12/16、逃/捲/差/マ=9/5/0/0"
+        },
+        {
+          "actor_car": 1,
+          "countered_car": 4,
+          "window": "FINAL_BACK_TO_FOURTH_CORNER",
+          "conditional_followers": [],
+          "condition": "1番が4番を外から交わし、掲載ラインが追走する条件。",
+          "evidence": "1番：得点93.52、掲載4ヶ月勝率28.5%、H/B=9/10、逃/捲/差/マ=4/4/1/0"
+        },
+        {
+          "actor_car": 5,
+          "countered_car": 1,
+          "window": "FOURTH_CORNER_TO_GOAL",
+          "conditional_followers": [
+            3
+          ],
+          "condition": "5番が1番を外から交わし、掲載ラインが追走する条件。",
+          "evidence": "5番：得点93.65、掲載4ヶ月勝率34.7%、H/B=0/4、逃/捲/差/マ=0/13/0/0"
+        }
+      ],
+      "six_phases": [
+        {
+          "phase": "INITIAL",
+          "projected_order": [
+            5,
+            3,
+            4,
+            6,
+            1,
+            2,
+            7
+          ],
+          "projected_top3": [
+            5,
+            3,
+            4
+          ],
+          "hypothesis_actions": [
+            "PREDICTED_LINE_ORDER_ONLY"
+          ],
+          "actual_rider_position_video_verified": false,
+          "explanation": "掲載並びとS回数から置く初周の仮説。実際の位置取りは未確認。",
+          "position_unknown": false
+        },
+        {
+          "phase": "BELL",
+          "projected_order": [
+            2,
+            7,
+            5,
+            3,
+            4,
+            6,
+            1
+          ],
+          "projected_top3": [
+            2,
+            7,
+            5
+          ],
+          "hypothesis_actions": [
+            "LEADER_ATTACKS",
+            "CAR_2"
+          ],
+          "actual_rider_position_video_verified": false,
+          "explanation": "2番のラインが先手を取る分岐。",
+          "position_unknown": false
+        },
+        {
+          "phase": "FINAL_HOME",
+          "projected_order": [
+            2,
+            7,
+            5,
+            3,
+            4,
+            6,
+            1
+          ],
+          "projected_top3": [
+            2,
+            7,
+            5
+          ],
+          "hypothesis_actions": [
+            "LEADER_TRIES_TO_HOLD_PACE",
+            "CAR_2"
+          ],
+          "actual_rider_position_video_verified": false,
+          "explanation": "2番が先行を続け、掲載ラインが追走する仮説。",
+          "position_unknown": false
+        },
+        {
+          "phase": "FINAL_BACK",
+          "projected_order": [
+            2,
+            7,
+            5,
+            3,
+            4,
+            6,
+            1
+          ],
+          "projected_top3": [
+            2,
+            7,
+            5
+          ],
+          "hypothesis_actions": [
+            "LEADER_TRIES_TO_HOLD_PACE",
+            "CAR_2"
+          ],
+          "actual_rider_position_video_verified": false,
+          "explanation": "元の仕掛け役2番を先頭にバックへ入る条件。",
+          "position_unknown": false
+        },
+        {
+          "phase": "FOURTH_CORNER",
+          "projected_order": [
+            1,
+            4,
+            6,
+            2,
+            7,
+            5,
+            3
+          ],
+          "projected_top3": [
+            1,
+            4,
+            6
+          ],
+          "hypothesis_actions": [
+            "CONDITIONAL_MULTI_STAGE_RESPONSE"
+          ],
+          "actual_rider_position_video_verified": false,
+          "explanation": "最終バック後から4角までに、想定した仕掛けが順に前へ出る分岐。",
+          "position_unknown": false
+        },
+        {
+          "phase": "GOAL",
+          "projected_order": [
+            5,
+            3,
+            1,
+            4,
+            6,
+            2,
+            7
+          ],
+          "projected_top3": [
+            5,
+            3,
+            1
+          ],
+          "hypothesis_actions": [
+            "CONDITIONAL_FINISH_ORDER"
+          ],
+          "actual_rider_position_video_verified": false,
+          "explanation": "想定した捲りの後、さらに位置の入れ替わりなくゴールする分岐。",
+          "position_unknown": false
+        }
+      ],
+      "probability": null,
+      "probability_status": "NO_INDEPENDENT_CALIBRATION"
+    }
+  ],
+  "timing_label_available": false,
+  "original_validation_reference": "seibuen-11-assessment.json",
+  "evaluation": "POST_RACE_PATH_INCLUSION_ONLY",
+  "calibration": "UNAVAILABLE",
+  "original_forecast_rewritten": false,
+  "qualifying_forward_races": 0
+}

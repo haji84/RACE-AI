@@ -1,0 +1,11 @@
+{
+  "registered": 33,
+  "earliest": "2026-11-25T17:58:00+09:00",
+  "latest": "2026-11-25T23:25:00+09:00",
+  "recorded": "2026-11-25T08:47:18.855482+00:00",
+  "forecast_sha256": "e3b1bdce7f83b97734b0ed2ad757d32d9b02b6d584ceab0ec55988b5000118e2",
+  "model_sha256": "cb5ff9d7a12f6f5a14edb9004595eadfb585b5d7c27f266f316e9fa2fa2bc30b",
+  "design_sha256": "9e791e169d4be77d9d66d730bb72b27c7f6010b5f554b6a310ecf3d7ac796dfd",
+  "changed": 11,
+  "original_receipt_sha256": "2ef6c95f46b580214a658097fa5b8bfb55b13132ffc2780ab7b4e6bfb74bc5fb"
+}

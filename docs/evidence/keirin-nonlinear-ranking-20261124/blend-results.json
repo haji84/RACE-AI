@@ -1,0 +1,141 @@
+{
+  "proof": {
+    "schema": "KEIRIN_CALIBRATED_ENSEMBLE_REPLAY_V1",
+    "driver_sha256": "7187a48fcc33cae58c063a91a265edaf80cec4f034325480a12d32ffbe56c072",
+    "training_end": "2026-01-31",
+    "calibration_range": [
+      "2026-02-01",
+      "2026-03-31"
+    ],
+    "evaluation_range": [
+      "2026-08-01",
+      "2026-09-30"
+    ],
+    "evaluation_phase_history_through": "2026-03-31",
+    "calibrations": {
+      "marks_available": {
+        "choices": {
+          "phase": {
+            "races": 4381,
+            "hit_1": 539,
+            "hit_4": 1239,
+            "hit_8": 1764
+          },
+          "tree25": {
+            "races": 4381,
+            "hit_1": 531,
+            "hit_4": 1247,
+            "hit_8": 1755
+          },
+          "tree50": {
+            "races": 4381,
+            "hit_1": 536,
+            "hit_4": 1261,
+            "hit_8": 1758
+          },
+          "tree75": {
+            "races": 4381,
+            "hit_1": 529,
+            "hit_4": 1256,
+            "hit_8": 1755
+          },
+          "tree": {
+            "races": 4381,
+            "hit_1": 519,
+            "hit_4": 1264,
+            "hit_8": 1756
+          }
+        },
+        "selection": "phase"
+      },
+      "marks_unavailable": {
+        "choices": {
+          "phase": {
+            "races": 4381,
+            "hit_1": 503,
+            "hit_4": 1204,
+            "hit_8": 1702
+          },
+          "tree25": {
+            "races": 4381,
+            "hit_1": 501,
+            "hit_4": 1210,
+            "hit_8": 1719
+          },
+          "tree50": {
+            "races": 4381,
+            "hit_1": 502,
+            "hit_4": 1214,
+            "hit_8": 1716
+          },
+          "tree75": {
+            "races": 4381,
+            "hit_1": 502,
+            "hit_4": 1227,
+            "hit_8": 1723
+          },
+          "tree": {
+            "races": 4381,
+            "hit_1": 506,
+            "hit_4": 1228,
+            "hit_8": 1726
+          }
+        },
+        "selection": "tree"
+      }
+    },
+    "tree_config_sha256": "54c5851e3e95e454e31866c4c32b317dbf3eefd504aa2424f540ec7e8573abcd",
+    "prior_phase_config_sha256": "9487a4c42ee8e9e978bfddca5bc285888059f4b01c93f01d62f95ab95010ed4a",
+    "private_forecasts_sha256": "5dca21a30cbfbcaf34cbfdaa0df80cea0fdb96e38783c10fe181b944ed5da901",
+    "fixed_at": "2026-11-24T00:30:09.707638+00:00",
+    "private_owner_cipher_sha256": "383ca66b64f0539094e1633b257de7ff0545d00e505dd28982552a319c3d1550"
+  },
+  "counts": {
+    "phase": {
+      "races": 3050,
+      "hit_1": 316,
+      "hit_4": 842,
+      "hit_8": 1200
+    },
+    "tree25": {
+      "races": 3050,
+      "hit_1": 323,
+      "hit_4": 840,
+      "hit_8": 1216
+    },
+    "tree50": {
+      "races": 3050,
+      "hit_1": 328,
+      "hit_4": 850,
+      "hit_8": 1217
+    },
+    "tree75": {
+      "races": 3050,
+      "hit_1": 327,
+      "hit_4": 846,
+      "hit_8": 1221
+    },
+    "tree": {
+      "races": 3050,
+      "hit_1": 329,
+      "hit_4": 850,
+      "hit_8": 1215
+    },
+    "calibrated": {
+      "races": 3050,
+      "hit_1": 316,
+      "hit_4": 842,
+      "hit_8": 1200
+    }
+  },
+  "chosen_paired_day_95_points": {
+    "phase": [
+      0.0,
+      0.0
+    ],
+    "tree": [
+      -1.257,
+      0.23
+    ]
+  }
+}

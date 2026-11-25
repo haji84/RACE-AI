@@ -1,0 +1,12 @@
+{
+  "date_jst": "2026-11-25",
+  "uncovered_races": 15,
+  "missing_coverage": {
+    "explicitly_without_line": 15,
+    "digest_sha256": "aaba48a69c77a913995881302c3d23efefe965202ca92bbf4e7a88f0773ca3df"
+  },
+  "other_line_coverage": {
+    "explicitly_without_line": 15,
+    "digest_sha256": "538ec49e63167eb05f8957c4176c895b7a2e3860a23413b0f6c21607deb86d57"
+  }
+}

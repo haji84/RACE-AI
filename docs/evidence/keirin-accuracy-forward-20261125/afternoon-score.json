@@ -1,0 +1,379 @@
+{
+  "source": {
+    "date": "2026-11-25",
+    "result_checked_at_utc": "2026-11-25T07:01:56.252373+00:00",
+    "source": "kdreams + netkeirin",
+    "actions_run": 45564935032,
+    "publisher_job": "publish-public-site-results",
+    "result_branch": "state/keirin-public-results",
+    "result_commit": "282ce911cb631667cfdaa8f2a8cc998ea4844ec3",
+    "results_sha256": "44b691fb19a45a6e8282e09594047eb945176bcf64c618f5a8b01c2d436b4ef0",
+    "roster_sha256": "c96f35a0c0a9e26c34a491d162674f40a47a2e5fd0ae19f4583c86653d6aeb31",
+    "public_forecast_sha256": "2a62f3a6cf7f2a12d62b5b49b4d9a620db49309b0522814ed904c11c942e3d35",
+    "roster_generated_at": "2026-11-24T23:40:41.322480+00:00",
+    "site_forecast_published_at": "2026-11-24T23:43:19.442812+00:00",
+    "prediction_commitments": {
+      "third_rider_only": {
+        "sha256": "4c475aed916a562b749809e994a541728b01d0624051085ae3b3aa0c947d8041",
+        "frozen_utc": "2026-11-25T00:07:16.450622+00:00",
+        "commit": "218fed394289bc78749426ed60b5c0f4f516c225"
+      },
+      "width": {
+        "sha256": "ef4cfc39a777ee317a8ff921ba3e684f4c12b5d3dc2ccde7799e2016dc277afa",
+        "frozen_utc": "2026-11-25T00:09:17.515419+00:00",
+        "commit": "218fed394289bc78749426ed60b5c0f4f516c225"
+      },
+      "recent_relative_last_half_lap": {
+        "sha256": "72f3929fe26a371fb733406f8cf090bbb64c1095ea0ec58800fe5c4019acf089",
+        "frozen_utc": "2026-11-25T00:20:39.516598+00:00",
+        "commit": "218fed394289bc78749426ed60b5c0f4f516c225"
+      },
+      "forward-20261125": {
+        "sha256": "b614eada3180278c6bd659da4ef96b08874f9d7ff8d6b37bbd56a4bc793191ad",
+        "frozen_utc": "2026-11-24T22:30:29.540081+00:00",
+        "commit": "1251791652ea07eb9f127b96dafdfe4b0a994537"
+      },
+      "fallback": {
+        "sha256": "20848d53fef54f254f6bfe8773fd127aed82a334775a90d685646097189120de",
+        "frozen_utc": "2026-11-24T22:37:08.788204+00:00",
+        "commit": "2bc29758fcfc18cb3beda4ebba9a7c5453e6356a"
+      },
+      "video_and_AB": {
+        "sha256": "a9226f6e6ccb5189665f4c3b16802400b9eb60b5b2506b9d1d6cde8fdf4998bb",
+        "frozen_utc": "2026-11-24T22:25:45.736228+00:00",
+        "commit": "1251791652ea07eb9f127b96dafdfe4b0a994537"
+      }
+    }
+  },
+  "outcome_states": {
+    "matched": 30,
+    "held": 1,
+    "pending": 1,
+    "no_result_record": 43
+  },
+  "published": {
+    "3t": {
+      "registered": 75,
+      "matched": 30,
+      "published_hits": 10,
+      "trial_hits": 10,
+      "published_tickets": 156,
+      "trial_tickets": 156,
+      "both_hits": 10,
+      "changed_sets": 0,
+      "published_first_two": 14,
+      "trial_first_two": 14,
+      "gained": [],
+      "lost": []
+    },
+    "2t": {
+      "registered": 75,
+      "matched": 30,
+      "published_hits": 12,
+      "trial_hits": 12,
+      "published_tickets": 74,
+      "trial_tickets": 74,
+      "both_hits": 12,
+      "changed_sets": 0,
+      "published_first_two": 12,
+      "trial_first_two": 12,
+      "gained": [],
+      "lost": []
+    }
+  },
+  "published_by_ticket_count": {
+    "4": {
+      "registered": 60,
+      "matched": 21,
+      "published_hits": 4,
+      "trial_hits": 4,
+      "published_tickets": 84,
+      "trial_tickets": 84,
+      "both_hits": 4,
+      "changed_sets": 0,
+      "published_first_two": 8,
+      "trial_first_two": 8,
+      "gained": [],
+      "lost": []
+    },
+    "8": {
+      "registered": 15,
+      "matched": 9,
+      "published_hits": 6,
+      "trial_hits": 6,
+      "published_tickets": 72,
+      "trial_tickets": 72,
+      "both_hits": 6,
+      "changed_sets": 0,
+      "published_first_two": 6,
+      "trial_first_two": 6,
+      "gained": [],
+      "lost": []
+    }
+  },
+  "published_by_model_variant": {
+    "both_updates": {
+      "registered": 52,
+      "matched": 28,
+      "published_hits": 10,
+      "trial_hits": 10,
+      "published_tickets": 148,
+      "trial_tickets": 148,
+      "both_hits": 10,
+      "changed_sets": 0,
+      "published_first_two": 12,
+      "trial_first_two": 12,
+      "gained": [],
+      "lost": []
+    },
+    "individual": {
+      "registered": 8,
+      "matched": 2,
+      "published_hits": 0,
+      "trial_hits": 0,
+      "published_tickets": 8,
+      "trial_tickets": 8,
+      "both_hits": 0,
+      "changed_sets": 0,
+      "published_first_two": 2,
+      "trial_first_two": 2,
+      "gained": [],
+      "lost": []
+    },
+    "static": {
+      "registered": 15,
+      "matched": 0,
+      "published_hits": 0,
+      "trial_hits": 0,
+      "published_tickets": 0,
+      "trial_tickets": 0,
+      "both_hits": 0,
+      "changed_sets": 0,
+      "published_first_two": 0,
+      "trial_first_two": 0,
+      "gained": [],
+      "lost": []
+    }
+  },
+  "later_frozen_73": {
+    "third_rider_only": {
+      "registered": 73,
+      "matched": 28,
+      "published_hits": 8,
+      "trial_hits": 7,
+      "published_tickets": 144,
+      "trial_tickets": 144,
+      "both_hits": 7,
+      "changed_sets": 10,
+      "published_first_two": 12,
+      "trial_first_two": 13,
+      "gained": [],
+      "lost": [
+        "202611257501"
+      ]
+    },
+    "width": {
+      "registered": 73,
+      "matched": 28,
+      "published_hits": 8,
+      "trial_hits": 6,
+      "published_tickets": 144,
+      "trial_tickets": 132,
+      "both_hits": 6,
+      "changed_sets": 9,
+      "published_first_two": 12,
+      "trial_first_two": 11,
+      "gained": [],
+      "lost": [
+        "202611253804",
+        "202611253807"
+      ]
+    },
+    "recent_relative_last_half_lap": {
+      "registered": 73,
+      "matched": 28,
+      "published_hits": 8,
+      "trial_hits": 8,
+      "published_tickets": 144,
+      "trial_tickets": 144,
+      "both_hits": 8,
+      "changed_sets": 2,
+      "published_first_two": 12,
+      "trial_first_two": 12,
+      "gained": [],
+      "lost": []
+    }
+  },
+  "early_frozen_75": {
+    "pair_and_third": {
+      "3t": {
+        "registered": 75,
+        "matched": 30,
+        "published_hits": 10,
+        "trial_hits": 9,
+        "published_tickets": 156,
+        "trial_tickets": 156,
+        "both_hits": 9,
+        "changed_sets": 15,
+        "published_first_two": 14,
+        "trial_first_two": 12,
+        "gained": [],
+        "lost": [
+          "202611257501"
+        ]
+      },
+      "2t": {
+        "registered": 75,
+        "matched": 30,
+        "published_hits": 12,
+        "trial_hits": 12,
+        "published_tickets": 74,
+        "trial_tickets": 74,
+        "both_hits": 12,
+        "changed_sets": 0,
+        "published_first_two": 12,
+        "trial_first_two": 12,
+        "gained": [],
+        "lost": []
+      }
+    },
+    "before_pair_and_third": {
+      "3t": {
+        "registered": 75,
+        "matched": 30,
+        "published_hits": 10,
+        "trial_hits": 7,
+        "published_tickets": 156,
+        "trial_tickets": 156,
+        "both_hits": 7,
+        "changed_sets": 26,
+        "published_first_two": 14,
+        "trial_first_two": 13,
+        "gained": [],
+        "lost": [
+          "202611253807",
+          "202611253808",
+          "202611257501"
+        ]
+      },
+      "2t": {
+        "registered": 75,
+        "matched": 30,
+        "published_hits": 12,
+        "trial_hits": 11,
+        "published_tickets": 74,
+        "trial_tickets": 74,
+        "both_hits": 11,
+        "changed_sets": 2,
+        "published_first_two": 12,
+        "trial_first_two": 11,
+        "gained": [],
+        "lost": [
+          "202611253806"
+        ]
+      }
+    }
+  },
+  "early_frozen_60": {
+    "base_without_video": {
+      "registered": 60,
+      "matched": 30,
+      "published_hits": 10,
+      "trial_hits": 9,
+      "published_tickets": 156,
+      "trial_tickets": 156,
+      "both_hits": 9,
+      "changed_sets": 6,
+      "published_first_two": 14,
+      "trial_first_two": 13,
+      "gained": [],
+      "lost": [
+        "202611258402"
+      ]
+    },
+    "previous_both": {
+      "registered": 60,
+      "matched": 30,
+      "published_hits": 10,
+      "trial_hits": 10,
+      "published_tickets": 156,
+      "trial_tickets": 156,
+      "both_hits": 10,
+      "changed_sets": 1,
+      "published_first_two": 14,
+      "trial_first_two": 14,
+      "gained": [],
+      "lost": []
+    },
+    "more_B_to_corner": {
+      "registered": 60,
+      "matched": 30,
+      "published_hits": 10,
+      "trial_hits": 10,
+      "published_tickets": 156,
+      "trial_tickets": 156,
+      "both_hits": 10,
+      "changed_sets": 1,
+      "published_first_two": 14,
+      "trial_first_two": 14,
+      "gained": [],
+      "lost": []
+    },
+    "more_corner_to_finish": {
+      "registered": 60,
+      "matched": 30,
+      "published_hits": 10,
+      "trial_hits": 10,
+      "published_tickets": 156,
+      "trial_tickets": 156,
+      "both_hits": 10,
+      "changed_sets": 0,
+      "published_first_two": 14,
+      "trial_first_two": 14,
+      "gained": [],
+      "lost": []
+    },
+    "source_A": {
+      "registered": 60,
+      "matched": 30,
+      "published_hits": 10,
+      "trial_hits": 6,
+      "published_tickets": 156,
+      "trial_tickets": 156,
+      "both_hits": 6,
+      "changed_sets": 29,
+      "published_first_two": 14,
+      "trial_first_two": 13,
+      "gained": [],
+      "lost": [
+        "202611253807",
+        "202611253808",
+        "202611255104",
+        "202611257501"
+      ]
+    },
+    "source_B": {
+      "registered": 60,
+      "matched": 30,
+      "published_hits": 10,
+      "trial_hits": 6,
+      "published_tickets": 156,
+      "trial_tickets": 156,
+      "both_hits": 5,
+      "changed_sets": 30,
+      "published_first_two": 14,
+      "trial_first_two": 17,
+      "gained": [
+        "202611255109"
+      ],
+      "lost": [
+        "202611253804",
+        "202611253807",
+        "202611255104",
+        "202611257501",
+        "202611258402"
+      ]
+    }
+  },
+  "first_pair_definition": "correct first and second in exact order on at least one selected ticket"
+}

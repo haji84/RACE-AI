@@ -1,0 +1,72 @@
+{
+  "schema": "KEIRIN_OBSERVED_START_BACK_LINE_REPLAY_V1",
+  "fixed_at": "2026-11-23T22:40:35.760024+00:00",
+  "source_model_sha256": "12cb75f0a6cbf99e5eea3530d4be386f8ab8900e638b6a7ffd34af7e5f786535",
+  "research_driver_sha256": "bcd974b1bee2a69e23763c5d31316607032a7ba9c928c98c3778760b75c5cd3e",
+  "input_docs_sha256": "a63a6090ebe2bb9fb019aa50aca7ba131ab97eaa55dd661d75170663132a9dc7",
+  "verified_sqlite_provenance_sha256": "c797a32a4203bc36e6f467f41f53e71b60677d45818e788e750f38247628b2f7",
+  "frozen_ranking_sha256": {
+    "earlier": "1b031914726116aedd7a009a2802d75c0f91ae72ce5b482c3cbc0d6cb0b40737",
+    "recent": "ff361e91f6c01330195e7f9860ab22d44bc50464f34b5b83ae4423b234a3b3f9"
+  },
+  "config_sha256": {
+    "earlier": "27e49e96ce2f837d380ffef3b997a5e3c320de61f036a6ff5c97e0b76ec5769c",
+    "recent": "b9aa68d0ae87453eaffcee14568a0ba486cbb7a08fac6fb5391bc1da76be89d9"
+  },
+  "ordered_baseline_exact_ranks": {
+    "recent": 3589,
+    "earlier": 4621
+  },
+  "earlier_evaluation_starts": "2026-04-01",
+  "later_evaluation_starts": "2026-10-01",
+  "selection_is_based_on_earlier_calibration": true,
+  "price_inputs_used": false,
+  "exposure": {
+    "past_events": {
+      "earlier": {
+        "races": 12292,
+        "S_mark_unique": 11517,
+        "B_mark_unique": 12292,
+        "third_home_order_observed": 0,
+        "registered_starters": 84826,
+        "starters": 87424,
+        "incomplete_or_incompatible": 967
+      },
+      "recent": {
+        "races": 23750,
+        "S_mark_unique": 22348,
+        "B_mark_unique": 23750,
+        "third_home_order_observed": 0,
+        "registered_starters": 165181,
+        "starters": 168619,
+        "incomplete_or_incompatible": 1845
+      }
+    },
+    "evaluation_covariates": {
+      "earlier": {
+        "races": 4621,
+        "starters": 32760,
+        "racers_with_past_B_observation": 31120,
+        "racers_with_three_past_B": 29818,
+        "races_all_riders_have_three_past_B": 2739,
+        "races_with_one_same_line_duo_with_three_shared_races": 337,
+        "repeated_ordered_teammate_combinations": 742
+      },
+      "recent": {
+        "races": 3590,
+        "starters": 25599,
+        "racers_with_past_B_observation": 25481,
+        "racers_with_three_past_B": 25090,
+        "races_all_riders_have_three_past_B": 3122,
+        "races_with_one_same_line_duo_with_three_shared_races": 509,
+        "repeated_ordered_teammate_combinations": 1210
+      }
+    },
+    "earlier_history_through": "2026-03-31",
+    "recent_history_through": "2026-09-30"
+  },
+  "cipher_sha256": {
+    "earlier": "2edc33b5200629b089472cf84c123f14ede362187bd26feb05920e1f6e0cbd0e",
+    "recent": "9fb12ff725f7d35e64698337c072a7b391b75502f8dcccd12be68f6cc35646df"
+  }
+}

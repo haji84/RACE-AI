@@ -2,7 +2,7 @@
 
 出典：2026-11-25 のオーナー提示指示書（全27節および末尾の追加能力）。本書はその要求を既存コードへ引き継ぐための整理版であり、実装完了の報告ではない。元の指示と食い違う場合はオーナーの指示を優先する。
 
-正本は `haji84/RACE-AI`。既存の GitHub-only・暗号化・保護レビュー等は [AGENTS.md](../AGENTS.md) に従う。進捗と証拠は [完成条件との照合](KEIRIN_DEVELOPMENT_ACCEPTANCE_20261125.md)、先行作業は [既存引継ぎ](https://github.com/haji84/RACE-AI/blob/6b30e6368216519cb55232f417462caffc6c57f6/docs/KEIRIN_RIDER_TRAITS_CODEX_HANDOFF_20261122.md) を読む。
+正本は `haji84/RACE-AI`。既存の GitHub-only・暗号化・保護レビュー等は [AGENTS.md](../AGENTS.md) に従う。進捗と証拠は [完成条件との照合](KEIRIN_DEVELOPMENT_ACCEPTANCE_20261125.md)、先行作業は [既存引継ぎ](KEIRIN_RIDER_TRAITS_CODEX_HANDOFF_20261122.md) を読む。
 
 ## 1. 開発目的
 

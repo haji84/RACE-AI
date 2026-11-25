@@ -1,0 +1,12 @@
+{
+  "sha256": "3ab0009a7331bad820338e9bad9761bbb0a6977c6c12fd6a9b2a4cdbaf64d533",
+  "frozen_at": "2026-11-25T08:51:14.018790+00:00",
+  "earliest": "2026-11-25T17:58:00+09:00",
+  "design": "2c3854e92d2d79e6e83cbbc53bd9a10c85f098616e1667f6e526585658fad3e5",
+  "underlying_weights": "bd95e2a97357d7ab1d386ec92b50d147fe7f4abedee09afa7648f24fc1ab89a8",
+  "input": "a4bc2d40333a4410c9500e656eca729ab20feed2a71004e005a10be9b890a7e6",
+  "registered": 33,
+  "single_ticket_priority_changes": 1,
+  "four_and_eight_set_changes": 0,
+  "changed_single_first_cutoff": "2026-11-25T22:49:00+09:00"
+}

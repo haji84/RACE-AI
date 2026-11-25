@@ -1,0 +1,34 @@
+{
+  "schema": "KEIRIN_JOINT_AUTOMATIC_TRIGGER_PROOF_V1",
+  "scoring_run": 45634329984,
+  "scoring_job": 139275865225,
+  "event": "workflow_run",
+  "source_commit": "71c97f358d2e0905dad78f0bb550777969c1b53f",
+  "state": "AUTOMATIC_INDEPENDENT_DECRYPTION_AND_FIXED_BUDGET_SCORING_VERIFIED",
+  "result_source": {
+    "branch": "state/keirin-public-results",
+    "commit": "06c17c92426ab0ff3e757f51f80152280cb994f3",
+    "day_jst": "2026-11-25",
+    "repository": "haji84/RACE-AI",
+    "results_sha256": "62d45f7a430986c6e25a78721c4995b3773cb744751712f0dd92d003ad92ce01",
+    "roster_sha256": "c96f35a0c0a9e26c34a491d162674f40a47a2e5fd0ae19f4583c86653d6aeb31"
+  },
+  "registered": 10,
+  "matched": 9,
+  "result_states": {
+    "matched": 9,
+    "pending": 1
+  },
+  "trifecta_top4": {
+    "baseline_hits": 3,
+    "candidate_hits": 3
+  },
+  "exacta_top2": {
+    "matched": 9,
+    "published_hits": 2,
+    "tickets_per_arm": 18,
+    "trial_hits": 2
+  },
+  "accuracy_improvement_proven": false,
+  "formal_PR71": false
+}

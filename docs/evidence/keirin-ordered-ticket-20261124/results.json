@@ -1,0 +1,1087 @@
+{
+  "schema": "KEIRIN_ORDERED_TICKET_STUDY_RESULTS_V1",
+  "labels_opened_at": "2026-11-23T22:14:51.672222+00:00",
+  "result_source_nov23": {
+    "label_source_commit": "37bda18979e902650c139e24e13dcfbf764cf1b3",
+    "checked_at": "2026-11-23T15:55:02.503459+00:00",
+    "matched_within_study": 86
+  },
+  "panels": {
+    "recent": {
+      "selected_before_test": "pair_and_third",
+      "coverage": {
+        "input_races": 3590,
+        "forecast_ready": 3589,
+        "results_available": 3583,
+        "scored_forecasts": 3582,
+        "result_available_no_forecast": 1
+      },
+      "fixed": {
+        "baseline:3t:1": {
+          "hits": 286,
+          "races": 3582
+        },
+        "baseline:3t:4": {
+          "hits": 842,
+          "races": 3582
+        },
+        "baseline:3t:8": {
+          "hits": 1323,
+          "races": 3582
+        },
+        "baseline:3t:16": {
+          "hits": 1837,
+          "races": 3582
+        },
+        "baseline:3t:24": {
+          "hits": 2174,
+          "races": 3582
+        },
+        "baseline:3t:32": {
+          "hits": 2401,
+          "races": 3582
+        },
+        "baseline:3t:48": {
+          "hits": 2757,
+          "races": 3582
+        },
+        "baseline:3t:64": {
+          "hits": 2986,
+          "races": 3582
+        },
+        "baseline:2t:1": {
+          "hits": 863,
+          "races": 3582
+        },
+        "baseline:2t:2": {
+          "hits": 1360,
+          "races": 3582
+        },
+        "baseline:2t:4": {
+          "hits": 1893,
+          "races": 3582
+        },
+        "baseline:2t:8": {
+          "hits": 2501,
+          "races": 3582
+        },
+        "third_line:3t:1": {
+          "hits": 430,
+          "races": 3582
+        },
+        "third_line:3t:4": {
+          "hits": 1003,
+          "races": 3582
+        },
+        "third_line:3t:8": {
+          "hits": 1403,
+          "races": 3582
+        },
+        "third_line:3t:16": {
+          "hits": 1913,
+          "races": 3582
+        },
+        "third_line:3t:24": {
+          "hits": 2260,
+          "races": 3582
+        },
+        "third_line:3t:32": {
+          "hits": 2491,
+          "races": 3582
+        },
+        "third_line:3t:48": {
+          "hits": 2822,
+          "races": 3582
+        },
+        "third_line:3t:64": {
+          "hits": 3013,
+          "races": 3582
+        },
+        "third_line:2t:1": {
+          "hits": 863,
+          "races": 3582
+        },
+        "third_line:2t:2": {
+          "hits": 1360,
+          "races": 3582
+        },
+        "third_line:2t:4": {
+          "hits": 1893,
+          "races": 3582
+        },
+        "third_line:2t:8": {
+          "hits": 2501,
+          "races": 3582
+        },
+        "pair_and_third:3t:1": {
+          "hits": 431,
+          "races": 3582
+        },
+        "pair_and_third:3t:4": {
+          "hits": 1005,
+          "races": 3582
+        },
+        "pair_and_third:3t:8": {
+          "hits": 1407,
+          "races": 3582
+        },
+        "pair_and_third:3t:16": {
+          "hits": 1915,
+          "races": 3582
+        },
+        "pair_and_third:3t:24": {
+          "hits": 2254,
+          "races": 3582
+        },
+        "pair_and_third:3t:32": {
+          "hits": 2494,
+          "races": 3582
+        },
+        "pair_and_third:3t:48": {
+          "hits": 2830,
+          "races": 3582
+        },
+        "pair_and_third:3t:64": {
+          "hits": 3018,
+          "races": 3582
+        },
+        "pair_and_third:2t:1": {
+          "hits": 863,
+          "races": 3582
+        },
+        "pair_and_third:2t:2": {
+          "hits": 1361,
+          "races": 3582
+        },
+        "pair_and_third:2t:4": {
+          "hits": 1910,
+          "races": 3582
+        },
+        "pair_and_third:2t:8": {
+          "hits": 2492,
+          "races": 3582
+        }
+      },
+      "first_two_and_third_at8": {
+        "baseline": {
+          "head_in_top8": 2578,
+          "pair_in_top8": 1748,
+          "hits": 1323,
+          "head_missing": 1004,
+          "pair_missing_given_head": 830,
+          "third_missing_given_pair": 425,
+          "distinct_pairs": 11649,
+          "races": 3582
+        },
+        "third_line": {
+          "head_in_top8": 2743,
+          "pair_in_top8": 1922,
+          "hits": 1403,
+          "head_missing": 839,
+          "pair_missing_given_head": 821,
+          "third_missing_given_pair": 519,
+          "distinct_pairs": 14799,
+          "races": 3582
+        },
+        "pair_and_third": {
+          "head_in_top8": 2737,
+          "pair_in_top8": 1914,
+          "hits": 1407,
+          "head_missing": 845,
+          "pair_missing_given_head": 823,
+          "third_missing_given_pair": 507,
+          "distinct_pairs": 14703,
+          "races": 3582
+        }
+      },
+      "top8_mass_bins": {
+        "baseline:4": {
+          "races": 807,
+          "hits": 377,
+          "summed_probability": 360.23468354145376
+        },
+        "third_line:4": {
+          "races": 855,
+          "hits": 390,
+          "summed_probability": 381.89064558147766
+        },
+        "pair_and_third:4": {
+          "races": 871,
+          "hits": 396,
+          "summed_probability": 388.54304211441274
+        },
+        "baseline:3": {
+          "races": 1106,
+          "hits": 398,
+          "summed_probability": 385.02987864759433
+        },
+        "third_line:3": {
+          "races": 1130,
+          "hits": 396,
+          "summed_probability": 397.57698471779014
+        },
+        "pair_and_third:3": {
+          "races": 1120,
+          "hits": 381,
+          "summed_probability": 393.61940824464335
+        },
+        "baseline:2": {
+          "races": 937,
+          "hits": 243,
+          "summed_probability": 238.5309085910808
+        },
+        "third_line:2": {
+          "races": 731,
+          "hits": 199,
+          "summed_probability": 187.48895017951804
+        },
+        "pair_and_third:2": {
+          "races": 712,
+          "hits": 202,
+          "summed_probability": 182.41331354826175
+        },
+        "baseline:5": {
+          "races": 353,
+          "hits": 204,
+          "summed_probability": 191.74674411608288
+        },
+        "third_line:5": {
+          "races": 505,
+          "hits": 272,
+          "summed_probability": 274.2690229595513
+        },
+        "pair_and_third:5": {
+          "races": 520,
+          "hits": 282,
+          "summed_probability": 282.5454972277122
+        },
+        "third_line:6": {
+          "races": 146,
+          "hits": 104,
+          "summed_probability": 93.00970757115326
+        },
+        "pair_and_third:6": {
+          "races": 149,
+          "hits": 103,
+          "summed_probability": 94.90340624056084
+        },
+        "baseline:1": {
+          "races": 287,
+          "hits": 50,
+          "summed_probability": 48.234727120801544
+        },
+        "third_line:1": {
+          "races": 193,
+          "hits": 35,
+          "summed_probability": 32.83393903454207
+        },
+        "pair_and_third:1": {
+          "races": 186,
+          "hits": 35,
+          "summed_probability": 31.67536022531508
+        },
+        "baseline:6": {
+          "races": 75,
+          "hits": 50,
+          "summed_probability": 47.584558618138225
+        },
+        "pair_and_third:7": {
+          "races": 12,
+          "hits": 6,
+          "summed_probability": 8.606381799906329
+        },
+        "third_line:7": {
+          "races": 10,
+          "hits": 4,
+          "summed_probability": 7.1569282264829805
+        },
+        "baseline:8": {
+          "races": 1,
+          "hits": 1,
+          "summed_probability": 0.8386414107094416
+        },
+        "third_line:8": {
+          "races": 1,
+          "hits": 1,
+          "summed_probability": 0.8531900053265368
+        },
+        "pair_and_third:8": {
+          "races": 1,
+          "hits": 1,
+          "summed_probability": 0.852479491182288
+        },
+        "baseline:7": {
+          "races": 1,
+          "hits": 0,
+          "summed_probability": 0.7086547346730995
+        },
+        "baseline:0": {
+          "races": 15,
+          "hits": 0,
+          "summed_probability": 1.3523762583434886
+        },
+        "third_line:0": {
+          "races": 11,
+          "hits": 2,
+          "summed_probability": 1.023711866260752
+        },
+        "pair_and_third:0": {
+          "races": 11,
+          "hits": 1,
+          "summed_probability": 1.0263457391828594
+        },
+        "baseline:9": {},
+        "third_line:9": {},
+        "pair_and_third:9": {}
+      },
+      "adaptive": {
+        "freeze": {
+          "races": 3589,
+          "points": 14356
+        },
+        "scored": {
+          "races": 3582,
+          "fixed4_hits": 1005,
+          "variable_hits": 1006,
+          "variable_points": 14324,
+          "8_points_races": 497,
+          "4_points_races": 2421,
+          "1_points_races": 664
+        }
+      },
+      "raw_support_at_least_90_percent": {
+        "baseline": {
+          "wilson_lower": 0.0
+        },
+        "third_line": {
+          "wilson_lower": 0.0
+        },
+        "pair_and_third": {
+          "wilson_lower": 0.0
+        }
+      },
+      "paired_top8": {
+        "third_line": {
+          "new": 216,
+          "lost": 136,
+          "changed": 352,
+          "paired_day_95_percentage_points": [
+            1.195,
+            3.283
+          ]
+        },
+        "pair_and_third": {
+          "new": 226,
+          "lost": 142,
+          "changed": 368,
+          "paired_day_95_percentage_points": [
+            1.204,
+            3.498
+          ]
+        }
+      }
+    },
+    "versioned_pre_cutoff": {
+      "selected_before_test": "pair_and_third",
+      "coverage": {
+        "input_races": 562,
+        "forecast_ready": 561,
+        "results_available": 558,
+        "scored_forecasts": 557,
+        "result_available_no_forecast": 1
+      },
+      "fixed": {
+        "baseline:3t:1": {
+          "hits": 47,
+          "races": 557
+        },
+        "baseline:3t:4": {
+          "hits": 125,
+          "races": 557
+        },
+        "baseline:3t:8": {
+          "hits": 206,
+          "races": 557
+        },
+        "baseline:3t:16": {
+          "hits": 289,
+          "races": 557
+        },
+        "baseline:3t:24": {
+          "hits": 354,
+          "races": 557
+        },
+        "baseline:3t:32": {
+          "hits": 384,
+          "races": 557
+        },
+        "baseline:3t:48": {
+          "hits": 427,
+          "races": 557
+        },
+        "baseline:3t:64": {
+          "hits": 456,
+          "races": 557
+        },
+        "baseline:2t:1": {
+          "hits": 131,
+          "races": 557
+        },
+        "baseline:2t:2": {
+          "hits": 210,
+          "races": 557
+        },
+        "baseline:2t:4": {
+          "hits": 297,
+          "races": 557
+        },
+        "baseline:2t:8": {
+          "hits": 401,
+          "races": 557
+        },
+        "third_line:3t:1": {
+          "hits": 67,
+          "races": 557
+        },
+        "third_line:3t:4": {
+          "hits": 159,
+          "races": 557
+        },
+        "third_line:3t:8": {
+          "hits": 213,
+          "races": 557
+        },
+        "third_line:3t:16": {
+          "hits": 299,
+          "races": 557
+        },
+        "third_line:3t:24": {
+          "hits": 355,
+          "races": 557
+        },
+        "third_line:3t:32": {
+          "hits": 392,
+          "races": 557
+        },
+        "third_line:3t:48": {
+          "hits": 436,
+          "races": 557
+        },
+        "third_line:3t:64": {
+          "hits": 464,
+          "races": 557
+        },
+        "third_line:2t:1": {
+          "hits": 131,
+          "races": 557
+        },
+        "third_line:2t:2": {
+          "hits": 210,
+          "races": 557
+        },
+        "third_line:2t:4": {
+          "hits": 297,
+          "races": 557
+        },
+        "third_line:2t:8": {
+          "hits": 401,
+          "races": 557
+        },
+        "pair_and_third:3t:1": {
+          "hits": 67,
+          "races": 557
+        },
+        "pair_and_third:3t:4": {
+          "hits": 156,
+          "races": 557
+        },
+        "pair_and_third:3t:8": {
+          "hits": 211,
+          "races": 557
+        },
+        "pair_and_third:3t:16": {
+          "hits": 302,
+          "races": 557
+        },
+        "pair_and_third:3t:24": {
+          "hits": 357,
+          "races": 557
+        },
+        "pair_and_third:3t:32": {
+          "hits": 394,
+          "races": 557
+        },
+        "pair_and_third:3t:48": {
+          "hits": 443,
+          "races": 557
+        },
+        "pair_and_third:3t:64": {
+          "hits": 462,
+          "races": 557
+        },
+        "pair_and_third:2t:1": {
+          "hits": 131,
+          "races": 557
+        },
+        "pair_and_third:2t:2": {
+          "hits": 207,
+          "races": 557
+        },
+        "pair_and_third:2t:4": {
+          "hits": 300,
+          "races": 557
+        },
+        "pair_and_third:2t:8": {
+          "hits": 398,
+          "races": 557
+        }
+      },
+      "first_two_and_third_at8": {
+        "baseline": {
+          "head_in_top8": 412,
+          "pair_in_top8": 268,
+          "hits": 206,
+          "head_missing": 145,
+          "pair_missing_given_head": 144,
+          "third_missing_given_pair": 62,
+          "distinct_pairs": 1730,
+          "races": 557
+        },
+        "third_line": {
+          "head_in_top8": 455,
+          "pair_in_top8": 305,
+          "hits": 213,
+          "head_missing": 102,
+          "pair_missing_given_head": 150,
+          "third_missing_given_pair": 92,
+          "distinct_pairs": 2413,
+          "races": 557
+        },
+        "pair_and_third": {
+          "head_in_top8": 451,
+          "pair_in_top8": 302,
+          "hits": 211,
+          "head_missing": 106,
+          "pair_missing_given_head": 149,
+          "third_missing_given_pair": 91,
+          "distinct_pairs": 2410,
+          "races": 557
+        }
+      },
+      "top8_mass_bins": {
+        "baseline:3": {
+          "races": 108,
+          "hits": 52,
+          "summed_probability": 36.80710064891949
+        },
+        "third_line:3": {
+          "races": 149,
+          "hits": 60,
+          "summed_probability": 51.19163682183459
+        },
+        "pair_and_third:3": {
+          "races": 158,
+          "hits": 60,
+          "summed_probability": 54.286708650869976
+        },
+        "baseline:1": {
+          "races": 134,
+          "hits": 29,
+          "summed_probability": 21.9093339900136
+        },
+        "third_line:1": {
+          "races": 88,
+          "hits": 18,
+          "summed_probability": 14.510750641014072
+        },
+        "pair_and_third:1": {
+          "races": 87,
+          "hits": 18,
+          "summed_probability": 14.405095903590807
+        },
+        "baseline:2": {
+          "races": 242,
+          "hits": 82,
+          "summed_probability": 59.72944524140074
+        },
+        "third_line:2": {
+          "races": 220,
+          "hits": 71,
+          "summed_probability": 55.42602439077499
+        },
+        "pair_and_third:2": {
+          "races": 212,
+          "hits": 70,
+          "summed_probability": 53.381221101958026
+        },
+        "third_line:4": {
+          "races": 61,
+          "hits": 39,
+          "summed_probability": 27.02852656931589
+        },
+        "pair_and_third:4": {
+          "races": 60,
+          "hits": 39,
+          "summed_probability": 26.722988220729956
+        },
+        "baseline:4": {
+          "races": 45,
+          "hits": 31,
+          "summed_probability": 20.195869872097585
+        },
+        "baseline:5": {
+          "races": 12,
+          "hits": 11,
+          "summed_probability": 6.503468419790354
+        },
+        "third_line:5": {
+          "races": 23,
+          "hits": 18,
+          "summed_probability": 12.274216611206217
+        },
+        "pair_and_third:5": {
+          "races": 24,
+          "hits": 18,
+          "summed_probability": 12.837736171340165
+        },
+        "baseline:0": {
+          "races": 15,
+          "hits": 0,
+          "summed_probability": 1.3523762583434886
+        },
+        "third_line:0": {
+          "races": 11,
+          "hits": 2,
+          "summed_probability": 1.023711866260752
+        },
+        "pair_and_third:0": {
+          "races": 11,
+          "hits": 1,
+          "summed_probability": 1.0263457391828594
+        },
+        "third_line:6": {
+          "races": 5,
+          "hits": 5,
+          "summed_probability": 3.12760774686099
+        },
+        "pair_and_third:6": {
+          "races": 5,
+          "hits": 5,
+          "summed_probability": 3.1269110122805923
+        },
+        "baseline:6": {
+          "races": 1,
+          "hits": 1,
+          "summed_probability": 0.6300854776791261
+        },
+        "baseline:9": {},
+        "third_line:9": {},
+        "pair_and_third:9": {}
+      },
+      "adaptive": {
+        "freeze": {
+          "races": 561,
+          "points": 1511
+        },
+        "scored": {
+          "races": 557,
+          "fixed4_hits": 156,
+          "variable_hits": 120,
+          "variable_points": 1495,
+          "4_points_races": 294,
+          "1_points_races": 255,
+          "8_points_races": 8
+        }
+      },
+      "raw_support_at_least_90_percent": {
+        "baseline": {
+          "wilson_lower": 0.0
+        },
+        "third_line": {
+          "wilson_lower": 0.0
+        },
+        "pair_and_third": {
+          "wilson_lower": 0.0
+        }
+      },
+      "paired_top8": {
+        "third_line": {
+          "new": 39,
+          "lost": 32,
+          "changed": 71,
+          "paired_day_95_percentage_points": [
+            -2.018,
+            5.773
+          ]
+        },
+        "pair_and_third": {
+          "new": 38,
+          "lost": 33,
+          "changed": 71,
+          "paired_day_95_percentage_points": [
+            -2.261,
+            5.091
+          ]
+        }
+      }
+    },
+    "earlier": {
+      "selected_before_test": "pair_and_third",
+      "coverage": {
+        "input_races": 4621,
+        "forecast_ready": 4621,
+        "results_available": 4621,
+        "scored_forecasts": 4621
+      },
+      "fixed": {
+        "baseline:3t:1": {
+          "hits": 357,
+          "races": 4621
+        },
+        "baseline:3t:4": {
+          "hits": 1142,
+          "races": 4621
+        },
+        "baseline:3t:8": {
+          "hits": 1746,
+          "races": 4621
+        },
+        "baseline:3t:16": {
+          "hits": 2398,
+          "races": 4621
+        },
+        "baseline:3t:24": {
+          "hits": 2840,
+          "races": 4621
+        },
+        "baseline:3t:32": {
+          "hits": 3188,
+          "races": 4621
+        },
+        "baseline:3t:48": {
+          "hits": 3585,
+          "races": 4621
+        },
+        "baseline:3t:64": {
+          "hits": 3857,
+          "races": 4621
+        },
+        "baseline:2t:1": {
+          "hits": 1145,
+          "races": 4621
+        },
+        "baseline:2t:2": {
+          "hits": 1788,
+          "races": 4621
+        },
+        "baseline:2t:4": {
+          "hits": 2470,
+          "races": 4621
+        },
+        "baseline:2t:8": {
+          "hits": 3244,
+          "races": 4621
+        },
+        "third_line:3t:1": {
+          "hits": 555,
+          "races": 4621
+        },
+        "third_line:3t:4": {
+          "hits": 1350,
+          "races": 4621
+        },
+        "third_line:3t:8": {
+          "hits": 1870,
+          "races": 4621
+        },
+        "third_line:3t:16": {
+          "hits": 2502,
+          "races": 4621
+        },
+        "third_line:3t:24": {
+          "hits": 2923,
+          "races": 4621
+        },
+        "third_line:3t:32": {
+          "hits": 3238,
+          "races": 4621
+        },
+        "third_line:3t:48": {
+          "hits": 3652,
+          "races": 4621
+        },
+        "third_line:3t:64": {
+          "hits": 3904,
+          "races": 4621
+        },
+        "third_line:2t:1": {
+          "hits": 1145,
+          "races": 4621
+        },
+        "third_line:2t:2": {
+          "hits": 1788,
+          "races": 4621
+        },
+        "third_line:2t:4": {
+          "hits": 2470,
+          "races": 4621
+        },
+        "third_line:2t:8": {
+          "hits": 3244,
+          "races": 4621
+        },
+        "pair_and_third:3t:1": {
+          "hits": 560,
+          "races": 4621
+        },
+        "pair_and_third:3t:4": {
+          "hits": 1344,
+          "races": 4621
+        },
+        "pair_and_third:3t:8": {
+          "hits": 1875,
+          "races": 4621
+        },
+        "pair_and_third:3t:16": {
+          "hits": 2510,
+          "races": 4621
+        },
+        "pair_and_third:3t:24": {
+          "hits": 2936,
+          "races": 4621
+        },
+        "pair_and_third:3t:32": {
+          "hits": 3251,
+          "races": 4621
+        },
+        "pair_and_third:3t:48": {
+          "hits": 3661,
+          "races": 4621
+        },
+        "pair_and_third:3t:64": {
+          "hits": 3901,
+          "races": 4621
+        },
+        "pair_and_third:2t:1": {
+          "hits": 1148,
+          "races": 4621
+        },
+        "pair_and_third:2t:2": {
+          "hits": 1784,
+          "races": 4621
+        },
+        "pair_and_third:2t:4": {
+          "hits": 2464,
+          "races": 4621
+        },
+        "pair_and_third:2t:8": {
+          "hits": 3233,
+          "races": 4621
+        }
+      },
+      "first_two_and_third_at8": {
+        "baseline": {
+          "head_in_top8": 3308,
+          "pair_in_top8": 2279,
+          "hits": 1746,
+          "head_missing": 1313,
+          "pair_missing_given_head": 1029,
+          "third_missing_given_pair": 533,
+          "distinct_pairs": 15252,
+          "races": 4621
+        },
+        "third_line": {
+          "head_in_top8": 3466,
+          "pair_in_top8": 2472,
+          "hits": 1870,
+          "head_missing": 1155,
+          "pair_missing_given_head": 994,
+          "third_missing_given_pair": 602,
+          "distinct_pairs": 18839,
+          "races": 4621
+        },
+        "pair_and_third": {
+          "head_in_top8": 3463,
+          "pair_in_top8": 2467,
+          "hits": 1875,
+          "head_missing": 1158,
+          "pair_missing_given_head": 996,
+          "third_missing_given_pair": 592,
+          "distinct_pairs": 18798,
+          "races": 4621
+        }
+      },
+      "top8_mass_bins": {
+        "baseline:2": {
+          "races": 1145,
+          "hits": 294,
+          "summed_probability": 292.8084411613199
+        },
+        "third_line:3": {
+          "races": 1420,
+          "hits": 486,
+          "summed_probability": 498.6369790218554
+        },
+        "pair_and_third:3": {
+          "races": 1387,
+          "hits": 479,
+          "summed_probability": 487.54170071468747
+        },
+        "baseline:4": {
+          "races": 1063,
+          "hits": 472,
+          "summed_probability": 473.7326559591721
+        },
+        "third_line:4": {
+          "races": 1226,
+          "hits": 543,
+          "summed_probability": 548.2151339177542
+        },
+        "pair_and_third:4": {
+          "races": 1241,
+          "hits": 538,
+          "summed_probability": 554.3800688219436
+        },
+        "baseline:5": {
+          "races": 520,
+          "hits": 313,
+          "summed_probability": 282.54381737317834
+        },
+        "third_line:5": {
+          "races": 638,
+          "hits": 356,
+          "summed_probability": 345.98896416057033
+        },
+        "pair_and_third:5": {
+          "races": 660,
+          "hits": 381,
+          "summed_probability": 357.95616276677566
+        },
+        "third_line:2": {
+          "races": 898,
+          "hits": 244,
+          "summed_probability": 230.71477927354462
+        },
+        "pair_and_third:2": {
+          "races": 892,
+          "hits": 236,
+          "summed_probability": 229.7689845194357
+        },
+        "baseline:3": {
+          "races": 1499,
+          "hits": 504,
+          "summed_probability": 522.513097308939
+        },
+        "baseline:1": {
+          "races": 225,
+          "hits": 35,
+          "summed_probability": 38.12243420235574
+        },
+        "third_line:1": {
+          "races": 136,
+          "hits": 19,
+          "summed_probability": 22.447218881621605
+        },
+        "pair_and_third:1": {
+          "races": 135,
+          "hits": 20,
+          "summed_probability": 22.37775868290081
+        },
+        "baseline:7": {
+          "races": 12,
+          "hits": 12,
+          "summed_probability": 8.618140536885088
+        },
+        "third_line:7": {
+          "races": 32,
+          "hits": 30,
+          "summed_probability": 23.188547203462857
+        },
+        "pair_and_third:7": {
+          "races": 33,
+          "hits": 30,
+          "summed_probability": 23.913757599797922
+        },
+        "third_line:6": {
+          "races": 269,
+          "hits": 192,
+          "summed_probability": 172.10404110813747
+        },
+        "pair_and_third:6": {
+          "races": 271,
+          "hits": 191,
+          "summed_probability": 173.77099035442657
+        },
+        "baseline:6": {
+          "races": 155,
+          "hits": 116,
+          "summed_probability": 98.45996487192643
+        },
+        "baseline:0": {
+          "races": 2,
+          "hits": 0,
+          "summed_probability": 0.17931499445072857
+        },
+        "third_line:0": {
+          "races": 2,
+          "hits": 0,
+          "summed_probability": 0.18990789704135563
+        },
+        "pair_and_third:0": {
+          "races": 2,
+          "hits": 0,
+          "summed_probability": 0.18862506603191104
+        },
+        "baseline:9": {},
+        "third_line:9": {},
+        "pair_and_third:9": {}
+      },
+      "adaptive": {
+        "freeze": {
+          "races": 4621,
+          "points": 18484
+        },
+        "scored": {
+          "races": 4621,
+          "fixed4_hits": 1344,
+          "variable_hits": 1389,
+          "variable_points": 18484,
+          "4_points_races": 3242,
+          "8_points_races": 591,
+          "1_points_races": 788
+        }
+      },
+      "raw_support_at_least_90_percent": {
+        "baseline": {
+          "wilson_lower": 0.0
+        },
+        "third_line": {
+          "wilson_lower": 0.0
+        },
+        "pair_and_third": {
+          "wilson_lower": 0.0
+        }
+      },
+      "paired_top8": {
+        "third_line": {
+          "new": 272,
+          "lost": 148,
+          "changed": 420,
+          "paired_day_95_percentage_points": [
+            1.842,
+            3.547
+          ]
+        },
+        "pair_and_third": {
+          "new": 279,
+          "lost": 150,
+          "changed": 429,
+          "paired_day_95_percentage_points": [
+            1.999,
+            3.618
+          ]
+        }
+      }
+    }
+  }
+}

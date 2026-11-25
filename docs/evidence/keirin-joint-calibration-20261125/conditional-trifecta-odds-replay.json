@@ -1,0 +1,770 @@
+{
+  "Q": "normalized reciprocal of the complete published pre-cutoff trifecta odds, not an independent exacta market",
+  "archive_admission_and_source_hashes": {
+    "file": "saved-study:keirin-95-resume-20261125/full-trifecta-odds/aggregate.json",
+    "sha256": "d780066d81151246c03c68600645cd1c6f4a6ed322ec68f36fd5913db4ae663c"
+  },
+  "counts": {
+    "2026-11-23_complete": {
+      "fixed_budget_scores": {
+        "1": {
+          "market_full": {
+            "changed_from_original": 12,
+            "gained_vs_original": 1,
+            "hits": 5,
+            "lost_vs_original": 0,
+            "n": 26,
+            "paired_exact_p_vs_original": 1,
+            "same_budget_points": 26,
+            "true_ordered_pair_in_any_ticket": 8,
+            "wilson_95_pct": [
+              8.507,
+              37.876
+            ]
+          },
+          "market_pair_only": {
+            "changed_from_original": 6,
+            "gained_vs_original": 1,
+            "hits": 5,
+            "lost_vs_original": 0,
+            "n": 26,
+            "paired_exact_p_vs_original": 1,
+            "same_budget_points": 26,
+            "true_ordered_pair_in_any_ticket": 10,
+            "wilson_95_pct": [
+              8.507,
+              37.876
+            ]
+          },
+          "market_third_only": {
+            "changed_from_original": 8,
+            "gained_vs_original": 0,
+            "hits": 4,
+            "lost_vs_original": 0,
+            "n": 26,
+            "paired_exact_p_vs_original": null,
+            "same_budget_points": 26,
+            "true_ordered_pair_in_any_ticket": 8,
+            "wilson_95_pct": [
+              6.15,
+              33.531
+            ]
+          },
+          "original": {
+            "changed_from_original": 0,
+            "gained_vs_original": 0,
+            "hits": 4,
+            "lost_vs_original": 0,
+            "n": 26,
+            "paired_exact_p_vs_original": null,
+            "same_budget_points": 26,
+            "true_ordered_pair_in_any_ticket": 8,
+            "wilson_95_pct": [
+              6.15,
+              33.531
+            ]
+          }
+        },
+        "4": {
+          "market_full": {
+            "changed_from_original": 22,
+            "gained_vs_original": 0,
+            "hits": 8,
+            "lost_vs_original": 1,
+            "n": 26,
+            "paired_exact_p_vs_original": 1,
+            "same_budget_points": 104,
+            "true_ordered_pair_in_any_ticket": 11,
+            "wilson_95_pct": [
+              16.501,
+              49.988
+            ]
+          },
+          "market_pair_only": {
+            "changed_from_original": 16,
+            "gained_vs_original": 0,
+            "hits": 8,
+            "lost_vs_original": 1,
+            "n": 26,
+            "paired_exact_p_vs_original": 1,
+            "same_budget_points": 104,
+            "true_ordered_pair_in_any_ticket": 12,
+            "wilson_95_pct": [
+              16.501,
+              49.988
+            ]
+          },
+          "market_third_only": {
+            "changed_from_original": 21,
+            "gained_vs_original": 0,
+            "hits": 9,
+            "lost_vs_original": 0,
+            "n": 26,
+            "paired_exact_p_vs_original": null,
+            "same_budget_points": 104,
+            "true_ordered_pair_in_any_ticket": 11,
+            "wilson_95_pct": [
+              19.412,
+              53.779
+            ]
+          },
+          "original": {
+            "changed_from_original": 0,
+            "gained_vs_original": 0,
+            "hits": 9,
+            "lost_vs_original": 0,
+            "n": 26,
+            "paired_exact_p_vs_original": null,
+            "same_budget_points": 104,
+            "true_ordered_pair_in_any_ticket": 12,
+            "wilson_95_pct": [
+              19.412,
+              53.779
+            ]
+          }
+        },
+        "8": {
+          "market_full": {
+            "changed_from_original": 25,
+            "gained_vs_original": 1,
+            "hits": 12,
+            "lost_vs_original": 1,
+            "n": 26,
+            "paired_exact_p_vs_original": 1,
+            "same_budget_points": 208,
+            "true_ordered_pair_in_any_ticket": 12,
+            "wilson_95_pct": [
+              28.756,
+              64.542
+            ]
+          },
+          "market_pair_only": {
+            "changed_from_original": 23,
+            "gained_vs_original": 0,
+            "hits": 11,
+            "lost_vs_original": 1,
+            "n": 26,
+            "paired_exact_p_vs_original": 1,
+            "same_budget_points": 208,
+            "true_ordered_pair_in_any_ticket": 13,
+            "wilson_95_pct": [
+              25.544,
+              61.051
+            ]
+          },
+          "market_third_only": {
+            "changed_from_original": 23,
+            "gained_vs_original": 0,
+            "hits": 12,
+            "lost_vs_original": 0,
+            "n": 26,
+            "paired_exact_p_vs_original": null,
+            "same_budget_points": 208,
+            "true_ordered_pair_in_any_ticket": 14,
+            "wilson_95_pct": [
+              28.756,
+              64.542
+            ]
+          },
+          "original": {
+            "changed_from_original": 0,
+            "gained_vs_original": 0,
+            "hits": 12,
+            "lost_vs_original": 0,
+            "n": 26,
+            "paired_exact_p_vs_original": null,
+            "same_budget_points": 208,
+            "true_ordered_pair_in_any_ticket": 14,
+            "wilson_95_pct": [
+              28.756,
+              64.542
+            ]
+          }
+        },
+        "display": {
+          "market_full": {
+            "changed_from_original": 23,
+            "gained_vs_original": 0,
+            "hits": 9,
+            "lost_vs_original": 0,
+            "n": 26,
+            "paired_exact_p_vs_original": null,
+            "same_budget_points": 120,
+            "true_ordered_pair_in_any_ticket": 11,
+            "wilson_95_pct": [
+              19.412,
+              53.779
+            ]
+          },
+          "market_pair_only": {
+            "changed_from_original": 16,
+            "gained_vs_original": 0,
+            "hits": 9,
+            "lost_vs_original": 0,
+            "n": 26,
+            "paired_exact_p_vs_original": null,
+            "same_budget_points": 120,
+            "true_ordered_pair_in_any_ticket": 12,
+            "wilson_95_pct": [
+              19.412,
+              53.779
+            ]
+          },
+          "market_third_only": {
+            "changed_from_original": 23,
+            "gained_vs_original": 0,
+            "hits": 9,
+            "lost_vs_original": 0,
+            "n": 26,
+            "paired_exact_p_vs_original": null,
+            "same_budget_points": 120,
+            "true_ordered_pair_in_any_ticket": 11,
+            "wilson_95_pct": [
+              19.412,
+              53.779
+            ]
+          },
+          "original": {
+            "changed_from_original": 0,
+            "gained_vs_original": 0,
+            "hits": 9,
+            "lost_vs_original": 0,
+            "n": 26,
+            "paired_exact_p_vs_original": null,
+            "same_budget_points": 120,
+            "true_ordered_pair_in_any_ticket": 12,
+            "wilson_95_pct": [
+              19.412,
+              53.779
+            ]
+          }
+        }
+      },
+      "mean_negative_log_likelihood": {
+        "pair_market_full": 2.9851881937424096,
+        "pair_original": 3.017186591228199,
+        "third_given_true_pair_market_full": 1.3073409494554136,
+        "third_given_true_pair_original": 1.3505358698602303
+      },
+      "n": 26
+    },
+    "2026-11-25_complete": {
+      "fixed_budget_scores": {
+        "1": {
+          "market_full": {
+            "changed_from_original": 19,
+            "gained_vs_original": 3,
+            "hits": 6,
+            "lost_vs_original": 1,
+            "n": 35,
+            "paired_exact_p_vs_original": 0.625,
+            "same_budget_points": 35,
+            "true_ordered_pair_in_any_ticket": 8,
+            "wilson_95_pct": [
+              8.103,
+              32.682
+            ]
+          },
+          "market_pair_only": {
+            "changed_from_original": 13,
+            "gained_vs_original": 2,
+            "hits": 5,
+            "lost_vs_original": 1,
+            "n": 35,
+            "paired_exact_p_vs_original": 1,
+            "same_budget_points": 35,
+            "true_ordered_pair_in_any_ticket": 10,
+            "wilson_95_pct": [
+              6.26,
+              29.376
+            ]
+          },
+          "market_third_only": {
+            "changed_from_original": 17,
+            "gained_vs_original": 1,
+            "hits": 4,
+            "lost_vs_original": 1,
+            "n": 35,
+            "paired_exact_p_vs_original": 1,
+            "same_budget_points": 35,
+            "true_ordered_pair_in_any_ticket": 5,
+            "wilson_95_pct": [
+              4.535,
+              25.951
+            ]
+          },
+          "original": {
+            "changed_from_original": 0,
+            "gained_vs_original": 0,
+            "hits": 4,
+            "lost_vs_original": 0,
+            "n": 35,
+            "paired_exact_p_vs_original": null,
+            "same_budget_points": 35,
+            "true_ordered_pair_in_any_ticket": 7,
+            "wilson_95_pct": [
+              4.535,
+              25.951
+            ]
+          }
+        },
+        "4": {
+          "market_full": {
+            "changed_from_original": 35,
+            "gained_vs_original": 6,
+            "hits": 14,
+            "lost_vs_original": 2,
+            "n": 35,
+            "paired_exact_p_vs_original": 0.289062,
+            "same_budget_points": 140,
+            "true_ordered_pair_in_any_ticket": 19,
+            "wilson_95_pct": [
+              25.551,
+              56.427
+            ]
+          },
+          "market_pair_only": {
+            "changed_from_original": 31,
+            "gained_vs_original": 1,
+            "hits": 10,
+            "lost_vs_original": 1,
+            "n": 35,
+            "paired_exact_p_vs_original": 1,
+            "same_budget_points": 140,
+            "true_ordered_pair_in_any_ticket": 17,
+            "wilson_95_pct": [
+              16.327,
+              45.055
+            ]
+          },
+          "market_third_only": {
+            "changed_from_original": 29,
+            "gained_vs_original": 1,
+            "hits": 9,
+            "lost_vs_original": 2,
+            "n": 35,
+            "paired_exact_p_vs_original": 1,
+            "same_budget_points": 140,
+            "true_ordered_pair_in_any_ticket": 12,
+            "wilson_95_pct": [
+              14.163,
+              42.069
+            ]
+          },
+          "original": {
+            "changed_from_original": 0,
+            "gained_vs_original": 0,
+            "hits": 10,
+            "lost_vs_original": 0,
+            "n": 35,
+            "paired_exact_p_vs_original": null,
+            "same_budget_points": 140,
+            "true_ordered_pair_in_any_ticket": 14,
+            "wilson_95_pct": [
+              16.327,
+              45.055
+            ]
+          }
+        },
+        "8": {
+          "market_full": {
+            "changed_from_original": 35,
+            "gained_vs_original": 6,
+            "hits": 18,
+            "lost_vs_original": 1,
+            "n": 35,
+            "paired_exact_p_vs_original": 0.125,
+            "same_budget_points": 280,
+            "true_ordered_pair_in_any_ticket": 21,
+            "wilson_95_pct": [
+              35.569,
+              67.006
+            ]
+          },
+          "market_pair_only": {
+            "changed_from_original": 34,
+            "gained_vs_original": 5,
+            "hits": 16,
+            "lost_vs_original": 2,
+            "n": 35,
+            "paired_exact_p_vs_original": 0.453125,
+            "same_budget_points": 280,
+            "true_ordered_pair_in_any_ticket": 21,
+            "wilson_95_pct": [
+              30.466,
+              61.81
+            ]
+          },
+          "market_third_only": {
+            "changed_from_original": 32,
+            "gained_vs_original": 5,
+            "hits": 17,
+            "lost_vs_original": 1,
+            "n": 35,
+            "paired_exact_p_vs_original": 0.21875,
+            "same_budget_points": 280,
+            "true_ordered_pair_in_any_ticket": 20,
+            "wilson_95_pct": [
+              32.994,
+              64.431
+            ]
+          },
+          "original": {
+            "changed_from_original": 0,
+            "gained_vs_original": 0,
+            "hits": 13,
+            "lost_vs_original": 0,
+            "n": 35,
+            "paired_exact_p_vs_original": null,
+            "same_budget_points": 280,
+            "true_ordered_pair_in_any_ticket": 18,
+            "wilson_95_pct": [
+              23.166,
+              53.663
+            ]
+          }
+        },
+        "display": {
+          "market_full": {
+            "changed_from_original": 35,
+            "gained_vs_original": 5,
+            "hits": 14,
+            "lost_vs_original": 2,
+            "n": 35,
+            "paired_exact_p_vs_original": 0.453125,
+            "same_budget_points": 168,
+            "true_ordered_pair_in_any_ticket": 19,
+            "wilson_95_pct": [
+              25.551,
+              56.427
+            ]
+          },
+          "market_pair_only": {
+            "changed_from_original": 31,
+            "gained_vs_original": 1,
+            "hits": 11,
+            "lost_vs_original": 1,
+            "n": 35,
+            "paired_exact_p_vs_original": 1,
+            "same_budget_points": 168,
+            "true_ordered_pair_in_any_ticket": 17,
+            "wilson_95_pct": [
+              18.551,
+              47.98
+            ]
+          },
+          "market_third_only": {
+            "changed_from_original": 30,
+            "gained_vs_original": 1,
+            "hits": 10,
+            "lost_vs_original": 2,
+            "n": 35,
+            "paired_exact_p_vs_original": 1,
+            "same_budget_points": 168,
+            "true_ordered_pair_in_any_ticket": 13,
+            "wilson_95_pct": [
+              16.327,
+              45.055
+            ]
+          },
+          "original": {
+            "changed_from_original": 0,
+            "gained_vs_original": 0,
+            "hits": 11,
+            "lost_vs_original": 0,
+            "n": 35,
+            "paired_exact_p_vs_original": null,
+            "same_budget_points": 168,
+            "true_ordered_pair_in_any_ticket": 14,
+            "wilson_95_pct": [
+              18.551,
+              47.98
+            ]
+          }
+        }
+      },
+      "mean_negative_log_likelihood": {
+        "pair_market_full": 2.747853851856017,
+        "pair_original": 3.015499960409492,
+        "third_given_true_pair_market_full": 1.2465348534492364,
+        "third_given_true_pair_original": 1.348213561535751
+      },
+      "n": 35
+    },
+    "2026-11-25_strict_T15_T10": {
+      "fixed_budget_scores": {
+        "1": {
+          "market_full": {
+            "changed_from_original": 4,
+            "gained_vs_original": 0,
+            "hits": 2,
+            "lost_vs_original": 0,
+            "n": 9,
+            "paired_exact_p_vs_original": null,
+            "same_budget_points": 9,
+            "true_ordered_pair_in_any_ticket": 2,
+            "wilson_95_pct": [
+              6.323,
+              54.741
+            ]
+          },
+          "market_pair_only": {
+            "changed_from_original": 2,
+            "gained_vs_original": 0,
+            "hits": 2,
+            "lost_vs_original": 0,
+            "n": 9,
+            "paired_exact_p_vs_original": null,
+            "same_budget_points": 9,
+            "true_ordered_pair_in_any_ticket": 3,
+            "wilson_95_pct": [
+              6.323,
+              54.741
+            ]
+          },
+          "market_third_only": {
+            "changed_from_original": 5,
+            "gained_vs_original": 0,
+            "hits": 2,
+            "lost_vs_original": 0,
+            "n": 9,
+            "paired_exact_p_vs_original": null,
+            "same_budget_points": 9,
+            "true_ordered_pair_in_any_ticket": 2,
+            "wilson_95_pct": [
+              6.323,
+              54.741
+            ]
+          },
+          "original": {
+            "changed_from_original": 0,
+            "gained_vs_original": 0,
+            "hits": 2,
+            "lost_vs_original": 0,
+            "n": 9,
+            "paired_exact_p_vs_original": null,
+            "same_budget_points": 9,
+            "true_ordered_pair_in_any_ticket": 2,
+            "wilson_95_pct": [
+              6.323,
+              54.741
+            ]
+          }
+        },
+        "4": {
+          "market_full": {
+            "changed_from_original": 9,
+            "gained_vs_original": 3,
+            "hits": 5,
+            "lost_vs_original": 0,
+            "n": 9,
+            "paired_exact_p_vs_original": 0.25,
+            "same_budget_points": 36,
+            "true_ordered_pair_in_any_ticket": 5,
+            "wilson_95_pct": [
+              26.665,
+              81.122
+            ]
+          },
+          "market_pair_only": {
+            "changed_from_original": 8,
+            "gained_vs_original": 0,
+            "hits": 2,
+            "lost_vs_original": 0,
+            "n": 9,
+            "paired_exact_p_vs_original": null,
+            "same_budget_points": 36,
+            "true_ordered_pair_in_any_ticket": 3,
+            "wilson_95_pct": [
+              6.323,
+              54.741
+            ]
+          },
+          "market_third_only": {
+            "changed_from_original": 8,
+            "gained_vs_original": 1,
+            "hits": 3,
+            "lost_vs_original": 0,
+            "n": 9,
+            "paired_exact_p_vs_original": 1,
+            "same_budget_points": 36,
+            "true_ordered_pair_in_any_ticket": 3,
+            "wilson_95_pct": [
+              12.058,
+              64.58
+            ]
+          },
+          "original": {
+            "changed_from_original": 0,
+            "gained_vs_original": 0,
+            "hits": 2,
+            "lost_vs_original": 0,
+            "n": 9,
+            "paired_exact_p_vs_original": null,
+            "same_budget_points": 36,
+            "true_ordered_pair_in_any_ticket": 3,
+            "wilson_95_pct": [
+              6.323,
+              54.741
+            ]
+          }
+        },
+        "8": {
+          "market_full": {
+            "changed_from_original": 9,
+            "gained_vs_original": 3,
+            "hits": 5,
+            "lost_vs_original": 0,
+            "n": 9,
+            "paired_exact_p_vs_original": 0.25,
+            "same_budget_points": 72,
+            "true_ordered_pair_in_any_ticket": 5,
+            "wilson_95_pct": [
+              26.665,
+              81.122
+            ]
+          },
+          "market_pair_only": {
+            "changed_from_original": 9,
+            "gained_vs_original": 3,
+            "hits": 5,
+            "lost_vs_original": 0,
+            "n": 9,
+            "paired_exact_p_vs_original": 0.25,
+            "same_budget_points": 72,
+            "true_ordered_pair_in_any_ticket": 5,
+            "wilson_95_pct": [
+              26.665,
+              81.122
+            ]
+          },
+          "market_third_only": {
+            "changed_from_original": 9,
+            "gained_vs_original": 4,
+            "hits": 6,
+            "lost_vs_original": 0,
+            "n": 9,
+            "paired_exact_p_vs_original": 0.125,
+            "same_budget_points": 72,
+            "true_ordered_pair_in_any_ticket": 6,
+            "wilson_95_pct": [
+              35.42,
+              87.942
+            ]
+          },
+          "original": {
+            "changed_from_original": 0,
+            "gained_vs_original": 0,
+            "hits": 2,
+            "lost_vs_original": 0,
+            "n": 9,
+            "paired_exact_p_vs_original": null,
+            "same_budget_points": 72,
+            "true_ordered_pair_in_any_ticket": 3,
+            "wilson_95_pct": [
+              6.323,
+              54.741
+            ]
+          }
+        },
+        "display": {
+          "market_full": {
+            "changed_from_original": 9,
+            "gained_vs_original": 3,
+            "hits": 5,
+            "lost_vs_original": 0,
+            "n": 9,
+            "paired_exact_p_vs_original": 0.25,
+            "same_budget_points": 44,
+            "true_ordered_pair_in_any_ticket": 5,
+            "wilson_95_pct": [
+              26.665,
+              81.122
+            ]
+          },
+          "market_pair_only": {
+            "changed_from_original": 8,
+            "gained_vs_original": 0,
+            "hits": 2,
+            "lost_vs_original": 0,
+            "n": 9,
+            "paired_exact_p_vs_original": null,
+            "same_budget_points": 44,
+            "true_ordered_pair_in_any_ticket": 3,
+            "wilson_95_pct": [
+              6.323,
+              54.741
+            ]
+          },
+          "market_third_only": {
+            "changed_from_original": 8,
+            "gained_vs_original": 1,
+            "hits": 3,
+            "lost_vs_original": 0,
+            "n": 9,
+            "paired_exact_p_vs_original": 1,
+            "same_budget_points": 44,
+            "true_ordered_pair_in_any_ticket": 3,
+            "wilson_95_pct": [
+              12.058,
+              64.58
+            ]
+          },
+          "original": {
+            "changed_from_original": 0,
+            "gained_vs_original": 0,
+            "hits": 2,
+            "lost_vs_original": 0,
+            "n": 9,
+            "paired_exact_p_vs_original": null,
+            "same_budget_points": 44,
+            "true_ordered_pair_in_any_ticket": 3,
+            "wilson_95_pct": [
+              6.323,
+              54.741
+            ]
+          }
+        }
+      },
+      "mean_negative_log_likelihood": {
+        "pair_market_full": 2.755592320012426,
+        "pair_original": 2.9554623542407104,
+        "third_given_true_pair_market_full": 1.0395075978290886,
+        "third_given_true_pair_original": 1.1989486773651228
+      },
+      "n": 9
+    }
+  },
+  "definition": {
+    "market_full": "Q(i,j) Q(k | i,j)",
+    "market_pair_only": "Q(i,j) P(k | i,j)",
+    "market_third_only": "P(i,j) Q(k | i,j)",
+    "original": "P(i,j) P(k | i,j)"
+  },
+  "limitations": "9 strict cases nested in 35 cases from the same day. Small retrospective comparisons do not verify forward gain. Wilson intervals are single-arm count intervals; exact paired tests are descriptive and unadjusted.",
+  "max_probability_constraint_error": {
+    "market_pair_only_market_pair": 5.551115123125783e-17,
+    "market_pair_only_original_conditional_third": 1.1102230246251565e-16,
+    "market_third_only_market_conditional_third": 1.1102230246251565e-16,
+    "market_third_only_original_pair": 5.551115123125783e-17
+  },
+  "private_reproduction_packet_sha256": "0e0ccceb2bc0cf6405feaa25d0ef8a9911b37491e4ac03763a8a5ab1dccc66a3",
+  "rank_and_budget_sha256_before_scorer": {
+    "2026-11-23_complete": "2af158d1d902d399595637250c563929778a153beaa989e6a0f37a7550e819cf",
+    "2026-11-25_complete": "2c237710430dd0ea37b19ea7d0e6535ee532be9ea32363b205cfaa7b4720a8a0",
+    "2026-11-25_strict_T15_T10": "0e47d6c7e9bab4b75a16c66f592f62581ad181567cb53692e209dc6ec53efebc"
+  },
+  "reproduction": {
+    "command": "python -B saved-study:keirin-95-resume-20261125/full-trifecta-odds/conditional_replay.py",
+    "script_sha256": "8285595d7e8978e1d91d0a96fe1c47ad0561463a403d2cc8eb1db27bc7c75f31",
+    "source_admission_module_sha256": "389276926fe20d4f5b0972146858ba69e18e9ae63c82a40849566f1fc2e27e52"
+  },
+  "same_budget": [
+    "1",
+    "4",
+    "8",
+    "display"
+  ],
+  "schema": "KEIRIN_ARCHIVED_MARKET_CONDITIONAL_SWAP_V1",
+  "scope": "Retrospective diagnostic on preserved published-order, same-roster before-cutoff archives. No fitted parameter, post-score selection, result in ranking, source fetch or pre-deadline forecast creation."
+}

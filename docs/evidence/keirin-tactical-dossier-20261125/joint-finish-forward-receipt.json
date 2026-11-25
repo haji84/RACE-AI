@@ -1,0 +1,10 @@
+{
+  "forecast_sha256": "7ca7a842a3a4f450d08492f3e1fdfa7b1e1f0cffb8a9112b8eba5b10e9ce007f",
+  "registered": 18,
+  "frozen_at": "2026-11-25T11:57:58.072702+00:00",
+  "fit_sha256": "d299766d899456dd73397e75ef9a911d8413c915e4f13134db0bfa6e3375ebf1",
+  "design_sha256": "46c12176ac40090af718cfa4af0af2b69fa2541c0085f0e407457f9304d5b469",
+  "earliest_cutoff": "2026-11-25T21:00:00+09:00",
+  "latest_cutoff": "2026-11-25T23:25:00+09:00",
+  "changed_exacta_at_site_caps": 0
+}

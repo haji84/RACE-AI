@@ -1,0 +1,20 @@
+{
+  "schema": "KEIRIN_OFFICIAL_SP_ENCRYPTED_ARCHIVE_READBACK_V1",
+  "day": "2026-11-25",
+  "commit": "0cac8de34e516553debcd804f0188a2302c10ac0",
+  "index_sha256": "dc4d702f5b2f0f505063259d0f8a26de5d6d9ddcf984f8443a433e2bc697cf9f",
+  "originals_in_index": 4,
+  "latest_results_in_index": 2,
+  "exact_cipher_envelopes_checked": 4,
+  "api_and_local_git_bytes_equal": true,
+  "real_plaintext_result_replay_confirmed": false,
+  "missing_key_behavior": {
+    "index_commit": "0cac8de34e516553debcd804f0188a2302c10ac0",
+    "requested": 2,
+    "indexed": 0,
+    "verified": 0,
+    "replay_held": 0,
+    "state": "owner_key_unavailable"
+  },
+  "checked_at": "2026-11-25T15:05:07.665498+00:00"
+}

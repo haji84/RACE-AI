@@ -1,0 +1,96 @@
+{
+  "schema": "KEIRIN_TACTICAL_DOSSIER_SITE_RELEASE_V1",
+  "site_url": "https://keirin-20261119-race-note.chankuma.chatgpt.site/",
+  "audience": "existing_public",
+  "source_revision": "df55ec3361eeb9a24f0ff3ee357a4a48912e45f7",
+  "previous_source_revision": "723019e96e0d18db2c1ad0575d103737f08e6921",
+  "site_version": 33,
+  "site_version_id": "appgprj_6afe2bc8d25c8191a65f81c6203dbe71~appgver_8c6cf24be8a48191b22374ef01d597eb",
+  "deployment_id": "appgdep_6b06cc574ed48191b41954f2f4f631b2",
+  "deployed_at": "2026-11-25T11:54:13.726033+00:00",
+  "worker_sha256": "77efe6e04b0bb58b93c8b4448fe592f48036a47ec6d55d2d54842340f5e13fd0",
+  "live_verification_sha256": "e6931580e8723098756758cf7d1836ee8a5457fc06879a5294027f78047da155",
+  "live_tests": {
+    "recorded_at_utc": "2026-11-25T11:57:57.238870+00:00",
+    "http": {
+      "origin": "https://keirin-20261119-race-note.chankuma.chatgpt.site/",
+      "anonymous": true,
+      "homepage": {
+        "status": 200,
+        "sha256": "2392ae42785c3ee7b98633de6e9f3c1cae11667cb34becf0068af02a358640e8",
+        "main_ref": "/data/keirin_20261125_ranked_v3_public.json"
+      },
+      "assets": {
+        "daily/daily.css": {
+          "route": "/daily/daily.css?v=e6fe784c5de7",
+          "http": 200,
+          "sha256": "e6fe784c5de7e0bd62307842380cafbe28f9665defd5e3d50917c0f25426a5fb"
+        },
+        "daily/keirin-note-view.js": {
+          "route": "/daily/keirin-note-view.js?v=fedfe0834546",
+          "http": 200,
+          "sha256": "fedfe0834546dd3c1bb08b8362b92b72ac2accc67e94cf30361deacd3537a830"
+        },
+        "daily/published-presentation.js": {
+          "route": "/daily/published-presentation.js?v=24b0085c9de3",
+          "http": 200,
+          "sha256": "24b0085c9de337a351ec5dbce23b0083735682b7d8996501bda493207c6d2bd2"
+        }
+      },
+      "packet": {
+        "schema": "KEIRIN_PUBLISHED_LINE_RANK_V3",
+        "date": "2026-11-25",
+        "races": 75,
+        "rider_starts": 516,
+        "identity_status": 200,
+        "gzip_status": 200,
+        "uncompressed_sha256": "2a62f3a6cf7f2a12d62b5b49b4d9a620db49309b0522814ed904c11c942e3d35",
+        "gzip_sha256": "51a98f0a048d4831eeb8c85533e28f789b17dc55ca59a7cb0cf0c920d7e4eb9e"
+      },
+      "missing_trait_labels_verified": [
+        "捲りへの抵抗力",
+        "番手からの自力発動",
+        "並走時の持続力",
+        "戦術の切り替え能力",
+        "消耗後の末脚",
+        "内外の位置別能力"
+      ]
+    },
+    "browser": {
+      "engine": "Chromium",
+      "case_race": "202611252611",
+      "checked": [
+        {
+          "viewport": [
+            1366,
+            900
+          ],
+          "emulated_touch": false,
+          "checked_rider_buttons": 516,
+          "checked_missing_traits": 6,
+          "page_errors": 0
+        },
+        {
+          "viewport": [
+            380,
+            780
+          ],
+          "emulated_touch": true,
+          "checked_rider_buttons": 516,
+          "checked_missing_traits": 6,
+          "page_errors": 0
+        }
+      ],
+      "checked_actions": [
+        "tap on touch-emulated viewport",
+        "switch among three real riders",
+        "six explicit observation statuses",
+        "close button and Escape",
+        "focus restoration after re-render",
+        "3t and 2t ticket prefixes",
+        "confidence filter and no page horizontal overflow"
+      ]
+    }
+  },
+  "verified_on_physical_iphone": false
+}

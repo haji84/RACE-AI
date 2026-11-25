@@ -1,0 +1,31 @@
+{
+  "schema": "KEIRIN_JOINT_LIVE_RESEARCH_CHAIN_V1",
+  "original_note_sha256": "35265386cc63710e2c8d4cfb3417843e7ff80dee9f0f8fac17f6cb398457abd3",
+  "comparison_races": 10,
+  "independent_plaintext_readback": true,
+  "readback_action_run": 45627411872,
+  "readback_main": "165f01e03cac17033a17b4d5e13b330ebf21112f",
+  "score_file": "automatic-forward-score.json",
+  "score_state": "EXACT_COMMITTED_ORIGINAL_SCORED_AGAINST_SECONDARY_TWO_SOURCE_RESULTS",
+  "matched": 7,
+  "waiting": 3,
+  "trifecta_top4": {
+    "before": 2,
+    "candidate": 2
+  },
+  "exacta_top2": {
+    "matched": 7,
+    "published_hits": 2,
+    "tickets_per_arm": 14,
+    "trial_hits": 2
+  },
+  "derived_scoring_view_is_not_pre_cutoff_original": true,
+  "formal_PR71": false,
+  "official_result_authenticated": false,
+  "actual_organizer_cutoff_authenticated": false,
+  "flow_state": "NO_PRE_CUTOFF_FLOW_ORIGINAL",
+  "accuracy_improvement_proven": false,
+  "automatic_scoring_main": "71c97f358d2e0905dad78f0bb550777969c1b53f",
+  "automatic_scoring_run": 45633700634,
+  "result_state_commit": "1b24424da926ff2c247aca54582daa2de35db2d7"
+}

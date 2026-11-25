@@ -1,0 +1,16 @@
+{
+  "asof": "2026-11-25T14:41:47.951288+00:00",
+  "roster_late_line": 15,
+  "state": {
+    "matched": 15
+  },
+  "actual_budgets": 68,
+  "corner_commit": "a37b8c968de35834a036f5b8ef7b21d52dd1ce17",
+  "public_result_sha256": "d80afbf50e1e39c61659255552a58546f88c6d11a4f93f5b23d57d27f26d3a1c",
+  "all_arms_scores": {
+    "public": 3,
+    "late-line": 7,
+    "corner-third": 7
+  },
+  "confirmed_distinct": 15
+}

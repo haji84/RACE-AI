@@ -1,0 +1,389 @@
+{
+  "schema": "KEIRIN_PAST_LINE_EVENT_SCORE_V1",
+  "score_started_at": "2026-11-23T22:43:02.492808+00:00",
+  "freeze_commitment_sha256": "1beb4c72de0a3db6fe7e58e16d4a4f4ba48e79561033f34c48afb84cbfe4a094",
+  "panels": {
+    "historical_earlier": {
+      "catalogue_races": 4621,
+      "scored_forecasts": 4621,
+      "unresolved_results": 0,
+      "result_available_but_forecast_missing": 0,
+      "hits_for_observed_95": 4390,
+      "arms": {
+        "saved": {
+          "hit_1": 560,
+          "predicted_mass_1_sum": 521.9451640015575,
+          "hit_4": 1344,
+          "predicted_mass_4_sum": 1289.0115798038598,
+          "hit_8": 1875,
+          "predicted_mass_8_sum": 1849.8980485259979,
+          "first_two_in_trifecta8": 2467,
+          "first_two_in_exacta8": 3233,
+          "winner_in_trifecta8": 3463,
+          "distinct_first_two_per_eight_sum": 18798,
+          "rank_95": 125
+        },
+        "past_phases": {
+          "hit_1": 558,
+          "predicted_mass_1_sum": 571.1704009715531,
+          "hit_4": 1342,
+          "predicted_mass_4_sum": 1387.4924896679552,
+          "hit_8": 1872,
+          "predicted_mass_8_sum": 1968.5363290240198,
+          "first_two_in_trifecta8": 2463,
+          "first_two_in_exacta8": 3242,
+          "winner_in_trifecta8": 3451,
+          "distinct_first_two_per_eight_sum": 18871,
+          "new_hits": 60,
+          "lost_hits": 63,
+          "rank_95": 124
+        },
+        "past_phases_and_pairs": {
+          "hit_1": 559,
+          "predicted_mass_1_sum": 571.1903108828876,
+          "hit_4": 1339,
+          "predicted_mass_4_sum": 1386.9496834616332,
+          "hit_8": 1869,
+          "predicted_mass_8_sum": 1967.8898086863237,
+          "first_two_in_trifecta8": 2467,
+          "first_two_in_exacta8": 3240,
+          "winner_in_trifecta8": 3451,
+          "distinct_first_two_per_eight_sum": 18920,
+          "new_hits": 59,
+          "lost_hits": 65,
+          "rank_95": 124
+        }
+      },
+      "paired_day_95_percentage_points": {
+        "past_phases": [
+          -0.569,
+          0.413
+        ],
+        "past_phases_and_pairs": [
+          -0.633,
+          0.366
+        ]
+      }
+    },
+    "historical_recent_line_inputs": {
+      "catalogue_races": 3590,
+      "scored_forecasts": 3576,
+      "unresolved_results": 13,
+      "result_available_but_forecast_missing": 1,
+      "hits_for_observed_95": 3398,
+      "arms": {
+        "saved": {
+          "hit_1": 429,
+          "predicted_mass_1_sum": 391.1383359660312,
+          "hit_4": 1002,
+          "predicted_mass_4_sum": 961.7892287249983,
+          "hit_8": 1403,
+          "predicted_mass_8_sum": 1382.0177774089304,
+          "first_two_in_trifecta8": 1909,
+          "first_two_in_exacta8": 2487,
+          "winner_in_trifecta8": 2732,
+          "distinct_first_two_per_eight_sum": 14681,
+          "rank_95": 126
+        },
+        "past_phases": {
+          "hit_1": 433,
+          "predicted_mass_1_sum": 420.40543579295473,
+          "hit_4": 1015,
+          "predicted_mass_4_sum": 1024.5848378166731,
+          "hit_8": 1403,
+          "predicted_mass_8_sum": 1459.0393294385617,
+          "first_two_in_trifecta8": 1921,
+          "first_two_in_exacta8": 2500,
+          "winner_in_trifecta8": 2736,
+          "distinct_first_two_per_eight_sum": 14769,
+          "new_hits": 59,
+          "lost_hits": 59,
+          "rank_95": 125
+        },
+        "past_phases_and_pairs": {
+          "hit_1": 433,
+          "predicted_mass_1_sum": 420.7887149663348,
+          "hit_4": 1014,
+          "predicted_mass_4_sum": 1025.3562404312352,
+          "hit_8": 1402,
+          "predicted_mass_8_sum": 1459.9301565244991,
+          "first_two_in_trifecta8": 1920,
+          "first_two_in_exacta8": 2497,
+          "winner_in_trifecta8": 2736,
+          "distinct_first_two_per_eight_sum": 14765,
+          "new_hits": 59,
+          "lost_hits": 60,
+          "rank_95": 125
+        }
+      },
+      "paired_day_95_percentage_points": {
+        "past_phases": [
+          -0.508,
+          0.496
+        ],
+        "past_phases_and_pairs": [
+          -0.542,
+          0.476
+        ]
+      }
+    },
+    "historical_recent_pre_cutoff": {
+      "catalogue_races": 562,
+      "scored_forecasts": 557,
+      "unresolved_results": 4,
+      "result_available_but_forecast_missing": 1,
+      "hits_for_observed_95": 530,
+      "arms": {
+        "saved": {
+          "hit_1": 67,
+          "predicted_mass_1_sum": 46.09851458535913,
+          "hit_4": 156,
+          "predicted_mass_4_sum": 112.8051022414381,
+          "hit_8": 211,
+          "predicted_mass_8_sum": 165.7870067999521,
+          "first_two_in_trifecta8": 302,
+          "first_two_in_exacta8": 398,
+          "winner_in_trifecta8": 451,
+          "distinct_first_two_per_eight_sum": 2410,
+          "rank_95": 121
+        },
+        "past_phases": {
+          "hit_1": 68,
+          "predicted_mass_1_sum": 50.34668569089267,
+          "hit_4": 162,
+          "predicted_mass_4_sum": 121.62675892810222,
+          "hit_8": 211,
+          "predicted_mass_8_sum": 177.24534792114358,
+          "first_two_in_trifecta8": 302,
+          "first_two_in_exacta8": 398,
+          "winner_in_trifecta8": 448,
+          "distinct_first_two_per_eight_sum": 2423,
+          "new_hits": 11,
+          "lost_hits": 11,
+          "rank_95": 119
+        },
+        "past_phases_and_pairs": {
+          "hit_1": 68,
+          "predicted_mass_1_sum": 50.40272567567967,
+          "hit_4": 162,
+          "predicted_mass_4_sum": 121.74579526323217,
+          "hit_8": 211,
+          "predicted_mass_8_sum": 177.4001203390005,
+          "first_two_in_trifecta8": 302,
+          "first_two_in_exacta8": 398,
+          "winner_in_trifecta8": 448,
+          "distinct_first_two_per_eight_sum": 2421,
+          "new_hits": 11,
+          "lost_hits": 11,
+          "rank_95": 119
+        }
+      },
+      "paired_day_95_percentage_points": {
+        "past_phases": [
+          -1.744,
+          1.625
+        ],
+        "past_phases_and_pairs": [
+          -1.744,
+          1.625
+        ]
+      }
+    },
+    "historical_recent_all": {
+      "catalogue_races": 4002,
+      "scored_forecasts": 3989,
+      "unresolved_results": 13,
+      "result_available_but_forecast_missing": 0,
+      "hits_for_observed_95": 3790,
+      "arms": {
+        "saved": {
+          "hit_1": 479,
+          "predicted_mass_1_sum": 424.815785225038,
+          "hit_4": 1125,
+          "predicted_mass_4_sum": 1046.817582586022,
+          "hit_8": 1579,
+          "predicted_mass_8_sum": 1507.2741654923177,
+          "first_two_in_trifecta8": 2138,
+          "first_two_in_exacta8": 2774,
+          "winner_in_trifecta8": 3061,
+          "distinct_first_two_per_eight_sum": 16454,
+          "rank_95": 125
+        },
+        "past_phases": {
+          "hit_1": 483,
+          "predicted_mass_1_sum": 454.0828850519615,
+          "hit_4": 1138,
+          "predicted_mass_4_sum": 1109.6131916776978,
+          "hit_8": 1579,
+          "predicted_mass_8_sum": 1584.295717521949,
+          "first_two_in_trifecta8": 2150,
+          "first_two_in_exacta8": 2787,
+          "winner_in_trifecta8": 3065,
+          "distinct_first_two_per_eight_sum": 16542,
+          "new_hits": 59,
+          "lost_hits": 59,
+          "rank_95": 124
+        },
+        "past_phases_and_pairs": {
+          "hit_1": 483,
+          "predicted_mass_1_sum": 454.4661642253416,
+          "hit_4": 1137,
+          "predicted_mass_4_sum": 1110.3845942922599,
+          "hit_8": 1578,
+          "predicted_mass_8_sum": 1585.1865446078864,
+          "first_two_in_trifecta8": 2149,
+          "first_two_in_exacta8": 2784,
+          "winner_in_trifecta8": 3065,
+          "distinct_first_two_per_eight_sum": 16538,
+          "new_hits": 59,
+          "lost_hits": 60,
+          "rank_95": 124
+        }
+      },
+      "paired_day_95_percentage_points": {
+        "past_phases": [
+          -0.449,
+          0.454
+        ],
+        "past_phases_and_pairs": [
+          -0.493,
+          0.441
+        ]
+      }
+    }
+  },
+  "unchanged_fallback_count_in_full_panel": 413,
+  "diagnostic_saved_approach": {
+    "perfect_earlier_information_after_the_race": {
+      "scored": 3576,
+      "unassisted8": 1403,
+      "unique_winning_orders": 3559,
+      "winning_line_only": 1998,
+      "both_ordered_lines": 2890,
+      "exact_winner_only": 2501,
+      "same_or_different_line_only": 1775,
+      "exact_winner_and_second_line": 3392,
+      "known_winner_and_second_role": 3250
+    },
+    "valid_race_mark_coverage": {
+      "complete_roster_and_top3": 3471,
+      "races_unique_B": 3471,
+      "back_winner": 1095,
+      "back_in_top2": 1884,
+      "back_line_winner": 2040,
+      "back_line_leader": 3436,
+      "races_unique_B_and_S": 3350,
+      "same_S_B_rider": 763,
+      "same_S_B_line": 1591
+    },
+    "actual_B_outcome_groups": {
+      "different_line_winner": {
+        "races": 1431,
+        "hit_at_8": 409,
+        "pair_in_8": 627
+      },
+      "B_rider_won": {
+        "races": 1095,
+        "hit_at_8": 595,
+        "pair_in_8": 730
+      },
+      "other_same_line_winner": {
+        "races": 945,
+        "hit_at_8": 351,
+        "pair_in_8": 488
+      }
+    },
+    "outcomes_by_pre_race_line_roles_and_recorded_result": {
+      "different_lines": {
+        "races": 1692,
+        "hit_at_8": 288,
+        "pair_in_8": 508
+      },
+      "starter_count_7": {
+        "races": 3077,
+        "hit_at_8": 1236,
+        "pair_in_8": 1672
+      },
+      "mixed_podium_lines": {
+        "races": 2813,
+        "hit_at_8": 812,
+        "pair_in_8": 1311
+      },
+      "winner_position_-1": {
+        "races": 467,
+        "hit_at_8": 154,
+        "pair_in_8": 226
+      },
+      "recorded_winning_move_FRONT_WIN": {
+        "races": 1875,
+        "hit_at_8": 862,
+        "pair_in_8": 1119
+      },
+      "winner_position_0": {
+        "races": 1755,
+        "hit_at_8": 815,
+        "pair_in_8": 1047
+      },
+      "same_line_forward_order": {
+        "races": 1173,
+        "hit_at_8": 748,
+        "pair_in_8": 897
+      },
+      "all_podium_one_line": {
+        "races": 746,
+        "hit_at_8": 586,
+        "pair_in_8": 590
+      },
+      "winner_position_1": {
+        "races": 1232,
+        "hit_at_8": 429,
+        "pair_in_8": 628
+      },
+      "recorded_winning_move_OTHER_WIN": {
+        "races": 1598,
+        "hit_at_8": 494,
+        "pair_in_8": 728
+      },
+      "same_line_reversed_order": {
+        "races": 694,
+        "hit_at_8": 362,
+        "pair_in_8": 496
+      },
+      "starter_count_9": {
+        "races": 313,
+        "hit_at_8": 90,
+        "pair_in_8": 135
+      },
+      "winner_position_2": {
+        "races": 100,
+        "hit_at_8": 0,
+        "pair_in_8": 0
+      },
+      "starter_count_6": {
+        "races": 122,
+        "hit_at_8": 48,
+        "pair_in_8": 64
+      },
+      "starter_count_5": {
+        "races": 28,
+        "hit_at_8": 17,
+        "pair_in_8": 20
+      },
+      "starter_count_8": {
+        "races": 19,
+        "hit_at_8": 7,
+        "pair_in_8": 10
+      },
+      "winner_position_4": {
+        "races": 1,
+        "hit_at_8": 0,
+        "pair_in_8": 0
+      },
+      "winner_position_3": {
+        "races": 4,
+        "hit_at_8": 0,
+        "pair_in_8": 0
+      }
+    }
+  }
+}

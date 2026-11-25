@@ -1,0 +1,1719 @@
+{
+  "snapshot": {
+    "date": "2026-11-25",
+    "result_checked_at_utc": "2026-11-25T09:58:39.368625+00:00",
+    "source": "kdreams + netkeirin",
+    "actions_run": 45590440819,
+    "publisher_job": "publish-public-site-results",
+    "result_branch": "state/keirin-public-results",
+    "result_commit": "e745488a8de0d53853c328a1c695f80cabebc67a",
+    "results_sha256": "4908bce2c8befbc002e09882fdf3c6e9365e8744af24c643cd882b2e87779736",
+    "roster_sha256": "c96f35a0c0a9e26c34a491d162674f40a47a2e5fd0ae19f4583c86653d6aeb31",
+    "public_forecast_sha256": "2a62f3a6cf7f2a12d62b5b49b4d9a620db49309b0522814ed904c11c942e3d35",
+    "roster_generated_at": "2026-11-24T23:40:41.322480+00:00",
+    "site_forecast_published_at": "2026-11-24T23:43:19.442812+00:00",
+    "prediction_commitments": {
+      "third_rider_only": {
+        "sha256": "4c475aed916a562b749809e994a541728b01d0624051085ae3b3aa0c947d8041",
+        "frozen_utc": "2026-11-25T00:07:16.450622+00:00",
+        "commit": "218fed394289bc78749426ed60b5c0f4f516c225"
+      },
+      "width": {
+        "sha256": "ef4cfc39a777ee317a8ff921ba3e684f4c12b5d3dc2ccde7799e2016dc277afa",
+        "frozen_utc": "2026-11-25T00:09:17.515419+00:00",
+        "commit": "218fed394289bc78749426ed60b5c0f4f516c225"
+      },
+      "recent_relative_last_half_lap": {
+        "sha256": "72f3929fe26a371fb733406f8cf090bbb64c1095ea0ec58800fe5c4019acf089",
+        "frozen_utc": "2026-11-25T00:20:39.516598+00:00",
+        "commit": "218fed394289bc78749426ed60b5c0f4f516c225"
+      },
+      "forward-20261125": {
+        "sha256": "b614eada3180278c6bd659da4ef96b08874f9d7ff8d6b37bbd56a4bc793191ad",
+        "frozen_utc": "2026-11-24T22:30:29.540081+00:00",
+        "commit": "1251791652ea07eb9f127b96dafdfe4b0a994537"
+      },
+      "fallback": {
+        "sha256": "20848d53fef54f254f6bfe8773fd127aed82a334775a90d685646097189120de",
+        "frozen_utc": "2026-11-24T22:37:08.788204+00:00",
+        "commit": "2bc29758fcfc18cb3beda4ebba9a7c5453e6356a"
+      },
+      "video_and_AB": {
+        "sha256": "a9226f6e6ccb5189665f4c3b16802400b9eb60b5b2506b9d1d6cde8fdf4998bb",
+        "frozen_utc": "2026-11-24T22:25:45.736228+00:00",
+        "commit": "1251791652ea07eb9f127b96dafdfe4b0a994537"
+      }
+    }
+  },
+  "public_close_status": {
+    "as_of": "2026-11-25T09:58:39.368625+00:00",
+    "state_commit": "e745488a8de0d53853c328a1c695f80cabebc67a",
+    "sha256": "4908bce2c8befbc002e09882fdf3c6e9365e8744af24c643cd882b2e87779736",
+    "all_published": 75,
+    "deadline_passed": 47,
+    "still_open": 28,
+    "statuses": {
+      "matched": 45,
+      "held": 1,
+      "pending": 1,
+      "unlisted": 28
+    },
+    "closed_unlisted": 0,
+    "original_display_budgets": {
+      "published_hits": 17,
+      "settled": 45,
+      "ceiling_if_all_remaining_75_hit": 47
+    },
+    "fixed_caps_on_same_fields": {
+      "1": {
+        "hits": 3,
+        "matched": 45,
+        "misses": 42,
+        "upper_ceiling_if_all_remaining_75_hit": 33
+      },
+      "4": {
+        "hits": 14,
+        "matched": 45,
+        "misses": 31,
+        "upper_ceiling_if_all_remaining_75_hit": 44
+      },
+      "8": {
+        "hits": 23,
+        "matched": 45,
+        "misses": 22,
+        "upper_ceiling_if_all_remaining_75_hit": 53
+      }
+    },
+    "hits_needed_for_at_least_95pct_of_all_75": 72
+  },
+  "current_cap_readback": {
+    "4": {
+      "registered": 60,
+      "matched": 34,
+      "published_hits": 9,
+      "trial_hits": 9,
+      "published_tickets": 136,
+      "trial_tickets": 136,
+      "both_hits": 9,
+      "changed_sets": 0,
+      "published_first_two": 13,
+      "trial_first_two": 13,
+      "gained": [],
+      "lost": []
+    },
+    "8": {
+      "registered": 15,
+      "matched": 11,
+      "published_hits": 8,
+      "trial_hits": 8,
+      "published_tickets": 88,
+      "trial_tickets": 88,
+      "both_hits": 8,
+      "changed_sets": 0,
+      "published_first_two": 8,
+      "trial_first_two": 8,
+      "gained": [],
+      "lost": []
+    }
+  },
+  "earlier": {
+    "cross-rider": {
+      "base_contains_first": 10,
+      "base_contains_ordered_pair": 5,
+      "base_hit": 5,
+      "candidate_contains_first": 10,
+      "candidate_contains_ordered_pair": 5,
+      "candidate_hit": 5,
+      "changed_sets_registered": 3,
+      "changed_sets_scored": 2,
+      "gained": [],
+      "lost": [],
+      "matched": 13,
+      "published_hits": 5,
+      "tickets_per_arm": 60,
+      "trial_hits": 5
+    },
+    "individual": {
+      "changed_sets_registered": 3,
+      "changed_sets_scored": 0,
+      "gained": [],
+      "lost": [],
+      "matched": 0,
+      "published_hits": 0,
+      "tickets_per_arm": 0,
+      "trial_hits": 0
+    },
+    "joint-wheel": {
+      "base_contains_first": 9,
+      "base_contains_ordered_pair": 5,
+      "base_hit": 5,
+      "candidate_contains_first": 9,
+      "candidate_contains_ordered_pair": 5,
+      "candidate_hit": 5,
+      "changed_sets_registered": 1,
+      "changed_sets_scored": 1,
+      "gained": [],
+      "lost": [],
+      "matched": 11,
+      "published_hits": 5,
+      "tickets_per_arm": 52,
+      "trial_hits": 5
+    },
+    "joint-wheel-plus-winner": {
+      "base_contains_first": 9,
+      "base_contains_ordered_pair": 5,
+      "base_hit": 5,
+      "candidate_contains_first": 9,
+      "candidate_contains_ordered_pair": 5,
+      "candidate_hit": 5,
+      "changed_sets_registered": 4,
+      "changed_sets_scored": 2,
+      "gained": [],
+      "lost": [],
+      "matched": 11,
+      "published_hits": 5,
+      "tickets_per_arm": 52,
+      "trial_hits": 5
+    },
+    "market": {
+      "base_contains_first": 5,
+      "base_contains_ordered_pair": 2,
+      "base_hit": 2,
+      "candidate_contains_first": 6,
+      "candidate_contains_ordered_pair": 3,
+      "candidate_hit": 2,
+      "changed_sets_registered": 14,
+      "changed_sets_scored": 4,
+      "gained": [],
+      "lost": [],
+      "matched": 7,
+      "published_hits": 2,
+      "tickets_per_arm": 36,
+      "trial_hits": 2
+    },
+    "marks": {
+      "base_contains_first": 10,
+      "base_contains_ordered_pair": 5,
+      "base_hit": 5,
+      "candidate_contains_first": 8,
+      "candidate_contains_ordered_pair": 5,
+      "candidate_hit": 5,
+      "changed_sets_registered": 8,
+      "changed_sets_scored": 5,
+      "gained": [
+        "202611252604"
+      ],
+      "lost": [
+        "202611252606"
+      ],
+      "matched": 12,
+      "published_hits": 5,
+      "tickets_per_arm": 56,
+      "trial_hits": 5
+    },
+    "tactical-label": {
+      "base_contains_first": 9,
+      "base_contains_ordered_pair": 5,
+      "base_hit": 5,
+      "candidate_contains_first": 8,
+      "candidate_contains_ordered_pair": 4,
+      "candidate_hit": 4,
+      "changed_sets_registered": 19,
+      "changed_sets_scored": 2,
+      "gained": [],
+      "lost": [
+        "202611252606"
+      ],
+      "matched": 11,
+      "published_hits": 5,
+      "tickets_per_arm": 52,
+      "trial_hits": 4
+    },
+    "winner": {
+      "base_contains_first": 10,
+      "base_contains_ordered_pair": 5,
+      "base_hit": 5,
+      "candidate_contains_first": 10,
+      "candidate_contains_ordered_pair": 5,
+      "candidate_hit": 5,
+      "changed_sets_registered": 1,
+      "changed_sets_scored": 0,
+      "gained": [],
+      "lost": [],
+      "matched": 12,
+      "published_hits": 5,
+      "tickets_per_arm": 56,
+      "trial_hits": 5
+    }
+  },
+  "later": {
+    "registered_distinct": 34,
+    "confirmed_distinct": 5,
+    "changed_confirmed_distinct": 2,
+    "confirmed_methods": {
+      "202611252606": [
+        "back-third",
+        "draw",
+        "home-field",
+        "home-first",
+        "home-full",
+        "pair-market",
+        "pressure",
+        "pressure-calibration",
+        "tactics",
+        "third"
+      ],
+      "202611252607": [
+        "back-third",
+        "draw",
+        "home-field",
+        "home-first",
+        "home-full",
+        "pair-market",
+        "pressure",
+        "pressure-calibration",
+        "tactics",
+        "third"
+      ],
+      "202611257507": [
+        "back-third",
+        "draw",
+        "home-field",
+        "home-first",
+        "home-full",
+        "pair-market",
+        "pressure",
+        "pressure-calibration",
+        "tactics",
+        "third",
+        "timed-odds"
+      ],
+      "202611257508": [
+        "back-third",
+        "draw",
+        "home-field",
+        "home-first",
+        "home-full",
+        "partial-exacta",
+        "pressure",
+        "pressure-calibration",
+        "tactics",
+        "third"
+      ],
+      "202611257506": [
+        "pair-market",
+        "pressure",
+        "tactics",
+        "third"
+      ]
+    },
+    "changed_confirmed_methods": {
+      "202611257507": [
+        "back-third",
+        "draw",
+        "pair-market",
+        "pressure-calibration",
+        "third"
+      ],
+      "202611257508": [
+        "partial-exacta",
+        "pressure-calibration"
+      ]
+    },
+    "reports": {
+      "back-third": {
+        "comparators": {
+          "published": "site",
+          "trial": "back-third"
+        },
+        "registered": 33,
+        "matched": 4,
+        "tickets_per_arm": 20,
+        "published_hits": 3,
+        "trial_hits": 3,
+        "gained": [],
+        "lost": [],
+        "result_states": {
+          "matched": 4,
+          "pending": 1,
+          "missing": 28
+        },
+        "checked_at": "2026-11-25T09:58:39.368625+00:00",
+        "changed_scored": 1
+      },
+      "draw": {
+        "comparators": {
+          "published": "site",
+          "trial": "draw"
+        },
+        "registered": 33,
+        "matched": 4,
+        "tickets_per_arm": 20,
+        "published_hits": 3,
+        "trial_hits": 3,
+        "gained": [],
+        "lost": [],
+        "result_states": {
+          "matched": 4,
+          "pending": 1,
+          "missing": 28
+        },
+        "checked_at": "2026-11-25T09:58:39.368625+00:00",
+        "changed_scored": 1
+      },
+      "home-field": {
+        "comparators": {
+          "published": "site",
+          "trial": "home-field"
+        },
+        "registered": 33,
+        "matched": 4,
+        "tickets_per_arm": 20,
+        "published_hits": 3,
+        "trial_hits": 3,
+        "gained": [],
+        "lost": [],
+        "result_states": {
+          "matched": 4,
+          "pending": 1,
+          "missing": 28
+        },
+        "checked_at": "2026-11-25T09:58:39.368625+00:00",
+        "changed_scored": 0
+      },
+      "home-first": {
+        "comparators": {
+          "published": "first_ticket_of_site_rankings_in_a_one_point_research_test",
+          "trial": "first_only_within_existing_first_four"
+        },
+        "registered": 33,
+        "matched": 4,
+        "tickets_per_arm": 4,
+        "published_hits": 0,
+        "trial_hits": 0,
+        "gained": [],
+        "lost": [],
+        "result_states": {
+          "matched": 4,
+          "pending": 1,
+          "missing": 28
+        },
+        "checked_at": "2026-11-25T09:58:39.368625+00:00",
+        "changed_scored": 0
+      },
+      "home-full": {
+        "comparators": {
+          "published": "site",
+          "trial": "home-full"
+        },
+        "registered": 33,
+        "matched": 4,
+        "tickets_per_arm": 20,
+        "published_hits": 3,
+        "trial_hits": 3,
+        "gained": [],
+        "lost": [],
+        "result_states": {
+          "matched": 4,
+          "pending": 1,
+          "missing": 28
+        },
+        "checked_at": "2026-11-25T09:58:39.368625+00:00",
+        "changed_scored": 0
+      },
+      "late-line": {
+        "comparators": {
+          "published": "site_static",
+          "trial": "same_model_with_newly_published_pre_cutoff_lines"
+        },
+        "registered": 15,
+        "matched": 0,
+        "tickets_per_arm": 0,
+        "published_hits": 0,
+        "trial_hits": 0,
+        "gained": [],
+        "lost": [],
+        "result_states": {
+          "missing": 15
+        },
+        "checked_at": "2026-11-25T09:58:39.368625+00:00",
+        "changed_scored": 0
+      },
+      "pair-market": {
+        "comparators": {
+          "published": "site",
+          "trial": "pair-market"
+        },
+        "registered": 14,
+        "matched": 4,
+        "tickets_per_arm": 20,
+        "published_hits": 3,
+        "trial_hits": 3,
+        "gained": [],
+        "lost": [],
+        "result_states": {
+          "matched": 4,
+          "pending": 1,
+          "missing": 9
+        },
+        "checked_at": "2026-11-25T09:58:39.368625+00:00",
+        "changed_scored": 1
+      },
+      "partial-exacta": {
+        "comparators": {
+          "published": "site",
+          "trial": "partial-exacta"
+        },
+        "registered": 20,
+        "matched": 1,
+        "tickets_per_arm": 4,
+        "published_hits": 0,
+        "trial_hits": 1,
+        "gained": [
+          "202611257508"
+        ],
+        "lost": [],
+        "result_states": {
+          "missing": 19,
+          "matched": 1
+        },
+        "checked_at": "2026-11-25T09:58:39.368625+00:00",
+        "changed_scored": 1
+      },
+      "pressure": {
+        "comparators": {
+          "published": "site",
+          "trial": "pressure"
+        },
+        "registered": 34,
+        "matched": 5,
+        "tickets_per_arm": 24,
+        "published_hits": 3,
+        "trial_hits": 3,
+        "gained": [],
+        "lost": [],
+        "result_states": {
+          "matched": 5,
+          "pending": 1,
+          "missing": 28
+        },
+        "checked_at": "2026-11-25T09:58:39.368625+00:00",
+        "changed_scored": 0
+      },
+      "pressure-calibration": {
+        "comparators": {
+          "published": "site",
+          "trial": "pressure-calibration"
+        },
+        "registered": 33,
+        "matched": 4,
+        "tickets_per_arm": 20,
+        "published_hits": 3,
+        "trial_hits": 3,
+        "gained": [],
+        "lost": [],
+        "result_states": {
+          "matched": 4,
+          "pending": 1,
+          "missing": 28
+        },
+        "checked_at": "2026-11-25T09:58:39.368625+00:00",
+        "changed_scored": 2
+      },
+      "tactics": {
+        "comparators": {
+          "published": "site",
+          "trial": "tactics"
+        },
+        "registered": 34,
+        "matched": 5,
+        "tickets_per_arm": 24,
+        "published_hits": 3,
+        "trial_hits": 3,
+        "gained": [],
+        "lost": [],
+        "result_states": {
+          "matched": 5,
+          "pending": 1,
+          "missing": 28
+        },
+        "checked_at": "2026-11-25T09:58:39.368625+00:00",
+        "changed_scored": 0
+      },
+      "third": {
+        "comparators": {
+          "published": "site",
+          "trial": "third"
+        },
+        "registered": 34,
+        "matched": 5,
+        "tickets_per_arm": 24,
+        "published_hits": 3,
+        "trial_hits": 3,
+        "gained": [],
+        "lost": [],
+        "result_states": {
+          "matched": 5,
+          "pending": 1,
+          "missing": 28
+        },
+        "checked_at": "2026-11-25T09:58:39.368625+00:00",
+        "changed_scored": 1
+      },
+      "timed-odds": {
+        "comparators": {
+          "published": "earlier_full_trifecta_odds_50pct_model_50pct",
+          "trial": "later_full_trifecta_odds_50pct_model_50pct"
+        },
+        "registered": 13,
+        "matched": 1,
+        "tickets_per_arm": 8,
+        "published_hits": 1,
+        "trial_hits": 1,
+        "gained": [],
+        "lost": [],
+        "result_states": {
+          "pending": 1,
+          "missing": 11,
+          "matched": 1
+        },
+        "checked_at": "2026-11-25T09:58:39.368625+00:00",
+        "changed_scored": 0
+      }
+    }
+  },
+  "headroom": {
+    "scope": {
+      "historical": "11/21-24 research replay of actual published-family full probability vectors, chronological outcome dates",
+      "today": "11/25 two-source matched payout, same 75 forecasts reproduced up to top8 from original distribution, partial day",
+      "oracle": "Known-winner, known-ordered-pair and known-unordered-trio diagnostics filter the original ranking using actual outcome one item at a time. They do not model a viable forecast, and these outcomes never enter a forecast.",
+      "within_budget_sets": "A correct first slot, ordered first pair, unordered first pair, unordered podium trio and exact ordered trio are counted from the same capped tickets. Pair and unordered trio are distinct headroom concepts."
+    },
+    "historical": {
+      "races": 287,
+      "per_budget": {
+        "1": {
+          "exact": 32,
+          "winner_admitted": 131,
+          "ordered_pair_admitted": 72,
+          "unordered_first_pair_admitted": 100,
+          "unordered_trio_admitted": 63,
+          "genuine_win_starters": 287,
+          "distinct_ordered_pairs": 287,
+          "distinct_unordered_trios": 287,
+          "rank_if_winner_given_le_cap": 66,
+          "rank_if_ordered_pair_given_le_cap": 121,
+          "rank_if_unordered_trio_given_le_cap": 124,
+          "first_failure": {
+            "winner_only_in_lower_positions": 72,
+            "winner_present_correct_second_missing": 59,
+            "exact_trifecta": 32,
+            "correct_ordered_pair_third_missing": 40,
+            "winner_absent_from_tickets": 84
+          },
+          "trio_disjoint": {
+            "winner_in_first_pair_and_trio_all_absent": 118,
+            "correct_trio_other_order": 31,
+            "exact_trifecta": 32,
+            "winner_only_correct_pair_and_trio_absent": 51,
+            "correct_pair_wrong_third_trio_absent": 40,
+            "reversed_pair_trio_absent": 15
+          }
+        },
+        "4": {
+          "exact": 91,
+          "winner_admitted": 199,
+          "ordered_pair_admitted": 126,
+          "unordered_first_pair_admitted": 136,
+          "unordered_trio_admitted": 122,
+          "genuine_win_starters": 599,
+          "distinct_ordered_pairs": 737,
+          "distinct_unordered_trios": 769,
+          "rank_if_winner_given_le_cap": 154,
+          "rank_if_ordered_pair_given_le_cap": 269,
+          "rank_if_unordered_trio_given_le_cap": 264,
+          "first_failure": {
+            "winner_present_correct_second_missing": 73,
+            "exact_trifecta": 91,
+            "correct_ordered_pair_third_missing": 35,
+            "winner_absent_from_tickets": 34,
+            "winner_only_in_lower_positions": 54
+          },
+          "trio_disjoint": {
+            "winner_only_correct_pair_and_trio_absent": 54,
+            "exact_trifecta": 91,
+            "correct_pair_wrong_third_trio_absent": 34,
+            "reversed_pair_trio_absent": 4,
+            "winner_in_first_pair_and_trio_all_absent": 73,
+            "correct_trio_other_order": 31
+          }
+        },
+        "8": {
+          "exact": 127,
+          "winner_admitted": 222,
+          "ordered_pair_admitted": 160,
+          "unordered_first_pair_admitted": 174,
+          "unordered_trio_admitted": 161,
+          "genuine_win_starters": 766,
+          "distinct_ordered_pairs": 1233,
+          "distinct_unordered_trios": 1290,
+          "rank_if_winner_given_le_cap": 203,
+          "rank_if_ordered_pair_given_le_cap": 287,
+          "rank_if_unordered_trio_given_le_cap": 287,
+          "first_failure": {
+            "winner_present_correct_second_missing": 62,
+            "exact_trifecta": 127,
+            "correct_ordered_pair_third_missing": 33,
+            "winner_absent_from_tickets": 11,
+            "winner_only_in_lower_positions": 54
+          },
+          "trio_disjoint": {
+            "winner_only_correct_pair_and_trio_absent": 42,
+            "exact_trifecta": 127,
+            "correct_pair_wrong_third_trio_absent": 28,
+            "correct_trio_other_order": 34,
+            "winner_in_first_pair_and_trio_all_absent": 50,
+            "reversed_pair_trio_absent": 6
+          }
+        },
+        "displayed": {
+          "exact": 93,
+          "winner_admitted": 201,
+          "ordered_pair_admitted": 128,
+          "unordered_first_pair_admitted": 139,
+          "unordered_trio_admitted": 124,
+          "genuine_win_starters": 611,
+          "distinct_ordered_pairs": 773,
+          "distinct_unordered_trios": 804,
+          "rank_if_winner_given_le_cap": 160,
+          "rank_if_ordered_pair_given_le_cap": 271,
+          "rank_if_unordered_trio_given_le_cap": 268,
+          "first_failure": {
+            "winner_present_correct_second_missing": 73,
+            "exact_trifecta": 93,
+            "correct_ordered_pair_third_missing": 35,
+            "winner_absent_from_tickets": 33,
+            "winner_only_in_lower_positions": 53
+          },
+          "trio_disjoint": {
+            "winner_only_correct_pair_and_trio_absent": 55,
+            "exact_trifecta": 93,
+            "correct_pair_wrong_third_trio_absent": 34,
+            "reversed_pair_trio_absent": 5,
+            "winner_in_first_pair_and_trio_all_absent": 69,
+            "correct_trio_other_order": 31
+          }
+        }
+      },
+      "original_ranking": {
+        "minimum_fixed_k_for_observed_95_pct": 120,
+        "threshold_hits": 273,
+        "max_actual_rank": 430,
+        "covered": {
+          "1": 32,
+          "4": 91,
+          "8": 127,
+          "16": 161,
+          "24": 182,
+          "32": 199,
+          "50": 225,
+          "100": 266
+        }
+      },
+      "known_winner": {
+        "minimum_fixed_k_for_observed_95_pct": 23,
+        "threshold_hits": 273,
+        "max_actual_rank": 42,
+        "covered": {
+          "1": 66,
+          "4": 154,
+          "8": 203,
+          "16": 252,
+          "24": 276,
+          "32": 282,
+          "50": 287,
+          "100": 287
+        }
+      },
+      "known_ordered_pair": {
+        "minimum_fixed_k_for_observed_95_pct": 5,
+        "threshold_hits": 273,
+        "max_actual_rank": 7,
+        "covered": {
+          "1": 121,
+          "4": 269,
+          "8": 287,
+          "16": 287,
+          "24": 287,
+          "32": 287,
+          "50": 287,
+          "100": 287
+        }
+      },
+      "known_unordered_trio": {
+        "minimum_fixed_k_for_observed_95_pct": 5,
+        "threshold_hits": 273,
+        "max_actual_rank": 6,
+        "covered": {
+          "1": 124,
+          "4": 264,
+          "8": 287,
+          "16": 287,
+          "24": 287,
+          "32": 287,
+          "50": 287,
+          "100": 287
+        }
+      }
+    },
+    "today": {
+      "races": 45,
+      "per_budget": {
+        "1": {
+          "exact": 3,
+          "winner_admitted": 17,
+          "ordered_pair_admitted": 7,
+          "unordered_first_pair_admitted": 18,
+          "unordered_trio_admitted": 12,
+          "genuine_win_starters": 45,
+          "distinct_ordered_pairs": 45,
+          "distinct_unordered_trios": 45,
+          "rank_if_winner_given_le_cap": 11,
+          "rank_if_ordered_pair_given_le_cap": 20,
+          "rank_if_unordered_trio_given_le_cap": 14,
+          "first_failure": {
+            "exact_trifecta": 3,
+            "correct_ordered_pair_third_missing": 4,
+            "winner_absent_from_tickets": 13,
+            "winner_present_correct_second_missing": 10,
+            "winner_only_in_lower_positions": 15
+          },
+          "trio_disjoint": {
+            "exact_trifecta": 3,
+            "correct_pair_wrong_third_trio_absent": 4,
+            "winner_in_first_pair_and_trio_all_absent": 16,
+            "winner_only_correct_pair_and_trio_absent": 8,
+            "reversed_pair_trio_absent": 5,
+            "correct_trio_other_order": 9
+          }
+        },
+        "4": {
+          "exact": 14,
+          "winner_admitted": 30,
+          "ordered_pair_admitted": 20,
+          "unordered_first_pair_admitted": 23,
+          "unordered_trio_admitted": 21,
+          "genuine_win_starters": 90,
+          "distinct_ordered_pairs": 110,
+          "distinct_unordered_trios": 124,
+          "rank_if_winner_given_le_cap": 28,
+          "rank_if_ordered_pair_given_le_cap": 45,
+          "rank_if_unordered_trio_given_le_cap": 41,
+          "first_failure": {
+            "exact_trifecta": 14,
+            "winner_only_in_lower_positions": 10,
+            "winner_absent_from_tickets": 5,
+            "correct_ordered_pair_third_missing": 6,
+            "winner_present_correct_second_missing": 10
+          },
+          "trio_disjoint": {
+            "exact_trifecta": 14,
+            "winner_in_first_pair_and_trio_all_absent": 12,
+            "correct_pair_wrong_third_trio_absent": 3,
+            "correct_trio_other_order": 7,
+            "winner_only_correct_pair_and_trio_absent": 8,
+            "reversed_pair_trio_absent": 1
+          }
+        },
+        "8": {
+          "exact": 23,
+          "winner_admitted": 33,
+          "ordered_pair_admitted": 27,
+          "unordered_first_pair_admitted": 29,
+          "unordered_trio_admitted": 27,
+          "genuine_win_starters": 115,
+          "distinct_ordered_pairs": 191,
+          "distinct_unordered_trios": 195,
+          "rank_if_winner_given_le_cap": 33,
+          "rank_if_ordered_pair_given_le_cap": 45,
+          "rank_if_unordered_trio_given_le_cap": 45,
+          "first_failure": {
+            "exact_trifecta": 23,
+            "winner_only_in_lower_positions": 11,
+            "correct_ordered_pair_third_missing": 4,
+            "winner_present_correct_second_missing": 6,
+            "winner_absent_from_tickets": 1
+          },
+          "trio_disjoint": {
+            "exact_trifecta": 23,
+            "winner_in_first_pair_and_trio_all_absent": 10,
+            "correct_pair_wrong_third_trio_absent": 3,
+            "winner_only_correct_pair_and_trio_absent": 4,
+            "correct_trio_other_order": 4,
+            "reversed_pair_trio_absent": 1
+          }
+        },
+        "displayed": {
+          "exact": 17,
+          "winner_admitted": 30,
+          "ordered_pair_admitted": 21,
+          "unordered_first_pair_admitted": 24,
+          "unordered_trio_admitted": 22,
+          "genuine_win_starters": 94,
+          "distinct_ordered_pairs": 133,
+          "distinct_unordered_trios": 141,
+          "rank_if_winner_given_le_cap": 29,
+          "rank_if_ordered_pair_given_le_cap": 45,
+          "rank_if_unordered_trio_given_le_cap": 42,
+          "first_failure": {
+            "exact_trifecta": 17,
+            "winner_only_in_lower_positions": 10,
+            "winner_absent_from_tickets": 5,
+            "correct_ordered_pair_third_missing": 4,
+            "winner_present_correct_second_missing": 9
+          },
+          "trio_disjoint": {
+            "exact_trifecta": 17,
+            "winner_in_first_pair_and_trio_all_absent": 12,
+            "correct_pair_wrong_third_trio_absent": 3,
+            "correct_trio_other_order": 5,
+            "winner_only_correct_pair_and_trio_absent": 7,
+            "reversed_pair_trio_absent": 1
+          }
+        }
+      },
+      "original_ranking": {
+        "minimum_fixed_k_for_observed_95_pct": 144,
+        "threshold_hits": 43,
+        "max_actual_rank": 207,
+        "covered": {
+          "1": 3,
+          "4": 14,
+          "8": 23,
+          "16": 28,
+          "24": 30,
+          "32": 31,
+          "50": 38,
+          "100": 41
+        }
+      },
+      "known_winner": {
+        "minimum_fixed_k_for_observed_95_pct": 21,
+        "threshold_hits": 43,
+        "max_actual_rank": 29,
+        "covered": {
+          "1": 11,
+          "4": 28,
+          "8": 33,
+          "16": 41,
+          "24": 44,
+          "32": 45,
+          "50": 45,
+          "100": 45
+        }
+      },
+      "known_ordered_pair": {
+        "minimum_fixed_k_for_observed_95_pct": 4,
+        "threshold_hits": 43,
+        "max_actual_rank": 4,
+        "covered": {
+          "1": 20,
+          "4": 45,
+          "8": 45,
+          "16": 45,
+          "24": 45,
+          "32": 45,
+          "50": 45,
+          "100": 45
+        }
+      },
+      "known_unordered_trio": {
+        "minimum_fixed_k_for_observed_95_pct": 5,
+        "threshold_hits": 43,
+        "max_actual_rank": 6,
+        "covered": {
+          "1": 14,
+          "4": 41,
+          "8": 45,
+          "16": 45,
+          "24": 45,
+          "32": 45,
+          "50": 45,
+          "100": 45
+        }
+      }
+    },
+    "historical_by_line_relation": {
+      "different": {
+        "races": 118,
+        "per_budget": {
+          "1": {
+            "exact": 2,
+            "winner_admitted": 43,
+            "ordered_pair_admitted": 3,
+            "unordered_first_pair_admitted": 5,
+            "unordered_trio_admitted": 8,
+            "genuine_win_starters": 118,
+            "distinct_ordered_pairs": 118,
+            "distinct_unordered_trios": 118,
+            "rank_if_winner_given_le_cap": 5,
+            "rank_if_ordered_pair_given_le_cap": 42,
+            "rank_if_unordered_trio_given_le_cap": 26,
+            "first_failure": {
+              "winner_only_in_lower_positions": 28,
+              "winner_present_correct_second_missing": 40,
+              "winner_absent_from_tickets": 47,
+              "exact_trifecta": 2,
+              "correct_ordered_pair_third_missing": 1
+            },
+            "trio_disjoint": {
+              "winner_in_first_pair_and_trio_all_absent": 71,
+              "winner_only_correct_pair_and_trio_absent": 36,
+              "reversed_pair_trio_absent": 2,
+              "exact_trifecta": 2,
+              "correct_trio_other_order": 6,
+              "correct_pair_wrong_third_trio_absent": 1
+            }
+          },
+          "4": {
+            "exact": 8,
+            "winner_admitted": 66,
+            "ordered_pair_admitted": 12,
+            "unordered_first_pair_admitted": 16,
+            "unordered_trio_admitted": 21,
+            "genuine_win_starters": 258,
+            "distinct_ordered_pairs": 320,
+            "distinct_unordered_trios": 328,
+            "rank_if_winner_given_le_cap": 22,
+            "rank_if_ordered_pair_given_le_cap": 105,
+            "rank_if_unordered_trio_given_le_cap": 100,
+            "first_failure": {
+              "winner_present_correct_second_missing": 54,
+              "winner_absent_from_tickets": 19,
+              "winner_only_in_lower_positions": 33,
+              "exact_trifecta": 8,
+              "correct_ordered_pair_third_missing": 4
+            },
+            "trio_disjoint": {
+              "winner_only_correct_pair_and_trio_absent": 45,
+              "reversed_pair_trio_absent": 2,
+              "winner_in_first_pair_and_trio_all_absent": 46,
+              "exact_trifecta": 8,
+              "correct_trio_other_order": 13,
+              "correct_pair_wrong_third_trio_absent": 4
+            }
+          },
+          "8": {
+            "exact": 19,
+            "winner_admitted": 78,
+            "ordered_pair_admitted": 26,
+            "unordered_first_pair_admitted": 34,
+            "unordered_trio_admitted": 40,
+            "genuine_win_starters": 328,
+            "distinct_ordered_pairs": 518,
+            "distinct_unordered_trios": 553,
+            "rank_if_winner_given_le_cap": 48,
+            "rank_if_ordered_pair_given_le_cap": 118,
+            "rank_if_unordered_trio_given_le_cap": 118,
+            "first_failure": {
+              "winner_present_correct_second_missing": 52,
+              "correct_ordered_pair_third_missing": 7,
+              "winner_absent_from_tickets": 7,
+              "winner_only_in_lower_positions": 33,
+              "exact_trifecta": 19
+            },
+            "trio_disjoint": {
+              "winner_only_correct_pair_and_trio_absent": 37,
+              "correct_pair_wrong_third_trio_absent": 6,
+              "correct_trio_other_order": 21,
+              "winner_in_first_pair_and_trio_all_absent": 32,
+              "exact_trifecta": 19,
+              "reversed_pair_trio_absent": 3
+            }
+          },
+          "displayed": {
+            "exact": 9,
+            "winner_admitted": 68,
+            "ordered_pair_admitted": 13,
+            "unordered_first_pair_admitted": 18,
+            "unordered_trio_admitted": 22,
+            "genuine_win_starters": 264,
+            "distinct_ordered_pairs": 336,
+            "distinct_unordered_trios": 343,
+            "rank_if_winner_given_le_cap": 27,
+            "rank_if_ordered_pair_given_le_cap": 107,
+            "rank_if_unordered_trio_given_le_cap": 103,
+            "first_failure": {
+              "winner_present_correct_second_missing": 55,
+              "winner_absent_from_tickets": 19,
+              "winner_only_in_lower_positions": 31,
+              "exact_trifecta": 9,
+              "correct_ordered_pair_third_missing": 4
+            },
+            "trio_disjoint": {
+              "winner_only_correct_pair_and_trio_absent": 46,
+              "reversed_pair_trio_absent": 3,
+              "winner_in_first_pair_and_trio_all_absent": 43,
+              "exact_trifecta": 9,
+              "correct_trio_other_order": 13,
+              "correct_pair_wrong_third_trio_absent": 4
+            }
+          }
+        },
+        "original_ranking": {
+          "minimum_fixed_k_for_observed_95_pct": 156,
+          "threshold_hits": 113,
+          "max_actual_rank": 430,
+          "covered": {
+            "1": 2,
+            "4": 8,
+            "8": 19,
+            "16": 31,
+            "24": 40,
+            "32": 49,
+            "50": 67,
+            "100": 100
+          }
+        },
+        "known_winner": {
+          "minimum_fixed_k_for_observed_95_pct": 32,
+          "threshold_hits": 113,
+          "max_actual_rank": 42,
+          "covered": {
+            "1": 5,
+            "4": 22,
+            "8": 48,
+            "16": 85,
+            "24": 108,
+            "32": 113,
+            "50": 118,
+            "100": 118
+          }
+        },
+        "known_ordered_pair": {
+          "minimum_fixed_k_for_observed_95_pct": 5,
+          "threshold_hits": 113,
+          "max_actual_rank": 7,
+          "covered": {
+            "1": 42,
+            "4": 105,
+            "8": 118,
+            "16": 118,
+            "24": 118,
+            "32": 118,
+            "50": 118,
+            "100": 118
+          }
+        },
+        "known_unordered_trio": {
+          "minimum_fixed_k_for_observed_95_pct": 6,
+          "threshold_hits": 113,
+          "max_actual_rank": 6,
+          "covered": {
+            "1": 26,
+            "4": 100,
+            "8": 118,
+            "16": 118,
+            "24": 118,
+            "32": 118,
+            "50": 118,
+            "100": 118
+          }
+        }
+      },
+      "individual": {
+        "races": 24,
+        "per_budget": {
+          "1": {
+            "exact": 2,
+            "winner_admitted": 13,
+            "ordered_pair_admitted": 5,
+            "unordered_first_pair_admitted": 7,
+            "unordered_trio_admitted": 7,
+            "genuine_win_starters": 24,
+            "distinct_ordered_pairs": 24,
+            "distinct_unordered_trios": 24,
+            "rank_if_winner_given_le_cap": 4,
+            "rank_if_ordered_pair_given_le_cap": 11,
+            "rank_if_unordered_trio_given_le_cap": 7,
+            "first_failure": {
+              "winner_present_correct_second_missing": 8,
+              "winner_only_in_lower_positions": 8,
+              "correct_ordered_pair_third_missing": 3,
+              "exact_trifecta": 2,
+              "winner_absent_from_tickets": 3
+            },
+            "trio_disjoint": {
+              "winner_only_correct_pair_and_trio_absent": 5,
+              "correct_trio_other_order": 5,
+              "reversed_pair_trio_absent": 2,
+              "correct_pair_wrong_third_trio_absent": 3,
+              "exact_trifecta": 2,
+              "winner_in_first_pair_and_trio_all_absent": 7
+            }
+          },
+          "4": {
+            "exact": 6,
+            "winner_admitted": 17,
+            "ordered_pair_admitted": 9,
+            "unordered_first_pair_admitted": 10,
+            "unordered_trio_admitted": 11,
+            "genuine_win_starters": 39,
+            "distinct_ordered_pairs": 59,
+            "distinct_unordered_trios": 58,
+            "rank_if_winner_given_le_cap": 14,
+            "rank_if_ordered_pair_given_le_cap": 24,
+            "rank_if_unordered_trio_given_le_cap": 23,
+            "first_failure": {
+              "winner_present_correct_second_missing": 8,
+              "winner_only_in_lower_positions": 5,
+              "exact_trifecta": 6,
+              "correct_ordered_pair_third_missing": 3,
+              "winner_absent_from_tickets": 2
+            },
+            "trio_disjoint": {
+              "winner_only_correct_pair_and_trio_absent": 4,
+              "correct_trio_other_order": 5,
+              "reversed_pair_trio_absent": 1,
+              "exact_trifecta": 6,
+              "winner_in_first_pair_and_trio_all_absent": 5,
+              "correct_pair_wrong_third_trio_absent": 3
+            }
+          },
+          "8": {
+            "exact": 11,
+            "winner_admitted": 20,
+            "ordered_pair_admitted": 15,
+            "unordered_first_pair_admitted": 17,
+            "unordered_trio_admitted": 14,
+            "genuine_win_starters": 51,
+            "distinct_ordered_pairs": 107,
+            "distinct_unordered_trios": 93,
+            "rank_if_winner_given_le_cap": 16,
+            "rank_if_ordered_pair_given_le_cap": 24,
+            "rank_if_unordered_trio_given_le_cap": 24,
+            "first_failure": {
+              "winner_present_correct_second_missing": 5,
+              "correct_ordered_pair_third_missing": 4,
+              "exact_trifecta": 11,
+              "winner_only_in_lower_positions": 3,
+              "winner_absent_from_tickets": 1
+            },
+            "trio_disjoint": {
+              "correct_trio_other_order": 3,
+              "correct_pair_wrong_third_trio_absent": 4,
+              "exact_trifecta": 11,
+              "reversed_pair_trio_absent": 1,
+              "winner_only_correct_pair_and_trio_absent": 3,
+              "winner_in_first_pair_and_trio_all_absent": 2
+            }
+          },
+          "displayed": {
+            "exact": 7,
+            "winner_admitted": 17,
+            "ordered_pair_admitted": 10,
+            "unordered_first_pair_admitted": 11,
+            "unordered_trio_admitted": 11,
+            "genuine_win_starters": 40,
+            "distinct_ordered_pairs": 62,
+            "distinct_unordered_trios": 58,
+            "rank_if_winner_given_le_cap": 15,
+            "rank_if_ordered_pair_given_le_cap": 24,
+            "rank_if_unordered_trio_given_le_cap": 23,
+            "first_failure": {
+              "winner_present_correct_second_missing": 7,
+              "exact_trifecta": 7,
+              "winner_only_in_lower_positions": 5,
+              "correct_ordered_pair_third_missing": 3,
+              "winner_absent_from_tickets": 2
+            },
+            "trio_disjoint": {
+              "winner_only_correct_pair_and_trio_absent": 4,
+              "exact_trifecta": 7,
+              "reversed_pair_trio_absent": 1,
+              "correct_trio_other_order": 4,
+              "winner_in_first_pair_and_trio_all_absent": 5,
+              "correct_pair_wrong_third_trio_absent": 3
+            }
+          }
+        },
+        "original_ranking": {
+          "minimum_fixed_k_for_observed_95_pct": 45,
+          "threshold_hits": 23,
+          "max_actual_rank": 107,
+          "covered": {
+            "1": 2,
+            "4": 6,
+            "8": 11,
+            "16": 13,
+            "24": 18,
+            "32": 19,
+            "50": 23,
+            "100": 23
+          }
+        },
+        "known_winner": {
+          "minimum_fixed_k_for_observed_95_pct": 14,
+          "threshold_hits": 23,
+          "max_actual_rank": 17,
+          "covered": {
+            "1": 4,
+            "4": 14,
+            "8": 16,
+            "16": 23,
+            "24": 24,
+            "32": 24,
+            "50": 24,
+            "100": 24
+          }
+        },
+        "known_ordered_pair": {
+          "minimum_fixed_k_for_observed_95_pct": 4,
+          "threshold_hits": 23,
+          "max_actual_rank": 4,
+          "covered": {
+            "1": 11,
+            "4": 24,
+            "8": 24,
+            "16": 24,
+            "24": 24,
+            "32": 24,
+            "50": 24,
+            "100": 24
+          }
+        },
+        "known_unordered_trio": {
+          "minimum_fixed_k_for_observed_95_pct": 4,
+          "threshold_hits": 23,
+          "max_actual_rank": 5,
+          "covered": {
+            "1": 7,
+            "4": 23,
+            "8": 24,
+            "16": 24,
+            "24": 24,
+            "32": 24,
+            "50": 24,
+            "100": 24
+          }
+        }
+      },
+      "same": {
+        "races": 131,
+        "per_budget": {
+          "1": {
+            "exact": 28,
+            "winner_admitted": 67,
+            "ordered_pair_admitted": 60,
+            "unordered_first_pair_admitted": 83,
+            "unordered_trio_admitted": 47,
+            "genuine_win_starters": 131,
+            "distinct_ordered_pairs": 131,
+            "distinct_unordered_trios": 131,
+            "rank_if_winner_given_le_cap": 56,
+            "rank_if_ordered_pair_given_le_cap": 66,
+            "rank_if_unordered_trio_given_le_cap": 84,
+            "first_failure": {
+              "winner_present_correct_second_missing": 7,
+              "exact_trifecta": 28,
+              "correct_ordered_pair_third_missing": 32,
+              "winner_absent_from_tickets": 30,
+              "winner_only_in_lower_positions": 34
+            },
+            "trio_disjoint": {
+              "correct_trio_other_order": 19,
+              "exact_trifecta": 28,
+              "correct_pair_wrong_third_trio_absent": 32,
+              "winner_in_first_pair_and_trio_all_absent": 35,
+              "reversed_pair_trio_absent": 11,
+              "winner_only_correct_pair_and_trio_absent": 6
+            }
+          },
+          "4": {
+            "exact": 73,
+            "winner_admitted": 106,
+            "ordered_pair_admitted": 98,
+            "unordered_first_pair_admitted": 103,
+            "unordered_trio_admitted": 85,
+            "genuine_win_starters": 278,
+            "distinct_ordered_pairs": 321,
+            "distinct_unordered_trios": 351,
+            "rank_if_winner_given_le_cap": 109,
+            "rank_if_ordered_pair_given_le_cap": 127,
+            "rank_if_unordered_trio_given_le_cap": 128,
+            "first_failure": {
+              "exact_trifecta": 73,
+              "correct_ordered_pair_third_missing": 25,
+              "winner_absent_from_tickets": 9,
+              "winner_only_in_lower_positions": 16,
+              "winner_present_correct_second_missing": 8
+            },
+            "trio_disjoint": {
+              "exact_trifecta": 73,
+              "correct_pair_wrong_third_trio_absent": 24,
+              "winner_in_first_pair_and_trio_all_absent": 18,
+              "correct_trio_other_order": 12,
+              "reversed_pair_trio_absent": 1,
+              "winner_only_correct_pair_and_trio_absent": 3
+            }
+          },
+          "8": {
+            "exact": 90,
+            "winner_admitted": 114,
+            "ordered_pair_admitted": 109,
+            "unordered_first_pair_admitted": 113,
+            "unordered_trio_admitted": 100,
+            "genuine_win_starters": 358,
+            "distinct_ordered_pairs": 545,
+            "distinct_unordered_trios": 596,
+            "rank_if_winner_given_le_cap": 127,
+            "rank_if_ordered_pair_given_le_cap": 131,
+            "rank_if_unordered_trio_given_le_cap": 131,
+            "first_failure": {
+              "exact_trifecta": 90,
+              "correct_ordered_pair_third_missing": 19,
+              "winner_only_in_lower_positions": 15,
+              "winner_present_correct_second_missing": 5,
+              "winner_absent_from_tickets": 2
+            },
+            "trio_disjoint": {
+              "exact_trifecta": 90,
+              "correct_pair_wrong_third_trio_absent": 15,
+              "winner_in_first_pair_and_trio_all_absent": 12,
+              "correct_trio_other_order": 10,
+              "reversed_pair_trio_absent": 2,
+              "winner_only_correct_pair_and_trio_absent": 2
+            }
+          },
+          "displayed": {
+            "exact": 73,
+            "winner_admitted": 106,
+            "ordered_pair_admitted": 98,
+            "unordered_first_pair_admitted": 103,
+            "unordered_trio_admitted": 86,
+            "genuine_win_starters": 283,
+            "distinct_ordered_pairs": 335,
+            "distinct_unordered_trios": 370,
+            "rank_if_winner_given_le_cap": 109,
+            "rank_if_ordered_pair_given_le_cap": 127,
+            "rank_if_unordered_trio_given_le_cap": 129,
+            "first_failure": {
+              "exact_trifecta": 73,
+              "correct_ordered_pair_third_missing": 25,
+              "winner_absent_from_tickets": 8,
+              "winner_only_in_lower_positions": 17,
+              "winner_present_correct_second_missing": 8
+            },
+            "trio_disjoint": {
+              "exact_trifecta": 73,
+              "correct_pair_wrong_third_trio_absent": 24,
+              "winner_in_first_pair_and_trio_all_absent": 17,
+              "correct_trio_other_order": 13,
+              "reversed_pair_trio_absent": 1,
+              "winner_only_correct_pair_and_trio_absent": 3
+            }
+          }
+        },
+        "original_ranking": {
+          "minimum_fixed_k_for_observed_95_pct": 53,
+          "threshold_hits": 125,
+          "max_actual_rank": 107,
+          "covered": {
+            "1": 28,
+            "4": 73,
+            "8": 90,
+            "16": 109,
+            "24": 116,
+            "32": 122,
+            "50": 124,
+            "100": 130
+          }
+        },
+        "known_winner": {
+          "minimum_fixed_k_for_observed_95_pct": 6,
+          "threshold_hits": 125,
+          "max_actual_rank": 15,
+          "covered": {
+            "1": 56,
+            "4": 109,
+            "8": 127,
+            "16": 131,
+            "24": 131,
+            "32": 131,
+            "50": 131,
+            "100": 131
+          }
+        },
+        "known_ordered_pair": {
+          "minimum_fixed_k_for_observed_95_pct": 4,
+          "threshold_hits": 125,
+          "max_actual_rank": 5,
+          "covered": {
+            "1": 66,
+            "4": 127,
+            "8": 131,
+            "16": 131,
+            "24": 131,
+            "32": 131,
+            "50": 131,
+            "100": 131
+          }
+        },
+        "known_unordered_trio": {
+          "minimum_fixed_k_for_observed_95_pct": 3,
+          "threshold_hits": 125,
+          "max_actual_rank": 5,
+          "covered": {
+            "1": 84,
+            "4": 128,
+            "8": 131,
+            "16": 131,
+            "24": 131,
+            "32": 131,
+            "50": 131,
+            "100": 131
+          }
+        }
+      },
+      "unknown": {
+        "races": 14,
+        "per_budget": {
+          "1": {
+            "exact": 0,
+            "winner_admitted": 8,
+            "ordered_pair_admitted": 4,
+            "unordered_first_pair_admitted": 5,
+            "unordered_trio_admitted": 1,
+            "genuine_win_starters": 14,
+            "distinct_ordered_pairs": 14,
+            "distinct_unordered_trios": 14,
+            "rank_if_winner_given_le_cap": 1,
+            "rank_if_ordered_pair_given_le_cap": 2,
+            "rank_if_unordered_trio_given_le_cap": 7,
+            "first_failure": {
+              "winner_only_in_lower_positions": 2,
+              "winner_present_correct_second_missing": 4,
+              "correct_ordered_pair_third_missing": 4,
+              "winner_absent_from_tickets": 4
+            },
+            "trio_disjoint": {
+              "correct_trio_other_order": 1,
+              "winner_in_first_pair_and_trio_all_absent": 5,
+              "winner_only_correct_pair_and_trio_absent": 4,
+              "correct_pair_wrong_third_trio_absent": 4
+            }
+          },
+          "4": {
+            "exact": 4,
+            "winner_admitted": 10,
+            "ordered_pair_admitted": 7,
+            "unordered_first_pair_admitted": 7,
+            "unordered_trio_admitted": 5,
+            "genuine_win_starters": 24,
+            "distinct_ordered_pairs": 37,
+            "distinct_unordered_trios": 32,
+            "rank_if_winner_given_le_cap": 9,
+            "rank_if_ordered_pair_given_le_cap": 13,
+            "rank_if_unordered_trio_given_le_cap": 13,
+            "first_failure": {
+              "exact_trifecta": 4,
+              "winner_present_correct_second_missing": 3,
+              "winner_absent_from_tickets": 4,
+              "correct_ordered_pair_third_missing": 3
+            },
+            "trio_disjoint": {
+              "exact_trifecta": 4,
+              "winner_only_correct_pair_and_trio_absent": 2,
+              "correct_trio_other_order": 1,
+              "winner_in_first_pair_and_trio_all_absent": 4,
+              "correct_pair_wrong_third_trio_absent": 3
+            }
+          },
+          "8": {
+            "exact": 7,
+            "winner_admitted": 10,
+            "ordered_pair_admitted": 10,
+            "unordered_first_pair_admitted": 10,
+            "unordered_trio_admitted": 7,
+            "genuine_win_starters": 29,
+            "distinct_ordered_pairs": 63,
+            "distinct_unordered_trios": 48,
+            "rank_if_winner_given_le_cap": 12,
+            "rank_if_ordered_pair_given_le_cap": 14,
+            "rank_if_unordered_trio_given_le_cap": 14,
+            "first_failure": {
+              "exact_trifecta": 7,
+              "correct_ordered_pair_third_missing": 3,
+              "winner_only_in_lower_positions": 3,
+              "winner_absent_from_tickets": 1
+            },
+            "trio_disjoint": {
+              "exact_trifecta": 7,
+              "correct_pair_wrong_third_trio_absent": 3,
+              "winner_in_first_pair_and_trio_all_absent": 4
+            }
+          },
+          "displayed": {
+            "exact": 4,
+            "winner_admitted": 10,
+            "ordered_pair_admitted": 7,
+            "unordered_first_pair_admitted": 7,
+            "unordered_trio_admitted": 5,
+            "genuine_win_starters": 24,
+            "distinct_ordered_pairs": 40,
+            "distinct_unordered_trios": 33,
+            "rank_if_winner_given_le_cap": 9,
+            "rank_if_ordered_pair_given_le_cap": 13,
+            "rank_if_unordered_trio_given_le_cap": 13,
+            "first_failure": {
+              "exact_trifecta": 4,
+              "winner_present_correct_second_missing": 3,
+              "winner_absent_from_tickets": 4,
+              "correct_ordered_pair_third_missing": 3
+            },
+            "trio_disjoint": {
+              "exact_trifecta": 4,
+              "winner_only_correct_pair_and_trio_absent": 2,
+              "correct_trio_other_order": 1,
+              "winner_in_first_pair_and_trio_all_absent": 4,
+              "correct_pair_wrong_third_trio_absent": 3
+            }
+          }
+        },
+        "original_ranking": {
+          "minimum_fixed_k_for_observed_95_pct": 108,
+          "threshold_hits": 14,
+          "max_actual_rank": 108,
+          "covered": {
+            "1": 0,
+            "4": 4,
+            "8": 7,
+            "16": 8,
+            "24": 8,
+            "32": 9,
+            "50": 11,
+            "100": 13
+          }
+        },
+        "known_winner": {
+          "minimum_fixed_k_for_observed_95_pct": 25,
+          "threshold_hits": 14,
+          "max_actual_rank": 25,
+          "covered": {
+            "1": 1,
+            "4": 9,
+            "8": 12,
+            "16": 13,
+            "24": 13,
+            "32": 14,
+            "50": 14,
+            "100": 14
+          }
+        },
+        "known_ordered_pair": {
+          "minimum_fixed_k_for_observed_95_pct": 5,
+          "threshold_hits": 14,
+          "max_actual_rank": 5,
+          "covered": {
+            "1": 2,
+            "4": 13,
+            "8": 14,
+            "16": 14,
+            "24": 14,
+            "32": 14,
+            "50": 14,
+            "100": 14
+          }
+        },
+        "known_unordered_trio": {
+          "minimum_fixed_k_for_observed_95_pct": 5,
+          "threshold_hits": 14,
+          "max_actual_rank": 5,
+          "covered": {
+            "1": 7,
+            "4": 13,
+            "8": 14,
+            "16": 14,
+            "24": 14,
+            "32": 14,
+            "50": 14,
+            "100": 14
+          }
+        }
+      }
+    }
+  },
+  "different_line_runner_up_vs_observed_last_back": {
+    "scope": "Historical diagnostic only. Actual last-back leader and top-two used to group decisions. 2026-05-24 through 11-20, only multiple lines known and different lines first two. Uses original rolling population baseline.",
+    "arrays_sha256": "5a2235b92a872a7938d47b6e2cc09174d71b3276e5eff9c03f37861fd0e5d768",
+    "original_forecast_sha256": "ec44cd2347071bdee7b29a24d1b0ddeffa6ef78265e304628199f97246cdb692",
+    "branches": {
+      "all|back_leading_line_wins_second_elsewhere": {
+        "races": 1896,
+        "B_rider_exact_second": 0,
+        "B_rider_exact_first": 1039,
+        "baseline_winner_4": 1180,
+        "baseline_pair_4": 214,
+        "baseline_trifecta_4": 98,
+        "baseline_winner_8": 1401,
+        "baseline_pair_8": 488,
+        "baseline_trifecta_8": 263
+      },
+      "all|back_leading_line_second_winner_elsewhere": {
+        "races": 1546,
+        "B_rider_exact_second": 667,
+        "B_rider_exact_first": 0,
+        "baseline_winner_4": 787,
+        "baseline_pair_4": 157,
+        "baseline_trifecta_4": 66,
+        "baseline_winner_8": 970,
+        "baseline_pair_8": 342,
+        "baseline_trifecta_8": 164
+      },
+      "all|both_from_other_lines": {
+        "races": 754,
+        "B_rider_exact_second": 0,
+        "B_rider_exact_first": 0,
+        "baseline_winner_4": 359,
+        "baseline_pair_4": 83,
+        "baseline_trifecta_4": 28,
+        "baseline_winner_8": 438,
+        "baseline_pair_8": 163,
+        "baseline_trifecta_8": 63
+      },
+      "verified_pre_cutoff|back_leading_line_wins_second_elsewhere": {
+        "races": 58,
+        "B_rider_exact_second": 0,
+        "B_rider_exact_first": 33,
+        "baseline_winner_4": 36,
+        "baseline_pair_4": 10,
+        "baseline_trifecta_4": 6,
+        "baseline_winner_8": 43,
+        "baseline_pair_8": 14,
+        "baseline_trifecta_8": 10
+      },
+      "verified_pre_cutoff|back_leading_line_second_winner_elsewhere": {
+        "races": 40,
+        "B_rider_exact_second": 22,
+        "B_rider_exact_first": 0,
+        "baseline_winner_4": 19,
+        "baseline_pair_4": 4,
+        "baseline_trifecta_4": 0,
+        "baseline_winner_8": 29,
+        "baseline_pair_8": 12,
+        "baseline_trifecta_8": 7
+      },
+      "verified_pre_cutoff|both_from_other_lines": {
+        "races": 25,
+        "B_rider_exact_second": 0,
+        "B_rider_exact_first": 0,
+        "baseline_winner_4": 12,
+        "baseline_pair_4": 2,
+        "baseline_trifecta_4": 1,
+        "baseline_winner_8": 16,
+        "baseline_pair_8": 5,
+        "baseline_trifecta_8": 2
+      }
+    }
+  }
+}

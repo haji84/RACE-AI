@@ -1,0 +1,43 @@
+{
+  "schema": "KEIRIN_CURRENT_RIDER_PROFILE_CENSUS_V1",
+  "registry_version_jst": "2026-11-18T02:37:00+09:00",
+  "registry_total": 2416,
+  "source_range_jst": [
+    "20231124",
+    "20261123"
+  ],
+  "last_admitted_historical_race_day_jst": "20261122",
+  "dated_official_registrations_with_history": {
+    "at_least_one": 2371,
+    "at_least_three": 2371,
+    "last365_at_least_three": 2371,
+    "last60_at_least_three": 2317,
+    "role_at_least_three": 2371,
+    "same_track_at_least_three": 2370,
+    "s_observed": 2371,
+    "b_observed": 2371
+  },
+  "under_three_by_registry_class": {
+    "A級2班": 6,
+    "S級2班": 7,
+    "A級1班": 4,
+    "A級3班": 1,
+    "S級1班": 1,
+    "L級1班": 26
+  },
+  "races_in_monthly_archive": 80388,
+  "source_result_observations": {
+    "eligible_prior_races": 75923,
+    "eligible_csv_races": 47543,
+    "eligible_rider_rows": 538450,
+    "used_rider_rows": 507388,
+    "speed_rows": 505034,
+    "role_rows": 187316,
+    "actual_s_rows": 186226,
+    "actual_b_rows": 197147,
+    "incomplete_earlier_fields": 6483,
+    "unbound_rider_rows": 31062,
+    "eligible_sql_races": 28380
+  },
+  "profile_list_private_sha256": "a590a38880c72fce491a5e58e257eebe89d4a48def3c67a6a3aa833e5da63382"
+}

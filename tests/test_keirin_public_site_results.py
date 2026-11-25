@@ -9,7 +9,7 @@ import shutil
 import subprocess
 from tempfile import TemporaryDirectory
 import unittest
-from unittest.mock import patch
+from unittest.mock import Mock, patch
 from urllib.error import HTTPError
 
 from race_ai import keirin_secondary_result_consensus as consensus
@@ -34,6 +34,30 @@ def roster(races):
 
 def snapshot(entries):
     return {'schema':'KEIRIN_PUBLISHED_RESULTS_V1','date':DATE,'checked_at':'2026-11-23T01:04:00Z','races':entries}
+
+
+def kd_result(*, payout=True):
+    table = '''<table class="refund_table">
+        <tr><th>2枠連</th><th>2車連</th><th>3連勝</th><th>ワイド</th></tr>
+        <tr><td>単</td><td></td><td>単</td><td>1-2 780円</td><td>単</td><td>1-2-4 2,110円</td></tr>
+        </table>''' if payout else ''
+    return f'<title>広島競輪 2026年11月23日 1R 結果</title><div>払戻</div>{table}'.encode()
+
+
+def net_result(*, finish='', cancel=False, refund=False, podium='1-2-4'):
+    two, three = ('','') if refund else ('1-2',podium)
+    two_yen, three_yen = ('返還','返還') if refund else ('780円','2,110円')
+    cancellation = '<div class="Race_Infomation_Box">本レースは中止となりました。</div>' if cancel else ''
+    return f'''<title>広島競輪 2026年11月23日 1R 結果</title><div>払戻</div>{cancellation}{finish}
+    <table class="Payout_Detail_Table"><tr><th>2車単</th><td class="Result">{two}</td><td class="Payout">{two_yen}</td></tr>
+      <tr><th>3連単</th><td class="Result">{three}</td><td class="Payout">{three_yen}</td></tr></table>'''.encode()
+
+
+def finish_table(*, mark_car=5, last_car=7):
+    rows = ''.join(f'<tr><td>{rank}着</td><td></td><td>{car}</td><td></td><td>{"同着" if car==mark_car else ""}</td></tr>'
+                   for rank,car in [(1,1),(2,2),(3,4),(4,3),(4,5),(6,6),(7,last_car)])
+    return '''<table class="RaceCard_Table ResultRefund"><tr>
+      <th>着</th><th>枠番</th><th>車番</th><th>選手名</th><th>着差</th></tr>'''+rows+'</table>'
 
 
 class PublicResultRefreshTests(unittest.TestCase):
@@ -96,6 +120,59 @@ class PublicResultRefreshTests(unittest.TestCase):
                 self.assertEqual(data['races'][0]['state'], 'held')
                 self.assertEqual(data['races'][0]['reason'], expected)
 
+    def test_complete_labeled_lower_finish_tie_remains_held_even_with_normal_payouts(self):
+        for page, reason, code in [
+            (net_result(finish=finish_table()), 'special_result', 'SPECIAL_LOWER_FINISH_TIE'),
+            (net_result(finish=finish_table(mark_car=6)), 'source_disagreement', 'RESULT_SPECIAL_NOTICE_UNCONFIRMED'),
+            (net_result(finish=finish_table(last_car=8)), 'source_disagreement', 'RESULT_SPECIAL_NOTICE_UNCONFIRMED'),
+            (net_result(finish=finish_table(),podium='1-2-5'), 'source_disagreement', 'RESULT_SPECIAL_NOTICE_UNCONFIRMED'),
+            (net_result(finish=finish_table()).replace(b'2,110', b'2,220'),
+             'source_disagreement', 'RESULT_SPECIAL_NOTICE_UNCONFIRMED'),
+            (net_result(finish=finish_table())+net_result(podium='1-2-5'),
+             'source_disagreement', 'RESULT_SPECIAL_NOTICE_UNCONFIRMED'),
+            (net_result(finish=finish_table())+'<p>3連単 1-2-5 2,110円</p>'.encode(),
+             'source_disagreement', 'RESULT_SPECIAL_NOTICE_UNCONFIRMED'),
+        ]:
+            with self.subTest(reason=reason, case=code):
+                responses = iter([kd_result(), page])
+                data,evidence = publisher.collect(roster([race(0)]), lambda _:next(responses), consensus, now=NOW)
+                self.assertEqual(data['races'],[{'race_id':IDS[0],'state':'held','reason':reason}])
+                self.assertEqual(evidence[-1]['code'],code)
+
+    def test_existing_pending_race_can_be_held_for_a_structured_cancellation(self):
+        for cancel,refund,state,reason in [(True,True,'held','special_result'),(False,True,'pending','result_unpublished'),
+                                           (True,False,'pending','result_unpublished'),(False,False,'pending','result_unpublished')]:
+            with self.subTest(cancel=cancel,refund=refund):
+                fetch=Mock(side_effect=[kd_result(payout=False),net_result(cancel=cancel,refund=refund)])
+                prior=snapshot([{'race_id':IDS[0],'state':'pending','reason':'result_unpublished'}])
+                data,_=publisher.collect(roster([race(0)]),fetch,consensus,previous=prior,now=NOW)
+                self.assertEqual(fetch.call_count,2)
+                self.assertEqual(data['races'],[{'race_id':IDS[0],'state':state,'reason':reason}])
+
+    def test_cancellation_probe_requires_an_existing_pending_state(self):
+        fetch = Mock(return_value=kd_result(payout=False))
+        prior = snapshot([{'race_id':IDS[0],'state':'held','reason':'result_unpublished'}])
+        data, _ = publisher.collect(roster([race(0)]), fetch, consensus, previous=prior, now=NOW)
+        fetch.assert_called_once()
+        self.assertEqual(data['races'], [{'race_id':IDS[0],'state':'pending','reason':'result_unpublished'}])
+
+    def test_secondary_denial_during_pending_follow_up_stops_other_requests(self):
+        fetch=Mock(side_effect=[kd_result(payout=False),capture.SourceCaptureError(
+            'PROVIDER_DENIED_OR_RATE_LIMITED_STOP',http_status=403)])
+        prior=snapshot([{'race_id':IDS[0],'state':'pending','reason':'result_unpublished'}])
+        data,evidence=publisher.collect(roster([race(0),race(1)]),fetch,consensus,previous=prior,now=NOW)
+        self.assertEqual(fetch.call_count,2)
+        self.assertEqual(evidence[-1]['provider_pause'],{'status':403,'retry_at':None})
+        self.assertTrue(all(row['reason']=='source_unavailable' for row in data['races']))
+
+    def test_pending_cancellation_probe_respects_the_remaining_poll_budget(self):
+        fetch=Mock(return_value=kd_result(payout=False))
+        prior=snapshot([{'race_id':IDS[0],'state':'pending','reason':'result_unpublished'}])
+        data,_=publisher.collect(roster([race(0)]),fetch,consensus,previous=prior,now=NOW,
+                                 can_poll=Mock(side_effect=[True,False]))
+        fetch.assert_called_once()
+        self.assertEqual(data['races'],prior['races'])
+
     def test_rate_limit_persists_between_polls_until_retry_after(self):
         with TemporaryDirectory() as directory:
             state = Path(directory)
@@ -117,6 +194,42 @@ class PublicResultRefreshTests(unittest.TestCase):
                 request.side_effect = HTTPError('https://keirin.kdreams.jp/', 404, 'fixture', {}, None)
                 self.assertEqual(publisher.main(), 0)
                 self.assertEqual(request.call_count, 2)
+
+    def test_busy_jst_day_checks_its_new_races_and_gives_older_days_a_turn(self):
+        with TemporaryDirectory() as directory:
+            state = Path(directory)
+            (state / 'rosters').mkdir()
+            days = (DATE, '2026-11-20', '2026-11-21')
+            for day in days:
+                rows = []
+                for i in range(3):
+                    number = i + 1
+                    compact = day.replace('-', '')
+                    row = race(i, day + 'T00:10:00+09:00')
+                    row.update(date=day, race_id=f'{compact}62{number:02}',
+                               source_url=f'https://keirin.kdreams.jp/hiroshima/racedetail/62{compact}0100{number:02}/')
+                    rows.append(row)
+                manifest = dict(roster(rows), date=day, generated_at=day + 'T00:00:00+09:00')
+                (state / 'rosters' / (day + '.json')).write_text(json.dumps(manifest))
+            calls = []
+
+            def unresolved(row, *args):
+                calls.append(row['race_id'])
+                raise ValueError('PAYOUT_NOT_PUBLISHED')
+
+            # At 00:30 JST it is still the previous UTC day. Simulated slow reads
+            # make the three dates compete for the same finite job budget.
+            with (patch('sys.argv', ['publisher', '--state-directory', directory]),
+                  patch.object(publisher, 'datetime', wraps=datetime) as clock,
+                  patch.object(publisher.time, 'monotonic', side_effect=lambda: len(calls) * 190),
+                  patch.object(publisher, 'observe', side_effect=unresolved),
+                  redirect_stdout(io.StringIO())):
+                clock.now.return_value = datetime.fromisoformat('2026-11-22T15:30:00+00:00')
+                self.assertEqual(publisher.main(), 0)
+                self.assertEqual(calls, ['202611236201', '202611236202', '202611206201'])
+                clock.now.return_value += timedelta(minutes=15)
+                self.assertEqual(publisher.main(), 0)
+                self.assertEqual(calls[3:], ['202611236203', '202611236201', '202611216201'])
 
     def test_budget_preserves_earlier_rows_and_resumes_with_the_next_race(self):
         match = {'race_id': IDS[2], 'state': 'matched', 'comparison': {'race_id': IDS[2]}}
@@ -156,7 +269,9 @@ class PublicResultRefreshTests(unittest.TestCase):
             git('init', '-b', state_ref, str(checkout))
             (checkout / 'rosters').mkdir()
             cutoff = (datetime.now(timezone.utc) + timedelta(days=1)).isoformat()
-            (checkout / 'rosters' / f'{DATE}.json').write_text(json.dumps(roster([race(0, cutoff)])))
+            fixture = root / f'{DATE}.json'
+            fixture.write_text(json.dumps(roster([race(0, cutoff)])))
+            (checkout / 'rosters' / '.gitkeep').touch()
             git('add', 'rosters', cwd=checkout)
             git('-c', 'user.name=Fixture', '-c', 'user.email=fixture@example.invalid',
                 'commit', '-m', 'Fixture roster', cwd=checkout)
@@ -165,9 +280,19 @@ class PublicResultRefreshTests(unittest.TestCase):
 
             summary = runner_temp / 'summary'
             env = {**os.environ, 'RUNNER_TEMP': str(runner_temp), 'GITHUB_STEP_SUMMARY': str(summary),
-                   'PYTHONPATH': str(repo)}
-            # Advance the real Bash clock in the fixture so both polls run immediately.
-            command = 'sleep() { SECONDS=$((SECONDS + $1)); }; source "$1" 16'
+                   'PYTHONPATH': str(repo), 'ROSTER_FIXTURE': str(fixture)}
+            # Supply one public day so the shell test exercises registration, commit and the next poll offline.
+            command = '''
+              python() {
+                if [[ "$2" == scripts.keirin_public_site_rosters ]]; then
+                  cp "$ROSTER_FIXTURE" "$4/rosters/"
+                else
+                  command python "$@"
+                fi
+              }
+              sleep() { SECONDS=$((SECONDS + $1)); }
+              source "$1" --discover 16
+            '''
             result = subprocess.run(['bash', '-c', command, 'test-watch',
                                      str(repo / 'scripts/keirin_publish_public_site_results.sh')],
                                     cwd=checkout, env=env, text=True, capture_output=True, timeout=30)
@@ -176,6 +301,8 @@ class PublicResultRefreshTests(unittest.TestCase):
             self.assertEqual([poll['updated'] for poll in polls], [True, False])
             stored = git('--git-dir', str(remote), 'show', f'{state_ref}:results/{DATE}.json')
             self.assertEqual(json.loads(stored)['races'], [])
+            manifest = git('--git-dir', str(remote), 'show', f'{state_ref}:rosters/{DATE}.json')
+            self.assertEqual(json.loads(manifest), json.loads(fixture.read_bytes()))
 
     def test_watch_reports_completion_only_after_all_published_races_are_resolved(self):
         special = {'race_id': IDS[0], 'state': 'held', 'reason': 'special_result'}

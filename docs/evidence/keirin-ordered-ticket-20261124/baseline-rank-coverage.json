@@ -1,0 +1,918 @@
+{
+  "schema": "KEIRIN_PUBLISHED_LINE_TRIFECTA_RANK_COVERAGE_V1",
+  "post_hoc": true,
+  "forecast_witness_commit": "894b7e6f4b89863fce791ace143e2ad29098152c",
+  "forecast_witness_ci": "45226157211",
+  "forecast_witness_ci_created_at": "2026-11-23T17:18:07Z",
+  "forecast_commitment_sha256": "4945215f2ab271e0dea67213a01d0faa44a37c7a4b678466829c7eb9df1787a6",
+  "diagnostic_source_sha256": "33690b8996f3f549cf306acf5e2c5d84e0764e19ebcd8f4eb418f0c527d77fe6",
+  "input_sha256": "4d0d9719e50fdaef160a2bbc8e029ea0f95fc74fcba87f61bf29dfd2b3f0482b",
+  "configuration_sha256": "204b42c315a562f24c5a9409c09d98e14c680e935db8bb41e3ec3abbea3e11ba",
+  "november_23_result": {
+    "label_source_commit": "37bda18979e902650c139e24e13dcfbf764cf1b3",
+    "checked_at": "2026-11-23T15:55:02.503459+00:00",
+    "matched_within_study": 86
+  },
+  "ticket_caps_are_fixed_top_n_in_full_legal_baseline_ranking": true,
+  "subsets": {
+    "all": {
+      "scored": 3582,
+      "multiple_gold_order_races": 23,
+      "coverage_by_tickets": {
+        "1": {
+          "hits": 286,
+          "total": 3582,
+          "percent": 7.9844
+        },
+        "4": {
+          "hits": 842,
+          "total": 3582,
+          "percent": 23.5064
+        },
+        "8": {
+          "hits": 1323,
+          "total": 3582,
+          "percent": 36.9347
+        },
+        "16": {
+          "hits": 1837,
+          "total": 3582,
+          "percent": 51.2842
+        },
+        "24": {
+          "hits": 2174,
+          "total": 3582,
+          "percent": 60.6924
+        },
+        "32": {
+          "hits": 2401,
+          "total": 3582,
+          "percent": 67.0296
+        },
+        "48": {
+          "hits": 2757,
+          "total": 3582,
+          "percent": 76.9682
+        },
+        "64": {
+          "hits": 2986,
+          "total": 3582,
+          "percent": 83.3613
+        }
+      },
+      "winning_order_rank_median": 16.0,
+      "minimum_tickets_for_observed_90_percent": 96,
+      "minimum_correct_races_for_90_percent": 3224,
+      "coverage_just_below_90_percent_cut": {
+        "hits": 3220,
+        "total": 3582,
+        "percent": 89.8939
+      },
+      "coverage_at_90_percent_cut": {
+        "hits": 3229,
+        "total": 3582,
+        "percent": 90.1452
+      },
+      "at_eight": {
+        "states": {
+          "hit": 1323,
+          "winner_missed": 1004,
+          "winner_present_pair_missed": 830,
+          "pair_present_third_missed": 425
+        },
+        "true_winner_present": {
+          "hits": 2578,
+          "total": 3582,
+          "percent": 71.971
+        },
+        "true_first_two_prefix_present": {
+          "hits": 1748,
+          "total": 3582,
+          "percent": 48.7996
+        },
+        "true_third_missed_conditioning_on_true_prefix_present": {
+          "hits": 425,
+          "total": 1748,
+          "percent": 24.3135
+        },
+        "mean_distinct_ordered_pairs": 3.2521,
+        "distinct_ordered_pairs_distribution": {
+          "2": 902,
+          "3": 1332,
+          "4": 980,
+          "5": 291,
+          "6": 65,
+          "7": 12
+        },
+        "mean_tickets_on_true_pair_when_present": 3.1722,
+        "true_third_conditional_rank_when_pair_present": {
+          "1": 587,
+          "2": 448,
+          "3": 294,
+          "4": 241,
+          "5": 156,
+          "6": 13,
+          "7": 9
+        },
+        "true_first_two_among_top8_standalone_pair_ranking": {
+          "hits": 2501,
+          "total": 3582,
+          "percent": 69.8213
+        },
+        "true_first_two_top8_standalone_pair_and_true_third_is_conditional_top1": {
+          "hits": 861,
+          "total": 3582,
+          "percent": 24.0369
+        },
+        "additional_hits_to_reach_90_percent": 1901,
+        "additional_prefix_hits_needed_even_with_perfect_third": 1476
+      }
+    },
+    "dated_pre_cutoff": {
+      "scored": 557,
+      "multiple_gold_order_races": 2,
+      "coverage_by_tickets": {
+        "1": {
+          "hits": 47,
+          "total": 557,
+          "percent": 8.4381
+        },
+        "4": {
+          "hits": 125,
+          "total": 557,
+          "percent": 22.4417
+        },
+        "8": {
+          "hits": 206,
+          "total": 557,
+          "percent": 36.9838
+        },
+        "16": {
+          "hits": 289,
+          "total": 557,
+          "percent": 51.8851
+        },
+        "24": {
+          "hits": 354,
+          "total": 557,
+          "percent": 63.5548
+        },
+        "32": {
+          "hits": 384,
+          "total": 557,
+          "percent": 68.9408
+        },
+        "48": {
+          "hits": 427,
+          "total": 557,
+          "percent": 76.6607
+        },
+        "64": {
+          "hits": 456,
+          "total": 557,
+          "percent": 81.8671
+        }
+      },
+      "winning_order_rank_median": 16,
+      "minimum_tickets_for_observed_90_percent": 96,
+      "minimum_correct_races_for_90_percent": 502,
+      "coverage_just_below_90_percent_cut": {
+        "hits": 500,
+        "total": 557,
+        "percent": 89.7666
+      },
+      "coverage_at_90_percent_cut": {
+        "hits": 503,
+        "total": 557,
+        "percent": 90.3052
+      },
+      "at_eight": {
+        "states": {
+          "winner_missed": 145,
+          "winner_present_pair_missed": 144,
+          "hit": 206,
+          "pair_present_third_missed": 62
+        },
+        "true_winner_present": {
+          "hits": 412,
+          "total": 557,
+          "percent": 73.9677
+        },
+        "true_first_two_prefix_present": {
+          "hits": 268,
+          "total": 557,
+          "percent": 48.1149
+        },
+        "true_third_missed_conditioning_on_true_prefix_present": {
+          "hits": 62,
+          "total": 268,
+          "percent": 23.1343
+        },
+        "mean_distinct_ordered_pairs": 3.1059,
+        "distinct_ordered_pairs_distribution": {
+          "2": 165,
+          "3": 217,
+          "4": 132,
+          "5": 37,
+          "6": 6
+        },
+        "mean_tickets_on_true_pair_when_present": 3.2276,
+        "true_third_conditional_rank_when_pair_present": {
+          "1": 91,
+          "2": 72,
+          "3": 40,
+          "4": 39,
+          "5": 19,
+          "6": 5,
+          "7": 2
+        },
+        "true_first_two_among_top8_standalone_pair_ranking": {
+          "hits": 401,
+          "total": 557,
+          "percent": 71.9928
+        },
+        "true_first_two_top8_standalone_pair_and_true_third_is_conditional_top1": {
+          "hits": 148,
+          "total": 557,
+          "percent": 26.5709
+        },
+        "additional_hits_to_reach_90_percent": 296,
+        "additional_prefix_hits_needed_even_with_perfect_third": 234
+      }
+    },
+    "retrospective_programs": {
+      "scored": 3025,
+      "multiple_gold_order_races": 21,
+      "coverage_by_tickets": {
+        "1": {
+          "hits": 239,
+          "total": 3025,
+          "percent": 7.9008
+        },
+        "4": {
+          "hits": 717,
+          "total": 3025,
+          "percent": 23.7025
+        },
+        "8": {
+          "hits": 1117,
+          "total": 3025,
+          "percent": 36.9256
+        },
+        "16": {
+          "hits": 1548,
+          "total": 3025,
+          "percent": 51.1736
+        },
+        "24": {
+          "hits": 1820,
+          "total": 3025,
+          "percent": 60.1653
+        },
+        "32": {
+          "hits": 2017,
+          "total": 3025,
+          "percent": 66.6777
+        },
+        "48": {
+          "hits": 2330,
+          "total": 3025,
+          "percent": 77.0248
+        },
+        "64": {
+          "hits": 2530,
+          "total": 3025,
+          "percent": 83.6364
+        }
+      },
+      "winning_order_rank_median": 16,
+      "minimum_tickets_for_observed_90_percent": 96,
+      "minimum_correct_races_for_90_percent": 2723,
+      "coverage_just_below_90_percent_cut": {
+        "hits": 2720,
+        "total": 3025,
+        "percent": 89.9174
+      },
+      "coverage_at_90_percent_cut": {
+        "hits": 2726,
+        "total": 3025,
+        "percent": 90.1157
+      },
+      "at_eight": {
+        "states": {
+          "hit": 1117,
+          "winner_missed": 859,
+          "winner_present_pair_missed": 686,
+          "pair_present_third_missed": 363
+        },
+        "true_winner_present": {
+          "hits": 2166,
+          "total": 3025,
+          "percent": 71.6033
+        },
+        "true_first_two_prefix_present": {
+          "hits": 1480,
+          "total": 3025,
+          "percent": 48.9256
+        },
+        "true_third_missed_conditioning_on_true_prefix_present": {
+          "hits": 363,
+          "total": 1480,
+          "percent": 24.527
+        },
+        "mean_distinct_ordered_pairs": 3.279,
+        "distinct_ordered_pairs_distribution": {
+          "2": 737,
+          "3": 1115,
+          "4": 848,
+          "5": 254,
+          "6": 59,
+          "7": 12
+        },
+        "mean_tickets_on_true_pair_when_present": 3.1622,
+        "true_third_conditional_rank_when_pair_present": {
+          "1": 496,
+          "2": 376,
+          "3": 254,
+          "4": 202,
+          "5": 137,
+          "6": 8,
+          "7": 7
+        },
+        "true_first_two_among_top8_standalone_pair_ranking": {
+          "hits": 2100,
+          "total": 3025,
+          "percent": 69.4215
+        },
+        "true_first_two_top8_standalone_pair_and_true_third_is_conditional_top1": {
+          "hits": 713,
+          "total": 3025,
+          "percent": 23.5702
+        },
+        "additional_hits_to_reach_90_percent": 1606,
+        "additional_prefix_hits_needed_even_with_perfect_third": 1243
+      }
+    },
+    "november_23_two_source": {
+      "scored": 86,
+      "multiple_gold_order_races": 0,
+      "coverage_by_tickets": {
+        "1": {
+          "hits": 8,
+          "total": 86,
+          "percent": 9.3023
+        },
+        "4": {
+          "hits": 32,
+          "total": 86,
+          "percent": 37.2093
+        },
+        "8": {
+          "hits": 39,
+          "total": 86,
+          "percent": 45.3488
+        },
+        "16": {
+          "hits": 51,
+          "total": 86,
+          "percent": 59.3023
+        },
+        "24": {
+          "hits": 58,
+          "total": 86,
+          "percent": 67.4419
+        },
+        "32": {
+          "hits": 62,
+          "total": 86,
+          "percent": 72.093
+        },
+        "48": {
+          "hits": 64,
+          "total": 86,
+          "percent": 74.4186
+        },
+        "64": {
+          "hits": 71,
+          "total": 86,
+          "percent": 82.5581
+        }
+      },
+      "winning_order_rank_median": 10.0,
+      "minimum_tickets_for_observed_90_percent": 93,
+      "minimum_correct_races_for_90_percent": 78,
+      "coverage_just_below_90_percent_cut": {
+        "hits": 77,
+        "total": 86,
+        "percent": 89.5349
+      },
+      "coverage_at_90_percent_cut": {
+        "hits": 78,
+        "total": 86,
+        "percent": 90.6977
+      },
+      "at_eight": {
+        "states": {
+          "pair_present_third_missed": 10,
+          "winner_present_pair_missed": 18,
+          "hit": 39,
+          "winner_missed": 19
+        },
+        "true_winner_present": {
+          "hits": 67,
+          "total": 86,
+          "percent": 77.907
+        },
+        "true_first_two_prefix_present": {
+          "hits": 49,
+          "total": 86,
+          "percent": 56.9767
+        },
+        "true_third_missed_conditioning_on_true_prefix_present": {
+          "hits": 10,
+          "total": 49,
+          "percent": 20.4082
+        },
+        "mean_distinct_ordered_pairs": 3.1279,
+        "distinct_ordered_pairs_distribution": {
+          "2": 23,
+          "3": 35,
+          "4": 23,
+          "5": 4,
+          "6": 1
+        },
+        "mean_tickets_on_true_pair_when_present": 3.2653,
+        "true_third_conditional_rank_when_pair_present": {
+          "1": 17,
+          "2": 13,
+          "3": 9,
+          "4": 4,
+          "5": 5,
+          "6": 1
+        },
+        "true_first_two_among_top8_standalone_pair_ranking": {
+          "hits": 63,
+          "total": 86,
+          "percent": 73.2558
+        },
+        "true_first_two_top8_standalone_pair_and_true_third_is_conditional_top1": {
+          "hits": 26,
+          "total": 86,
+          "percent": 30.2326
+        },
+        "additional_hits_to_reach_90_percent": 39,
+        "additional_prefix_hits_needed_even_with_perfect_third": 29
+      }
+    },
+    "october": {
+      "scored": 1862,
+      "multiple_gold_order_races": 14,
+      "coverage_by_tickets": {
+        "1": {
+          "hits": 147,
+          "total": 1862,
+          "percent": 7.8947
+        },
+        "4": {
+          "hits": 443,
+          "total": 1862,
+          "percent": 23.7916
+        },
+        "8": {
+          "hits": 699,
+          "total": 1862,
+          "percent": 37.5403
+        },
+        "16": {
+          "hits": 945,
+          "total": 1862,
+          "percent": 50.7519
+        },
+        "24": {
+          "hits": 1117,
+          "total": 1862,
+          "percent": 59.9893
+        },
+        "32": {
+          "hits": 1228,
+          "total": 1862,
+          "percent": 65.9506
+        },
+        "48": {
+          "hits": 1418,
+          "total": 1862,
+          "percent": 76.1547
+        },
+        "64": {
+          "hits": 1547,
+          "total": 1862,
+          "percent": 83.0827
+        }
+      },
+      "winning_order_rank_median": 16.0,
+      "minimum_tickets_for_observed_90_percent": 98,
+      "minimum_correct_races_for_90_percent": 1676,
+      "coverage_just_below_90_percent_cut": {
+        "hits": 1675,
+        "total": 1862,
+        "percent": 89.957
+      },
+      "coverage_at_90_percent_cut": {
+        "hits": 1679,
+        "total": 1862,
+        "percent": 90.1719
+      },
+      "at_eight": {
+        "states": {
+          "hit": 699,
+          "winner_missed": 546,
+          "winner_present_pair_missed": 398,
+          "pair_present_third_missed": 219
+        },
+        "true_winner_present": {
+          "hits": 1316,
+          "total": 1862,
+          "percent": 70.6767
+        },
+        "true_first_two_prefix_present": {
+          "hits": 918,
+          "total": 1862,
+          "percent": 49.3018
+        },
+        "true_third_missed_conditioning_on_true_prefix_present": {
+          "hits": 219,
+          "total": 918,
+          "percent": 23.8562
+        },
+        "mean_distinct_ordered_pairs": 3.2701,
+        "distinct_ordered_pairs_distribution": {
+          "2": 455,
+          "3": 689,
+          "4": 526,
+          "5": 150,
+          "6": 36,
+          "7": 6
+        },
+        "mean_tickets_on_true_pair_when_present": 3.1427,
+        "true_third_conditional_rank_when_pair_present": {
+          "1": 314,
+          "2": 222,
+          "3": 169,
+          "4": 127,
+          "5": 79,
+          "6": 2,
+          "7": 5
+        },
+        "true_first_two_among_top8_standalone_pair_ranking": {
+          "hits": 1284,
+          "total": 1862,
+          "percent": 68.9581
+        },
+        "true_first_two_top8_standalone_pair_and_true_third_is_conditional_top1": {
+          "hits": 436,
+          "total": 1862,
+          "percent": 23.4157
+        },
+        "additional_hits_to_reach_90_percent": 977,
+        "additional_prefix_hits_needed_even_with_perfect_third": 758
+      }
+    },
+    "november": {
+      "scored": 1720,
+      "multiple_gold_order_races": 9,
+      "coverage_by_tickets": {
+        "1": {
+          "hits": 139,
+          "total": 1720,
+          "percent": 8.0814
+        },
+        "4": {
+          "hits": 399,
+          "total": 1720,
+          "percent": 23.1977
+        },
+        "8": {
+          "hits": 624,
+          "total": 1720,
+          "percent": 36.2791
+        },
+        "16": {
+          "hits": 892,
+          "total": 1720,
+          "percent": 51.8605
+        },
+        "24": {
+          "hits": 1057,
+          "total": 1720,
+          "percent": 61.4535
+        },
+        "32": {
+          "hits": 1173,
+          "total": 1720,
+          "percent": 68.1977
+        },
+        "48": {
+          "hits": 1339,
+          "total": 1720,
+          "percent": 77.8488
+        },
+        "64": {
+          "hits": 1439,
+          "total": 1720,
+          "percent": 83.6628
+        }
+      },
+      "winning_order_rank_median": 16.0,
+      "minimum_tickets_for_observed_90_percent": 93,
+      "minimum_correct_races_for_90_percent": 1548,
+      "coverage_just_below_90_percent_cut": {
+        "hits": 1546,
+        "total": 1720,
+        "percent": 89.8837
+      },
+      "coverage_at_90_percent_cut": {
+        "hits": 1549,
+        "total": 1720,
+        "percent": 90.0581
+      },
+      "at_eight": {
+        "states": {
+          "winner_missed": 458,
+          "hit": 624,
+          "winner_present_pair_missed": 432,
+          "pair_present_third_missed": 206
+        },
+        "true_winner_present": {
+          "hits": 1262,
+          "total": 1720,
+          "percent": 73.3721
+        },
+        "true_first_two_prefix_present": {
+          "hits": 830,
+          "total": 1720,
+          "percent": 48.2558
+        },
+        "true_third_missed_conditioning_on_true_prefix_present": {
+          "hits": 206,
+          "total": 830,
+          "percent": 24.8193
+        },
+        "mean_distinct_ordered_pairs": 3.2326,
+        "distinct_ordered_pairs_distribution": {
+          "2": 447,
+          "3": 643,
+          "4": 454,
+          "5": 141,
+          "6": 29,
+          "7": 6
+        },
+        "mean_tickets_on_true_pair_when_present": 3.2048,
+        "true_third_conditional_rank_when_pair_present": {
+          "1": 273,
+          "2": 226,
+          "3": 125,
+          "4": 114,
+          "5": 77,
+          "6": 11,
+          "7": 4
+        },
+        "true_first_two_among_top8_standalone_pair_ranking": {
+          "hits": 1217,
+          "total": 1720,
+          "percent": 70.7558
+        },
+        "true_first_two_top8_standalone_pair_and_true_third_is_conditional_top1": {
+          "hits": 425,
+          "total": 1720,
+          "percent": 24.7093
+        },
+        "additional_hits_to_reach_90_percent": 924,
+        "additional_prefix_hits_needed_even_with_perfect_third": 718
+      }
+    },
+    "seven_riders": {
+      "scored": 3099,
+      "multiple_gold_order_races": 22,
+      "coverage_by_tickets": {
+        "1": {
+          "hits": 256,
+          "total": 3099,
+          "percent": 8.2607
+        },
+        "4": {
+          "hits": 755,
+          "total": 3099,
+          "percent": 24.3627
+        },
+        "8": {
+          "hits": 1176,
+          "total": 3099,
+          "percent": 37.9477
+        },
+        "16": {
+          "hits": 1632,
+          "total": 3099,
+          "percent": 52.6621
+        },
+        "24": {
+          "hits": 1922,
+          "total": 3099,
+          "percent": 62.02
+        },
+        "32": {
+          "hits": 2118,
+          "total": 3099,
+          "percent": 68.3446
+        },
+        "48": {
+          "hits": 2425,
+          "total": 3099,
+          "percent": 78.251
+        },
+        "64": {
+          "hits": 2624,
+          "total": 3099,
+          "percent": 84.6725
+        }
+      },
+      "winning_order_rank_median": 15,
+      "minimum_tickets_for_observed_90_percent": 89,
+      "minimum_correct_races_for_90_percent": 2790,
+      "coverage_just_below_90_percent_cut": {
+        "hits": 2785,
+        "total": 3099,
+        "percent": 89.8677
+      },
+      "coverage_at_90_percent_cut": {
+        "hits": 2791,
+        "total": 3099,
+        "percent": 90.0613
+      },
+      "at_eight": {
+        "states": {
+          "hit": 1176,
+          "winner_missed": 841,
+          "winner_present_pair_missed": 718,
+          "pair_present_third_missed": 364
+        },
+        "true_winner_present": {
+          "hits": 2258,
+          "total": 3099,
+          "percent": 72.8622
+        },
+        "true_first_two_prefix_present": {
+          "hits": 1540,
+          "total": 3099,
+          "percent": 49.6934
+        },
+        "true_third_missed_conditioning_on_true_prefix_present": {
+          "hits": 364,
+          "total": 1540,
+          "percent": 23.6364
+        },
+        "mean_distinct_ordered_pairs": 3.2675,
+        "distinct_ordered_pairs_distribution": {
+          "2": 742,
+          "3": 1178,
+          "4": 861,
+          "5": 252,
+          "6": 58,
+          "7": 8
+        },
+        "mean_tickets_on_true_pair_when_present": 3.1753,
+        "true_third_conditional_rank_when_pair_present": {
+          "1": 525,
+          "2": 398,
+          "3": 253,
+          "4": 219,
+          "5": 145
+        },
+        "true_first_two_among_top8_standalone_pair_ranking": {
+          "hits": 2194,
+          "total": 3099,
+          "percent": 70.797
+        },
+        "true_first_two_top8_standalone_pair_and_true_third_is_conditional_top1": {
+          "hits": 765,
+          "total": 3099,
+          "percent": 24.6854
+        },
+        "additional_hits_to_reach_90_percent": 1614,
+        "additional_prefix_hits_needed_even_with_perfect_third": 1250
+      }
+    },
+    "nine_riders": {
+      "scored": 314,
+      "multiple_gold_order_races": 1,
+      "coverage_by_tickets": {
+        "1": {
+          "hits": 12,
+          "total": 314,
+          "percent": 3.8217
+        },
+        "4": {
+          "hits": 44,
+          "total": 314,
+          "percent": 14.0127
+        },
+        "8": {
+          "hits": 76,
+          "total": 314,
+          "percent": 24.2038
+        },
+        "16": {
+          "hits": 113,
+          "total": 314,
+          "percent": 35.9873
+        },
+        "24": {
+          "hits": 140,
+          "total": 314,
+          "percent": 44.586
+        },
+        "32": {
+          "hits": 160,
+          "total": 314,
+          "percent": 50.9554
+        },
+        "48": {
+          "hits": 190,
+          "total": 314,
+          "percent": 60.5096
+        },
+        "64": {
+          "hits": 211,
+          "total": 314,
+          "percent": 67.1975
+        }
+      },
+      "winning_order_rank_median": 30.5,
+      "minimum_tickets_for_observed_90_percent": 186,
+      "minimum_correct_races_for_90_percent": 283,
+      "coverage_just_below_90_percent_cut": {
+        "hits": 282,
+        "total": 314,
+        "percent": 89.8089
+      },
+      "coverage_at_90_percent_cut": {
+        "hits": 283,
+        "total": 314,
+        "percent": 90.1274
+      },
+      "at_eight": {
+        "states": {
+          "winner_missed": 117,
+          "hit": 76,
+          "pair_present_third_missed": 41,
+          "winner_present_pair_missed": 80
+        },
+        "true_winner_present": {
+          "hits": 197,
+          "total": 314,
+          "percent": 62.7389
+        },
+        "true_first_two_prefix_present": {
+          "hits": 117,
+          "total": 314,
+          "percent": 37.2611
+        },
+        "true_third_missed_conditioning_on_true_prefix_present": {
+          "hits": 41,
+          "total": 117,
+          "percent": 35.0427
+        },
+        "mean_distinct_ordered_pairs": 2.8567,
+        "distinct_ordered_pairs_distribution": {
+          "2": 145,
+          "3": 97,
+          "4": 51,
+          "5": 16,
+          "6": 3,
+          "7": 2
+        },
+        "mean_tickets_on_true_pair_when_present": 3.5214,
+        "true_third_conditional_rank_when_pair_present": {
+          "1": 26,
+          "2": 20,
+          "3": 25,
+          "4": 15,
+          "5": 11,
+          "6": 11,
+          "7": 9
+        },
+        "true_first_two_among_top8_standalone_pair_ranking": {
+          "hits": 187,
+          "total": 314,
+          "percent": 59.5541
+        },
+        "true_first_two_top8_standalone_pair_and_true_third_is_conditional_top1": {
+          "hits": 49,
+          "total": 314,
+          "percent": 15.6051
+        },
+        "additional_hits_to_reach_90_percent": 207,
+        "additional_prefix_hits_needed_even_with_perfect_third": 166
+      }
+    }
+  }
+}

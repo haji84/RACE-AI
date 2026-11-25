@@ -1,0 +1,122 @@
+{
+  "archive_admission": {
+    "archive_sha256s": [
+      "1bdad22b9744c9c5563f7bb1af31875170a3e6b7f4b0dd73fba8f98d645d8fc4",
+      "d915560877493816b90df8bcd5e7bdef45557f57100b4cd40a3d017cd959334d"
+    ],
+    "archive_sources": [
+      {
+        "bytes": 104706048,
+        "database_sha256": "1bdad22b9744c9c5563f7bb1af31875170a3e6b7f4b0dd73fba8f98d645d8fc4",
+        "fetched_at_max_raw": "2026-09-29T22:46:10",
+        "fetched_at_min_raw": "2026-08-28T06:49:33",
+        "fetched_clock_authentication": "UNATTESTED_ARCHIVE_VALUE_NOT_PRE_CUTOFF_EVIDENCE",
+        "included_end_day": "2026-09-29",
+        "included_start_day": "2025-10-01",
+        "manifest_verified": true,
+        "source_url": "https://raw.githubusercontent.com/sumidatadayoshi/keirin-data/2a1260fb0940ad11160b56a36f9c24cc4fb2f6d2/data/keirin.db"
+      },
+      {
+        "bytes": 45436928,
+        "database_sha256": "d915560877493816b90df8bcd5e7bdef45557f57100b4cd40a3d017cd959334d",
+        "fetched_at_max_raw": "2026-11-23T03:56:27",
+        "fetched_at_min_raw": "2026-10-05T00:44:16",
+        "fetched_clock_authentication": "UNATTESTED_ARCHIVE_VALUE_NOT_PRE_CUTOFF_EVIDENCE",
+        "included_end_day": "2026-11-22",
+        "included_start_day": "2026-09-23",
+        "manifest_verified": true,
+        "source_url": "https://raw.githubusercontent.com/sumidatadayoshi/keirin-data/2a1260fb0940ad11160b56a36f9c24cc4fb2f6d2/data/keirin_2026q4.db"
+      }
+    ],
+    "as_of_exclusive": "2026-11-25",
+    "calendar_months_observed": 14,
+    "complete_lifetime_history": false,
+    "complete_three_year_history": false,
+    "coverage_span_calendar_months": 14,
+    "duplicate_conflict_count": 0,
+    "duplicate_same_count": 0,
+    "frozen_forecasts_modified": false,
+    "held_by_reason": {
+      "IDENTITY_UNRESOLVED": 4421,
+      "INCIDENT_OR_NONNUMERIC_FINISH": 2718,
+      "RESULT_MISSING": 178
+    },
+    "historical_as_of_authenticated": false,
+    "history_end_day": "2026-11-22",
+    "history_start_day": "2025-10-01",
+    "model_weights_modified": false,
+    "numeric_finish_records": 211212,
+    "omitted_archive_starts_count": null,
+    "registered_riders": 2416,
+    "riders_with_numeric_history": 2393,
+    "schema": "KEIRIN_BASIC_RIDER_DOSSIER_SUMMARY_V1",
+    "scope": "RETROSPECTIVE_CURRENT_REGISTRY_IDENTITY_RECONCILIATION",
+    "source_entry_rows": 218529
+  },
+  "groups": [
+    {
+      "accuracy_improvement_proven": false,
+      "archive_sha256s": [
+        "1bdad22b9744c9c5563f7bb1af31875170a3e6b7f4b0dd73fba8f98d645d8fc4",
+        "d915560877493816b90df8bcd5e7bdef45557f57100b4cd40a3d017cd959334d"
+      ],
+      "attached_races": 10,
+      "attached_riders": 70,
+      "generated_at": "2026-11-25T14:48:54.756655+00:00",
+      "group": "prospective",
+      "held_races": 0,
+      "holds_by_reason": {},
+      "predictive_model_changed": false,
+      "registered_races": 10,
+      "registry_sha256": "5a64db31e466f4f9aac0c47811fa3dc791b45cf7c8d5f07b3742372a7285d8ba",
+      "schema": "KEIRIN_RIDER_HISTORY_BUILD_SUMMARY_V1",
+      "source_availability": "CURRENT_BUILD_TIME_NOT_HISTORICAL_PUBLICATION_ATTESTATION",
+      "source_roster_sha256": "a9a106e9ce3d2002f7e1168a1440fd8681a6ea8db0fee843a27157c88cb4a734",
+      "supplement_sha256": "e037bae5c6ef412467d7dc10a9b7d9675cc2e1165c6b6d3167e000cd66813e9e"
+    },
+    {
+      "accuracy_improvement_proven": false,
+      "archive_sha256s": [
+        "1bdad22b9744c9c5563f7bb1af31875170a3e6b7f4b0dd73fba8f98d645d8fc4",
+        "d915560877493816b90df8bcd5e7bdef45557f57100b4cd40a3d017cd959334d"
+      ],
+      "attached_races": 57,
+      "attached_riders": 394,
+      "generated_at": "2026-11-25T14:48:54.813329+00:00",
+      "group": "retrospective",
+      "held_races": 0,
+      "holds_by_reason": {},
+      "predictive_model_changed": false,
+      "registered_races": 57,
+      "registry_sha256": "5a64db31e466f4f9aac0c47811fa3dc791b45cf7c8d5f07b3742372a7285d8ba",
+      "schema": "KEIRIN_RIDER_HISTORY_BUILD_SUMMARY_V1",
+      "source_availability": "CURRENT_BUILD_TIME_NOT_HISTORICAL_PUBLICATION_ATTESTATION",
+      "source_roster_sha256": "8ec98fea078bd95bc3acf37c258f54aa73274ac037a1874952c549a3ec264ad6",
+      "supplement_sha256": "5ea56e845baee1bbf9b64471c20563208d7e625fd1bb98342e31f589b13d8f50"
+    },
+    {
+      "accuracy_improvement_proven": false,
+      "archive_sha256s": [
+        "1bdad22b9744c9c5563f7bb1af31875170a3e6b7f4b0dd73fba8f98d645d8fc4",
+        "d915560877493816b90df8bcd5e7bdef45557f57100b4cd40a3d017cd959334d"
+      ],
+      "attached_races": 8,
+      "attached_riders": 52,
+      "generated_at": "2026-11-25T14:48:55.015136+00:00",
+      "group": "recovered-eight",
+      "held_races": 0,
+      "holds_by_reason": {},
+      "predictive_model_changed": false,
+      "registered_races": 8,
+      "registry_sha256": "5a64db31e466f4f9aac0c47811fa3dc791b45cf7c8d5f07b3742372a7285d8ba",
+      "schema": "KEIRIN_RIDER_HISTORY_BUILD_SUMMARY_V1",
+      "source_availability": "CURRENT_BUILD_TIME_NOT_HISTORICAL_PUBLICATION_ATTESTATION",
+      "source_roster_sha256": "3dc0b54be1e3c885d1be0061588f72e817a5f22895a88bc2925b71e0d0227c4b",
+      "supplement_sha256": "71a1965c0a5c0d5f0ebc88e59e4df8f3c166270ace53ac805d750ddb77d95b24"
+    }
+  ],
+  "schema": "KEIRIN_REAL_RIDER_HISTORY_BUILD_V1",
+  "identity_packet_sha256": "ab83f3910d19f2665abf7b00d2d71e04148f6bc47f8f95b4c6a20de5f52ea971",
+  "identity_capture_manifest_sha256": "468215a477eb46f6f34dbac8c20cf4300a3f2e0f11636d490057dc6deac02633",
+  "source_roster_and_forecasts_unchanged": true
+}

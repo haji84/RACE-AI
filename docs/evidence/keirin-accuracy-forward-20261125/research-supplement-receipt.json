@@ -1,0 +1,88 @@
+{
+  "all_changed_union": 30,
+  "all_registered_union": 42,
+  "candidates": {
+    "joint-wheel": {
+      "applicable": 19,
+      "caps": {
+        "4": 35,
+        "8": 5
+      },
+      "changed": 1,
+      "first_cutoff": "2026-11-25T16:28:00+09:00",
+      "last_cutoff": "2026-11-25T23:25:00+09:00",
+      "normalized_receipt_sha256": "ee12dd6762615adf99993dfc142b0c26b3a4a3bb43944879d455a070c7504da6",
+      "normalizer_sha256": "11fb823ac3205d9d68abd7d4e0604ee1636180893d33f2f66e69cee2682d9ccc",
+      "original_forecast_sha256": "2ace13b6c99eabdb8c61a094c58ecca83a86337d27e1e716ed0b81ca15aa9871",
+      "original_frozen_at": "2026-11-25T07:19:11.904431+00:00",
+      "original_git_blob_sha256": "28f00ad1ab4ae05071baa2214d8d98bbb87e4e5e2e408f94aa9e221afe814a99",
+      "original_git_commit": "1baf10d7e84180c023b513b20af39aca3f2eed74",
+      "original_git_commit_time": "2026-11-25T07:21:23Z",
+      "original_git_path": "docs/evidence/keirin-accuracy-forward-20261125/joint-wheel-commitment.json",
+      "original_receipt_sha256": "28f00ad1ab4ae05071baa2214d8d98bbb87e4e5e2e408f94aa9e221afe814a99",
+      "prediction_sha256": "51a69bcea89803c4ba2e71ccca715bf073cbbeaae255a8756ce82543929730af",
+      "published_sha256": "2a62f3a6cf7f2a12d62b5b49b4d9a620db49309b0522814ed904c11c942e3d35",
+      "registered": 40,
+      "roster_sha256": "c96f35a0c0a9e26c34a491d162674f40a47a2e5fd0ae19f4583c86653d6aeb31",
+      "shared_verification_sha256": "5a20a102eff67e6eb8374d6edebce51bcb329a5ae8fbe9eb436430aedda01aa6"
+    },
+    "joint-wheel-plus-winner": {
+      "applicable": 19,
+      "caps": {
+        "4": 35,
+        "8": 5
+      },
+      "changed": 4,
+      "first_cutoff": "2026-11-25T16:28:00+09:00",
+      "last_cutoff": "2026-11-25T23:25:00+09:00",
+      "normalized_receipt_sha256": "a690416bc2809b7f0cf95a05e4d961f237b3d2ac6234dc512ed76c7540dd30cf",
+      "normalizer_sha256": "11fb823ac3205d9d68abd7d4e0604ee1636180893d33f2f66e69cee2682d9ccc",
+      "original_forecast_sha256": "2ace13b6c99eabdb8c61a094c58ecca83a86337d27e1e716ed0b81ca15aa9871",
+      "original_frozen_at": "2026-11-25T07:19:11.904431+00:00",
+      "original_git_blob_sha256": "28f00ad1ab4ae05071baa2214d8d98bbb87e4e5e2e408f94aa9e221afe814a99",
+      "original_git_commit": "1baf10d7e84180c023b513b20af39aca3f2eed74",
+      "original_git_commit_time": "2026-11-25T07:21:23Z",
+      "original_git_path": "docs/evidence/keirin-accuracy-forward-20261125/joint-wheel-commitment.json",
+      "original_receipt_sha256": "28f00ad1ab4ae05071baa2214d8d98bbb87e4e5e2e408f94aa9e221afe814a99",
+      "prediction_sha256": "892a33e9c25945e1dfedd44df6ccb9b076964115b4b5f0c95a073c055a65b970",
+      "published_sha256": "2a62f3a6cf7f2a12d62b5b49b4d9a620db49309b0522814ed904c11c942e3d35",
+      "registered": 40,
+      "roster_sha256": "c96f35a0c0a9e26c34a491d162674f40a47a2e5fd0ae19f4583c86653d6aeb31",
+      "shared_verification_sha256": "5a20a102eff67e6eb8374d6edebce51bcb329a5ae8fbe9eb436430aedda01aa6"
+    },
+    "tactical-label": {
+      "applicable": 40,
+      "caps": {
+        "4": 35,
+        "8": 5
+      },
+      "changed": 19,
+      "first_cutoff": "2026-11-25T16:28:00+09:00",
+      "last_cutoff": "2026-11-25T23:25:00+09:00",
+      "normalized_receipt_sha256": "3fd8db88531ed15f3aa337ea66560ebaa09b3bcd2fce1e6ee529ce9989dabb95",
+      "normalizer_sha256": "11fb823ac3205d9d68abd7d4e0604ee1636180893d33f2f66e69cee2682d9ccc",
+      "original_forecast_sha256": "a32dbf3ec33aeee7134ad87ec51baa64dbc53d4b3ef32c55c4bdf7b16a711b69",
+      "original_frozen_at": "2026-11-25T07:20:37.429469+00:00",
+      "original_git_blob_sha256": "daed637037f6ffa999824600f4dd9c983abca17c2689e7823be02aa908160232",
+      "original_git_commit": "22933afcfd857d3cc45a1d5075c0226e11bb2917",
+      "original_git_commit_time": "2026-11-25T07:21:39Z",
+      "original_git_path": "docs/evidence/keirin-accuracy-forward-20261125/tactical-label-commitment.json",
+      "original_receipt_sha256": "fde22d00ac6e2d568011403d7063701f63282859bf60b1e02e785ee23ae7f9d9",
+      "prediction_sha256": "d28246226f9dda5a4caacb06e321f8470440d2157d5ad615b5dab8b93293f3b3",
+      "published_sha256": "2a62f3a6cf7f2a12d62b5b49b4d9a620db49309b0522814ed904c11c942e3d35",
+      "registered": 40,
+      "roster_sha256": "c96f35a0c0a9e26c34a491d162674f40a47a2e5fd0ae19f4583c86653d6aeb31",
+      "shared_verification_sha256": "5a20a102eff67e6eb8374d6edebce51bcb329a5ae8fbe9eb436430aedda01aa6"
+    }
+  },
+  "companion_changed_union": 22,
+  "companion_registered_union": 40,
+  "encrypted_bytes": 661707,
+  "encrypted_sha256": "bbb358c9d890e4c77d6d0460436d6062a96c02e77913e56da2a931719c97251d",
+  "included_files": 22,
+  "normalized_at": "2026-11-25T07:23:49.125312+00:00",
+  "normalized_manifest_sha256": "b6e9d99cac5d39287f47284e6bccafad526e5883e3955b48e39dc8b1bb8871cd",
+  "original_candidate_count": 5,
+  "previous_recovery_sha256": "63566500f157dd1cf54442eabb730673db4f361a7c1b29bfe69bbd9721e9e5d7",
+  "roundtrip_verified_utc": "2026-11-25T07:23:49.225364+00:00"
+}

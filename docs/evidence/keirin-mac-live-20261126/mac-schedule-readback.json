@@ -1,0 +1,32 @@
+{
+  "checked_at": "2026-11-25T19:00:17.705848+00:00",
+  "completed_ticks": 3,
+  "first_tick": "2026-11-25T18:38:02.772517+00:00",
+  "full_24h_local_cadence": false,
+  "full_national_window_certified": false,
+  "idle_intervals_over_16_minutes": 0,
+  "intervals_over_16_minutes": 1,
+  "last_tick": "2026-11-25T18:58:32.041629+00:00",
+  "longest_idle_seconds": 901.244349,
+  "longest_interval_seconds": 988.769349,
+  "mac_native_timer_state": "2026-11-25T18:54:31.541866+00:00",
+  "new_candidate_fits": 2,
+  "new_recordings": 0,
+  "new_tracks": 1,
+  "production_weights_promoted": false,
+  "schema": "KEIRIN_MAC_CYCLE_TIMING_V1",
+  "scope": "LOCAL_KEIRIN_RESEARCH",
+  "seconds_observed": 1229.269112,
+  "seconds_since_last_completion": 103.312219,
+  "seconds_since_last_tick": 105.664219,
+  "shadow_case_runtime_commit": "b8f47887abcfee904ad4add3abe4014b9c2f10aa",
+  "shadow_case_scheduled_start_jst": "08:50",
+  "shadow_original_pins_sha256": "4dd73f8cab327beab1f29c6188846f4cc9d4215e9fa5663c56822d552a25e843",
+  "shadow_requests_before_start": 0,
+  "shadow_result": "WAITING_FOR_OFFICIAL_START",
+  "shadow_states": {
+    "WAITING_FOR_OFFICIAL_START": 1
+  },
+  "since": "2026-11-26T03:38:00+09:00",
+  "site_actions_independent": true
+}

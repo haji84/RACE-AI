@@ -10,7 +10,7 @@ from datetime import date, datetime, timezone
 from hashlib import sha256
 from pathlib import Path
 from unicodedata import normalize
-from urllib.parse import urlsplit
+from urllib.parse import parse_qs, urlsplit
 import argparse
 import json
 import math
@@ -199,6 +199,129 @@ def _lines(node):
     return groups,roles
 
 
+def _market_update(soup, market, race_id, source_url):
+    statuses=soup.select('#JS_ODDSSTATUS_'+market)
+    need(len(statuses)==1,'MARKET_STATUS_AMBIGUOUS')
+    times=statuses[0].select('p.time')
+    links=statuses[0].select('p.btn_reload a[href]')
+    need(len(times)==len(links)==1,'MARKET_UPDATE_AMBIGUOUS')
+    stamp=re.fullmatch(r'(20[0-9]{2})/([0-9]{2})/([0-9]{2}) ([0-9]{2}):([0-9]{2})現在',_text(times[0]))
+    link=urlsplit(links[0]['href'])
+    need(stamp is not None and ''.join(stamp.groups()[:3])==race_id[:8] and not link.fragment and
+         link._replace(query='').geturl()==source_url and
+         parse_qs(link.query,keep_blank_values=True)=={'pageType':['odds'],'kakeshikiType':[market]},
+         'MARKET_CLOCK_OR_IDENTITY_UNVERIFIED')
+    day='-'.join(stamp.groups()[:3])
+    return datetime.fromisoformat(day+'T'+':'.join(stamp.groups()[3:])).replace(tzinfo=JST)
+
+
+def _quote_value(cell):
+    display=_text(cell)
+    numeric=display.replace(',','')
+    return _number(numeric) if re.fullmatch(r'[0-9]+(?:\.[0-9]+)?',numeric) else display
+
+
+def _trifecta_prices(soup,cars):
+    sections=soup.select('#JS_ODDSCONTENTS_3rentan')
+    need(len(sections)==1,'TRIFECTA_BOARD_AMBIGUOUS')
+    matrices=sections[0].select('.odds_table_wrapper')
+    popularity=sections[0].select('.oddspop_table_wrapper')
+    need(len(matrices)==len(popularity)==1,'TRIFECTA_BOARD_LAYOUT')
+    tables=matrices[0].select('table.bt5')
+    need(len(tables)==len(cars),'TRIFECTA_BOARD_WINNERS')
+    winners=[];prices={}
+    for table in tables:
+        rows=table.select(':scope > tr, :scope > tbody > tr')
+        need(len(rows)==len(cars)+2,'TRIFECTA_BOARD_ROWS')
+        first=_number(_text(rows[0].select_one('span.number')))
+        need(type(first) is int and first in cars and first not in winners,'TRIFECTA_BOARD_WINNERS')
+        winners.append(first)
+        others=cars-{first}
+        seconds=[_number(_text(th)) for th in rows[1].select(':scope > th[class]')]
+        need(len(seconds)==len(others) and all(type(car) is int for car in seconds) and
+             set(seconds)==others,'TRIFECTA_BOARD_SECONDS')
+        thirds=[]
+        for row in rows[3:]:
+            third=_number(_text(row.select_one(':scope > th[class]')))
+            cells=row.find_all('td',recursive=False)
+            need(type(third) is int and third in others and third not in thirds and
+                 len(cells)==len(others),'TRIFECTA_BOARD_THIRDS')
+            thirds.append(third)
+            for second,cell in zip(seconds,cells,strict=True):
+                if second!=third:
+                    prices[f'{first}-{second}-{third}']=_quote_value(cell)
+    checked=set()
+    for cell in popularity[0].select('td'):
+        key=_text(cell.select_one('span.num'))
+        if re.fullmatch(r'[1-9]-[1-9]-[1-9]',key):
+            quote=cell.select('span.odds')
+            need(key in prices and len(quote)==1 and _quote_value(quote[0])==prices[key],
+                 'TRIFECTA_POPULARITY_DISAGREES')
+            checked.add(key)
+    need(bool(checked),'TRIFECTA_POPULARITY_UNVERIFIED')
+    return prices,len(checked)
+
+
+def verify_trifecta_market(soup, *, race_id, venue, riders, receipt, published_cutoff_at):
+    """Describe the complete Kdreams board from an already SHA-bound source page.
+
+    This proof is private research metadata. It does not replace the legacy
+    display quotes or admit a forecast into formal model coverage.
+    """
+    source=receipt['url']
+    normalize_pages._url_role(source,'kd',race_id)
+    normalize_pages._check_canonical(soup,source)
+    title=_text(soup.title)
+    day=date.fromisoformat(race_id[:8])
+    active=soup.select('li.active[kaisaidate]')
+    need(venue and title.startswith(venue+'競輪 ') and f'{day.year}年{day.month}月{day.day}日' in title and
+         re.search(r'(?<!\S)'+str(int(race_id[-2:]))+r'R(?!\S)',title) and len(active)==1 and
+         active[0]['kaisaidate']==race_id[:8],'MARKET_RACE_IDENTITY_UNVERIFIED')
+    table=soup.select_one('table.racecard_table')
+    need(table is not None,'MARKET_ROSTER_UNVERIFIED')
+    roster=[]
+    for row in table.select('tr'):
+        car=_number(_text(row.select_one('td.num')))
+        rider=row.select_one('td.rider')
+        if car is None and rider is None:
+            continue
+        parts=list(rider.stripped_strings) if rider else []
+        need(type(car) is int and 1<=car<=9 and bool(parts) and
+             not re.search('欠場|欠車|出走取消|取消|返還',_text(row)),'MARKET_ROSTER_UNVERIFIED')
+        roster.append((car,re.sub(r'\s+','',parts[0])))
+    expected=[(r['number'],re.sub(r'\s+','',r['name'])) for r in riders]
+    cars={car for car,_ in expected}
+    need(3<=len(cars)==len(expected)<=9 and sorted(roster)==sorted(expected),'MARKET_ROSTER_UNVERIFIED')
+    exacta=_market_update(soup,'2shatan',race_id,source)
+    update=_market_update(soup,'3rentan',race_id,source)
+    captured=model.when(receipt['captured_at']);cutoff=model.when(published_cutoff_at)
+    need(max(exacta,update)<=captured<cutoff,'MARKET_OUTSIDE_CAPTURE_CLOCK')
+    titles=soup.select('p.raceinfo_contents-title')
+    caution=soup.select('#ODDS_CAUTION')
+    need(len(titles)==len(caution)==1 and all(phrase in _text(caution[0]) for phrase in
+         ('AM 9:30','AM 8:00','Kドリームスグループ','全ての票数')),'MARKET_SCOPE_UNVERIFIED')
+    earliest=min(exacta,update)
+    opening=480 if titles[0].select_one('span.icon_status.morning') else 570
+    all_outlets=earliest.hour*60+earliest.minute>=opening
+    raw,crosschecked=_trifecta_prices(soup,cars)
+    n=len(cars);expected_count=n*(n-1)*(n-2)
+    need(len(raw)==expected_count,'TRIFECTA_BOARD_ORDER_COUNT')
+    prices={key:value for key,value in raw.items() if type(value) in (float,int) and 0<value<9999.9}
+    capped=sum(type(value) in (float,int) and value>=9999.9 for value in raw.values())
+    in_window=600<=(cutoff-captured).total_seconds()<=(cutoff-update).total_seconds()<=900
+    complete=len(prices)==expected_count
+    proof=dict(schema='RACE_AI_KEIRIN_TRIFECTA_MARKET_V1',race_id=race_id,
+        source_url=source,published_cutoff_at=published_cutoff_at,
+        source_updated_at=update.isoformat(),captured_at=receipt['captured_at'],
+        source_sha256=receipt['bytes_sha256'],scope='all_outlets' if all_outlets else 'kdreams_group_early_provisional',
+        expected_quotes=expected_count,numeric_quotes=len(prices),capped_quotes=capped,
+        unavailable_quotes=expected_count-len(prices)-capped,popularity_crosschecked=crosschecked,
+        complete_numeric_board=complete,priority_window=in_window,
+        eligible_full_priority=all_outlets and complete and in_window,
+        numeric_board_sha256=sha256(model.canonical(prices)).hexdigest())
+    return prices,proof
+
+
 def display_race(snapshot,raw,*,meeting_url,meeting_raw,raw_path):
     """Published Kdreams display values; netkeirin supplies H separately."""
     rid=snapshot['race_id'];receipt=snapshot['cutoff_source']
@@ -292,6 +415,14 @@ def display_race(snapshot,raw,*,meeting_url,meeting_raw,raw_path):
                     odds[f'{first}-{second}-{third}']=value
     day=rid[:4]+'-'+rid[4:6]+'-'+rid[6:8]
     stamps=re.findall(re.escape(day.replace('-','/'))+r'\s+\d{2}:\d{2}現在',body)
+    proof=None
+    if soup.select_one('#JS_ODDSSTATUS_3rentan') is not None:
+        try:
+            _,proof=verify_trifecta_market(soup, race_id=rid, venue=venue.group(1) if venue else None,
+                riders=riders, receipt=receipt, published_cutoff_at=snapshot['published_cutoff_at'])
+        except ValueError:
+            # Changed or incomplete odds remain outside the verified board.
+            pass
     return dict(race_id=rid,date=day,venue=venue.group(1) if venue else None,
         venue_code=rid[8:10],venue_slug=urlsplit(receipt['url']).path.split('/')[1],
         race_no=int(rid[-2:]),race_title=title,start_time=start,
@@ -308,6 +439,7 @@ def display_race(snapshot,raw,*,meeting_url,meeting_raw,raw_path):
         H_source=net_receipt,source_differences=differences,
         source_data_period='掲載媒体の直近4ヶ月統計',odds_3t=odds,
         odds_timestamp=stamps[0] if len(set(stamps))==1 else None,
+        trifecta_market_verification=proof,
         odds_scope='掲載媒体内の取得時点オッズ。全市場・締切直前の値は未検証。',
         bank=None,weather=None,missing_fields=['bank','race_time_weather'],no_today_results_used=True)
 

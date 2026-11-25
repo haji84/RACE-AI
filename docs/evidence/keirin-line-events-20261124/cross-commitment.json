@@ -1,0 +1,154 @@
+{
+  "fixed_at": "2026-11-23T22:45:45.643251+00:00",
+  "driver_sha256": "5980da530da9c24374f1db6fa26e86408e53b38ed25c559eabbbb505755f6868",
+  "earlier_tuning": "2026-02-01/2026-03-31",
+  "earlier_evaluation": "2026-06-01/2026-07-31",
+  "recent_tuning": "2026-08-01/2026-09-30",
+  "recent_evaluation": "2026-10-01/2026-11-23",
+  "candidates_were_not_selected_on_evaluation_results": true,
+  "decisions": {
+    "earlier": {
+      "calibration": {
+        "totals": {
+          "with_known_split": 4376,
+          "actual_cross": 2136,
+          "mass_sum": 2136.8627880115423,
+          "corrected_mass_sum": 2136.000941183963,
+          "all_scored": 4381
+        },
+        "arms": {
+          "saved": {
+            "hit_1": 538,
+            "hit_4": 1249,
+            "hit_8": 1751,
+            "average_cross_ticket_sum": 9017,
+            "hit8_cross": 397,
+            "hit8_same_line": 1353,
+            "eight_contains_actual_pair": 2352
+          },
+          "calibrated_cross": {
+            "hit_1": 538,
+            "hit_4": 1249,
+            "hit_8": 1751,
+            "average_cross_ticket_sum": 9010,
+            "hit8_cross": 397,
+            "hit8_same_line": 1353,
+            "eight_contains_actual_pair": 2352
+          },
+          "reserve_1": {
+            "hit_1": 538,
+            "hit_4": 1187,
+            "hit_8": 1732,
+            "average_cross_ticket_sum": 10292,
+            "hit8_cross": 416,
+            "hit8_same_line": 1315,
+            "eight_contains_actual_pair": 2385
+          },
+          "reserve_2": {
+            "hit_1": 538,
+            "hit_4": 1080,
+            "hit_8": 1709,
+            "average_cross_ticket_sum": 12552,
+            "hit8_cross": 456,
+            "hit8_same_line": 1252,
+            "eight_contains_actual_pair": 2425
+          },
+          "reserve_3": {
+            "hit_1": 538,
+            "hit_4": 1080,
+            "hit_8": 1678,
+            "average_cross_ticket_sum": 15679,
+            "hit8_cross": 497,
+            "hit8_same_line": 1181,
+            "eight_contains_actual_pair": 2453
+          },
+          "reserve_4": {
+            "hit_1": 538,
+            "hit_4": 1080,
+            "hit_8": 1623,
+            "average_cross_ticket_sum": 19300,
+            "hit8_cross": 552,
+            "hit8_same_line": 1071,
+            "eight_contains_actual_pair": 2441
+          }
+        }
+      },
+      "selected": "saved",
+      "offset": -0.0009411839602925793,
+      "records": 4665,
+      "private_commitment": "844c129bebd10ec1278e309702eacf7448962d95675675422be41faddb6bba83"
+    },
+    "recent": {
+      "calibration": {
+        "totals": {
+          "with_known_split": 3047,
+          "actual_cross": 1485,
+          "mass_sum": 1492.1041150338747,
+          "corrected_mass_sum": 1485.0111682199972,
+          "all_scored": 3050
+        },
+        "arms": {
+          "saved": {
+            "hit_1": 317,
+            "hit_4": 845,
+            "hit_8": 1212,
+            "average_cross_ticket_sum": 6270,
+            "hit8_cross": 262,
+            "hit8_same_line": 949,
+            "eight_contains_actual_pair": 1614
+          },
+          "calibrated_cross": {
+            "hit_1": 317,
+            "hit_4": 843,
+            "hit_8": 1208,
+            "average_cross_ticket_sum": 6176,
+            "hit8_cross": 258,
+            "hit8_same_line": 949,
+            "eight_contains_actual_pair": 1610
+          },
+          "reserve_1": {
+            "hit_1": 317,
+            "hit_4": 806,
+            "hit_8": 1210,
+            "average_cross_ticket_sum": 7198,
+            "hit8_cross": 280,
+            "hit8_same_line": 929,
+            "eight_contains_actual_pair": 1637
+          },
+          "reserve_2": {
+            "hit_1": 317,
+            "hit_4": 722,
+            "hit_8": 1202,
+            "average_cross_ticket_sum": 8795,
+            "hit8_cross": 310,
+            "hit8_same_line": 891,
+            "eight_contains_actual_pair": 1681
+          },
+          "reserve_3": {
+            "hit_1": 317,
+            "hit_4": 722,
+            "hit_8": 1168,
+            "average_cross_ticket_sum": 10969,
+            "hit8_cross": 346,
+            "hit8_same_line": 821,
+            "eight_contains_actual_pair": 1712
+          },
+          "reserve_4": {
+            "hit_1": 317,
+            "hit_4": 722,
+            "hit_8": 1118,
+            "average_cross_ticket_sum": 13490,
+            "hit8_cross": 381,
+            "hit8_same_line": 736,
+            "eight_contains_actual_pair": 1694
+          }
+        }
+      },
+      "selected": "saved",
+      "offset": -0.011168219998576716,
+      "records": 3589,
+      "private_commitment": "ec5cb562ef71de5142713a039ab4da2ca723423edf519edfff06a866ba1a57e8"
+    }
+  },
+  "owner_cipher_sha256": "5cd917ad79b2c9e2fb93cca8ff357362b2b9b37050ec458dcd777142933e7694"
+}

@@ -1,0 +1,503 @@
+{
+  "comparison_branch_base": "b2bfb4e5bb30f5d9e5f472ae725e531ea31b4cc1",
+  "confirmed_result_history_replay": {
+    "actual_back_in_predicted_top": {
+      "all": {
+        "races": 3244,
+        "top_1": 2049,
+        "top_2": 2873,
+        "top_3": 3155
+      },
+      "pre_cutoff": {
+        "races": 434,
+        "top_1": 302,
+        "top_2": 385,
+        "top_3": 421
+      }
+    },
+    "back_leader_goal_probability_scoring": {
+      "full": {
+        "context": {
+          "brier": 0.1656300868019543,
+          "mean_log_loss": 0.50175048974211,
+          "races": 3244,
+          "wins_from_back": 1003
+        },
+        "reference": {
+          "brier": 0.16640842224738506,
+          "mean_log_loss": 0.5035426610441514,
+          "races": 3244,
+          "wins_from_back": 1003
+        },
+        "rider": {
+          "brier": 0.16387561420064595,
+          "mean_log_loss": 0.4971515203346759,
+          "races": 3244,
+          "wins_from_back": 1003
+        },
+        "rider_plus_rival": {
+          "brier": 0.16387252854341813,
+          "mean_log_loss": 0.49714382584175004,
+          "races": 3244,
+          "wins_from_back": 1003
+        }
+      },
+      "pre_cutoff": {
+        "context": {
+          "brier": 0.17303674087246582,
+          "mean_log_loss": 0.5192271730806308,
+          "races": 434,
+          "wins_from_back": 140
+        },
+        "reference": {
+          "brier": 0.17397225690138907,
+          "mean_log_loss": 0.521595952428367,
+          "races": 434,
+          "wins_from_back": 140
+        },
+        "rider": {
+          "brier": 0.1707671084726456,
+          "mean_log_loss": 0.5150881967715861,
+          "races": 434,
+          "wins_from_back": 140
+        },
+        "rider_plus_rival": {
+          "brier": 0.1707671084726456,
+          "mean_log_loss": 0.5150881967715861,
+          "races": 434,
+          "wins_from_back": 140
+        }
+      }
+    },
+    "cohort": {
+      "conditional_scope_with_dated_pre_cutoff_programs": 434,
+      "confirmed_back_leader_with_phase_prediction": 3244,
+      "fit_end_jst": "20260930",
+      "fit_start_jst": "20251001",
+      "predictions": 4002,
+      "scored_trifectas": 3989,
+      "scored_trifectas_from_dated_pre_cutoff_programs": 557,
+      "scored_trifectas_from_other_archived_programs": 3432,
+      "test_end_jst": "20261123",
+      "test_start_jst": "20261001"
+    },
+    "commitment": {
+      "earlier_observations_half_life_days": 180,
+      "first_evaluation_date_jst": "20261001",
+      "fit_through_jst": "20260930",
+      "fixed_at_utc": "2026-11-24T10:22:03.955879+00:00",
+      "forecasts_sha256": "a5eb039c94b9b66eeb458a80c3771c555eef96dd368074d3e9dc1b272ac52977",
+      "mix": 0.25,
+      "observations": {
+        "named_rival_pairs_with_at_least_three": 125,
+        "registered_riders": 1423,
+        "rider_role_profiles": 1900,
+        "training_b_leaders_with_registrations": 23535,
+        "wins_from_back": 7510
+      },
+      "registration_scope_separate_from_video_extension": true,
+      "script_sha256": "89eca097bb5dd3b4590dbb44ec139ed27c7d5cf63b0ae29ce1e57849f884ee3e"
+    },
+    "fixed_odds_free_replay": true,
+    "history_coverage": {
+      "full_multiple_meetings_with_top_rival": 10,
+      "full_past_registered_back_history": 3217,
+      "full_past_same_role_back_history": 3166,
+      "pre_cutoff_multiple_meetings_with_top_rival": 0,
+      "pre_cutoff_past_registered_back_history": 430,
+      "pre_cutoff_past_same_role_back_history": 424
+    },
+    "model_configuration": {
+      "minimum_prior_encounters_for_top_rival_effect": 3,
+      "phase_ranker_estimations_through_jst": "20260731",
+      "predict_back_before_marginalizing_finishing_order": true,
+      "relative_score_adjustment_blend": 0.25,
+      "test_race_result_is_used_only_for_scoring": true
+    },
+    "paired_8pt_changes": {
+      "full": {
+        "context_gains_at8": 3,
+        "context_losses_at8": 2,
+        "reference_gains_at8": 0,
+        "reference_losses_at8": 0,
+        "rider_gains_at8": 4,
+        "rider_losses_at8": 7,
+        "rider_plus_rival_gains_at8": 4,
+        "rider_plus_rival_losses_at8": 7
+      },
+      "pre_cutoff": {
+        "context_gains_at8": 1,
+        "context_losses_at8": 0,
+        "reference_gains_at8": 0,
+        "reference_losses_at8": 0,
+        "rider_gains_at8": 0,
+        "rider_losses_at8": 2,
+        "rider_plus_rival_gains_at8": 0,
+        "rider_plus_rival_losses_at8": 2
+      }
+    },
+    "paired_day_95_percentage_points_at_8": {
+      "context": [
+        -0.078,
+        0.127
+      ],
+      "reference": [
+        0.0,
+        0.0
+      ],
+      "rider": [
+        -0.226,
+        0.075
+      ],
+      "rider_plus_rival": [
+        -0.226,
+        0.075
+      ]
+    },
+    "rankings_commitment_sha256": "8034aa91be0cc88ecc97b445e019e00e9103df711b93a5515da1a19fb90a3fbc",
+    "trifecta_same_caps": {
+      "full": {
+        "context": {
+          "hit_1": 490,
+          "hit_4": 1154,
+          "hit_8": 1617,
+          "races": 3989
+        },
+        "reference": {
+          "hit_1": 493,
+          "hit_4": 1153,
+          "hit_8": 1616,
+          "races": 3989
+        },
+        "rider": {
+          "hit_1": 487,
+          "hit_4": 1153,
+          "hit_8": 1613,
+          "races": 3989
+        },
+        "rider_plus_rival": {
+          "hit_1": 487,
+          "hit_4": 1153,
+          "hit_8": 1613,
+          "races": 3989
+        }
+      },
+      "pre_cutoff": {
+        "context": {
+          "hit_1": 69,
+          "hit_4": 167,
+          "hit_8": 224,
+          "races": 557
+        },
+        "reference": {
+          "hit_1": 70,
+          "hit_4": 166,
+          "hit_8": 223,
+          "races": 557
+        },
+        "rider": {
+          "hit_1": 67,
+          "hit_4": 167,
+          "hit_8": 221,
+          "races": 557
+        },
+        "rider_plus_rival": {
+          "hit_1": 67,
+          "hit_4": 167,
+          "hit_8": 221,
+          "races": 557
+        }
+      }
+    },
+    "unmatched_prefix_for_changed_hit_at_8": {
+      "all": {
+        "gained": 4,
+        "gained_first_only": 1,
+        "gained_first_pair": 3,
+        "lost": 7,
+        "lost_first_only": 1,
+        "lost_first_pair": 5,
+        "lost_no_first": 1
+      },
+      "pre_cutoff": {
+        "lost": 2,
+        "lost_first_pair": 2
+      }
+    }
+  },
+  "kind": "chronological_retrospective_study",
+  "public_film_review": {
+    "commitment": {
+      "beta_prior_failures": 1,
+      "beta_prior_successes": 1,
+      "effective_prior_races_per_rider": 4,
+      "film_training_through_jst": "20261120",
+      "fixed_at_utc": "2026-11-24T10:29:14.092466+00:00",
+      "previous_pool_films": 14,
+      "previous_pool_holds": 11,
+      "probabilities_sha256": "7196ef874a9767cb0819985be76f4c97ea769675de2b7ad1b5232f25b70acd13",
+      "repeated_rider_films_holding_the_corner": 9,
+      "repeated_rider_films_with_readable_corner": 11,
+      "script_sha256": "ed57a5b8d3af03c372c12cc789a7cc559d5137567c284c2abe6b994069dcb978"
+    },
+    "commitment_sha256": "7cb9560fc890a3b07c8f8b7dc2c7e356cc3a42d47d8711c3589a4acb15fc19b2",
+    "conditional_back_to_corner": {
+      "original_pool": {
+        "actual_retained": 5,
+        "brier": 0.14583333333333334,
+        "log_loss": 0.47078412056313246,
+        "races": 6
+      },
+      "past_rider_films": {
+        "actual_retained": 5,
+        "brier": 0.11314814814814815,
+        "log_loss": 0.37903093641205793,
+        "races": 6
+      },
+      "same_data_pool": {
+        "actual_retained": 5,
+        "brier": 0.1419753086419753,
+        "log_loss": 0.46010825636346747,
+        "races": 6
+      }
+    },
+    "corner_observation": "Lead near turn four as visible in the replay. One indistinguishable pair was excluded.",
+    "earlier_film_observations": [
+      {
+        "back": 4,
+        "back_seconds": 49.898,
+        "corner": 4,
+        "corner_seconds": 55.898,
+        "historical_snapshot_provenance": "KDREAMS_RETROSPECTIVE_PROGRAM",
+        "planned_role": "leader",
+        "public_result_url": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/5120261111/51202611110300/4/",
+        "race": "202611135104",
+        "rider": "岡部陸斗",
+        "winner": 4,
+        "winning_method": "逃"
+      },
+      {
+        "back": 1,
+        "back_seconds": 49.77,
+        "corner": 4,
+        "corner_seconds": 58.2,
+        "historical_snapshot_provenance": "KDREAMS_RETROSPECTIVE_PROGRAM",
+        "planned_role": "leader",
+        "public_result_url": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/2320261104/23202611040200/6/",
+        "race": "202611052306",
+        "rider": "岡部陸斗",
+        "winner": 4,
+        "winning_method": "差"
+      },
+      {
+        "back": 2,
+        "back_seconds": 63.84,
+        "corner": 2,
+        "corner_seconds": 69.84,
+        "historical_snapshot_provenance": "KDREAMS_RETROSPECTIVE_PROGRAM",
+        "planned_role": "leader",
+        "public_result_url": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/7520261108/75202611080100/8/",
+        "race": "202611087508",
+        "rider": "梶原大地",
+        "winner": 4,
+        "winning_method": "差"
+      },
+      {
+        "back": 7,
+        "back_seconds": 75.352,
+        "corner": 7,
+        "corner_seconds": 81.352,
+        "historical_snapshot_provenance": "KDREAMS_RETROSPECTIVE_PROGRAM",
+        "planned_role": "leader",
+        "public_result_url": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/7420260825/74202608250100/2/",
+        "race": "202608257402",
+        "rider": "梶原大地",
+        "winner": 7,
+        "winning_method": "逃"
+      },
+      {
+        "back": 9,
+        "back_seconds": 57.56,
+        "corner": 9,
+        "corner_seconds": 62.3,
+        "historical_snapshot_provenance": "KDREAMS_RETROSPECTIVE_PROGRAM",
+        "planned_role": "leader",
+        "public_result_url": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/4820261105/48202611050400/3/",
+        "race": "202611084803",
+        "rider": "滝本幸正",
+        "winner": 1,
+        "winning_method": "差"
+      },
+      {
+        "back": 5,
+        "back_seconds": 60.712,
+        "corner": null,
+        "corner_seconds": null,
+        "historical_snapshot_provenance": "KDREAMS_RETROSPECTIVE_PROGRAM",
+        "planned_role": "leader",
+        "public_result_url": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/3620261026/36202610260300/7/",
+        "race": "202610283607",
+        "rider": "滝本幸正",
+        "winner": 5,
+        "winning_method": "逃"
+      },
+      {
+        "back": 2,
+        "back_seconds": 51.988,
+        "corner": 2,
+        "corner_seconds": 57.988,
+        "historical_snapshot_provenance": "VERSIONED_PRE_CUTOFF_PROGRAM",
+        "planned_role": "leader",
+        "public_result_url": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/8120261118/81202611180300/2/",
+        "race": "202611208102",
+        "rider": "深谷知広",
+        "winner": 2,
+        "winning_method": "逃"
+      },
+      {
+        "back": 1,
+        "back_seconds": 50.338,
+        "corner": 1,
+        "corner_seconds": 56.338,
+        "historical_snapshot_provenance": "KDREAMS_RETROSPECTIVE_PROGRAM",
+        "planned_role": "leader",
+        "public_result_url": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/4520261102/45202611020300/12/",
+        "race": "202611044512",
+        "rider": "深谷知広",
+        "winner": 1,
+        "winning_method": "逃"
+      },
+      {
+        "back": 6,
+        "back_seconds": 52.143,
+        "corner": 6,
+        "corner_seconds": 61.143,
+        "historical_snapshot_provenance": "KDREAMS_RETROSPECTIVE_PROGRAM",
+        "planned_role": "leader",
+        "public_result_url": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/4620261110/46202611100300/5/",
+        "race": "202611124605",
+        "rider": "阿久津浩之",
+        "winner": 4,
+        "winning_method": "差"
+      },
+      {
+        "back": 7,
+        "back_seconds": 55.495,
+        "corner": 4,
+        "corner_seconds": 61.495,
+        "historical_snapshot_provenance": "KDREAMS_RETROSPECTIVE_PROGRAM",
+        "planned_role": "leader",
+        "public_result_url": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/2120260818/21202608180300/4/",
+        "race": "202608202104",
+        "rider": "阿久津浩之",
+        "winner": 4,
+        "winning_method": "差"
+      },
+      {
+        "back": 3,
+        "back_seconds": 55.962,
+        "corner": 3,
+        "corner_seconds": 61.962,
+        "historical_snapshot_provenance": "KDREAMS_RETROSPECTIVE_PROGRAM",
+        "planned_role": "leader",
+        "public_result_url": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/3120261109/31202611090100/12/",
+        "race": "202611093112",
+        "rider": "青野将大",
+        "winner": 5,
+        "winning_method": "差"
+      },
+      {
+        "back": 9,
+        "back_seconds": 50.829,
+        "corner": 9,
+        "corner_seconds": 54.1,
+        "historical_snapshot_provenance": "KDREAMS_RETROSPECTIVE_PROGRAM",
+        "planned_role": "leader",
+        "public_result_url": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/4320260926/43202609260400/10/",
+        "race": "202609294310",
+        "rider": "青野将大",
+        "winner": 2,
+        "winning_method": "差"
+      }
+    ],
+    "holdout_dates_jst": [
+      "20261121",
+      "20261123"
+    ],
+    "holdout_with_visible_back_and_corner": 13,
+    "last_race_actual_back_used_only_to_choose_conditional_label": true,
+    "multiple_rider_starts_in_extra_earlier_films": 12,
+    "original_training_matching_identities": 0,
+    "paired_holdout_races": [
+      {
+        "back": 7,
+        "corner": 1,
+        "corner_seconds": 62,
+        "planned_role": "leader",
+        "public_result_url": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/2220261120/22202611200200/5/",
+        "race": "202611212205",
+        "rider": "阿久津浩之",
+        "winner": 1
+      },
+      {
+        "back": 9,
+        "corner": 9,
+        "corner_seconds": 58.031,
+        "planned_role": "leader",
+        "public_result_url": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/8120261118/81202611180400/4/",
+        "race": "202611218104",
+        "rider": "青野将大",
+        "winner": 3
+      },
+      {
+        "back": 1,
+        "corner": 1,
+        "corner_seconds": 57.006,
+        "planned_role": "leader",
+        "public_result_url": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/4520261121/45202611210100/7/",
+        "race": "202611214507",
+        "rider": "滝本幸正",
+        "winner": 4
+      },
+      {
+        "back": 3,
+        "corner": 3,
+        "corner_seconds": 67.9,
+        "planned_role": "leader",
+        "public_result_url": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/5320261122/53202611220200/8/",
+        "race": "202611235308",
+        "rider": "梶原大地",
+        "winner": 3
+      },
+      {
+        "back": 5,
+        "corner": 5,
+        "corner_seconds": 67.712,
+        "planned_role": "leader",
+        "public_result_url": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/6220261122/62202611220200/5/",
+        "race": "202611236205",
+        "rider": "岡部陸斗",
+        "winner": 5
+      },
+      {
+        "back": 3,
+        "corner": 3,
+        "corner_seconds": 56.122,
+        "planned_role": "second",
+        "public_result_url": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/8120261118/81202611180600/8/",
+        "race": "202611238108",
+        "rider": "深谷知広",
+        "winner": 3
+      }
+    ],
+    "selection_scope": "Six riders with verified later B and relatively frequent past observed B leads. Two past films each at different venues.",
+    "unreadable_corner_exclusions": 1,
+    "winner_when_all_three_observed": 3
+  },
+  "schema": "race-ai-keirin-repeated-rider-phase-evaluation-v1",
+  "verification": {
+    "existing_tests_passed": 13,
+    "same_data_comparison_adds_no_outcomes_to_inference": true,
+    "score_replayed_from_frozen_forecast_digests": true
+  }
+}

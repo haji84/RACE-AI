@@ -1,0 +1,15 @@
+{
+  "schema": "KEIRIN_FORWARD_RECEIPT_V1",
+  "prediction_sha256": "20f8aa70f5ce60e5e72228c65b67b26c7ee1dace38c80b15ca519f6edbb162b1",
+  "frozen_at": "2026-11-25T08:46:55.273509+00:00",
+  "design_sha256": "9250711cfc55cd2202374a66260649f23a4d56061457c10a1922dcc605e30b48",
+  "n": 15,
+  "same_tickets_on_all_original_model_races": 60,
+  "changed_sets": 15,
+  "earliest_cutoff": "2026-11-25T21:00:00+09:00",
+  "latest_cutoff": "2026-11-25T23:25:00+09:00",
+  "acquired_commit": "93c73d259b428e3d43d59b350cd87cc065fd3090",
+  "source_receipt_sha256": "c344001a78523cc4afc2f3d02495047d0bf31416250e72f691eef596d9eb23b0",
+  "additional_check": "Source bytes for early and late Kdreams same event, cutoff, complete starter identities, late line+tactics; two-source input packet with H and registrations; earlier published selection unchanged. Current incumbent complete-line branch with existing weights, no re-fit.",
+  "original_receipt_sha256": "08d3196b7f879156b0bd280443d6619d3a4f1558ef81ec3b39461a228fc817a5"
+}

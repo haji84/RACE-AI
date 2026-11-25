@@ -1,0 +1,79 @@
+{
+  "site_source_base": "723019e",
+  "source_patch_sha256": "2c9c108956ad0c68fe7d68c09eef8f0c41c2b81131df14addf73e7509712dc77",
+  "source_patch_verified_against_base": true,
+  "sources": {
+    "daily/daily.css": "e6fe784c5de7e0bd62307842380cafbe28f9665defd5e3d50917c0f25426a5fb",
+    "daily/index.html": "2392ae42785c3ee7b98633de6e9f3c1cae11667cb34becf0068af02a358640e8",
+    "daily/keirin-note-view.js": "fedfe0834546dd3c1bb08b8362b92b72ac2accc67e94cf30361deacd3537a830",
+    "daily/published-presentation.js": "24b0085c9de337a351ec5dbce23b0083735682b7d8996501bda493207c6d2bd2",
+    "tests/daily_view.test.cjs": "2567d1324df5e17a230e890ed3924d60648ff69abd80981e55be8eaade1b78d2"
+  },
+  "rank_asset_sha256_gzip": "51a98f0a048d4831eeb8c85533e28f789b17dc55ca59a7cb0cf0c920d7e4eb9e",
+  "rank_asset_sha256_uncompressed": "2a62f3a6cf7f2a12d62b5b49b4d9a620db49309b0522814ed904c11c942e3d35",
+  "forecast_modified": false,
+  "browser_case": "202611252611",
+  "browser_engine": "Chromium",
+  "browser": [
+    {
+      "viewport": [
+        1366,
+        900
+      ],
+      "emulated_touch": false,
+      "checked_rider_buttons": 516,
+      "checked_missing_traits": 6,
+      "page_errors": 0
+    },
+    {
+      "viewport": [
+        380,
+        780
+      ],
+      "emulated_touch": true,
+      "checked_rider_buttons": 516,
+      "checked_missing_traits": 6,
+      "page_errors": 0
+    }
+  ],
+  "browser_checked": [
+    "public source timestamps and values",
+    "switch rider without changing race",
+    "button close and Escape",
+    "focus restoration after cards re-render",
+    "both ticket markets",
+    "confidence filter",
+    "no page horizontal overflow"
+  ],
+  "observations": {
+    "labels": [
+      "捲りへの抵抗力",
+      "番手からの自力発動",
+      "並走時の持続力",
+      "戦術の切り替え能力",
+      "消耗後の末脚",
+      "内外の位置別能力"
+    ],
+    "status": "観測資料未取得"
+  },
+  "site_tests": {
+    "passed": 175,
+    "failed": 0
+  },
+  "canonical_owner_view": {
+    "same_V3_loader": false,
+    "model_and_assets_tests_passed": 15
+  },
+  "preview_build": {
+    "built_at": "2026-11-25T11:43:54.190Z",
+    "page_count": 6,
+    "daily_asset_count": 17,
+    "download_count": 23,
+    "compressed_download_count": 6,
+    "archive_race_count": 57,
+    "site_generates_forecasts": false,
+    "worker_bytes": 20517421,
+    "worker_sha256": "18e1550946aa234cdbecbca706c24d07f616b0ef4b220efdbfdeb7cc281ee12c"
+  },
+  "publishing_state": "local_preview_only"
+}

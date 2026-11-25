@@ -1,0 +1,2878 @@
+{
+  "schema": "KEIRIN_NONLINEAR_HIT_SCORE_V1",
+  "score_started_at": "2026-11-24T00:26:52.263168+00:00",
+  "input_commitment_sha256": "e361879e36f1a591941abc1a8fdd68b8c4a6e43be23653de4de970e78e4777e2",
+  "joint_commitment_sha256": "7ef998ada491de004303d319959d0c7f72fe1e4f70462a79f79cdc3726c6ae3a",
+  "panels": {
+    "april_may": {
+      "coverage": {
+        "input_races": 4621,
+        "scored": 4621
+      },
+      "by_arm": {
+        "saved": {
+          "hit_1": 560,
+          "hit_4": 1344,
+          "hit_8": 1875,
+          "correct_first_two_in_eight": 2467,
+          "correct_first_in_eight": 3463,
+          "first_missing": 1158,
+          "pair_missing_given_first": 996,
+          "third_missing_given_pair": 592,
+          "gain_from_saved": 0,
+          "lost_from_saved": 0
+        },
+        "first_two_24": {
+          "hit_1": 560,
+          "hit_4": 1350,
+          "hit_8": 1880,
+          "correct_first_two_in_eight": 2467,
+          "correct_first_in_eight": 3462,
+          "first_missing": 1159,
+          "pair_missing_given_first": 995,
+          "third_missing_given_pair": 587,
+          "gain_from_saved": 33,
+          "lost_from_saved": 28
+        },
+        "first_two_56": {
+          "hit_1": 563,
+          "hit_4": 1343,
+          "hit_8": 1881,
+          "correct_first_two_in_eight": 2469,
+          "correct_first_in_eight": 3467,
+          "first_missing": 1154,
+          "pair_missing_given_first": 998,
+          "third_missing_given_pair": 588,
+          "gain_from_saved": 52,
+          "lost_from_saved": 46
+        },
+        "third_56": {
+          "hit_1": 561,
+          "hit_4": 1363,
+          "hit_8": 1888,
+          "correct_first_two_in_eight": 2459,
+          "correct_first_in_eight": 3464,
+          "first_missing": 1157,
+          "pair_missing_given_first": 1005,
+          "third_missing_given_pair": 571,
+          "gain_from_saved": 60,
+          "lost_from_saved": 47
+        },
+        "all_24": {
+          "hit_1": 565,
+          "hit_4": 1376,
+          "hit_8": 1880,
+          "correct_first_two_in_eight": 2460,
+          "correct_first_in_eight": 3463,
+          "first_missing": 1158,
+          "pair_missing_given_first": 1003,
+          "third_missing_given_pair": 580,
+          "gain_from_saved": 49,
+          "lost_from_saved": 44
+        },
+        "all_56": {
+          "hit_1": 560,
+          "hit_4": 1376,
+          "hit_8": 1891,
+          "correct_first_two_in_eight": 2473,
+          "correct_first_in_eight": 3478,
+          "first_missing": 1143,
+          "pair_missing_given_first": 1005,
+          "third_missing_given_pair": 582,
+          "gain_from_saved": 78,
+          "lost_from_saved": 62
+        },
+        "all_96": {
+          "hit_1": 560,
+          "hit_4": 1377,
+          "hit_8": 1909,
+          "correct_first_two_in_eight": 2487,
+          "correct_first_in_eight": 3509,
+          "first_missing": 1112,
+          "pair_missing_given_first": 1022,
+          "third_missing_given_pair": 578,
+          "gain_from_saved": 109,
+          "lost_from_saved": 75
+        },
+        "all_96_half": {
+          "hit_1": 569,
+          "hit_4": 1375,
+          "hit_8": 1885,
+          "correct_first_two_in_eight": 2479,
+          "correct_first_in_eight": 3482,
+          "first_missing": 1139,
+          "pair_missing_given_first": 1003,
+          "third_missing_given_pair": 594,
+          "gain_from_saved": 51,
+          "lost_from_saved": 41
+        },
+        "selected_by_input": {
+          "hit_1": 560,
+          "hit_4": 1377,
+          "hit_8": 1909,
+          "correct_first_two_in_eight": 2487,
+          "correct_first_in_eight": 3509,
+          "first_missing": 1112,
+          "pair_missing_given_first": 1022,
+          "third_missing_given_pair": 578,
+          "gain_from_saved": 109,
+          "lost_from_saved": 75
+        },
+        "joint_32": {
+          "hit_1": 559,
+          "hit_4": 1338,
+          "hit_8": 1876,
+          "correct_first_two_in_eight": 2469,
+          "correct_first_in_eight": 3468,
+          "first_missing": 1153,
+          "pair_missing_given_first": 999,
+          "third_missing_given_pair": 593,
+          "gain_from_saved": 28,
+          "lost_from_saved": 27
+        },
+        "joint_72": {
+          "hit_1": 560,
+          "hit_4": 1339,
+          "hit_8": 1882,
+          "correct_first_two_in_eight": 2461,
+          "correct_first_in_eight": 3470,
+          "first_missing": 1151,
+          "pair_missing_given_first": 1009,
+          "third_missing_given_pair": 579,
+          "gain_from_saved": 42,
+          "lost_from_saved": 35
+        },
+        "joint_112": {
+          "hit_1": 561,
+          "hit_4": 1336,
+          "hit_8": 1880,
+          "correct_first_two_in_eight": 2474,
+          "correct_first_in_eight": 3489,
+          "first_missing": 1132,
+          "pair_missing_given_first": 1015,
+          "third_missing_given_pair": 594,
+          "gain_from_saved": 54,
+          "lost_from_saved": 49
+        },
+        "joint_112_half": {
+          "hit_1": 560,
+          "hit_4": 1337,
+          "hit_8": 1875,
+          "correct_first_two_in_eight": 2466,
+          "correct_first_in_eight": 3473,
+          "first_missing": 1148,
+          "pair_missing_given_first": 1007,
+          "third_missing_given_pair": 591,
+          "gain_from_saved": 22,
+          "lost_from_saved": 22
+        },
+        "joint_72_plus_third": {
+          "hit_1": 557,
+          "hit_4": 1372,
+          "hit_8": 1877,
+          "correct_first_two_in_eight": 2473,
+          "correct_first_in_eight": 3481,
+          "first_missing": 1140,
+          "pair_missing_given_first": 1008,
+          "third_missing_given_pair": 596,
+          "gain_from_saved": 62,
+          "lost_from_saved": 60
+        },
+        "joint_112_plus_third": {
+          "hit_1": 563,
+          "hit_4": 1361,
+          "hit_8": 1885,
+          "correct_first_two_in_eight": 2478,
+          "correct_first_in_eight": 3487,
+          "first_missing": 1134,
+          "pair_missing_given_first": 1009,
+          "third_missing_given_pair": 593,
+          "gain_from_saved": 78,
+          "lost_from_saved": 68
+        },
+        "joint_selected": {
+          "hit_1": 563,
+          "hit_4": 1361,
+          "hit_8": 1885,
+          "correct_first_two_in_eight": 2478,
+          "correct_first_in_eight": 3487,
+          "first_missing": 1134,
+          "pair_missing_given_first": 1009,
+          "third_missing_given_pair": 593,
+          "gain_from_saved": 78,
+          "lost_from_saved": 68
+        },
+        "calibration_selected_family": {
+          "hit_1": 560,
+          "hit_4": 1377,
+          "hit_8": 1909,
+          "correct_first_two_in_eight": 2487,
+          "correct_first_in_eight": 3509,
+          "first_missing": 1112,
+          "pair_missing_given_first": 1022,
+          "third_missing_given_pair": 578,
+          "gain_from_saved": 109,
+          "lost_from_saved": 75
+        },
+        "earlier_selected_B": {
+          "hit_1": 560,
+          "hit_4": 1356,
+          "hit_8": 1885,
+          "correct_first_two_in_eight": 2489,
+          "correct_first_in_eight": 3475,
+          "first_missing": 1146,
+          "pair_missing_given_first": 986,
+          "third_missing_given_pair": 604,
+          "gain_from_saved": 30,
+          "lost_from_saved": 20
+        },
+        "earlier_H_to_B_reference": {
+          "hit_1": 560,
+          "hit_4": 1358,
+          "hit_8": 1884,
+          "correct_first_two_in_eight": 2489,
+          "correct_first_in_eight": 3473,
+          "first_missing": 1148,
+          "pair_missing_given_first": 984,
+          "third_missing_given_pair": 605,
+          "gain_from_saved": 33,
+          "lost_from_saved": 24
+        }
+      },
+      "paired_day_95_points_versus_saved": {
+        "saved": [
+          0.0,
+          0.0
+        ],
+        "first_two_24": [
+          -0.266,
+          0.477
+        ],
+        "first_two_56": [
+          -0.331,
+          0.591
+        ],
+        "third_56": [
+          -0.212,
+          0.765
+        ],
+        "all_24": [
+          -0.363,
+          0.585
+        ],
+        "all_56": [
+          -0.217,
+          0.96
+        ],
+        "all_96": [
+          0.088,
+          1.407
+        ],
+        "all_96_half": [
+          -0.265,
+          0.737
+        ],
+        "selected_by_input": [
+          0.088,
+          1.407
+        ],
+        "joint_32": [
+          -0.305,
+          0.366
+        ],
+        "joint_72": [
+          -0.254,
+          0.553
+        ],
+        "joint_112": [
+          -0.325,
+          0.533
+        ],
+        "joint_112_half": [
+          -0.31,
+          0.322
+        ],
+        "joint_72_plus_third": [
+          -0.459,
+          0.542
+        ],
+        "joint_112_plus_third": [
+          -0.364,
+          0.811
+        ],
+        "joint_selected": [
+          -0.364,
+          0.811
+        ],
+        "calibration_selected_family": [
+          0.088,
+          1.407
+        ],
+        "earlier_selected_B": [
+          -0.111,
+          0.587
+        ],
+        "earlier_H_to_B_reference": [
+          -0.151,
+          0.553
+        ]
+      },
+      "paired_day_95_points_versus_phase": {
+        "saved": [
+          -0.587,
+          0.111
+        ],
+        "first_two_24": [
+          -0.516,
+          0.278
+        ],
+        "first_two_56": [
+          -0.554,
+          0.347
+        ],
+        "third_56": [
+          -0.43,
+          0.56
+        ],
+        "all_24": [
+          -0.592,
+          0.346
+        ],
+        "all_56": [
+          -0.45,
+          0.731
+        ],
+        "all_96": [
+          -0.172,
+          1.181
+        ],
+        "all_96_half": [
+          -0.496,
+          0.489
+        ],
+        "selected_by_input": [
+          -0.172,
+          1.181
+        ],
+        "joint_32": [
+          -0.589,
+          0.179
+        ],
+        "joint_72": [
+          -0.448,
+          0.305
+        ],
+        "joint_112": [
+          -0.558,
+          0.302
+        ],
+        "joint_112_half": [
+          -0.587,
+          0.131
+        ],
+        "joint_72_plus_third": [
+          -0.679,
+          0.331
+        ],
+        "joint_112_plus_third": [
+          -0.569,
+          0.578
+        ],
+        "joint_selected": [
+          -0.569,
+          0.578
+        ],
+        "calibration_selected_family": [
+          -0.172,
+          1.181
+        ],
+        "earlier_selected_B": [
+          0.0,
+          0.0
+        ],
+        "earlier_H_to_B_reference": [
+          -0.152,
+          0.108
+        ]
+      },
+      "stage_by_actual_line_relation": {
+        "saved/same_line": {
+          "races": 2282,
+          "hit_8": 1416,
+          "correct_first_two_in_eight": 1714
+        },
+        "selected_by_input/same_line": {
+          "races": 2282,
+          "hit_8": 1426,
+          "correct_first_two_in_eight": 1731
+        },
+        "joint_selected/same_line": {
+          "races": 2282,
+          "hit_8": 1423,
+          "correct_first_two_in_eight": 1726
+        },
+        "calibration_selected_family/same_line": {
+          "races": 2282,
+          "hit_8": 1426,
+          "correct_first_two_in_eight": 1731
+        },
+        "earlier_selected_B/same_line": {
+          "races": 2282,
+          "hit_8": 1430,
+          "correct_first_two_in_eight": 1731
+        },
+        "saved/cross_line": {
+          "races": 2331,
+          "hit_8": 455,
+          "correct_first_two_in_eight": 746
+        },
+        "selected_by_input/cross_line": {
+          "races": 2331,
+          "hit_8": 478,
+          "correct_first_two_in_eight": 749
+        },
+        "joint_selected/cross_line": {
+          "races": 2331,
+          "hit_8": 457,
+          "correct_first_two_in_eight": 745
+        },
+        "calibration_selected_family/cross_line": {
+          "races": 2331,
+          "hit_8": 478,
+          "correct_first_two_in_eight": 749
+        },
+        "earlier_selected_B/cross_line": {
+          "races": 2331,
+          "hit_8": 451,
+          "correct_first_two_in_eight": 751
+        },
+        "saved/mixed_tie": {
+          "races": 8,
+          "hit_8": 4,
+          "correct_first_two_in_eight": 7
+        },
+        "selected_by_input/mixed_tie": {
+          "races": 8,
+          "hit_8": 5,
+          "correct_first_two_in_eight": 7
+        },
+        "joint_selected/mixed_tie": {
+          "races": 8,
+          "hit_8": 5,
+          "correct_first_two_in_eight": 7
+        },
+        "calibration_selected_family/mixed_tie": {
+          "races": 8,
+          "hit_8": 5,
+          "correct_first_two_in_eight": 7
+        },
+        "earlier_selected_B/mixed_tie": {
+          "races": 8,
+          "hit_8": 4,
+          "correct_first_two_in_eight": 7
+        }
+      }
+    },
+    "june_july": {
+      "coverage": {
+        "input_races": 4665,
+        "scored": 4665
+      },
+      "by_arm": {
+        "saved": {
+          "hit_1": 508,
+          "hit_4": 1281,
+          "hit_8": 1829,
+          "correct_first_two_in_eight": 2488,
+          "correct_first_in_eight": 3526,
+          "first_missing": 1139,
+          "pair_missing_given_first": 1038,
+          "third_missing_given_pair": 659,
+          "gain_from_saved": 0,
+          "lost_from_saved": 0
+        },
+        "first_two_24": {
+          "hit_1": 503,
+          "hit_4": 1282,
+          "hit_8": 1831,
+          "correct_first_two_in_eight": 2483,
+          "correct_first_in_eight": 3538,
+          "first_missing": 1127,
+          "pair_missing_given_first": 1055,
+          "third_missing_given_pair": 652,
+          "gain_from_saved": 37,
+          "lost_from_saved": 35
+        },
+        "first_two_56": {
+          "hit_1": 514,
+          "hit_4": 1277,
+          "hit_8": 1826,
+          "correct_first_two_in_eight": 2490,
+          "correct_first_in_eight": 3531,
+          "first_missing": 1134,
+          "pair_missing_given_first": 1041,
+          "third_missing_given_pair": 664,
+          "gain_from_saved": 57,
+          "lost_from_saved": 60
+        },
+        "third_56": {
+          "hit_1": 512,
+          "hit_4": 1287,
+          "hit_8": 1831,
+          "correct_first_two_in_eight": 2489,
+          "correct_first_in_eight": 3548,
+          "first_missing": 1117,
+          "pair_missing_given_first": 1059,
+          "third_missing_given_pair": 658,
+          "gain_from_saved": 55,
+          "lost_from_saved": 53
+        },
+        "all_24": {
+          "hit_1": 501,
+          "hit_4": 1297,
+          "hit_8": 1841,
+          "correct_first_two_in_eight": 2476,
+          "correct_first_in_eight": 3539,
+          "first_missing": 1126,
+          "pair_missing_given_first": 1063,
+          "third_missing_given_pair": 635,
+          "gain_from_saved": 58,
+          "lost_from_saved": 46
+        },
+        "all_56": {
+          "hit_1": 521,
+          "hit_4": 1307,
+          "hit_8": 1839,
+          "correct_first_two_in_eight": 2501,
+          "correct_first_in_eight": 3555,
+          "first_missing": 1110,
+          "pair_missing_given_first": 1054,
+          "third_missing_given_pair": 662,
+          "gain_from_saved": 91,
+          "lost_from_saved": 81
+        },
+        "all_96": {
+          "hit_1": 526,
+          "hit_4": 1304,
+          "hit_8": 1841,
+          "correct_first_two_in_eight": 2509,
+          "correct_first_in_eight": 3549,
+          "first_missing": 1116,
+          "pair_missing_given_first": 1040,
+          "third_missing_given_pair": 668,
+          "gain_from_saved": 114,
+          "lost_from_saved": 102
+        },
+        "all_96_half": {
+          "hit_1": 516,
+          "hit_4": 1299,
+          "hit_8": 1845,
+          "correct_first_two_in_eight": 2497,
+          "correct_first_in_eight": 3551,
+          "first_missing": 1114,
+          "pair_missing_given_first": 1054,
+          "third_missing_given_pair": 652,
+          "gain_from_saved": 65,
+          "lost_from_saved": 49
+        },
+        "selected_by_input": {
+          "hit_1": 526,
+          "hit_4": 1304,
+          "hit_8": 1841,
+          "correct_first_two_in_eight": 2509,
+          "correct_first_in_eight": 3549,
+          "first_missing": 1116,
+          "pair_missing_given_first": 1040,
+          "third_missing_given_pair": 668,
+          "gain_from_saved": 114,
+          "lost_from_saved": 102
+        },
+        "joint_32": {
+          "hit_1": 510,
+          "hit_4": 1285,
+          "hit_8": 1827,
+          "correct_first_two_in_eight": 2473,
+          "correct_first_in_eight": 3522,
+          "first_missing": 1143,
+          "pair_missing_given_first": 1049,
+          "third_missing_given_pair": 646,
+          "gain_from_saved": 31,
+          "lost_from_saved": 33
+        },
+        "joint_72": {
+          "hit_1": 515,
+          "hit_4": 1286,
+          "hit_8": 1824,
+          "correct_first_two_in_eight": 2465,
+          "correct_first_in_eight": 3527,
+          "first_missing": 1138,
+          "pair_missing_given_first": 1062,
+          "third_missing_given_pair": 641,
+          "gain_from_saved": 45,
+          "lost_from_saved": 50
+        },
+        "joint_112": {
+          "hit_1": 513,
+          "hit_4": 1287,
+          "hit_8": 1832,
+          "correct_first_two_in_eight": 2485,
+          "correct_first_in_eight": 3534,
+          "first_missing": 1131,
+          "pair_missing_given_first": 1049,
+          "third_missing_given_pair": 653,
+          "gain_from_saved": 62,
+          "lost_from_saved": 59
+        },
+        "joint_112_half": {
+          "hit_1": 508,
+          "hit_4": 1281,
+          "hit_8": 1833,
+          "correct_first_two_in_eight": 2473,
+          "correct_first_in_eight": 3536,
+          "first_missing": 1129,
+          "pair_missing_given_first": 1063,
+          "third_missing_given_pair": 640,
+          "gain_from_saved": 32,
+          "lost_from_saved": 28
+        },
+        "joint_72_plus_third": {
+          "hit_1": 523,
+          "hit_4": 1292,
+          "hit_8": 1839,
+          "correct_first_two_in_eight": 2485,
+          "correct_first_in_eight": 3532,
+          "first_missing": 1133,
+          "pair_missing_given_first": 1047,
+          "third_missing_given_pair": 646,
+          "gain_from_saved": 79,
+          "lost_from_saved": 69
+        },
+        "joint_112_plus_third": {
+          "hit_1": 521,
+          "hit_4": 1296,
+          "hit_8": 1839,
+          "correct_first_two_in_eight": 2496,
+          "correct_first_in_eight": 3541,
+          "first_missing": 1124,
+          "pair_missing_given_first": 1045,
+          "third_missing_given_pair": 657,
+          "gain_from_saved": 91,
+          "lost_from_saved": 81
+        },
+        "joint_selected": {
+          "hit_1": 521,
+          "hit_4": 1296,
+          "hit_8": 1839,
+          "correct_first_two_in_eight": 2496,
+          "correct_first_in_eight": 3541,
+          "first_missing": 1124,
+          "pair_missing_given_first": 1045,
+          "third_missing_given_pair": 657,
+          "gain_from_saved": 91,
+          "lost_from_saved": 81
+        },
+        "calibration_selected_family": {
+          "hit_1": 526,
+          "hit_4": 1304,
+          "hit_8": 1841,
+          "correct_first_two_in_eight": 2509,
+          "correct_first_in_eight": 3549,
+          "first_missing": 1116,
+          "pair_missing_given_first": 1040,
+          "third_missing_given_pair": 668,
+          "gain_from_saved": 114,
+          "lost_from_saved": 102
+        },
+        "earlier_selected_B": {
+          "hit_1": 510,
+          "hit_4": 1290,
+          "hit_8": 1830,
+          "correct_first_two_in_eight": 2483,
+          "correct_first_in_eight": 3528,
+          "first_missing": 1137,
+          "pair_missing_given_first": 1045,
+          "third_missing_given_pair": 653,
+          "gain_from_saved": 27,
+          "lost_from_saved": 26
+        },
+        "earlier_H_to_B_reference": {
+          "hit_1": 511,
+          "hit_4": 1295,
+          "hit_8": 1826,
+          "correct_first_two_in_eight": 2479,
+          "correct_first_in_eight": 3525,
+          "first_missing": 1140,
+          "pair_missing_given_first": 1046,
+          "third_missing_given_pair": 653,
+          "gain_from_saved": 27,
+          "lost_from_saved": 30
+        }
+      },
+      "paired_day_95_points_versus_saved": {
+        "saved": [
+          0.0,
+          0.0
+        ],
+        "first_two_24": [
+          -0.3,
+          0.378
+        ],
+        "first_two_56": [
+          -0.531,
+          0.39
+        ],
+        "third_56": [
+          -0.408,
+          0.499
+        ],
+        "all_24": [
+          -0.192,
+          0.711
+        ],
+        "all_56": [
+          -0.361,
+          0.788
+        ],
+        "all_96": [
+          -0.323,
+          0.84
+        ],
+        "all_96_half": [
+          -0.128,
+          0.838
+        ],
+        "selected_by_input": [
+          -0.323,
+          0.84
+        ],
+        "joint_32": [
+          -0.385,
+          0.302
+        ],
+        "joint_72": [
+          -0.489,
+          0.261
+        ],
+        "joint_112": [
+          -0.387,
+          0.554
+        ],
+        "joint_112_half": [
+          -0.277,
+          0.45
+        ],
+        "joint_72_plus_third": [
+          -0.301,
+          0.745
+        ],
+        "joint_112_plus_third": [
+          -0.276,
+          0.728
+        ],
+        "joint_selected": [
+          -0.276,
+          0.728
+        ],
+        "calibration_selected_family": [
+          -0.323,
+          0.84
+        ],
+        "earlier_selected_B": [
+          -0.233,
+          0.278
+        ],
+        "earlier_H_to_B_reference": [
+          -0.348,
+          0.218
+        ]
+      },
+      "paired_day_95_points_versus_phase": {
+        "saved": [
+          -0.279,
+          0.228
+        ],
+        "first_two_24": [
+          -0.343,
+          0.364
+        ],
+        "first_two_56": [
+          -0.572,
+          0.38
+        ],
+        "third_56": [
+          -0.407,
+          0.451
+        ],
+        "all_24": [
+          -0.191,
+          0.664
+        ],
+        "all_56": [
+          -0.32,
+          0.716
+        ],
+        "all_96": [
+          -0.32,
+          0.755
+        ],
+        "all_96_half": [
+          -0.149,
+          0.787
+        ],
+        "selected_by_input": [
+          -0.32,
+          0.755
+        ],
+        "joint_32": [
+          -0.409,
+          0.258
+        ],
+        "joint_72": [
+          -0.535,
+          0.282
+        ],
+        "joint_112": [
+          -0.416,
+          0.534
+        ],
+        "joint_112_half": [
+          -0.31,
+          0.452
+        ],
+        "joint_72_plus_third": [
+          -0.274,
+          0.676
+        ],
+        "joint_112_plus_third": [
+          -0.274,
+          0.672
+        ],
+        "joint_selected": [
+          -0.274,
+          0.672
+        ],
+        "calibration_selected_family": [
+          -0.32,
+          0.755
+        ],
+        "earlier_selected_B": [
+          0.0,
+          0.0
+        ],
+        "earlier_H_to_B_reference": [
+          -0.215,
+          0.043
+        ]
+      },
+      "stage_by_actual_line_relation": {
+        "saved/same_line": {
+          "races": 2386,
+          "hit_8": 1420,
+          "correct_first_two_in_eight": 1802
+        },
+        "selected_by_input/same_line": {
+          "races": 2386,
+          "hit_8": 1415,
+          "correct_first_two_in_eight": 1817
+        },
+        "joint_selected/same_line": {
+          "races": 2386,
+          "hit_8": 1422,
+          "correct_first_two_in_eight": 1816
+        },
+        "calibration_selected_family/same_line": {
+          "races": 2386,
+          "hit_8": 1415,
+          "correct_first_two_in_eight": 1817
+        },
+        "earlier_selected_B/same_line": {
+          "races": 2386,
+          "hit_8": 1424,
+          "correct_first_two_in_eight": 1812
+        },
+        "saved/cross_line": {
+          "races": 2271,
+          "hit_8": 407,
+          "correct_first_two_in_eight": 680
+        },
+        "selected_by_input/cross_line": {
+          "races": 2271,
+          "hit_8": 425,
+          "correct_first_two_in_eight": 686
+        },
+        "joint_selected/cross_line": {
+          "races": 2271,
+          "hit_8": 415,
+          "correct_first_two_in_eight": 674
+        },
+        "calibration_selected_family/cross_line": {
+          "races": 2271,
+          "hit_8": 425,
+          "correct_first_two_in_eight": 686
+        },
+        "earlier_selected_B/cross_line": {
+          "races": 2271,
+          "hit_8": 404,
+          "correct_first_two_in_eight": 665
+        },
+        "saved/mixed_tie": {
+          "races": 8,
+          "hit_8": 2,
+          "correct_first_two_in_eight": 6
+        },
+        "selected_by_input/mixed_tie": {
+          "races": 8,
+          "hit_8": 1,
+          "correct_first_two_in_eight": 6
+        },
+        "joint_selected/mixed_tie": {
+          "races": 8,
+          "hit_8": 2,
+          "correct_first_two_in_eight": 6
+        },
+        "calibration_selected_family/mixed_tie": {
+          "races": 8,
+          "hit_8": 1,
+          "correct_first_two_in_eight": 6
+        },
+        "earlier_selected_B/mixed_tie": {
+          "races": 8,
+          "hit_8": 2,
+          "correct_first_two_in_eight": 6
+        }
+      }
+    },
+    "oct_nov": {
+      "coverage": {
+        "input_races": 4002,
+        "scored": 3989,
+        "no_reconciled_outcome": 13
+      },
+      "by_arm": {
+        "saved": {
+          "hit_1": 479,
+          "hit_4": 1125,
+          "hit_8": 1579,
+          "correct_first_two_in_eight": 2138,
+          "correct_first_in_eight": 3061,
+          "first_missing": 928,
+          "pair_missing_given_first": 923,
+          "third_missing_given_pair": 559,
+          "gain_from_saved": 0,
+          "lost_from_saved": 0
+        },
+        "first_two_24": {
+          "hit_1": 477,
+          "hit_4": 1130,
+          "hit_8": 1594,
+          "correct_first_two_in_eight": 2136,
+          "correct_first_in_eight": 3071,
+          "first_missing": 918,
+          "pair_missing_given_first": 935,
+          "third_missing_given_pair": 542,
+          "gain_from_saved": 48,
+          "lost_from_saved": 33
+        },
+        "first_two_56": {
+          "hit_1": 484,
+          "hit_4": 1137,
+          "hit_8": 1590,
+          "correct_first_two_in_eight": 2147,
+          "correct_first_in_eight": 3076,
+          "first_missing": 913,
+          "pair_missing_given_first": 929,
+          "third_missing_given_pair": 557,
+          "gain_from_saved": 59,
+          "lost_from_saved": 48
+        },
+        "third_56": {
+          "hit_1": 489,
+          "hit_4": 1135,
+          "hit_8": 1590,
+          "correct_first_two_in_eight": 2158,
+          "correct_first_in_eight": 3087,
+          "first_missing": 902,
+          "pair_missing_given_first": 929,
+          "third_missing_given_pair": 568,
+          "gain_from_saved": 48,
+          "lost_from_saved": 37
+        },
+        "all_24": {
+          "hit_1": 483,
+          "hit_4": 1133,
+          "hit_8": 1597,
+          "correct_first_two_in_eight": 2145,
+          "correct_first_in_eight": 3077,
+          "first_missing": 912,
+          "pair_missing_given_first": 932,
+          "third_missing_given_pair": 548,
+          "gain_from_saved": 63,
+          "lost_from_saved": 45
+        },
+        "all_56": {
+          "hit_1": 493,
+          "hit_4": 1141,
+          "hit_8": 1601,
+          "correct_first_two_in_eight": 2156,
+          "correct_first_in_eight": 3089,
+          "first_missing": 900,
+          "pair_missing_given_first": 933,
+          "third_missing_given_pair": 555,
+          "gain_from_saved": 78,
+          "lost_from_saved": 56
+        },
+        "all_96": {
+          "hit_1": 494,
+          "hit_4": 1145,
+          "hit_8": 1602,
+          "correct_first_two_in_eight": 2169,
+          "correct_first_in_eight": 3110,
+          "first_missing": 879,
+          "pair_missing_given_first": 941,
+          "third_missing_given_pair": 567,
+          "gain_from_saved": 93,
+          "lost_from_saved": 70
+        },
+        "all_96_half": {
+          "hit_1": 490,
+          "hit_4": 1139,
+          "hit_8": 1602,
+          "correct_first_two_in_eight": 2152,
+          "correct_first_in_eight": 3078,
+          "first_missing": 911,
+          "pair_missing_given_first": 926,
+          "third_missing_given_pair": 550,
+          "gain_from_saved": 59,
+          "lost_from_saved": 36
+        },
+        "selected_by_input": {
+          "hit_1": 490,
+          "hit_4": 1141,
+          "hit_8": 1594,
+          "correct_first_two_in_eight": 2161,
+          "correct_first_in_eight": 3108,
+          "first_missing": 881,
+          "pair_missing_given_first": 947,
+          "third_missing_given_pair": 567,
+          "gain_from_saved": 84,
+          "lost_from_saved": 69
+        },
+        "joint_32": {
+          "hit_1": 480,
+          "hit_4": 1123,
+          "hit_8": 1590,
+          "correct_first_two_in_eight": 2135,
+          "correct_first_in_eight": 3058,
+          "first_missing": 931,
+          "pair_missing_given_first": 923,
+          "third_missing_given_pair": 545,
+          "gain_from_saved": 38,
+          "lost_from_saved": 27
+        },
+        "joint_72": {
+          "hit_1": 480,
+          "hit_4": 1131,
+          "hit_8": 1591,
+          "correct_first_two_in_eight": 2134,
+          "correct_first_in_eight": 3063,
+          "first_missing": 926,
+          "pair_missing_given_first": 929,
+          "third_missing_given_pair": 543,
+          "gain_from_saved": 55,
+          "lost_from_saved": 43
+        },
+        "joint_112": {
+          "hit_1": 482,
+          "hit_4": 1134,
+          "hit_8": 1594,
+          "correct_first_two_in_eight": 2145,
+          "correct_first_in_eight": 3076,
+          "first_missing": 913,
+          "pair_missing_given_first": 931,
+          "third_missing_given_pair": 551,
+          "gain_from_saved": 58,
+          "lost_from_saved": 43
+        },
+        "joint_112_half": {
+          "hit_1": 479,
+          "hit_4": 1133,
+          "hit_8": 1588,
+          "correct_first_two_in_eight": 2138,
+          "correct_first_in_eight": 3064,
+          "first_missing": 925,
+          "pair_missing_given_first": 926,
+          "third_missing_given_pair": 550,
+          "gain_from_saved": 35,
+          "lost_from_saved": 26
+        },
+        "joint_72_plus_third": {
+          "hit_1": 491,
+          "hit_4": 1144,
+          "hit_8": 1598,
+          "correct_first_two_in_eight": 2160,
+          "correct_first_in_eight": 3078,
+          "first_missing": 911,
+          "pair_missing_given_first": 918,
+          "third_missing_given_pair": 562,
+          "gain_from_saved": 69,
+          "lost_from_saved": 50
+        },
+        "joint_112_plus_third": {
+          "hit_1": 491,
+          "hit_4": 1151,
+          "hit_8": 1603,
+          "correct_first_two_in_eight": 2158,
+          "correct_first_in_eight": 3092,
+          "first_missing": 897,
+          "pair_missing_given_first": 934,
+          "third_missing_given_pair": 555,
+          "gain_from_saved": 77,
+          "lost_from_saved": 53
+        },
+        "joint_selected": {
+          "hit_1": 490,
+          "hit_4": 1145,
+          "hit_8": 1600,
+          "correct_first_two_in_eight": 2155,
+          "correct_first_in_eight": 3087,
+          "first_missing": 902,
+          "pair_missing_given_first": 932,
+          "third_missing_given_pair": 555,
+          "gain_from_saved": 71,
+          "lost_from_saved": 50
+        },
+        "calibration_selected_family": {
+          "hit_1": 490,
+          "hit_4": 1141,
+          "hit_8": 1594,
+          "correct_first_two_in_eight": 2161,
+          "correct_first_in_eight": 3108,
+          "first_missing": 881,
+          "pair_missing_given_first": 947,
+          "third_missing_given_pair": 567,
+          "gain_from_saved": 84,
+          "lost_from_saved": 69
+        },
+        "earlier_selected_B": {
+          "hit_1": 494,
+          "hit_4": 1131,
+          "hit_8": 1588,
+          "correct_first_two_in_eight": 2125,
+          "correct_first_in_eight": 3055,
+          "first_missing": 934,
+          "pair_missing_given_first": 930,
+          "third_missing_given_pair": 537,
+          "gain_from_saved": 83,
+          "lost_from_saved": 74
+        },
+        "earlier_H_to_B_reference": {
+          "hit_1": 495,
+          "hit_4": 1137,
+          "hit_8": 1592,
+          "correct_first_two_in_eight": 2135,
+          "correct_first_in_eight": 3056,
+          "first_missing": 933,
+          "pair_missing_given_first": 921,
+          "third_missing_given_pair": 543,
+          "gain_from_saved": 91,
+          "lost_from_saved": 78
+        }
+      },
+      "paired_day_95_points_versus_saved": {
+        "saved": [
+          0.0,
+          0.0
+        ],
+        "first_two_24": [
+          -0.05,
+          0.813
+        ],
+        "first_two_56": [
+          -0.256,
+          0.787
+        ],
+        "third_56": [
+          -0.195,
+          0.775
+        ],
+        "all_24": [
+          -0.127,
+          1.061
+        ],
+        "all_56": [
+          -0.051,
+          1.2
+        ],
+        "all_96": [
+          -0.128,
+          1.28
+        ],
+        "all_96_half": [
+          0.05,
+          1.124
+        ],
+        "selected_by_input": [
+          -0.298,
+          1.025
+        ],
+        "joint_32": [
+          -0.155,
+          0.717
+        ],
+        "joint_72": [
+          -0.227,
+          0.868
+        ],
+        "joint_112": [
+          -0.176,
+          0.909
+        ],
+        "joint_112_half": [
+          -0.154,
+          0.619
+        ],
+        "joint_72_plus_third": [
+          -0.052,
+          1.057
+        ],
+        "joint_112_plus_third": [
+          0.05,
+          1.144
+        ],
+        "joint_selected": [
+          0.026,
+          1.018
+        ],
+        "calibration_selected_family": [
+          -0.298,
+          1.025
+        ],
+        "earlier_selected_B": [
+          -0.44,
+          0.902
+        ],
+        "earlier_H_to_B_reference": [
+          -0.3,
+          0.995
+        ]
+      },
+      "paired_day_95_points_versus_phase": {
+        "saved": [
+          -0.906,
+          0.439
+        ],
+        "first_two_24": [
+          -0.503,
+          0.838
+        ],
+        "first_two_56": [
+          -0.575,
+          0.729
+        ],
+        "third_56": [
+          -0.63,
+          0.663
+        ],
+        "all_24": [
+          -0.464,
+          0.888
+        ],
+        "all_56": [
+          -0.327,
+          0.965
+        ],
+        "all_96": [
+          -0.431,
+          1.124
+        ],
+        "all_96_half": [
+          -0.349,
+          1.029
+        ],
+        "selected_by_input": [
+          -0.589,
+          0.901
+        ],
+        "joint_32": [
+          -0.636,
+          0.739
+        ],
+        "joint_72": [
+          -0.586,
+          0.791
+        ],
+        "joint_112": [
+          -0.512,
+          0.866
+        ],
+        "joint_112_half": [
+          -0.654,
+          0.668
+        ],
+        "joint_72_plus_third": [
+          -0.408,
+          0.868
+        ],
+        "joint_112_plus_third": [
+          -0.253,
+          1.01
+        ],
+        "joint_selected": [
+          -0.273,
+          0.889
+        ],
+        "calibration_selected_family": [
+          -0.589,
+          0.901
+        ],
+        "earlier_selected_B": [
+          0.0,
+          0.0
+        ],
+        "earlier_H_to_B_reference": [
+          -0.174,
+          0.373
+        ]
+      },
+      "stage_by_actual_line_relation": {
+        "saved/cross_line": {
+          "races": 1881,
+          "hit_8": 319,
+          "correct_first_two_in_eight": 557
+        },
+        "selected_by_input/cross_line": {
+          "races": 1881,
+          "hit_8": 328,
+          "correct_first_two_in_eight": 566
+        },
+        "joint_selected/cross_line": {
+          "races": 1881,
+          "hit_8": 322,
+          "correct_first_two_in_eight": 555
+        },
+        "calibration_selected_family/cross_line": {
+          "races": 1881,
+          "hit_8": 328,
+          "correct_first_two_in_eight": 566
+        },
+        "earlier_selected_B/cross_line": {
+          "races": 1881,
+          "hit_8": 302,
+          "correct_first_two_in_eight": 523
+        },
+        "saved/same_line": {
+          "races": 2086,
+          "hit_8": 1256,
+          "correct_first_two_in_eight": 1572
+        },
+        "selected_by_input/same_line": {
+          "races": 2086,
+          "hit_8": 1262,
+          "correct_first_two_in_eight": 1586
+        },
+        "joint_selected/same_line": {
+          "races": 2086,
+          "hit_8": 1274,
+          "correct_first_two_in_eight": 1591
+        },
+        "calibration_selected_family/same_line": {
+          "races": 2086,
+          "hit_8": 1262,
+          "correct_first_two_in_eight": 1586
+        },
+        "earlier_selected_B/same_line": {
+          "races": 2086,
+          "hit_8": 1281,
+          "correct_first_two_in_eight": 1593
+        },
+        "saved/mixed_tie": {
+          "races": 4,
+          "hit_8": 1,
+          "correct_first_two_in_eight": 3
+        },
+        "selected_by_input/mixed_tie": {
+          "races": 4,
+          "hit_8": 1,
+          "correct_first_two_in_eight": 3
+        },
+        "joint_selected/mixed_tie": {
+          "races": 4,
+          "hit_8": 1,
+          "correct_first_two_in_eight": 3
+        },
+        "calibration_selected_family/mixed_tie": {
+          "races": 4,
+          "hit_8": 1,
+          "correct_first_two_in_eight": 3
+        },
+        "earlier_selected_B/mixed_tie": {
+          "races": 4,
+          "hit_8": 2,
+          "correct_first_two_in_eight": 3
+        },
+        "saved/no_line_evidence": {
+          "races": 18,
+          "hit_8": 3,
+          "correct_first_two_in_eight": 6
+        },
+        "selected_by_input/no_line_evidence": {
+          "races": 18,
+          "hit_8": 3,
+          "correct_first_two_in_eight": 6
+        },
+        "joint_selected/no_line_evidence": {
+          "races": 18,
+          "hit_8": 3,
+          "correct_first_two_in_eight": 6
+        },
+        "calibration_selected_family/no_line_evidence": {
+          "races": 18,
+          "hit_8": 3,
+          "correct_first_two_in_eight": 6
+        },
+        "earlier_selected_B/no_line_evidence": {
+          "races": 18,
+          "hit_8": 3,
+          "correct_first_two_in_eight": 6
+        }
+      }
+    },
+    "strict_pre_cutoff": {
+      "coverage": {
+        "input_races": 562,
+        "scored": 557,
+        "cannot_forecast_on_source": 1,
+        "no_reconciled_outcome": 4
+      },
+      "by_arm": {
+        "saved": {
+          "hit_1": 67,
+          "hit_4": 156,
+          "hit_8": 211,
+          "correct_first_two_in_eight": 302,
+          "correct_first_in_eight": 451,
+          "first_missing": 106,
+          "pair_missing_given_first": 149,
+          "third_missing_given_pair": 91,
+          "gain_from_saved": 0,
+          "lost_from_saved": 0
+        },
+        "first_two_24": {
+          "hit_1": 67,
+          "hit_4": 156,
+          "hit_8": 221,
+          "correct_first_two_in_eight": 304,
+          "correct_first_in_eight": 453,
+          "first_missing": 104,
+          "pair_missing_given_first": 149,
+          "third_missing_given_pair": 83,
+          "gain_from_saved": 12,
+          "lost_from_saved": 2
+        },
+        "first_two_56": {
+          "hit_1": 67,
+          "hit_4": 158,
+          "hit_8": 220,
+          "correct_first_two_in_eight": 307,
+          "correct_first_in_eight": 453,
+          "first_missing": 104,
+          "pair_missing_given_first": 146,
+          "third_missing_given_pair": 87,
+          "gain_from_saved": 12,
+          "lost_from_saved": 3
+        },
+        "third_56": {
+          "hit_1": 68,
+          "hit_4": 158,
+          "hit_8": 210,
+          "correct_first_two_in_eight": 304,
+          "correct_first_in_eight": 453,
+          "first_missing": 104,
+          "pair_missing_given_first": 149,
+          "third_missing_given_pair": 94,
+          "gain_from_saved": 5,
+          "lost_from_saved": 6
+        },
+        "all_24": {
+          "hit_1": 67,
+          "hit_4": 156,
+          "hit_8": 221,
+          "correct_first_two_in_eight": 311,
+          "correct_first_in_eight": 451,
+          "first_missing": 106,
+          "pair_missing_given_first": 140,
+          "third_missing_given_pair": 90,
+          "gain_from_saved": 13,
+          "lost_from_saved": 3
+        },
+        "all_56": {
+          "hit_1": 68,
+          "hit_4": 159,
+          "hit_8": 221,
+          "correct_first_two_in_eight": 309,
+          "correct_first_in_eight": 452,
+          "first_missing": 105,
+          "pair_missing_given_first": 143,
+          "third_missing_given_pair": 88,
+          "gain_from_saved": 14,
+          "lost_from_saved": 4
+        },
+        "all_96": {
+          "hit_1": 71,
+          "hit_4": 160,
+          "hit_8": 223,
+          "correct_first_two_in_eight": 310,
+          "correct_first_in_eight": 453,
+          "first_missing": 104,
+          "pair_missing_given_first": 143,
+          "third_missing_given_pair": 87,
+          "gain_from_saved": 18,
+          "lost_from_saved": 6
+        },
+        "all_96_half": {
+          "hit_1": 67,
+          "hit_4": 158,
+          "hit_8": 220,
+          "correct_first_two_in_eight": 310,
+          "correct_first_in_eight": 451,
+          "first_missing": 106,
+          "pair_missing_given_first": 141,
+          "third_missing_given_pair": 90,
+          "gain_from_saved": 12,
+          "lost_from_saved": 3
+        },
+        "selected_by_input": {
+          "hit_1": 67,
+          "hit_4": 158,
+          "hit_8": 220,
+          "correct_first_two_in_eight": 307,
+          "correct_first_in_eight": 453,
+          "first_missing": 104,
+          "pair_missing_given_first": 146,
+          "third_missing_given_pair": 87,
+          "gain_from_saved": 12,
+          "lost_from_saved": 3
+        },
+        "joint_32": {
+          "hit_1": 66,
+          "hit_4": 157,
+          "hit_8": 219,
+          "correct_first_two_in_eight": 306,
+          "correct_first_in_eight": 450,
+          "first_missing": 107,
+          "pair_missing_given_first": 144,
+          "third_missing_given_pair": 87,
+          "gain_from_saved": 9,
+          "lost_from_saved": 1
+        },
+        "joint_72": {
+          "hit_1": 67,
+          "hit_4": 155,
+          "hit_8": 219,
+          "correct_first_two_in_eight": 306,
+          "correct_first_in_eight": 449,
+          "first_missing": 108,
+          "pair_missing_given_first": 143,
+          "third_missing_given_pair": 87,
+          "gain_from_saved": 8,
+          "lost_from_saved": 0
+        },
+        "joint_112": {
+          "hit_1": 68,
+          "hit_4": 155,
+          "hit_8": 218,
+          "correct_first_two_in_eight": 305,
+          "correct_first_in_eight": 450,
+          "first_missing": 107,
+          "pair_missing_given_first": 145,
+          "third_missing_given_pair": 87,
+          "gain_from_saved": 8,
+          "lost_from_saved": 1
+        },
+        "joint_112_half": {
+          "hit_1": 69,
+          "hit_4": 156,
+          "hit_8": 219,
+          "correct_first_two_in_eight": 304,
+          "correct_first_in_eight": 450,
+          "first_missing": 107,
+          "pair_missing_given_first": 146,
+          "third_missing_given_pair": 85,
+          "gain_from_saved": 8,
+          "lost_from_saved": 0
+        },
+        "joint_72_plus_third": {
+          "hit_1": 68,
+          "hit_4": 160,
+          "hit_8": 217,
+          "correct_first_two_in_eight": 306,
+          "correct_first_in_eight": 449,
+          "first_missing": 108,
+          "pair_missing_given_first": 143,
+          "third_missing_given_pair": 89,
+          "gain_from_saved": 10,
+          "lost_from_saved": 4
+        },
+        "joint_112_plus_third": {
+          "hit_1": 69,
+          "hit_4": 159,
+          "hit_8": 214,
+          "correct_first_two_in_eight": 302,
+          "correct_first_in_eight": 449,
+          "first_missing": 108,
+          "pair_missing_given_first": 147,
+          "third_missing_given_pair": 88,
+          "gain_from_saved": 9,
+          "lost_from_saved": 6
+        },
+        "joint_selected": {
+          "hit_1": 68,
+          "hit_4": 155,
+          "hit_8": 218,
+          "correct_first_two_in_eight": 305,
+          "correct_first_in_eight": 450,
+          "first_missing": 107,
+          "pair_missing_given_first": 145,
+          "third_missing_given_pair": 87,
+          "gain_from_saved": 8,
+          "lost_from_saved": 1
+        },
+        "calibration_selected_family": {
+          "hit_1": 67,
+          "hit_4": 158,
+          "hit_8": 220,
+          "correct_first_two_in_eight": 307,
+          "correct_first_in_eight": 453,
+          "first_missing": 104,
+          "pair_missing_given_first": 146,
+          "third_missing_given_pair": 87,
+          "gain_from_saved": 12,
+          "lost_from_saved": 3
+        },
+        "earlier_selected_B": {
+          "hit_1": 71,
+          "hit_4": 157,
+          "hit_8": 214,
+          "correct_first_two_in_eight": 298,
+          "correct_first_in_eight": 447,
+          "first_missing": 110,
+          "pair_missing_given_first": 149,
+          "third_missing_given_pair": 84,
+          "gain_from_saved": 16,
+          "lost_from_saved": 13
+        },
+        "earlier_H_to_B_reference": {
+          "hit_1": 72,
+          "hit_4": 158,
+          "hit_8": 215,
+          "correct_first_two_in_eight": 301,
+          "correct_first_in_eight": 450,
+          "first_missing": 107,
+          "pair_missing_given_first": 149,
+          "third_missing_given_pair": 86,
+          "gain_from_saved": 18,
+          "lost_from_saved": 14
+        }
+      },
+      "paired_day_95_points_versus_saved": {
+        "saved": [
+          0.0,
+          0.0
+        ],
+        "first_two_24": [
+          0.386,
+          3.125
+        ],
+        "first_two_56": [
+          0.383,
+          2.703
+        ],
+        "third_56": [
+          -1.301,
+          0.931
+        ],
+        "all_24": [
+          0.545,
+          3.261
+        ],
+        "all_56": [
+          0.78,
+          3.063
+        ],
+        "all_96": [
+          1.158,
+          3.151
+        ],
+        "all_96_half": [
+          0.723,
+          2.873
+        ],
+        "selected_by_input": [
+          0.383,
+          2.703
+        ],
+        "joint_32": [
+          0.574,
+          2.381
+        ],
+        "joint_72": [
+          0.574,
+          2.381
+        ],
+        "joint_112": [
+          0.569,
+          1.926
+        ],
+        "joint_112_half": [
+          0.357,
+          2.627
+        ],
+        "joint_72_plus_third": [
+          -0.189,
+          2.586
+        ],
+        "joint_112_plus_third": [
+          -0.721,
+          1.748
+        ],
+        "joint_selected": [
+          0.569,
+          1.926
+        ],
+        "calibration_selected_family": [
+          0.383,
+          2.703
+        ],
+        "earlier_selected_B": [
+          -1.381,
+          2.431
+        ],
+        "earlier_H_to_B_reference": [
+          -1.533,
+          2.883
+        ]
+      },
+      "paired_day_95_points_versus_phase": {
+        "saved": [
+          -2.435,
+          1.378
+        ],
+        "first_two_24": [
+          -1.043,
+          3.578
+        ],
+        "first_two_56": [
+          -1.051,
+          3.276
+        ],
+        "third_56": [
+          -2.74,
+          1.128
+        ],
+        "all_24": [
+          -1.02,
+          3.137
+        ],
+        "all_56": [
+          -0.726,
+          3.172
+        ],
+        "all_96": [
+          -0.546,
+          3.531
+        ],
+        "all_96_half": [
+          -1.282,
+          3.226
+        ],
+        "selected_by_input": [
+          -1.051,
+          3.276
+        ],
+        "joint_32": [
+          -1.093,
+          2.825
+        ],
+        "joint_72": [
+          -1.093,
+          2.825
+        ],
+        "joint_112": [
+          -1.217,
+          2.614
+        ],
+        "joint_112_half": [
+          -1.28,
+          3.209
+        ],
+        "joint_72_plus_third": [
+          -1.968,
+          2.747
+        ],
+        "joint_112_plus_third": [
+          -2.257,
+          1.821
+        ],
+        "joint_selected": [
+          -1.217,
+          2.614
+        ],
+        "calibration_selected_family": [
+          -1.051,
+          3.276
+        ],
+        "earlier_selected_B": [
+          0.0,
+          0.0
+        ],
+        "earlier_H_to_B_reference": [
+          -0.887,
+          1.008
+        ]
+      },
+      "stage_by_actual_line_relation": {
+        "saved/same_line": {
+          "races": 284,
+          "hit_8": 174,
+          "correct_first_two_in_eight": 234
+        },
+        "selected_by_input/same_line": {
+          "races": 284,
+          "hit_8": 177,
+          "correct_first_two_in_eight": 235
+        },
+        "joint_selected/same_line": {
+          "races": 284,
+          "hit_8": 178,
+          "correct_first_two_in_eight": 235
+        },
+        "calibration_selected_family/same_line": {
+          "races": 284,
+          "hit_8": 177,
+          "correct_first_two_in_eight": 235
+        },
+        "earlier_selected_B/same_line": {
+          "races": 284,
+          "hit_8": 182,
+          "correct_first_two_in_eight": 235
+        },
+        "saved/cross_line": {
+          "races": 272,
+          "hit_8": 37,
+          "correct_first_two_in_eight": 68
+        },
+        "selected_by_input/cross_line": {
+          "races": 272,
+          "hit_8": 43,
+          "correct_first_two_in_eight": 72
+        },
+        "joint_selected/cross_line": {
+          "races": 272,
+          "hit_8": 40,
+          "correct_first_two_in_eight": 70
+        },
+        "calibration_selected_family/cross_line": {
+          "races": 272,
+          "hit_8": 43,
+          "correct_first_two_in_eight": 72
+        },
+        "earlier_selected_B/cross_line": {
+          "races": 272,
+          "hit_8": 32,
+          "correct_first_two_in_eight": 63
+        },
+        "saved/mixed_tie": {
+          "races": 1,
+          "hit_8": 0,
+          "correct_first_two_in_eight": 0
+        },
+        "selected_by_input/mixed_tie": {
+          "races": 1,
+          "hit_8": 0,
+          "correct_first_two_in_eight": 0
+        },
+        "joint_selected/mixed_tie": {
+          "races": 1,
+          "hit_8": 0,
+          "correct_first_two_in_eight": 0
+        },
+        "calibration_selected_family/mixed_tie": {
+          "races": 1,
+          "hit_8": 0,
+          "correct_first_two_in_eight": 0
+        },
+        "earlier_selected_B/mixed_tie": {
+          "races": 1,
+          "hit_8": 0,
+          "correct_first_two_in_eight": 0
+        }
+      }
+    },
+    "known_line_before_reconstruction": {
+      "coverage": {
+        "input_races": 3590,
+        "scored": 3576,
+        "no_reconciled_outcome": 13,
+        "cannot_forecast_on_source": 1
+      },
+      "by_arm": {
+        "saved": {
+          "hit_1": 429,
+          "hit_4": 1002,
+          "hit_8": 1403,
+          "correct_first_two_in_eight": 1909,
+          "correct_first_in_eight": 2732,
+          "first_missing": 844,
+          "pair_missing_given_first": 823,
+          "third_missing_given_pair": 506,
+          "gain_from_saved": 0,
+          "lost_from_saved": 0
+        },
+        "first_two_24": {
+          "hit_1": 432,
+          "hit_4": 1007,
+          "hit_8": 1417,
+          "correct_first_two_in_eight": 1910,
+          "correct_first_in_eight": 2743,
+          "first_missing": 833,
+          "pair_missing_given_first": 833,
+          "third_missing_given_pair": 493,
+          "gain_from_saved": 43,
+          "lost_from_saved": 29
+        },
+        "first_two_56": {
+          "hit_1": 439,
+          "hit_4": 1014,
+          "hit_8": 1414,
+          "correct_first_two_in_eight": 1922,
+          "correct_first_in_eight": 2747,
+          "first_missing": 829,
+          "pair_missing_given_first": 825,
+          "third_missing_given_pair": 508,
+          "gain_from_saved": 52,
+          "lost_from_saved": 41
+        },
+        "third_56": {
+          "hit_1": 439,
+          "hit_4": 1009,
+          "hit_8": 1415,
+          "correct_first_two_in_eight": 1930,
+          "correct_first_in_eight": 2755,
+          "first_missing": 821,
+          "pair_missing_given_first": 825,
+          "third_missing_given_pair": 515,
+          "gain_from_saved": 45,
+          "lost_from_saved": 33
+        },
+        "all_24": {
+          "hit_1": 438,
+          "hit_4": 1011,
+          "hit_8": 1416,
+          "correct_first_two_in_eight": 1917,
+          "correct_first_in_eight": 2747,
+          "first_missing": 829,
+          "pair_missing_given_first": 830,
+          "third_missing_given_pair": 501,
+          "gain_from_saved": 55,
+          "lost_from_saved": 42
+        },
+        "all_56": {
+          "hit_1": 448,
+          "hit_4": 1017,
+          "hit_8": 1421,
+          "correct_first_two_in_eight": 1928,
+          "correct_first_in_eight": 2758,
+          "first_missing": 818,
+          "pair_missing_given_first": 830,
+          "third_missing_given_pair": 507,
+          "gain_from_saved": 70,
+          "lost_from_saved": 52
+        },
+        "all_96": {
+          "hit_1": 449,
+          "hit_4": 1020,
+          "hit_8": 1421,
+          "correct_first_two_in_eight": 1939,
+          "correct_first_in_eight": 2779,
+          "first_missing": 797,
+          "pair_missing_given_first": 840,
+          "third_missing_given_pair": 518,
+          "gain_from_saved": 83,
+          "lost_from_saved": 65
+        },
+        "all_96_half": {
+          "hit_1": 443,
+          "hit_4": 1014,
+          "hit_8": 1422,
+          "correct_first_two_in_eight": 1923,
+          "correct_first_in_eight": 2748,
+          "first_missing": 828,
+          "pair_missing_given_first": 825,
+          "third_missing_given_pair": 501,
+          "gain_from_saved": 52,
+          "lost_from_saved": 33
+        },
+        "selected_by_input": {
+          "hit_1": 445,
+          "hit_4": 1018,
+          "hit_8": 1418,
+          "correct_first_two_in_eight": 1936,
+          "correct_first_in_eight": 2779,
+          "first_missing": 797,
+          "pair_missing_given_first": 843,
+          "third_missing_given_pair": 518,
+          "gain_from_saved": 77,
+          "lost_from_saved": 62
+        },
+        "joint_32": {
+          "hit_1": 434,
+          "hit_4": 1000,
+          "hit_8": 1412,
+          "correct_first_two_in_eight": 1909,
+          "correct_first_in_eight": 2731,
+          "first_missing": 845,
+          "pair_missing_given_first": 822,
+          "third_missing_given_pair": 497,
+          "gain_from_saved": 33,
+          "lost_from_saved": 24
+        },
+        "joint_72": {
+          "hit_1": 436,
+          "hit_4": 1009,
+          "hit_8": 1415,
+          "correct_first_two_in_eight": 1909,
+          "correct_first_in_eight": 2736,
+          "first_missing": 840,
+          "pair_missing_given_first": 827,
+          "third_missing_given_pair": 494,
+          "gain_from_saved": 50,
+          "lost_from_saved": 38
+        },
+        "joint_112": {
+          "hit_1": 438,
+          "hit_4": 1013,
+          "hit_8": 1418,
+          "correct_first_two_in_eight": 1920,
+          "correct_first_in_eight": 2750,
+          "first_missing": 826,
+          "pair_missing_given_first": 830,
+          "third_missing_given_pair": 502,
+          "gain_from_saved": 53,
+          "lost_from_saved": 38
+        },
+        "joint_112_half": {
+          "hit_1": 433,
+          "hit_4": 1009,
+          "hit_8": 1411,
+          "correct_first_two_in_eight": 1911,
+          "correct_first_in_eight": 2737,
+          "first_missing": 839,
+          "pair_missing_given_first": 826,
+          "third_missing_given_pair": 500,
+          "gain_from_saved": 31,
+          "lost_from_saved": 23
+        },
+        "joint_72_plus_third": {
+          "hit_1": 447,
+          "hit_4": 1019,
+          "hit_8": 1417,
+          "correct_first_two_in_eight": 1930,
+          "correct_first_in_eight": 2747,
+          "first_missing": 829,
+          "pair_missing_given_first": 817,
+          "third_missing_given_pair": 513,
+          "gain_from_saved": 61,
+          "lost_from_saved": 47
+        },
+        "joint_112_plus_third": {
+          "hit_1": 447,
+          "hit_4": 1028,
+          "hit_8": 1420,
+          "correct_first_two_in_eight": 1927,
+          "correct_first_in_eight": 2760,
+          "first_missing": 816,
+          "pair_missing_given_first": 833,
+          "third_missing_given_pair": 507,
+          "gain_from_saved": 67,
+          "lost_from_saved": 50
+        },
+        "joint_selected": {
+          "hit_1": 446,
+          "hit_4": 1024,
+          "hit_8": 1424,
+          "correct_first_two_in_eight": 1930,
+          "correct_first_in_eight": 2761,
+          "first_missing": 815,
+          "pair_missing_given_first": 831,
+          "third_missing_given_pair": 506,
+          "gain_from_saved": 66,
+          "lost_from_saved": 45
+        },
+        "calibration_selected_family": {
+          "hit_1": 445,
+          "hit_4": 1018,
+          "hit_8": 1418,
+          "correct_first_two_in_eight": 1936,
+          "correct_first_in_eight": 2779,
+          "first_missing": 797,
+          "pair_missing_given_first": 843,
+          "third_missing_given_pair": 518,
+          "gain_from_saved": 77,
+          "lost_from_saved": 62
+        },
+        "earlier_selected_B": {
+          "hit_1": 444,
+          "hit_4": 1008,
+          "hit_8": 1412,
+          "correct_first_two_in_eight": 1896,
+          "correct_first_in_eight": 2726,
+          "first_missing": 850,
+          "pair_missing_given_first": 830,
+          "third_missing_given_pair": 484,
+          "gain_from_saved": 83,
+          "lost_from_saved": 74
+        },
+        "earlier_H_to_B_reference": {
+          "hit_1": 445,
+          "hit_4": 1014,
+          "hit_8": 1416,
+          "correct_first_two_in_eight": 1906,
+          "correct_first_in_eight": 2727,
+          "first_missing": 849,
+          "pair_missing_given_first": 821,
+          "third_missing_given_pair": 490,
+          "gain_from_saved": 91,
+          "lost_from_saved": 78
+        }
+      },
+      "paired_day_95_points_versus_saved": {
+        "saved": [
+          0.0,
+          0.0
+        ],
+        "first_two_24": [
+          -0.057,
+          0.862
+        ],
+        "first_two_56": [
+          -0.247,
+          0.86
+        ],
+        "third_56": [
+          -0.165,
+          0.84
+        ],
+        "all_24": [
+          -0.222,
+          0.992
+        ],
+        "all_56": [
+          -0.164,
+          1.2
+        ],
+        "all_96": [
+          -0.199,
+          1.217
+        ],
+        "all_96_half": [
+          0.0,
+          1.09
+        ],
+        "selected_by_input": [
+          -0.308,
+          1.134
+        ],
+        "joint_32": [
+          -0.199,
+          0.705
+        ],
+        "joint_72": [
+          -0.224,
+          0.937
+        ],
+        "joint_112": [
+          -0.167,
+          1.027
+        ],
+        "joint_112_half": [
+          -0.171,
+          0.661
+        ],
+        "joint_72_plus_third": [
+          -0.14,
+          0.999
+        ],
+        "joint_112_plus_third": [
+          -0.056,
+          1.067
+        ],
+        "joint_selected": [
+          0.084,
+          1.121
+        ],
+        "calibration_selected_family": [
+          -0.308,
+          1.134
+        ],
+        "earlier_selected_B": [
+          -0.447,
+          0.997
+        ],
+        "earlier_H_to_B_reference": [
+          -0.31,
+          1.109
+        ]
+      },
+      "paired_day_95_points_versus_phase": {
+        "saved": [
+          -0.997,
+          0.444
+        ],
+        "first_two_24": [
+          -0.589,
+          0.831
+        ],
+        "first_two_56": [
+          -0.661,
+          0.758
+        ],
+        "third_56": [
+          -0.625,
+          0.757
+        ],
+        "all_24": [
+          -0.585,
+          0.75
+        ],
+        "all_56": [
+          -0.446,
+          0.925
+        ],
+        "all_96": [
+          -0.551,
+          1.035
+        ],
+        "all_96_half": [
+          -0.421,
+          0.949
+        ],
+        "selected_by_input": [
+          -0.618,
+          0.933
+        ],
+        "joint_32": [
+          -0.74,
+          0.73
+        ],
+        "joint_72": [
+          -0.663,
+          0.855
+        ],
+        "joint_112": [
+          -0.583,
+          0.942
+        ],
+        "joint_112_half": [
+          -0.739,
+          0.678
+        ],
+        "joint_72_plus_third": [
+          -0.537,
+          0.798
+        ],
+        "joint_112_plus_third": [
+          -0.458,
+          0.873
+        ],
+        "joint_selected": [
+          -0.335,
+          0.981
+        ],
+        "calibration_selected_family": [
+          -0.618,
+          0.933
+        ],
+        "earlier_selected_B": [
+          0.0,
+          0.0
+        ],
+        "earlier_H_to_B_reference": [
+          -0.197,
+          0.418
+        ]
+      },
+      "stage_by_actual_line_relation": {
+        "saved/cross_line": {
+          "races": 1699,
+          "hit_8": 288,
+          "correct_first_two_in_eight": 509
+        },
+        "selected_by_input/cross_line": {
+          "races": 1699,
+          "hit_8": 297,
+          "correct_first_two_in_eight": 521
+        },
+        "joint_selected/cross_line": {
+          "races": 1699,
+          "hit_8": 290,
+          "correct_first_two_in_eight": 509
+        },
+        "calibration_selected_family/cross_line": {
+          "races": 1699,
+          "hit_8": 297,
+          "correct_first_two_in_eight": 521
+        },
+        "earlier_selected_B/cross_line": {
+          "races": 1699,
+          "hit_8": 271,
+          "correct_first_two_in_eight": 475
+        },
+        "saved/same_line": {
+          "races": 1873,
+          "hit_8": 1114,
+          "correct_first_two_in_eight": 1397
+        },
+        "selected_by_input/same_line": {
+          "races": 1873,
+          "hit_8": 1120,
+          "correct_first_two_in_eight": 1412
+        },
+        "joint_selected/same_line": {
+          "races": 1873,
+          "hit_8": 1133,
+          "correct_first_two_in_eight": 1418
+        },
+        "calibration_selected_family/same_line": {
+          "races": 1873,
+          "hit_8": 1120,
+          "correct_first_two_in_eight": 1412
+        },
+        "earlier_selected_B/same_line": {
+          "races": 1873,
+          "hit_8": 1139,
+          "correct_first_two_in_eight": 1418
+        },
+        "saved/mixed_tie": {
+          "races": 4,
+          "hit_8": 1,
+          "correct_first_two_in_eight": 3
+        },
+        "selected_by_input/mixed_tie": {
+          "races": 4,
+          "hit_8": 1,
+          "correct_first_two_in_eight": 3
+        },
+        "joint_selected/mixed_tie": {
+          "races": 4,
+          "hit_8": 1,
+          "correct_first_two_in_eight": 3
+        },
+        "calibration_selected_family/mixed_tie": {
+          "races": 4,
+          "hit_8": 1,
+          "correct_first_two_in_eight": 3
+        },
+        "earlier_selected_B/mixed_tie": {
+          "races": 4,
+          "hit_8": 2,
+          "correct_first_two_in_eight": 3
+        }
+      }
+    },
+    "pooled_time_windows": {
+      "coverage": {
+        "input_races": 13288,
+        "scored": 13275,
+        "no_reconciled_outcome": 13
+      },
+      "by_arm": {
+        "saved": {
+          "hit_1": 1547,
+          "hit_4": 3750,
+          "hit_8": 5283,
+          "correct_first_two_in_eight": 7093,
+          "correct_first_in_eight": 10050,
+          "first_missing": 3225,
+          "pair_missing_given_first": 2957,
+          "third_missing_given_pair": 1810,
+          "gain_from_saved": 0,
+          "lost_from_saved": 0
+        },
+        "first_two_24": {
+          "hit_1": 1540,
+          "hit_4": 3762,
+          "hit_8": 5305,
+          "correct_first_two_in_eight": 7086,
+          "correct_first_in_eight": 10071,
+          "first_missing": 3204,
+          "pair_missing_given_first": 2985,
+          "third_missing_given_pair": 1781,
+          "gain_from_saved": 118,
+          "lost_from_saved": 96
+        },
+        "first_two_56": {
+          "hit_1": 1561,
+          "hit_4": 3757,
+          "hit_8": 5297,
+          "correct_first_two_in_eight": 7106,
+          "correct_first_in_eight": 10074,
+          "first_missing": 3201,
+          "pair_missing_given_first": 2968,
+          "third_missing_given_pair": 1809,
+          "gain_from_saved": 168,
+          "lost_from_saved": 154
+        },
+        "third_56": {
+          "hit_1": 1562,
+          "hit_4": 3785,
+          "hit_8": 5309,
+          "correct_first_two_in_eight": 7106,
+          "correct_first_in_eight": 10099,
+          "first_missing": 3176,
+          "pair_missing_given_first": 2993,
+          "third_missing_given_pair": 1797,
+          "gain_from_saved": 163,
+          "lost_from_saved": 137
+        },
+        "all_24": {
+          "hit_1": 1549,
+          "hit_4": 3806,
+          "hit_8": 5318,
+          "correct_first_two_in_eight": 7081,
+          "correct_first_in_eight": 10079,
+          "first_missing": 3196,
+          "pair_missing_given_first": 2998,
+          "third_missing_given_pair": 1763,
+          "gain_from_saved": 170,
+          "lost_from_saved": 135
+        },
+        "all_56": {
+          "hit_1": 1574,
+          "hit_4": 3824,
+          "hit_8": 5331,
+          "correct_first_two_in_eight": 7130,
+          "correct_first_in_eight": 10122,
+          "first_missing": 3153,
+          "pair_missing_given_first": 2992,
+          "third_missing_given_pair": 1799,
+          "gain_from_saved": 247,
+          "lost_from_saved": 199
+        },
+        "all_96": {
+          "hit_1": 1580,
+          "hit_4": 3826,
+          "hit_8": 5352,
+          "correct_first_two_in_eight": 7165,
+          "correct_first_in_eight": 10168,
+          "first_missing": 3107,
+          "pair_missing_given_first": 3003,
+          "third_missing_given_pair": 1813,
+          "gain_from_saved": 316,
+          "lost_from_saved": 247
+        },
+        "all_96_half": {
+          "hit_1": 1575,
+          "hit_4": 3813,
+          "hit_8": 5332,
+          "correct_first_two_in_eight": 7128,
+          "correct_first_in_eight": 10111,
+          "first_missing": 3164,
+          "pair_missing_given_first": 2983,
+          "third_missing_given_pair": 1796,
+          "gain_from_saved": 175,
+          "lost_from_saved": 126
+        },
+        "selected_by_input": {
+          "hit_1": 1576,
+          "hit_4": 3822,
+          "hit_8": 5344,
+          "correct_first_two_in_eight": 7157,
+          "correct_first_in_eight": 10166,
+          "first_missing": 3109,
+          "pair_missing_given_first": 3009,
+          "third_missing_given_pair": 1813,
+          "gain_from_saved": 307,
+          "lost_from_saved": 246
+        },
+        "joint_32": {
+          "hit_1": 1549,
+          "hit_4": 3746,
+          "hit_8": 5293,
+          "correct_first_two_in_eight": 7077,
+          "correct_first_in_eight": 10048,
+          "first_missing": 3227,
+          "pair_missing_given_first": 2971,
+          "third_missing_given_pair": 1784,
+          "gain_from_saved": 97,
+          "lost_from_saved": 87
+        },
+        "joint_72": {
+          "hit_1": 1555,
+          "hit_4": 3756,
+          "hit_8": 5297,
+          "correct_first_two_in_eight": 7060,
+          "correct_first_in_eight": 10060,
+          "first_missing": 3215,
+          "pair_missing_given_first": 3000,
+          "third_missing_given_pair": 1763,
+          "gain_from_saved": 142,
+          "lost_from_saved": 128
+        },
+        "joint_112": {
+          "hit_1": 1556,
+          "hit_4": 3757,
+          "hit_8": 5306,
+          "correct_first_two_in_eight": 7104,
+          "correct_first_in_eight": 10099,
+          "first_missing": 3176,
+          "pair_missing_given_first": 2995,
+          "third_missing_given_pair": 1798,
+          "gain_from_saved": 174,
+          "lost_from_saved": 151
+        },
+        "joint_112_half": {
+          "hit_1": 1547,
+          "hit_4": 3751,
+          "hit_8": 5296,
+          "correct_first_two_in_eight": 7077,
+          "correct_first_in_eight": 10073,
+          "first_missing": 3202,
+          "pair_missing_given_first": 2996,
+          "third_missing_given_pair": 1781,
+          "gain_from_saved": 89,
+          "lost_from_saved": 76
+        },
+        "joint_72_plus_third": {
+          "hit_1": 1571,
+          "hit_4": 3808,
+          "hit_8": 5314,
+          "correct_first_two_in_eight": 7118,
+          "correct_first_in_eight": 10091,
+          "first_missing": 3184,
+          "pair_missing_given_first": 2973,
+          "third_missing_given_pair": 1804,
+          "gain_from_saved": 210,
+          "lost_from_saved": 179
+        },
+        "joint_112_plus_third": {
+          "hit_1": 1575,
+          "hit_4": 3808,
+          "hit_8": 5327,
+          "correct_first_two_in_eight": 7132,
+          "correct_first_in_eight": 10120,
+          "first_missing": 3155,
+          "pair_missing_given_first": 2988,
+          "third_missing_given_pair": 1805,
+          "gain_from_saved": 246,
+          "lost_from_saved": 202
+        },
+        "joint_selected": {
+          "hit_1": 1574,
+          "hit_4": 3802,
+          "hit_8": 5324,
+          "correct_first_two_in_eight": 7129,
+          "correct_first_in_eight": 10115,
+          "first_missing": 3160,
+          "pair_missing_given_first": 2986,
+          "third_missing_given_pair": 1805,
+          "gain_from_saved": 240,
+          "lost_from_saved": 199
+        },
+        "calibration_selected_family": {
+          "hit_1": 1576,
+          "hit_4": 3822,
+          "hit_8": 5344,
+          "correct_first_two_in_eight": 7157,
+          "correct_first_in_eight": 10166,
+          "first_missing": 3109,
+          "pair_missing_given_first": 3009,
+          "third_missing_given_pair": 1813,
+          "gain_from_saved": 307,
+          "lost_from_saved": 246
+        },
+        "earlier_selected_B": {
+          "hit_1": 1564,
+          "hit_4": 3777,
+          "hit_8": 5303,
+          "correct_first_two_in_eight": 7097,
+          "correct_first_in_eight": 10058,
+          "first_missing": 3217,
+          "pair_missing_given_first": 2961,
+          "third_missing_given_pair": 1794,
+          "gain_from_saved": 140,
+          "lost_from_saved": 120
+        },
+        "earlier_H_to_B_reference": {
+          "hit_1": 1566,
+          "hit_4": 3790,
+          "hit_8": 5302,
+          "correct_first_two_in_eight": 7103,
+          "correct_first_in_eight": 10054,
+          "first_missing": 3221,
+          "pair_missing_given_first": 2951,
+          "third_missing_given_pair": 1801,
+          "gain_from_saved": 151,
+          "lost_from_saved": 132
+        }
+      },
+      "paired_day_95_points_versus_saved": {
+        "saved": [
+          0.0,
+          0.0
+        ],
+        "first_two_24": [
+          -0.06,
+          0.378
+        ],
+        "first_two_56": [
+          -0.16,
+          0.382
+        ],
+        "third_56": [
+          -0.084,
+          0.469
+        ],
+        "all_24": [
+          0.0,
+          0.561
+        ],
+        "all_56": [
+          0.03,
+          0.711
+        ],
+        "all_96": [
+          0.167,
+          0.907
+        ],
+        "all_96_half": [
+          0.092,
+          0.651
+        ],
+        "selected_by_input": [
+          0.098,
+          0.828
+        ],
+        "joint_32": [
+          -0.142,
+          0.292
+        ],
+        "joint_72": [
+          -0.142,
+          0.364
+        ],
+        "joint_112": [
+          -0.105,
+          0.446
+        ],
+        "joint_112_half": [
+          -0.098,
+          0.299
+        ],
+        "joint_72_plus_third": [
+          -0.053,
+          0.55
+        ],
+        "joint_112_plus_third": [
+          0.023,
+          0.658
+        ],
+        "joint_selected": [
+          0.008,
+          0.622
+        ],
+        "calibration_selected_family": [
+          0.098,
+          0.828
+        ],
+        "earlier_selected_B": [
+          -0.098,
+          0.413
+        ],
+        "earlier_H_to_B_reference": [
+          -0.113,
+          0.402
+        ]
+      },
+      "paired_day_95_points_versus_phase": {
+        "saved": [
+          -0.414,
+          0.097
+        ],
+        "first_two_24": [
+          -0.264,
+          0.285
+        ],
+        "first_two_56": [
+          -0.363,
+          0.27
+        ],
+        "third_56": [
+          -0.245,
+          0.352
+        ],
+        "all_24": [
+          -0.189,
+          0.42
+        ],
+        "all_56": [
+          -0.127,
+          0.552
+        ],
+        "all_96": [
+          0.0,
+          0.756
+        ],
+        "all_96_half": [
+          -0.09,
+          0.514
+        ],
+        "selected_by_input": [
+          -0.06,
+          0.686
+        ],
+        "joint_32": [
+          -0.358,
+          0.204
+        ],
+        "joint_72": [
+          -0.331,
+          0.252
+        ],
+        "joint_112": [
+          -0.284,
+          0.338
+        ],
+        "joint_112_half": [
+          -0.318,
+          0.219
+        ],
+        "joint_72_plus_third": [
+          -0.228,
+          0.4
+        ],
+        "joint_112_plus_third": [
+          -0.143,
+          0.519
+        ],
+        "joint_selected": [
+          -0.15,
+          0.489
+        ],
+        "calibration_selected_family": [
+          -0.06,
+          0.686
+        ],
+        "earlier_selected_B": [
+          0.0,
+          0.0
+        ],
+        "earlier_H_to_B_reference": [
+          -0.119,
+          0.097
+        ]
+      },
+      "stage_by_actual_line_relation": {
+        "saved/same_line": {
+          "races": 6754,
+          "hit_8": 4092,
+          "correct_first_two_in_eight": 5088
+        },
+        "selected_by_input/same_line": {
+          "races": 6754,
+          "hit_8": 4103,
+          "correct_first_two_in_eight": 5134
+        },
+        "joint_selected/same_line": {
+          "races": 6754,
+          "hit_8": 4119,
+          "correct_first_two_in_eight": 5133
+        },
+        "calibration_selected_family/same_line": {
+          "races": 6754,
+          "hit_8": 4103,
+          "correct_first_two_in_eight": 5134
+        },
+        "earlier_selected_B/same_line": {
+          "races": 6754,
+          "hit_8": 4135,
+          "correct_first_two_in_eight": 5136
+        },
+        "saved/cross_line": {
+          "races": 6483,
+          "hit_8": 1181,
+          "correct_first_two_in_eight": 1983
+        },
+        "selected_by_input/cross_line": {
+          "races": 6483,
+          "hit_8": 1231,
+          "correct_first_two_in_eight": 2001
+        },
+        "joint_selected/cross_line": {
+          "races": 6483,
+          "hit_8": 1194,
+          "correct_first_two_in_eight": 1974
+        },
+        "calibration_selected_family/cross_line": {
+          "races": 6483,
+          "hit_8": 1231,
+          "correct_first_two_in_eight": 2001
+        },
+        "earlier_selected_B/cross_line": {
+          "races": 6483,
+          "hit_8": 1157,
+          "correct_first_two_in_eight": 1939
+        },
+        "saved/mixed_tie": {
+          "races": 20,
+          "hit_8": 7,
+          "correct_first_two_in_eight": 16
+        },
+        "selected_by_input/mixed_tie": {
+          "races": 20,
+          "hit_8": 7,
+          "correct_first_two_in_eight": 16
+        },
+        "joint_selected/mixed_tie": {
+          "races": 20,
+          "hit_8": 8,
+          "correct_first_two_in_eight": 16
+        },
+        "calibration_selected_family/mixed_tie": {
+          "races": 20,
+          "hit_8": 7,
+          "correct_first_two_in_eight": 16
+        },
+        "earlier_selected_B/mixed_tie": {
+          "races": 20,
+          "hit_8": 8,
+          "correct_first_two_in_eight": 16
+        },
+        "saved/no_line_evidence": {
+          "races": 18,
+          "hit_8": 3,
+          "correct_first_two_in_eight": 6
+        },
+        "selected_by_input/no_line_evidence": {
+          "races": 18,
+          "hit_8": 3,
+          "correct_first_two_in_eight": 6
+        },
+        "joint_selected/no_line_evidence": {
+          "races": 18,
+          "hit_8": 3,
+          "correct_first_two_in_eight": 6
+        },
+        "calibration_selected_family/no_line_evidence": {
+          "races": 18,
+          "hit_8": 3,
+          "correct_first_two_in_eight": 6
+        },
+        "earlier_selected_B/no_line_evidence": {
+          "races": 18,
+          "hit_8": 3,
+          "correct_first_two_in_eight": 6
+        }
+      }
+    }
+  }
+}
