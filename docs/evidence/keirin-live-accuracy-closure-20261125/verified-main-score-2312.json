@@ -1,0 +1,91 @@
+{
+  "accuracy_improvement_proven": false,
+  "actual_organizer_cutoff_authenticated": false,
+  "archive_pointer": {
+    "branch": "state/keirin-note-view",
+    "commit": "54f713d386b936f2c0f8a494fa12fc68d67d2a05",
+    "path": "views/e12d24ead30bef9f228cf22e6c47f2765a1d043c2a6c12673c1ed87f01bc8b51.json",
+    "repository": "haji84/RACE-AI"
+  },
+  "checked_at": "2026-11-25T14:12:27.563187+00:00",
+  "comparators": {
+    "published": "baseline_B",
+    "trial": "joint_comparison_B"
+  },
+  "date": "2026-11-25",
+  "derived_predictions_pre_cutoff_authenticated": false,
+  "exacta_top2": {
+    "matched": 7,
+    "published_hits": 2,
+    "tickets_per_arm": 14,
+    "trial_hits": 2
+  },
+  "flow_state": "NO_PRE_CUTOFF_FLOW_ORIGINAL",
+  "formalPR71": false,
+  "formal_PR71": false,
+  "gained_count": 0,
+  "independent_research_plaintext_readback": true,
+  "independent_witness_sha256": "a2fdc4bd0bcb08fae9b6de73d952fe488e19530f22a66e18a33873e5525aa2a8",
+  "lost_count": 0,
+  "matched": 7,
+  "original_note_sha256": "35265386cc63710e2c8d4cfb3417843e7ff80dee9f0f8fac17f6cb398457abd3",
+  "original_plaintext_authentication": "INDEPENDENT_RSA_READBACK_VERIFIED",
+  "prediction_sha256": "32e8d89b1eb0915fe60d0f513181d80956ba057f489e9a6e82dedf5b5d62d4e1",
+  "publication_receipt_sha256": "d36f55e9f7e244d6038fb520e517ae480335380c4ac0c262cfc08f867b1bd0c0",
+  "published_hits": 2,
+  "receipt_frozen_at": "2026-11-25T12:59:58.981095+00:00",
+  "receipt_normalized_at": "2026-11-25T14:24:51.116985+00:00",
+  "receipt_sha256": "65544b704beac4bd37edd9e983c9678df4049ab6398cdce782718553059b2b6b",
+  "receipt_timestamp_semantics": "POST_CUTOFF_DERIVED_SCORING_VIEW_FOR_MATCHED_RACES_NOT_FROZEN_ORIGINAL",
+  "recovery_receipt_sha256": "61ac053d2132bf847cecca72209fafad82aaa5e18e36905706a68ee811290e1d",
+  "registered": 10,
+  "result_source": {
+    "branch": "state/keirin-public-results",
+    "commit": "1b24424da926ff2c247aca54582daa2de35db2d7",
+    "day_jst": "2026-11-25",
+    "repository": "haji84/RACE-AI",
+    "results_sha256": "3abb8773eadca8cc7bb82467e58760ddd771245b316eeb895df138dc6df5641e",
+    "roster_sha256": "c96f35a0c0a9e26c34a491d162674f40a47a2e5fd0ae19f4583c86653d6aeb31"
+  },
+  "result_states": {
+    "matched": 7,
+    "missing": 2,
+    "pending": 1
+  },
+  "results_sha256": "3abb8773eadca8cc7bb82467e58760ddd771245b316eeb895df138dc6df5641e",
+  "roster_sha256": "c96f35a0c0a9e26c34a491d162674f40a47a2e5fd0ae19f4583c86653d6aeb31",
+  "rsa_readback_report_sha256": "3d24a9096deb321b0c289c7a150e6a8a33afcc299b3ef46a6bf890aa13f8a51d",
+  "rsa_readback_source": {
+    "cipher_sha256": "060ab7c74b25c968b47dfb126ffb71926e4d10fad2a5c928090583c69cd618cd",
+    "commit": "0cac8de34e516553debcd804f0188a2302c10ac0",
+    "path": "state/keirin/research/joint-comparison/v1/2026-11-25/060ab7c74b25c968b47dfb126ffb71926e4d10fad2a5c928090583c69cd618cd.sealed.json",
+    "repository": "haji84/RACE-AI",
+    "verification_sources_sha256": {
+      "race_ai/keirin_official_run_history.py": "6ca4ffe0211186d4b08cd8d897c79c5e1dbcb4ba460f0aa73410ca317adf1266",
+      "scripts/keirin_joint_forward_score.py": "67182d37f9cc019670a6a06c07e24ac60ae1187853d3826056c8fede4e2c8f10",
+      "scripts/keirin_joint_original_readback.py": "0c3aced968a1ade54dc5085b306435433f3c033944674c584c7e1a1535f5603c"
+    }
+  },
+  "tickets_per_arm": 28,
+  "trial_hits": 2,
+  "trifecta_by_points": {
+    "1": {
+      "matched": 7,
+      "published_hits": 2,
+      "tickets_per_arm": 7,
+      "trial_hits": 2
+    },
+    "4": {
+      "matched": 7,
+      "published_hits": 2,
+      "tickets_per_arm": 28,
+      "trial_hits": 2
+    },
+    "8": {
+      "matched": 7,
+      "published_hits": 2,
+      "tickets_per_arm": 56,
+      "trial_hits": 2
+    }
+  }
+}

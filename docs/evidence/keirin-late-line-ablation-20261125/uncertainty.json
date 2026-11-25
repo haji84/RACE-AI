@@ -1,0 +1,54 @@
+{
+  "schema": "KEIRIN_LATE_LINE_UNCERTAINTY_V1",
+  "assumptions": "Race-level Wilson intervals and matched exact test; within-meeting dependence unmeasured.",
+  "nov25": {
+    "races": 12,
+    "old_wilson_95_pct": [
+      4.7,
+      44.8
+    ],
+    "later_wilson_95_pct": [
+      19.33,
+      68.05
+    ],
+    "gains": 3,
+    "losses": 0,
+    "paired_two_sided_exact_p": 0.25,
+    "one_day_only": true
+  },
+  "older_two_dates": {
+    "races": 18,
+    "wilson_95_pct": {
+      "older_known_line": {
+        "4points": [
+          12.5,
+          50.87
+        ],
+        "8points": [
+          16.28,
+          56.25
+        ]
+      },
+      "older_known_line_pair_third": {
+        "4points": [
+          16.28,
+          56.25
+        ],
+        "8points": [
+          20.31,
+          61.38
+        ]
+      },
+      "older_static": {
+        "4points": [
+          5.84,
+          39.22
+        ],
+        "8points": [
+          12.5,
+          50.87
+        ]
+      }
+    }
+  }
+}

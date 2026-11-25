@@ -1,0 +1,15 @@
+{
+  "checked_at": "2026-11-25T14:12:27.563187+00:00",
+  "date": "2026-11-25",
+  "eligible": 3,
+  "matched": 0,
+  "registered": 3,
+  "result_sha256": "3abb8773eadca8cc7bb82467e58760ddd771245b316eeb895df138dc6df5641e",
+  "result_states": {
+    "pending": 1,
+    "pre_cutoff": 2
+  },
+  "roster_sha256": "c96f35a0c0a9e26c34a491d162674f40a47a2e5fd0ae19f4583c86653d6aeb31",
+  "schema": "KEIRIN_LATE_LINE_REMAINING_SCORED_V1",
+  "witness": "a7f632ebf3fb34112768a914c6a0d76c6811b54f"
+}
