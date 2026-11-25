@@ -12,7 +12,6 @@ from pathlib import Path
 
 from race_ai import keirin_secondary_result_consensus as consensus
 from scripts.keirin_generate_result_unread_analysis import check_tickets, instant, need
-from scripts.keirin_line_forward_study import checked_result
 from scripts.keirin_public_site_results import validate_roster
 
 
@@ -25,8 +24,8 @@ def unique_races(document):
 
 
 def confirmed_order(row, cutoff, starters, checked_at):
-    state, winners = checked_result(row, dict(race_id=row['race_id'], cutoff_at=cutoff,
-                                               starters=starters), checked_at)
+    bound = dict(race_id=row['race_id'], cutoff_at=cutoff, starters=starters)
+    state, winners = consensus.checked_published_result(row, bound, checked_at)
     need(state == 'matched', 'INVALID_MATCHED_RESULT_' + state.upper())
     comparison = row['comparison']
     need(all(type(car) is int for car in comparison['winning_2t']), 'INVALID_EXACTA_RESULT')
