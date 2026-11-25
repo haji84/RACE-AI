@@ -1,0 +1,61 @@
+{
+  "archive_manifest_sha256": "ddb572c63959b4a903e8eff779e486c1ee8d76179abdb1c3414d37c73695c1b1",
+  "archive_sha256s": [
+    "1bdad22b9744c9c5563f7bb1af31875170a3e6b7f4b0dd73fba8f98d645d8fc4",
+    "d915560877493816b90df8bcd5e7bdef45557f57100b4cd40a3d017cd959334d"
+  ],
+  "archive_sources": [
+    {
+      "bytes": 104706048,
+      "database_sha256": "1bdad22b9744c9c5563f7bb1af31875170a3e6b7f4b0dd73fba8f98d645d8fc4",
+      "fetched_at_max_raw": "2026-09-29T22:46:10",
+      "fetched_at_min_raw": "2026-08-28T06:49:33",
+      "fetched_clock_authentication": "UNATTESTED_ARCHIVE_VALUE_NOT_PRE_CUTOFF_EVIDENCE",
+      "included_end_day": "2026-09-29",
+      "included_start_day": "2025-10-01",
+      "manifest_verified": true,
+      "source_url": "https://raw.githubusercontent.com/sumidatadayoshi/keirin-data/2a1260fb0940ad11160b56a36f9c24cc4fb2f6d2/data/keirin.db"
+    },
+    {
+      "bytes": 45436928,
+      "database_sha256": "d915560877493816b90df8bcd5e7bdef45557f57100b4cd40a3d017cd959334d",
+      "fetched_at_max_raw": "2026-11-23T03:56:27",
+      "fetched_at_min_raw": "2026-10-05T00:44:16",
+      "fetched_clock_authentication": "UNATTESTED_ARCHIVE_VALUE_NOT_PRE_CUTOFF_EVIDENCE",
+      "included_end_day": "2026-11-22",
+      "included_start_day": "2026-09-23",
+      "manifest_verified": true,
+      "source_url": "https://raw.githubusercontent.com/sumidatadayoshi/keirin-data/2a1260fb0940ad11160b56a36f9c24cc4fb2f6d2/data/keirin_2026q4.db"
+    }
+  ],
+  "as_of_exclusive": "2026-11-25",
+  "calendar_months_observed": 14,
+  "complete_lifetime_history": false,
+  "complete_three_year_history": false,
+  "coverage_span_calendar_months": 14,
+  "duplicate_conflict_count": 0,
+  "duplicate_same_count": 0,
+  "frozen_forecasts_modified": false,
+  "generated_at": "2026-11-25T14:43:43.295803+00:00",
+  "held_by_reason": {
+    "IDENTITY_UNRESOLVED": 4421,
+    "INCIDENT_OR_NONNUMERIC_FINISH": 2718,
+    "RESULT_MISSING": 178
+  },
+  "historical_as_of_authenticated": false,
+  "history_end_day": "2026-11-22",
+  "history_start_day": "2025-10-01",
+  "model_weights_modified": false,
+  "numeric_finish_records": 211212,
+  "omitted_archive_starts_count": null,
+  "registered_riders": 2416,
+  "registry_capture_completed_at": "2026-11-25T14:37:56.127379+00:00",
+  "registry_sha256": "5a64db31e466f4f9aac0c47811fa3dc791b45cf7c8d5f07b3742372a7285d8ba",
+  "riders_with_numeric_history": 2393,
+  "schema": "KEIRIN_BASIC_RIDER_DOSSIER_SUMMARY_V1",
+  "scope": "RETROSPECTIVE_CURRENT_REGISTRY_IDENTITY_RECONCILIATION",
+  "source_entry_rows": 218529,
+  "dossier_sha256": "7b996d5d022514167b89d8ee820c512167cca317ef2d4550a68e2febfb21e75e",
+  "dossier_bytes": 12567046,
+  "private_plaintext_published": false
+}
