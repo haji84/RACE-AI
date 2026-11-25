@@ -6,7 +6,7 @@
 
 - main：`2d4a87c43795af5aaaa966603c9e5a634fb67759`（PR #329 統合後）。
 - 継承する [Draft PR #327](https://github.com/haji84/RACE-AI/pull/327)：`c058c3cf5640661244c8cbef8c21c387c03eca02`。既存376変更ファイルを保全し、今回の差分だけを積み増す。PR名は「docs」だが実際はコード・研究・証拠を含む。
-- **監査中の更新を継承**：同PRが `345f0ac8af94237b03c281c4e288f3f0f3a4cc62` へ進み、[カルテ・確率・展開照合](KEIRIN_TACTICAL_DOSSIER_20261125.md)を追加した。今回の変更はそのHEAD上へ積み直した。重複した分類器は廃し、`keirin_form_fall_blind_pdca.compare_race_development` への件数集計アダプターに統一した。以下の表はこの更新を含む。
+- **監査中の更新を継承**：同PRが `345f0ac8af94237b03c281c4e288f3f0f3a4cc62` へ進み、[カルテ・確率・展開照合](KEIRIN_TACTICAL_DOSSIER_20261125.md)を追加した。今回の変更はそのHEAD上へ積み直した。重複した分類器は廃し、`keirin_form_fall_blind_pdca.compare_race_development` への件数集計アダプターに統一した。最終統合では `912947a3` の追加17変更（第34版の事後観測表示等）も保全した。以下の表はこの更新を含む。
 - [既存引継ぎ](KEIRIN_RIDER_TRAITS_CODEX_HANDOFF_20261122.md)、`AGENTS.md`、最新状況、予想／結果スクリプト、画面コード、公開ファイルとCIの実行内容を確認。
 - [定期run 45606639155](https://github.com/haji84/RACE-AI/actions/runs/45606639155) はsuccessだが、実logは `HOLD_OWNER_SOURCE_PARTIAL_NO_COMPLETE_PR71_INPUT`。当日一覧は8場75レース、詳細・選手確認・新予想は0、独立読戻しjobはskip。918応答HTTP200を全入力完了と解釈しない。
 - 公開SiteとGitHub移植画面は異なる配信経路。公開Siteの当日ファイルは75レース、保存済み公開記録と現HTTPのSHAが一致。[今回の読戻し](evidence/keirin-spec-handoff-20261125/public-site-check.json)。これは全国のカルテ／全モデル／全着順確率の完成証明ではない。
@@ -101,7 +101,7 @@ python -m scripts.keirin_forward_score \
 
 ## 精度についての引継ぎ
 
-今回の[検証記録](evidence/keirin-spec-handoff-20261125/validation.md)：最終の関連201検査は成功。広範囲1,549検査では既存pin不足7件・ブラウザ不足1件のエラーと、umaskに依存する合成fixtureの失敗があった。fixtureを修正して9件を再検証した。全体試験を合格と扱わない。
+今回の[検証記録](evidence/keirin-spec-handoff-20261125/validation.md)：最終の関連203検査は成功。広範囲1,549検査では既存pin不足7件・ブラウザ不足1件のエラーと、umaskに依存する合成fixtureの失敗があった。fixtureを修正して9件を再検証した。全体試験を合格と扱わない。
 
 [既存20:08記録](evidence/keirin-95-continue-20261125/checkpoint-2008.md)は2媒体一致51件で三連単上位4＝16/51、上位8＝26/51、掲載点数＝19/51。これらは継承した特定時点の記録であり、今回再採点した全国成績ではない。今回の変更により着順精度が上がったとは主張しない。複数の試験案を同じ結果で選ぶことと、未使用の未来期間で効果を確認することを分ける。95%等の旧研究目標も完成の代用品にしない。
 

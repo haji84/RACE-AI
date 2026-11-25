@@ -47,7 +47,7 @@
 - [x] Record user-observed initial order, initiative and attack order without unobserved positions/speeds/times. Preserve the conversation prediction as reference if no original is restored.
 - [x] Run the real reference case; report formal count zero when original/independent evidence is missing.
 - [x] Save all 27 requirement groups, additional six abilities, concrete existing paths, missing acceptance evidence and next executable work.
-- [ ] Verify links, diff, regressions and source preservation. Update existing PR #327 through normal fast-forward only; no merge or model promotion.
+- [x] Verify links, diff, regressions and source preservation. Updated existing PR #327 through normal fast-forward only; no merge or model promotion.
 
 ## Progress
 
@@ -63,3 +63,5 @@
 - Final review: independent reviewer reproduced post-cutoff normalization admission, initial-prefix inconsistency, and compatible-partial-source conflicts. The latter two are handled by the shared canonical comparator; the adapter separately refuses late normalized bytes. Regression tests cover all three.
 - Review minor addressed by consolidation: a supplied conversation flow is never labeled a restored original; reference scope has no formal grade and contributes zero formal races.
 - Broad keirin discovery before integration: 1,549 tests, 1 failure, 8 errors, 11 skipped. Seven errors require missing legacy pinned modules, one requires Playwright Chromium. The failure was a negative fixture created as 0700 under umask0077 instead of intended 0755; explicit chmod fixes the fixture, without changing runtime permissions or code.
+
+- Completion of this increment: verified source `c7831244`, related203 tests passed after rebase, GitHub CI45612583162 all steps success. The nationwide product remains incomplete as specified in the acceptance matrix.
