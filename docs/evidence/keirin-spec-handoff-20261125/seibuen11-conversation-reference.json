@@ -1,0 +1,131 @@
+{
+  "schema": "KEIRIN_CONVERSATION_FLOW_REFERENCE_V1",
+  "race_id": "202611252611",
+  "recorded_at": "2026-11-25T12:04:04.154993+00:00",
+  "scope": "RETROSPECTIVE_CONVERSATION_REFERENCE_NOT_FROZEN_FORECAST",
+  "starters": [
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7
+  ],
+  "original_conversation_forecast_restored": false,
+  "eligible_for_pre_cutoff_performance": false,
+  "prediction_reference": {
+    "source": "USER_CONVERSATION_RECOLLECTION",
+    "reported_top1": [
+      5,
+      3,
+      1
+    ]
+  },
+  "user_timeline": [
+    {
+      "phase_label": "打鐘前",
+      "actor": 2,
+      "action": "先行"
+    },
+    {
+      "phase_label": "最終バック以降・第1段階",
+      "actor": 4,
+      "action": "捲り",
+      "following": [
+        6
+      ]
+    },
+    {
+      "phase_label": "最終バック以降・第2段階",
+      "actor": 1,
+      "action": "④⑥の捲りの上を捲る"
+    },
+    {
+      "phase_label": "最終バック以降・第3段階",
+      "actor": 5,
+      "action": "さらにその上を捲る",
+      "following": [
+        3
+      ]
+    }
+  ],
+  "result_source_check": "seibuen11-result-check.json",
+  "independently_watched_video": false,
+  "unobserved": [
+    "exact_attack_times",
+    "distances",
+    "velocities",
+    "intermediate_full_orders",
+    "gaps",
+    "independently_confirmed_attack_sequence"
+  ],
+  "forecast": {
+    "scope": "conversation_reference",
+    "race_id": "202611252611",
+    "tickets": [
+      [
+        5,
+        3,
+        1
+      ]
+    ],
+    "flow": {
+      "INITIAL": [
+        2
+      ],
+      "INITIATIVE": 4
+    }
+  },
+  "observations": [
+    {
+      "race_id": "202611252611",
+      "aspect": "INITIAL",
+      "observed": [
+        5,
+        3,
+        4,
+        6,
+        1,
+        2,
+        7
+      ],
+      "complete": true,
+      "source": "user",
+      "receipt": {
+        "reference": "user:20261125-development-instructions-section-2",
+        "recorded_at": "2026-11-25T12:04:04.154993+00:00",
+        "sha256": null
+      }
+    },
+    {
+      "race_id": "202611252611",
+      "aspect": "INITIATIVE",
+      "observed": 2,
+      "complete": true,
+      "source": "user",
+      "receipt": {
+        "reference": "user:20261125-development-instructions-section-2",
+        "recorded_at": "2026-11-25T12:04:04.154993+00:00",
+        "sha256": null
+      }
+    },
+    {
+      "race_id": "202611252611",
+      "aspect": "ATTACK_ORDER",
+      "observed": [
+        2,
+        4,
+        1,
+        5
+      ],
+      "complete": false,
+      "source": "user",
+      "receipt": {
+        "reference": "user:20261125-development-instructions-section-2",
+        "recorded_at": "2026-11-25T12:04:04.154993+00:00",
+        "sha256": null
+      }
+    }
+  ]
+}

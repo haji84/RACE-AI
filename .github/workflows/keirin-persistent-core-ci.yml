@@ -57,3 +57,7 @@ jobs:
             tests.test_keirin_video_census tests.test_keirin_video_archive_index tests.test_keirin_video_sources \
             tests.test_keirin_video_media tests.test_keirin_video_review \
             tests.test_keirin_video_corpus tests.test_keirin_video_rider_learning -v
+          "$runner_python" -m unittest \
+            tests.test_keirin_flow_evaluation tests.test_keirin_race_development \
+            tests.test_keirin_forward_score tests.test_keirin_research_ledger \
+            tests.test_keirin_research_cohort_score tests.test_keirin_official_owner_view -v
