@@ -60,6 +60,10 @@ A級3班・L級・9車等は改善していない。区分を見て今回のモ�
 
 [main統合後run 45633700634](https://github.com/haji84/RACE-AI/actions/runs/45633700634)で復号から採点まで成功。さらに[結果更新による自動実行45634329984](https://github.com/haji84/RACE-AI/actions/runs/45634329984)でも完走した（`workflow_run`）。最終の[run 45636908765](https://github.com/haji84/RACE-AI/actions/runs/45636908765)では10件すべてを2媒体一致結果に照合し、三連単Top4は保存B3件→比較B4件、二車単Top2は両モデル3件だった。10件の1件増加は統計的な改善の証明としない。最初の取得確認は復号前に停止したが、同じ不変資料・同じ結果commitでの再読取りと再実行は成功。最初のHTTP応答と停止対象は当時のエラーに含まれず原因不明であり、推測で確定しない。[実行結果](evidence/keirin-live-accuracy-closure-20261125/automatic-forward-score.json)・[自動起動の証拠](evidence/keirin-live-accuracy-closure-20261125/automatic-trigger-proof.json)は件数・SHA・取得元commitだけを保存し、原本・氏名・買い目・確率・鍵を公開しない。展開原本不足、実主催者締切未認証、公式結果未認証を独立して明示する。
 
+[PR #336](https://github.com/haji84/RACE-AI/pull/336)で停止工程・HTTP状態を記録し、指定した一時障害だけ一度再試行する既存修正を本番へ反映した。その後run `45642996407` はGitHubの `witness_jobs` 取得でHTTP403となり、1試行で鍵を使う前に停止。詳細な原因は不明のまま保全する。[PR #337](https://github.com/haji84/RACE-AI/pull/337)では新しい権限を追加せず、既存の `contents:read` 標準トークンを正本repoのGitHub APIだけに使用した。rawホストへトークンを送らず、403の再試行や匿名フォールバックもしない。PRの実API確認はHTTP200で成功し、main `31469b4cb289fbaa6cc2acfe0fb39d801be396d2` の[run 45644494222](https://github.com/haji84/RACE-AI/actions/runs/45644494222)でも同じ原本の実復号・10件の採点が成功した。
+
+さらに既存の公開結果更新 `45645160915` を受けた[自動run 45645265780](https://github.com/haji84/RACE-AI/actions/runs/45645265780)も実復号から10件すべての採点まで成功。Top4は3→4、Top2は両方3のまま。新しい予想を作ったり結果で原本を書き換えた証拠ではなく、同じ原本を読む実行経路の確認である。[障害と認証確認](evidence/keirin-live-accuracy-closure-20261125/github-readback-auth-recovery.json)・[認証後の自動採点](evidence/keirin-live-accuracy-closure-20261125/authenticated-automatic-forward-score.json)
+
 ## 当日画面と採点
 
 当日登録75件のうち、10件は上記の締切前原本、別の57件は締切後に作った参考解析として区別して配信した。不足していた8件52出走は、Kdreamsの掲載並びを締切後13:53 UTCに取得して参考表示だけを補った。確認対象75件516出走の全確率・入力SHAを既存の画面モデルで検証。締切前10件、事後再現57件、締切後取得資料による参考8件を分け、65件を締切前実績へ加算しない。[配信件数](evidence/keirin-live-accuracy-closure-20261125/day-display-publication.json)・[不足8件の補完](evidence/keirin-live-accuracy-closure-20261125/recovered-eight-display.json)・[実データの読込](evidence/keirin-live-accuracy-closure-20261125/display-readback.json)

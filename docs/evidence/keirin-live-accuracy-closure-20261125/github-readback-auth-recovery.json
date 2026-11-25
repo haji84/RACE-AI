@@ -1,0 +1,37 @@
+{
+  "schema": "KEIRIN_GITHUB_EVIDENCE_READ_RECOVERY_V1",
+  "failed_run": 45642996407,
+  "failed_job": 139306499119,
+  "failed_source_commit": "1867fce098c302c3488e33d4c4e0d71358e80e35",
+  "observed_failure": {
+    "stage": "witness_jobs",
+    "reason": "HTTP_STATUS",
+    "attempts": 1,
+    "http_status": 403
+  },
+  "original_403_detailed_cause": "UNCONFIRMED",
+  "denial_retried": false,
+  "owner_key_used_on_failed_run": false,
+  "standard_read_token_readiness": {
+    "action_run": 45643898757,
+    "job_id": 139309579005,
+    "http_status": 200,
+    "owner_rsa_key_used": false
+  },
+  "permissions": {
+    "contents": "read"
+  },
+  "permissions_changed": false,
+  "new_secrets_or_keys": false,
+  "token_destination": "https://api.github.com/repos/haji84/RACE-AI/",
+  "token_sent_to_raw_host": false,
+  "anonymous_fallback": false,
+  "protected_main": "31469b4cb289fbaa6cc2acfe0fb39d801be396d2",
+  "normal_main_run": 45644494222,
+  "automatic_result_update_run": 45645160915,
+  "automatic_readback_run": 45645265780,
+  "automatic_readback_job": 139314549724,
+  "registered": 10,
+  "matched": 10,
+  "accuracy_improvement_proven": false
+}
