@@ -482,6 +482,16 @@ class ContinuationLease:
     def request_count(self):
         return sum(self._counts.values())
 
+    def remaining_capture_capacity(self, *, now):
+        """Read the current capacity without issuing permission or consuming a request."""
+        with self._lock:
+            need(not self._closed, 'LEASE_CLOSED')
+            now = _aware(now)
+            tick = time.monotonic()
+            need(math.isfinite(tick) and self._tick <= tick and self._last <= now, 'LEASE_CLOCK_CHANGED')
+            remaining = min(self._deadline - tick, (self._expires - now).total_seconds())
+            return self._claim['max_source_requests'] - self.request_count, max(0, remaining)
+
     def _active(self, now, repo):
         need(not self._closed, 'LEASE_CLOSED')
         tick = time.monotonic(); now = _aware(now)

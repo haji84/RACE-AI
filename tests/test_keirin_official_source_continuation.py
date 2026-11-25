@@ -253,6 +253,20 @@ class ContinuationTests(unittest.TestCase):
             with self.assertRaises(self.api.ContinuationError):
                 self.request(later, now=NOW+timedelta(seconds=60))
 
+    def test_read_only_capacity_uses_the_earlier_monotonic_or_wall_deadline(self):
+        with patch.object(self.api.time,'monotonic',return_value=10.0):
+            lease=self.begin(max_requests=1,lease_seconds=60)
+            self.request(lease)
+            self.assertEqual(lease.remaining_capture_capacity(now=NOW+timedelta(seconds=50)),(0,10.0))
+        with patch.object(self.api.time,'monotonic',return_value=68.0):
+            self.assertEqual(lease.remaining_capture_capacity(now=NOW+timedelta(seconds=5)),(0,2.0))
+        with patch.object(self.api.time,'monotonic',return_value=71.0):
+            self.assertEqual(lease.remaining_capture_capacity(now=NOW+timedelta(seconds=5)),(0,0.0))
+        self.assertFalse(lease._closed)
+        with patch.object(self.api.time,'monotonic',return_value=9.0):
+            with self.assertRaises(self.api.ContinuationError):
+                lease.remaining_capture_capacity(now=NOW)
+
     def test_expiry_during_remote_recheck_cannot_authorize_using_stale_caller_clock(self):
         ticks = iter((10.0, 10.0, 11.0, 80.0))
         with patch.object(self.api.time, 'monotonic', side_effect=lambda:next(ticks)):
