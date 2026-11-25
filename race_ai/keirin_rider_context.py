@@ -155,7 +155,7 @@ def _multi_stage_path(groups, profiles, lead, responses, late_finish):
                 probability_status='NO_INDEPENDENT_CALIBRATION')
 
 
-def multi_stage_makuri_hypotheses(snapshot):
+def multi_stage_makuri_hypotheses(snapshot, *, tactical_context=None):
     """Generate up to three successive counters on distinct pre-race lines.
 
     The order and followers describe one conditional path. The evidence does
@@ -176,10 +176,13 @@ def multi_stage_makuri_hypotheses(snapshot):
                 paths.append(_multi_stage_path(groups, profiles, lead, responses, False))
                 if count > 1:
                     paths.append(_multi_stage_path(groups, profiles, lead, responses, True))
+    if tactical_context is not None:
+        from .keirin_tactical_context import attach_responses
+        return attach_responses(snapshot, paths, tactical_context)
     return paths
 
 
-def compare(snapshot):
+def compare(snapshot, *, tactical_context=None):
     """Run a separate comparison on the same snapshot using the existing A/B selector."""
     baseline = core.generate_evidence_analysis(snapshot)
     profiles = {row['car']:row for row in baseline['feature_audit']['riders']}
@@ -215,4 +218,8 @@ def compare(snapshot):
                                                  for scenario,weight in zip(scenarios,weights)]
             prediction['method_mode'] = METHOD
         candidate[arm] = prediction
-    return {'baseline':baseline, 'candidate':candidate}
+    comparison = {'baseline':baseline, 'candidate':candidate}
+    if tactical_context is not None:
+        from .keirin_tactical_context import attach_comparison
+        return attach_comparison(snapshot, comparison, tactical_context)
+    return comparison
