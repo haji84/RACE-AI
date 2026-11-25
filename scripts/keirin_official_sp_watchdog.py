@@ -29,8 +29,14 @@ WORKFLOW_API = f"{REPO_API}/actions/workflows/{WORKFLOW}"
 ACTIVE = ("in_progress", "queued", "requested", "pending", "waiting")
 TRUSTED_EVENTS = ("schedule", "workflow_dispatch")
 CAPTURE_JOB = "official-sp-capture"
+READBACK_JOB = "official-sp-independent-readback"
+PUBLISH_JOB = "official-sp-publish"
+SETTLE_JOB = "official-sp-settle"
 CAPTURE_STEP = "Register the official day and preserve future original forecasts"
 CAPTURE_SCHEMA = "RACE_AI_KEIRIN_GITHUB_ONLY_LIVE_AB_DAY_V1"
+READBACK_SCHEMA = "RACE_AI_KEIRIN_GITHUB_ONLY_AB_SECOND_RUNNER_V1"
+SAFE_SETTLEMENT_STATES = ("NO_DUE_ADMITTED_OFFICIAL_ORIGINALS", "OFFICIAL_SP_RESULT_POLL_COMPLETE",
+                          "OFFICIAL_SP_SAVED_RESULT_UPDATES_PUBLISHED")
 SAFE_CAPTURE_STATES = ("OFFICIAL_SP_BASELINES_ARCHIVED", "OFFICIAL_SP_DAY_REGISTERED_WITH_EXPLICIT_HOLDS")
 SCHEMA = "RACE_AI_KEIRIN_OFFICIAL_SP_WATCHDOG_V1"
 RECENT = timedelta(minutes=45)
@@ -39,6 +45,7 @@ JST = timezone(timedelta(hours=9))
 CLOCK_SKEW = timedelta(minutes=3)
 METADATA_HOLD = "HOLD_INVALID_GITHUB_METADATA"
 OUTCOME_HOLD = "HOLD_CAPTURE_OUTCOME_UNVERIFIED"
+JOB_HOLD = "HOLD_CAPTURE_JOB_FAILED"
 LOCAL_HOLD = "HOLD_UNSAFE_LOCAL_RECEIPT"
 ARTIFACT_LIMIT = 64 * 1024
 RUNS_LIMIT = 100
@@ -146,6 +153,42 @@ def require_idle(gh, workflow_id):
             raise Hold("HOLD_ACTIVE_OFFICIAL_SP_WORKFLOW")
 
 
+def publication_failure_jobs(jobs, run, now, created, updated, capture_started, capture_finished):
+    """Identify the failed display job and the exact successful source evidence windows."""
+    require(run.get("conclusion") == "failure" and
+            all(job.get("status") == "completed" and
+                job.get("conclusion") in ("success", "skipped", "failure") for job in jobs) and
+            [job.get("name") for job in jobs if job.get("conclusion") == "failure"] == [PUBLISH_JOB],
+            JOB_HOLD)
+    roles = (CAPTURE_JOB, READBACK_JOB, PUBLISH_JOB, SETTLE_JOB)
+    selected = [job for job in jobs if job.get("name") in roles]
+    require(len(selected) == len(roles) and {job["name"] for job in selected} == set(roles)
+            and all(positive_id(job.get("id")) and positive_id(job.get("run_id"))
+                    and job.get("run_id") == run["id"] and positive_id(job.get("run_attempt"))
+                    and job.get("run_attempt") == run["run_attempt"]
+                    and job.get("head_sha") == run["head_sha"] for job in selected)
+            and len({job["id"] for job in selected}) == len(roles), JOB_HOLD)
+    by_name = {job["name"]: job for job in selected}
+    require(by_name[CAPTURE_JOB]["conclusion"] == by_name[READBACK_JOB]["conclusion"] == "success",
+            JOB_HOLD)
+
+    def window(name):
+        job = by_name[name]
+        started = utc(job.get("started_at"), now, JOB_HOLD)
+        finished = utc(job.get("completed_at"), now, JOB_HOLD)
+        require(created <= started <= finished <= updated, JOB_HOLD)
+        return started, finished
+
+    capture_job = window(CAPTURE_JOB)
+    readback = window(READBACK_JOB)
+    publication = window(PUBLISH_JOB)
+    require(capture_job[0] <= capture_started <= capture_finished <= capture_job[1]
+            <= readback[0] <= readback[1] <= publication[0], JOB_HOLD)
+    settlement = by_name[SETTLE_JOB]["conclusion"]
+    require(settlement == "success" or (run["event"] == "schedule" and settlement == "skipped"), JOB_HOLD)
+    return capture_job[1], readback, window(SETTLE_JOB) if settlement == "success" else None
+
+
 def capture_times(gh, run, now, created, updated):
     path = f"{REPO_API}/actions/runs/{run['id']}/attempts/{run['run_attempt']}/jobs?per_page=100"
     jobs, total = listing(metadata(gh, path), "jobs", 100, METADATA_HOLD)
@@ -155,8 +198,9 @@ def capture_times(gh, run, now, created, updated):
     require(capture.get("run_id") == run["id"] and capture.get("run_attempt") == run["run_attempt"]
             and capture.get("head_sha") == run["head_sha"] and capture.get("status") == "completed",
             OUTCOME_HOLD)
-    require(run.get("conclusion") in ("success", "skipped") and
-            capture.get("conclusion") in ("success", "skipped"), "HOLD_CAPTURE_JOB_FAILED")
+    outer_success = run.get("conclusion") in ("success", "skipped")
+    require(capture.get("conclusion") == "success" or
+            (outer_success and capture.get("conclusion") == "skipped"), JOB_HOLD)
     if capture["conclusion"] == "skipped":
         return None
     steps = capture.get("steps")
@@ -168,7 +212,9 @@ def capture_times(gh, run, now, created, updated):
     started = utc(step[0].get("started_at"), now, OUTCOME_HOLD)
     finished = utc(step[0].get("completed_at"), now, OUTCOME_HOLD)
     require(created <= started <= finished <= updated, OUTCOME_HOLD)
-    return started, finished
+    evidence = None if outer_success else publication_failure_jobs(jobs, run, now, created, updated,
+                                                                  started, finished)
+    return started, finished, evidence
 
 
 def latest_capture(gh, workflow_id, now):
@@ -205,9 +251,8 @@ def latest_capture(gh, workflow_id, now):
     return latest
 
 
-def require_safe_capture(gh, capture, now):
-    run, started, finished = capture
-    receipt_name = f"keirin-official-sp-receipt-{run['id']}"
+def safe_job_report(gh, run, now, artifact, member, first_upload, last_upload=None):
+    receipt_name = f"keirin-official-sp-{artifact}-{run['id']}"
     path = f"{REPO_API}/actions/runs/{run['id']}/artifacts?name={receipt_name}&per_page=1"
     receipts, total = listing(metadata(gh, path), "artifacts", 1, OUTCOME_HOLD)
     require(total == 1, OUTCOME_HOLD)
@@ -218,19 +263,71 @@ def require_safe_capture(gh, capture, now):
             and positive_id(receipt.get("id")) and type(size) is int and 0 < size <= ARTIFACT_LIMIT
             and isinstance(source, dict) and source.get("id") == run["id"]
             and source.get("head_branch") == "main" and source.get("head_sha") == run["head_sha"]
-            and source.get("head_repository_id") == source.get("repository_id") == REPO_ID
-            and finished <= utc(receipt.get("created_at"), now, OUTCOME_HOLD), OUTCOME_HOLD)
+            and source.get("head_repository_id") == source.get("repository_id") == REPO_ID, OUTCOME_HOLD)
+    uploaded = utc(receipt.get("created_at"), now, OUTCOME_HOLD)
+    require(first_upload <= uploaded and (last_upload is None or uploaded <= last_upload), OUTCOME_HOLD)
     raw = api(gh, f"{REPO_API}/actions/artifacts/{receipt['id']}/zip")
     require(type(raw) is bytes and len(raw) == size and
             receipt.get("digest") == "sha256:" + sha256(raw).hexdigest(), OUTCOME_HOLD)
     try:
         with zipfile.ZipFile(io.BytesIO(raw)) as archive:
             entries = archive.infolist()
-            require(len(entries) == 1 and entries[0].filename == "summary.json"
+            require(len(entries) == 1 and entries[0].filename == member
                     and entries[0].file_size <= ARTIFACT_LIMIT, OUTCOME_HOLD)
-            summary = decode(archive.read(entries[0]), ARTIFACT_LIMIT, OUTCOME_HOLD)
+            return decode(archive.read(entries[0]), ARTIFACT_LIMIT, OUTCOME_HOLD)
     except (zipfile.BadZipFile, RuntimeError, OSError, zlib.error):
         raise Hold(OUTCOME_HOLD) from None
+
+
+def baseline_receipt_ids(rows, count, day, *, readback=False):
+    require(type(rows) is list and len(rows) == count, OUTCOME_HOLD)
+    found = {}
+    for row in rows:
+        require(isinstance(row, dict), OUTCOME_HOLD)
+        race, digest = row.get("race_id"), row.get("cipher_sha256")
+        require(type(race) is str and re.fullmatch(r"[0-9]{12}", race) is not None
+                and race.startswith(day.replace("-", "")) and race not in found
+                and type(digest) is str and re.fullmatch(r"[a-f0-9]{64}", digest) is not None
+                and (not readback or row.get("state") == "SECOND_RUNNER_GITHUB_SHA_CONFIRMED"), OUTCOME_HOLD)
+        found[race] = digest
+    return found
+
+
+def require_publication_failure_proof(gh, run, now, summary, evidence):
+    _, readback_window, settlement_window = evidence
+    day = summary.get("day_jst")
+    count = summary.get("new_A_B_git_archived")
+    require(type(day) is str and type(count) is int and 0 < count <= 8
+            and type(summary.get("new_A_B_sealed")) is int and summary["new_A_B_sealed"] == count
+            and summary.get("state") == "OFFICIAL_SP_BASELINES_ARCHIVED", OUTCOME_HOLD)
+    originals = baseline_receipt_ids(summary.get("new_encrypted_originals"), count, day)
+    readback = safe_job_report(gh, run, now, "readback", "keirin-git-independent.json", *readback_window)
+    require(readback.get("schema") == READBACK_SCHEMA and readback.get("day_jst") == day
+            and all(type(readback.get(key)) is int and readback[key] == count
+                    for key in ("new_archived", "independently_verified"))
+            and baseline_receipt_ids(readback.get("records"), count, day, readback=True) == originals,
+            OUTCOME_HOLD)
+    if settlement_window is None:
+        return
+    settlement = safe_job_report(gh, run, now, "settlement", "summary.json", *settlement_window)
+    require(settlement.get("provider_denied") is not True
+            and settlement.get("state") != "HOLD_OFFICIAL_SP_PROVIDER_STOP", "HOLD_CAPTURE_PROVIDER_STOP")
+    requests = settlement.get("source_requests")
+    no_provider_tick = settlement.get("no_provider_tick")
+    lease_failed = settlement.get("source_lease_finish_failed")
+    # A healthy tick with no provider work never opens the lazy source lease.
+    no_lease = requests == 0 and no_provider_tick is True and lease_failed is None
+    require(settlement.get("day_jst") == day and settlement.get("state") in SAFE_SETTLEMENT_STATES
+            and settlement.get("provider_denied") is False and settlement.get("source_unavailable") is False
+            and type(requests) is int and 0 <= requests <= 300 and type(no_provider_tick) is bool
+            and (not no_provider_tick or requests == 0)
+            and (no_lease or lease_failed is False), "HOLD_CAPTURE_STOPPING_STATE")
+
+
+def require_safe_capture(gh, capture, now):
+    run, started, finished, evidence = capture
+    summary = safe_job_report(gh, run, now, "receipt", "summary.json", finished,
+                              evidence[0] if evidence else None)
     require(summary.get("schema") == CAPTURE_SCHEMA and type(summary.get("provider_denied")) is bool
             and summary.get("source_or_forecast_plaintext_exposed") is False, OUTCOME_HOLD)
     require(summary["provider_denied"] is False, "HOLD_CAPTURE_PROVIDER_STOP")
@@ -244,6 +341,7 @@ def require_safe_capture(gh, capture, now):
     require(type(requests) is int and 0 < requests <= 300, OUTCOME_HOLD)
     day_text = summary.get("day_jst")
     if day_text is None:
+        require(evidence is None, OUTCOME_HOLD)
         return RECENT
     try:
         day = date.fromisoformat(day_text)
@@ -253,6 +351,8 @@ def require_safe_capture(gh, capture, now):
     today = now.astimezone(JST).date()
     require(day.isoformat() == day_text and started.astimezone(JST).date() <= day
             <= min(finished.astimezone(JST).date(), today), OUTCOME_HOLD)
+    if evidence is not None:
+        require_publication_failure_proof(gh, run, now, summary, evidence)
     if day == today and statuses.get("SOURCE_CAPTURE_BUDGET_PENDING", 0) > 0:
         return BACKLOG_RECENT
     return RECENT
@@ -354,10 +454,12 @@ def supervise(gh, *, now, dispatch=False, state_dir=None, clock=None):
         workflow_id = active_workflow(gh)
         require_idle(gh, workflow_id)
         capture = latest_capture(gh, workflow_id, now)
-        run, _, finished = capture
+        run, _, finished, evidence = capture
         report.update(last_actual_capture_run_id=run["id"], last_actual_capture_at=finished.isoformat())
         delay = require_safe_capture(gh, capture, now)
         report["recovery_delay_minutes"] = delay // timedelta(minutes=1)
+        if evidence is not None:
+            report["publication_only_failure_verified"] = True
         if now - finished <= delay:
             decision = "SKIP_RECENT_OFFICIAL_SP_CAPTURE"
         elif not dispatch:
