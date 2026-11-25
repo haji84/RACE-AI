@@ -1,0 +1,59 @@
+{
+  "frozen_utc": "2026-11-25T00:27:21.263737+00:00",
+  "upcoming_cutoff_JST": {
+    "202611253809": "2026-11-25T14:36:00+09:00",
+    "202611252603": "2026-11-25T16:40:00+09:00"
+  },
+  "models_sha256": "1d474027b42c527aba4f1deccdc1dba786f373d07caf9a0a32582cb034411a6b",
+  "source_cards_sha256": "edc002c1dc65b5a4e58178d3c70a57b56abb15f7814f6b1ac796c3dfded06de3",
+  "source_input_snapshot_sha256": "fccd91e7e7caa3cda753ee76ab5de4bf11f5a2eea0cca8ba86f849519062b27d",
+  "source_predictions_sha256": "a9226f6e6ccb5189665f4c3b16802400b9eb60b5b2506b9d1d6cde8fdf4998bb",
+  "public_payload_sha256": "51a98f0a048d4831eeb8c85533e28f789b17dc55ca59a7cb0cf0c920d7e4eb9e",
+  "past_case_source_sha256": "fac31353f4ebcbeeb9f57e780281b93821cbb1ef391d5cbed7adf19dd8ebdfeb",
+  "past_case_nonoutcome_registry_match": {
+    "1": "016008",
+    "2": "014787",
+    "3": "015472",
+    "4": "012383",
+    "5": "015367",
+    "6": "013505",
+    "7": "015824"
+  },
+  "source_checks": {
+    "202611253809": {
+      "source": "https://keirin.kdreams.jp/shizuoka/racedetail/3820261124020009/",
+      "verified_comment_count": 7,
+      "contested_pairs_in_source_order": [
+        [
+          4,
+          2
+        ],
+        [
+          3,
+          5
+        ]
+      ],
+      "original_page_hash": "ebc77aaeee9e55724f2cdb90de5baac3c1776fb3845df9dcba390416fa6b0778",
+      "new_capture_hash": "f925906e8f9015b5e519bcbe982c0fdb57f41acc7035c997930b9c81ef21a1e6",
+      "verified_before_result": true
+    },
+    "202611252603": {
+      "source": "https://keirin.kdreams.jp/seibuen/racedetail/2620261123030003/",
+      "verified_comment_count": 7,
+      "contested_pairs_in_source_order": [
+        [
+          5,
+          4
+        ]
+      ],
+      "original_page_hash": "33320b22a148520ca781dfa0c54358d52e64b54d8155db5e1951faf0e91bae76",
+      "new_capture_hash": "e49b71ac7fc9b104c0a4b69252c1ee8fc114ba3ae6279667bb1452b658761361",
+      "verified_before_result": true
+    }
+  },
+  "script_sha256": "167862ea8028e6ac5dc1cd1e9dfa382f59736256d7a925449b89a735e6d2da8d",
+  "plan_sha256": "915dece25b28d9e99abb893919cc3ce1325a4f50f8dc861bbae7042048c480a8",
+  "plan_extension_sha256": "fb0c6fe3b24fb69ccb3cdbe40efbac355297115680bd35f1b5dad6eddb8fb156",
+  "prediction_file_sha256": "67b4e40c24554747874121807bb279ece4130f9ff07bb3cb2f3258ea87c9a6e5",
+  "selection": "1 earlier case newly identified through pre-race declarations outside previous 207 plus 2 upcoming contested cases with source fields, all included. November25 results read = 0. No site changes."
+}

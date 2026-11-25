@@ -104,6 +104,32 @@
       "gains": 1,
       "losses": 1,
       "daily_budget_oracle": 75
+    },
+    "nov24": {
+      "n": 80,
+      "cap_bins": {
+        "4": {
+          "n": 63,
+          "top4": 13,
+          "ranks5to8": 12,
+          "outside": 38
+        },
+        "8": {
+          "n": 17,
+          "top4": 8,
+          "ranks5to8": 1,
+          "outside": 8
+        }
+      },
+      "uniform4": 21,
+      "uniform8": 34,
+      "published": 22,
+      "trial": 22,
+      "published_tickets": 388,
+      "trial_tickets": 388,
+      "gains": 0,
+      "losses": 0,
+      "daily_budget_oracle": 34
     }
   },
   "reveal_actual_line_group_after_racing": {
@@ -1505,5 +1531,1478 @@
       "regulation": "https://www.keirin-autorace.or.jp/documents/www/regulation/keirin/yoryo_shinpan.pdf",
       "250_keirin": "Different timing rule, measured from the final 200 m line."
     }
+  },
+  "named_follow_in_four_day_reports": {
+    "summary": {
+      "date_start": "2026-11-21",
+      "date_end": "2026-11-24",
+      "races_checked": 295,
+      "races_with_rider_notes": 78,
+      "pair_mentions": 55,
+      "unique_directed_registration_pairs": 53,
+      "races_with_named_pairs": 38,
+      "by_relationship": {
+        "followed_other_planned_line": {
+          "pair_mentions": 2,
+          "unique_registration_pairs": 2,
+          "races": 1,
+          "scored_replay": 1,
+          "hits": 0
+        },
+        "followed_planned_predecessor": {
+          "pair_mentions": 49,
+          "unique_registration_pairs": 47,
+          "races": 35,
+          "scored_replay": 35,
+          "hits": 15
+        },
+        "planned_solo_followed_other_line": {
+          "pair_mentions": 4,
+          "unique_registration_pairs": 4,
+          "races": 4,
+          "scored_replay": 4,
+          "hits": 1
+        }
+      },
+      "by_observation": {
+        "marked": 34,
+        "followed": 13,
+        "attached": 5,
+        "switched_and_followed": 2,
+        "switched_to": 1
+      },
+      "candidate_rule_matches_without_one_target_or_verified_identity": 7,
+      "counts_overlap_across_relationships_within_races": true,
+      "remaining_races_are_unlabelled": true
+    },
+    "method": "Scan all public daily-indexed races. Retain completed mark/follow/attachment/switch expressions with exactly one named other racer in that race. A surname or surname plus distinguishing given prefix is matched against public names and the independently archived start card must agree on name and car with registration IDs for both riders. Chasing from a distance, failed pursuits, unnamed regional teams, switches with unnamed destination, and inferred presumed neighbors are excluded. A simple description of following does not establish precisely where or for how long a wheel was held. Use as explicitly documented positive examples only. Same-race comments are never forecast inputs.",
+    "pair_level_finish_counts": {
+      "all": {
+        "recorded": 55,
+        "actual_target_then_follower": 20,
+        "actual_reverse": 0,
+        "both_podium": 31,
+        "predicted_target_then_follower_in_displayed": 20
+      },
+      "followed_planned_predecessor": {
+        "recorded": 49,
+        "actual_target_then_follower": 17,
+        "actual_reverse": 0,
+        "both_podium": 27,
+        "predicted_target_then_follower_in_displayed": 20
+      },
+      "planned_solo_followed_other_line": {
+        "recorded": 4,
+        "actual_target_then_follower": 2,
+        "actual_reverse": 0,
+        "both_podium": 3,
+        "predicted_target_then_follower_in_displayed": 0
+      },
+      "followed_other_planned_line": {
+        "recorded": 2,
+        "actual_target_then_follower": 1,
+        "actual_reverse": 0,
+        "both_podium": 1,
+        "predicted_target_then_follower_in_displayed": 0
+      }
+    },
+    "observations_sha256": "9b143b206c01b0d439d24a673ab87d262c5126cfa4fa1631447ea29ee6076aaa"
+  },
+  "minimum_one_cross_line_ticket_per_four": {
+    "design": {
+      "rule": "For each race with two or more listed lines and at least one non-singleton line, set a floor of one cross-line finish among four tickets or two among eight. Starting from the incumbent top cap, replace the lowest-ranked same-line selections with the highest-ranked unused tickets whose first and second are on different planned lines until the floor is reached. Incumbent method, same caps, same total tickets, equal third rider and tie order within each subgroup. All unsupported races retain the original. No fitting or alternate parameter search.",
+      "why": "Test whether failing to budget tickets for alternate lines explains poor results as opposed to wrong specific riders and order within alternate lines. Known group outcomes had already been examined, so treat this as retrospective. Primary actual published caps in 287; secondary 4 and 8 if pre-generated earlier comparison inputs available. Independently assess same/cross stratified by venue and starter count. No use of Nov25 outcomes."
+    },
+    "freeze": {
+      "forecasts_sha256": "2694aba006671653466d9376f659f60f4e9658757e0f3a034c8e11e8be5bbaac",
+      "design_sha256": "7b2f99b6e61237fe6037269b0d592f8a7f095322cd8f9068eaedb6ccded7892b",
+      "forecast_sets_sha256": "4d6a8c47e4a68657ca09882bb9b9310a9a5728a63f77ba1a15b04740090ed978"
+    },
+    "scores": {
+      "freeze": "efd3bd27a6f8c3a0fc52e8fb7237d7169132898bbd24da4ace3a50c1ca2da13b",
+      "totals": {
+        "all": {
+          "n": 287,
+          "hits": 93,
+          "trial": 87,
+          "gained": 3,
+          "lost": 9,
+          "changed": 180
+        },
+        "Nov21-23": {
+          "n": 207,
+          "hits": 71,
+          "trial": 65,
+          "gained": 1,
+          "lost": 7,
+          "changed": 141
+        },
+        "line_known": {
+          "n": 249,
+          "hits": 82,
+          "trial": 76,
+          "gained": 3,
+          "lost": 9,
+          "changed": 180,
+          "picks": 1076,
+          "cross_picks": 126,
+          "zero_cross": 176,
+          "cross_prob": 117.68166115911944
+        },
+        "cross": {
+          "n": 118,
+          "hits": 9,
+          "trial": 12,
+          "gained": 3,
+          "lost": 0,
+          "changed": 73,
+          "picks": 512,
+          "cross_picks": 88,
+          "zero_cross": 71,
+          "cross_prob": 61.02146393386699
+        },
+        "same": {
+          "n": 131,
+          "hits": 73,
+          "trial": 64,
+          "gained": 0,
+          "lost": 9,
+          "changed": 107,
+          "picks": 564,
+          "cross_picks": 38,
+          "zero_cross": 105,
+          "cross_prob": 56.66019722525246
+        },
+        "Nov24": {
+          "n": 80,
+          "hits": 22,
+          "trial": 22,
+          "gained": 2,
+          "lost": 2,
+          "changed": 39
+        }
+      },
+      "field_size": {
+        "field_7": {
+          "cross": {
+            "n": 93,
+            "hits": 8,
+            "trial": 11,
+            "gained": 3,
+            "lost": 0,
+            "changed": 52
+          },
+          "same": {
+            "n": 110,
+            "hits": 65,
+            "trial": 56,
+            "gained": 0,
+            "lost": 9,
+            "changed": 89
+          }
+        },
+        "field_9": {
+          "cross": {
+            "n": 21,
+            "hits": 0,
+            "trial": 0,
+            "gained": 0,
+            "lost": 0,
+            "changed": 18
+          },
+          "same": {
+            "n": 15,
+            "hits": 4,
+            "trial": 4,
+            "gained": 0,
+            "lost": 0,
+            "changed": 13
+          }
+        },
+        "field_6": {
+          "same": {
+            "n": 5,
+            "hits": 4,
+            "trial": 4,
+            "gained": 0,
+            "lost": 0,
+            "changed": 4
+          },
+          "cross": {
+            "n": 2,
+            "hits": 0,
+            "trial": 0,
+            "gained": 0,
+            "lost": 0,
+            "changed": 2
+          }
+        },
+        "field_5": {
+          "cross": {
+            "n": 2,
+            "hits": 1,
+            "trial": 1,
+            "gained": 0,
+            "lost": 0,
+            "changed": 1
+          },
+          "same": {
+            "n": 1,
+            "hits": false,
+            "trial": false,
+            "gained": false,
+            "lost": false,
+            "changed": true
+          }
+        }
+      },
+      "balanced_day_venue_strata": 27,
+      "within_day_venue_same_line_higher": 27,
+      "within_day_venue_equal": 0
+    }
+  },
+  "prestart_named_follower_audit": {
+    "method": {
+      "python_search_pattern": "(?:^|[。\\s。])([一-龯々ヶヵぁ-ゖァ-ヶ]{1,6}?)(?:君|さん)(?:。?$|(?:へ|から|目標|の後ろ|に任せ|を目標|をマーク|にマーク|マーク|に付|を追|へ行|につけ)[^。]*。?$)",
+      "name_matching": "For each match in a rider comment.strip(), on normalized same-race roster names (remove whitespace), test whether exactly one other rider name starts with capture group 1; keep first unique result. The published lineup is not used to find that result. For line comparison read lines or listed_lines. Compare line index and within-line slot. Verify card fetched_at strictly earlier than its day and racetime deadline (JST)."
+    },
+    "counts": {
+      "2026-11-23": {
+        "card": "keirin-evidence-today-20261123/evidence-cards.json",
+        "races": 89,
+        "races_with_comments": 89,
+        "comments": 637,
+        "starters": 637,
+        "races_with_named": 79,
+        "named": 223,
+        "immediate_preceding": 223,
+        "further_forward": 0,
+        "behind": 0,
+        "different_line": 0,
+        "line_unknown": 0
+      },
+      "2026-11-24": {
+        "card": "keirin-line-forward-20261124-amwjon/new-input-v4.json",
+        "races": 66,
+        "races_with_comments": 60,
+        "comments": 413,
+        "starters": 455,
+        "races_with_named": 54,
+        "named": 147,
+        "immediate_preceding": 147,
+        "further_forward": 0,
+        "behind": 0,
+        "different_line": 0,
+        "line_unknown": 0
+      },
+      "2026-11-25": {
+        "card": "keirin-accuracy-next-20261125/forward/owner-races.json",
+        "races": 60,
+        "races_with_comments": 60,
+        "comments": 415,
+        "starters": 415,
+        "races_with_named": 52,
+        "named": 142,
+        "immediate_preceding": 139,
+        "further_forward": 3,
+        "behind": 0,
+        "different_line": 0,
+        "line_unknown": 0
+      }
+    },
+    "sources": {
+      "keirin-evidence-today-20261123/evidence-cards.json": "fac31353f4ebcbeeb9f57e780281b93821cbb1ef391d5cbed7adf19dd8ebdfeb",
+      "keirin-line-forward-20261124-amwjon/new-input-v4.json": "215fc9a9444969abd126397a170ea1ab430a4b9a8e974c7a13a5695da80bdad2",
+      "keirin-accuracy-next-20261125/forward/owner-races.json": "edc002c1dc65b5a4e58178d3c70a57b56abb15f7814f6b1ac796c3dfded06de3",
+      "keirin-video-full-corpus-20261124/final-labels.jsonl": "8964168caaf2d2a3fb14a21d48a744217a4a92a94cfea6fd294dc7c593223749",
+      "keirin-rolling-three-year-20261124/cards.owner.json.gz": "afd1a3814c92b6172d17c5d02ce7a261945372ea945352c933c6e6ebc498db01",
+      "keirin-rolling-three-year-20261124/observations.owner.json.gz": "68d4c89c5630e3254f9265a5abc7d32acd73af29fa8ed76fa9de983014b20449",
+      "keirin-move-follow-20261124-JtlJ49/move-follow-aggregate.json": "918f3f97fd0a75ecf1ede17f48e77dd8a04b13f5fbddea5f898abc44327ce5f7",
+      "keirin-all-watch-now/tactics/notes-coverage.json": "10feab6451cf57d49e446ef86bde154cf1d2a6fcbe5ac7356d1460fa884f297e",
+      "keirin-accuracy-next-20261125/forward/snapshot_inputs.owner.json": "fccd91e7e7caa3cda753ee76ab5de4bf11f5a2eea0cca8ba86f849519062b27d"
+    },
+    "scope": "Read-only input audit. No prediction or new model fit. No November 25 outcome read. Counts of covered phrases are lower bounds, not exhaustive extraction. Prospective plan is distinct from actual wheel followed.",
+    "video": {
+      "scope": "Targeted individual follow annotations on final-labels only; later B/corner pair-position observations are a separate dataset. Retrospective labels, not inputs to predict that same race.",
+      "follow_all": 49,
+      "known_target_label_count": 27,
+      "races_with_known_target": 13,
+      "distinct_followers": 24,
+      "all_values": {
+        "held": 19,
+        "unknown": 20,
+        "passed_target": 5,
+        "lost": 3,
+        "no_target": 2
+      },
+      "retrospectively_compared_to_planned_line_and_finish": {
+        "different_line": {
+          "n": 4,
+          "target_first_rider_second": 1,
+          "rider_first_target_second": 0
+        },
+        "line_unknown": {
+          "n": 4,
+          "target_first_rider_second": 0,
+          "rider_first_target_second": 0
+        },
+        "same_line": {
+          "n": 19,
+          "target_first_rider_second": 0,
+          "rider_first_target_second": 1
+        }
+      }
+    }
+  },
+  "historical_named_follows": {
+    "scope": {
+      "period_jst": [
+        "2023-11-24",
+        "2026-11-23"
+      ],
+      "archive": "Kenseimk/keirin-data",
+      "archive_revision": "8ba8316329c145aea55b5ada529b0af7b0d94c48",
+      "archive_files_verified": 37,
+      "input_rows": {
+        "rows": 571498,
+        "nonempty_rows": 186004,
+        "trusted_note_rows": 177210
+      },
+      "archive_races": 80453,
+      "races_with_nonempty_note": 25454,
+      "pair_records": 5198,
+      "races_with_pairs": 4677,
+      "distinct_directed_pairs": 4904,
+      "distinct_followers": 1499,
+      "distinct_followed": 1475,
+      "groups": {
+        "all_registered_solo": {
+          "records": 3,
+          "races": 3,
+          "distinct_pairs": 3
+        },
+        "followed_other_planned_line": {
+          "records": 12,
+          "races": 12,
+          "distinct_pairs": 12
+        },
+        "followed_planned_predecessor": {
+          "records": 1358,
+          "races": 1137,
+          "distinct_pairs": 1318
+        },
+        "left_planned_line_to_follow_solo": {
+          "records": 2,
+          "races": 2,
+          "distinct_pairs": 2
+        },
+        "no_standard_team_line": {
+          "records": 491,
+          "races": 448,
+          "distinct_pairs": 473
+        },
+        "planned_position_unknown": {
+          "records": 3319,
+          "races": 3073,
+          "distinct_pairs": 3162
+        },
+        "planned_solo_followed_other_line": {
+          "records": 6,
+          "races": 6,
+          "distinct_pairs": 6
+        },
+        "planned_solo_followed_other_solo": {
+          "records": 5,
+          "races": 5,
+          "distinct_pairs": 5
+        },
+        "same_line_other_order": {
+          "records": 2,
+          "races": 2,
+          "distinct_pairs": 2
+        }
+      },
+      "tag_counts": {
+        "target_identification": {
+          "unique_race_name": 5180,
+          "explicit_circled_car": 18
+        },
+        "observation": {
+          "marked": 3122,
+          "followed": 1977,
+          "switched_to": 45,
+          "switched_and_followed": 5,
+          "attached": 49
+        },
+        "stage": {
+          "stage_unspecified": 5132,
+          "switch_destination": 50,
+          "before_switch_unnamed_destination": 16
+        },
+        "plan_provenance": {
+          "None": 3682,
+          "sql": 1516
+        }
+      },
+      "historical_line_provenance": "Only existing rolling program cards can supply planned positions. Monthly K-Dreams summary without an independently recovered line is left unknown, even if team roles might be guessed from names or outcome. Retrospective sql lineup and timestamped dated_pre_cutoff lineup are reported separately.",
+      "sha256": {
+        "final-census.owner.jsonl": "450dbdb52d2617516f0d865ed59690396c1f8c75578cfbb4c8074345e94c74fd",
+        "registry.json": "f48693892ff6dd2b30d1b16806b991c04925fbb0c064cb92e61180c378031edb",
+        "master-sample.json": "17874818b26dbde91a7503ed7fbda31836721b1990b8908f5708785b799886f0",
+        "monthly-provenance.json": "49e71ec8441bdf181ae7b02c79a05cdd41d2c7c66da1c6e2b71bf0cf49c676d7",
+        "cards.owner.json.gz": "afd1a3814c92b6172d17c5d02ce7a261945372ea945352c933c6e6ebc498db01",
+        "historical_follow.py": "f6725094b638e5a49e2ed0a4f8d221443bb543d5ebc8e389550e980ad78f6397",
+        "historical-follow-pairs.jsonl.gz": "caab36c8a65d01520d37a2d020daf66957cb1b1b5cf4c09c3019e9ef6f6f4de5"
+      }
+    },
+    "original_detail_spot_checks": [
+      {
+        "race_id": "202512036111",
+        "source": "https://keirin.kdreams.jp/tamano/racedetail/6120251203010011/",
+        "planned_relation": "followed_other_planned_line",
+        "rider_matches": true,
+        "target_matches": true,
+        "source_sha256": "cf71fc48236678bf18ad677cfcc29e5faaec03099bf22438018ba1968c6dc499"
+      },
+      {
+        "race_id": "202603243812",
+        "source": "https://keirin.kdreams.jp/shizuoka/racedetail/3820260323020012/",
+        "planned_relation": "followed_other_planned_line",
+        "rider_matches": true,
+        "target_matches": true,
+        "source_sha256": "5e520bd2062064e9664120ce9bbf3b00a9e8124d8a8aa28909c3eabc93a819c7"
+      },
+      {
+        "race_id": "202511137301",
+        "source": "https://keirin.kdreams.jp/komatsushima/racedetail/7320251112020001/",
+        "planned_relation": "planned_solo_followed_other_line",
+        "rider_matches": true,
+        "target_matches": true,
+        "source_sha256": "c7a3f082fd86f34f1e2275ca916e2801a42c412889c7e52c00af0d537ef80f00"
+      },
+      {
+        "race_id": "202603043712",
+        "source": "https://keirin.kdreams.jp/ito/racedetail/3720260304010012/",
+        "planned_relation": "planned_solo_followed_other_line",
+        "rider_matches": true,
+        "target_matches": true,
+        "source_sha256": "41103f65833640e7f27aa59f8467dfcb23498b7d40f0184cfc85a3a6d715eaf3"
+      },
+      {
+        "race_id": "202510016102",
+        "source": "https://keirin.kdreams.jp/tamano/racedetail/6120251001010002/",
+        "planned_relation": "followed_planned_predecessor",
+        "rider_matches": true,
+        "target_matches": true,
+        "source_sha256": "9ba8ea37c4384865c6e70a559578734186aef5b1ab52a801eff534b54d8da5c1"
+      },
+      {
+        "race_id": "202603132311",
+        "source": "https://keirin.kdreams.jp/toride/racedetail/2320260312020011/",
+        "planned_relation": "followed_planned_predecessor",
+        "rider_matches": true,
+        "target_matches": true,
+        "source_sha256": "7474f702c67879270249aaaa7f21dfa5fa7da539b317ee90a61aa9f71d964512"
+      },
+      {
+        "race_id": "202311243404",
+        "source": "https://keirin.kdreams.jp/kawasaki/racedetail/3420231124010004/",
+        "planned_relation": "planned_position_unknown",
+        "rider_matches": true,
+        "target_matches": true,
+        "source_sha256": "0c26d9f9874cdf8c2149fb61a2e642161bda30ec840318c28d279fb61a7b6ffd"
+      },
+      {
+        "race_id": "202410257309",
+        "source": "https://keirin.kdreams.jp/komatsushima/racedetail/7320241025010009/",
+        "planned_relation": "planned_position_unknown",
+        "rider_matches": true,
+        "target_matches": true,
+        "source_sha256": "40adb637b38b69565817b7324b32ffef290b63b04bf6abff5eb7bcc36e5058f7"
+      }
+    ],
+    "ledger": "historical-named-follows.csv.gz",
+    "ledger_sha256": "3656a7ee69b4a8c27c1ae471d16246a3cb5d450414861fb072e96e6efc5a9030",
+    "eligibility": {
+      "before_prediction_or_scoring": "Mixed fields may contain two independent riders with different planned groups; a valid explicit follow between them counts. A field made entirely of unassigned or individual riders, or a non-team event, provides no planned team line against which to measure an unexpected following event. It does not receive an adjustment. The strict confirmed historic plan relation excludes no_standard_team_line, all_registered_solo and planned_position_unknown."
+    },
+    "design": {
+      "question": "Does a rider's recorded history of following riders on other planned lines, and the counterpart's history of attracting such riders, improve the probability of those two riding into first and second, in that order?",
+      "observation": "Only explicit actual named follows with both distinct registration numbers resolved in the same race, a documented planned line with known group for each, and either stage_unspecified or switch_destination. Exclude attempts, unspecified switch destinations, ambiguous identities, conflicting group relations, missing lines and labels; absence of commentary is never a negative. Count each directed pair once per historical race. Cross-line follows are 1; explicit follow on the same planned line is 0, including nonadjacent riders. No individual rider finish, finishing rank, or explanation from the forecast race is eligible.",
+      "history": "All fixed archive dates strictly before the race by JST calendar day, with counts kept by acting follower, followed rider and directed pair. Only the past planned-line relation of each explicitly recorded real follow is learned. Source labels reconstructed after a race can enter only subsequent dates; incomplete archival timestamp evidence is identified as a limitation. Pool prior observed proportions over all documented follows: g=(cross+1)/(n+2); acting follower f=(cross_f+10*g)/(n_f+10); target t=(cross_t+10*g)/(n_t+10); directed pair p=(cross_pair+6*(f+t)/2)/(n_pair+6). Absent history yields no adjustment.",
+      "score": "For each candidate ordered pair first A, second B, adjust log probability of the pair by beta*(p(B follows A)-g) only if their pre-event planned lines differ. Same-line candidates or unidentified riders retain zero offset. Normalize across ordered pairs, preserving the reference forecast's conditional third probability exactly. One beta, learned by regularized pair categorical log loss, mean loss plus 0.001*beta^2; do not choose its sign by hand. Use the same coefficient and ticket budget for all subsequent comparisons.",
+      "evaluation": "Fit beta on eligible incumbent archived predictions 2024-05-24 through 2026-05-23 where planned lines complete, then freeze and evaluate 2026-05-24 through 2026-11-20 with that same reference. If there were no pretraining observations or usable history, report missing coverage and stop without fitting recent reports. Independently freeze replay predictions for the 287 actual scored November 21-24 races before scoring. Use no November 25 results. Evaluate exact trifecta at 1/4/8 and the exact published budget, whether its correctly ordered first two appear in the corresponding list, and first-two standalone rank at same caps. Paired gains and losses; report subset proven cutoff stamps, logloss and sample/history coverage. No model setting changed after reading test or fourth-day outcome."
+    },
+    "freeze": {
+      "coefficient": 0.013276379758852588,
+      "training_races": 16023,
+      "training_with_any_history": 11336,
+      "historical_test": 10867,
+      "actual_public": 287,
+      "source": {
+        "accepted": 1370,
+        "races": 1151,
+        "cross": 25,
+        "source": {
+          "sql": 1370
+        },
+        "counts_by_year": {
+          "2025": 302,
+          "2026": 1068
+        },
+        "rejected": {
+          "no_plan": 3681,
+          "unknown_or_conflicting_relation": 131,
+          "stage": 16
+        },
+        "first": "20251001",
+        "last": "20260826"
+      },
+      "source_sha256": "caab36c8a65d01520d37a2d020daf66957cb1b1b5cf4c09c3019e9ef6f6f4de5",
+      "model_input_sha256": "bf9205cd96163c6fb43b282e6a9ec5313efe096d0b621a9467b56dae32f8b734",
+      "spec_sha256": "079ba5329f66b16b042593709916bd8b4b827438e1955367797b1f6ca9d0cf16",
+      "script_sha256": "866690af349aeff89986a3ca4816adf7e70024954d14085f36af2460231fb04a",
+      "historical_sha256": "7a23ae0c97c8cee8221dc4de619f807f37accc44d58d5daa712239e29d440632",
+      "public_sha256": "0e011171207b657d648d5acc6a46827122eb7667067afc2b35905871bc99672f",
+      "frozen_utc": "2026-11-25T00:27:25.355372+00:00"
+    },
+    "scores": {
+      "historical_all": {
+        "races": 10867,
+        "races_with_some_follow_history": 9715,
+        "races_with_direct_pair_history": 100,
+        "pair_logloss": [
+          2.848466396331787,
+          2.848466634750366
+        ],
+        "trifecta": {
+          "1": {
+            "old": 1180,
+            "new": 1180,
+            "gained": 0,
+            "lost": 0
+          },
+          "4": {
+            "old": 2996,
+            "new": 2996,
+            "gained": 0,
+            "lost": 0,
+            "paired_day_bootstrap95_change_pp": [
+              0.0,
+              0.0
+            ]
+          },
+          "8": {
+            "old": 4197,
+            "new": 4197,
+            "gained": 0,
+            "lost": 0,
+            "paired_day_bootstrap95_change_pp": [
+              0.0,
+              0.0
+            ]
+          }
+        },
+        "correct_first_two_inside_trifecta": {
+          "1": {
+            "old": 2491,
+            "new": 2491,
+            "gained": 0,
+            "lost": 0
+          },
+          "4": {
+            "old": 4478,
+            "new": 4478,
+            "gained": 0,
+            "lost": 0,
+            "paired_day_bootstrap95_change_pp": [
+              0.0,
+              0.0
+            ]
+          },
+          "8": {
+            "old": 5697,
+            "new": 5697,
+            "gained": 0,
+            "lost": 0,
+            "paired_day_bootstrap95_change_pp": [
+              0.0,
+              0.0
+            ]
+          }
+        },
+        "standalone_ordered_pair": {
+          "1": {
+            "old": 2459,
+            "new": 2459,
+            "gained": 0,
+            "lost": 0
+          },
+          "4": {
+            "old": 5616,
+            "new": 5615,
+            "gained": 0,
+            "lost": 1,
+            "paired_day_bootstrap95_change_pp": [
+              -0.02785528254562161,
+              0.0
+            ]
+          },
+          "8": {
+            "old": 7416,
+            "new": 7416,
+            "gained": 0,
+            "lost": 0,
+            "paired_day_bootstrap95_change_pp": [
+              0.0,
+              0.0
+            ]
+          }
+        }
+      },
+      "historical_cutoff_stamped": {
+        "races": 321,
+        "races_with_some_follow_history": 291,
+        "races_with_direct_pair_history": 2,
+        "pair_logloss": [
+          2.8123972415924072,
+          2.812396287918091
+        ],
+        "trifecta": {
+          "1": {
+            "old": 38,
+            "new": 38,
+            "gained": 0,
+            "lost": 0
+          },
+          "4": {
+            "old": 84,
+            "new": 84,
+            "gained": 0,
+            "lost": 0
+          },
+          "8": {
+            "old": 119,
+            "new": 119,
+            "gained": 0,
+            "lost": 0
+          }
+        },
+        "correct_first_two_inside_trifecta": {
+          "1": {
+            "old": 66,
+            "new": 66,
+            "gained": 0,
+            "lost": 0
+          },
+          "4": {
+            "old": 128,
+            "new": 128,
+            "gained": 0,
+            "lost": 0
+          },
+          "8": {
+            "old": 164,
+            "new": 164,
+            "gained": 0,
+            "lost": 0
+          }
+        },
+        "standalone_ordered_pair": {
+          "1": {
+            "old": 63,
+            "new": 63,
+            "gained": 0,
+            "lost": 0
+          },
+          "4": {
+            "old": 158,
+            "new": 158,
+            "gained": 0,
+            "lost": 0
+          },
+          "8": {
+            "old": 223,
+            "new": 223,
+            "gained": 0,
+            "lost": 0
+          }
+        }
+      },
+      "historical_actual_cross": {
+        "races": 4196,
+        "races_with_some_follow_history": 4151,
+        "races_with_direct_pair_history": 55,
+        "pair_logloss": [
+          3.7120227813720703,
+          3.712023973464966
+        ],
+        "trifecta": {
+          "1": {
+            "old": 25,
+            "new": 25,
+            "gained": 0,
+            "lost": 0
+          },
+          "4": {
+            "old": 192,
+            "new": 192,
+            "gained": 0,
+            "lost": 0,
+            "paired_day_bootstrap95_change_pp": [
+              0.0,
+              0.0
+            ]
+          },
+          "8": {
+            "old": 490,
+            "new": 490,
+            "gained": 0,
+            "lost": 0,
+            "paired_day_bootstrap95_change_pp": [
+              0.0,
+              0.0
+            ]
+          }
+        },
+        "correct_first_two_inside_trifecta": {
+          "1": {
+            "old": 68,
+            "new": 68,
+            "gained": 0,
+            "lost": 0
+          },
+          "4": {
+            "old": 454,
+            "new": 454,
+            "gained": 0,
+            "lost": 0,
+            "paired_day_bootstrap95_change_pp": [
+              0.0,
+              0.0
+            ]
+          },
+          "8": {
+            "old": 993,
+            "new": 993,
+            "gained": 0,
+            "lost": 0,
+            "paired_day_bootstrap95_change_pp": [
+              0.0,
+              0.0
+            ]
+          }
+        },
+        "standalone_ordered_pair": {
+          "1": {
+            "old": 57,
+            "new": 57,
+            "gained": 0,
+            "lost": 0
+          },
+          "4": {
+            "old": 1009,
+            "new": 1009,
+            "gained": 0,
+            "lost": 0,
+            "paired_day_bootstrap95_change_pp": [
+              0.0,
+              0.0
+            ]
+          },
+          "8": {
+            "old": 1893,
+            "new": 1893,
+            "gained": 0,
+            "lost": 0,
+            "paired_day_bootstrap95_change_pp": [
+              0.0,
+              0.0
+            ]
+          }
+        }
+      },
+      "public_all": {
+        "races": 287,
+        "races_with_some_follow_history": 247,
+        "races_with_direct_pair_history": 4,
+        "pair_logloss": [
+          2.765909702732727,
+          2.7659076459542877
+        ],
+        "trifecta": {
+          "1": {
+            "old": 32,
+            "new": 32,
+            "gained": 0,
+            "lost": 0
+          },
+          "4": {
+            "old": 91,
+            "new": 91,
+            "gained": 0,
+            "lost": 0
+          },
+          "8": {
+            "old": 127,
+            "new": 127,
+            "gained": 0,
+            "lost": 0
+          },
+          "published": {
+            "old": 93,
+            "new": 93,
+            "gained": 0,
+            "lost": 0
+          }
+        },
+        "correct_first_two_inside_trifecta": {
+          "1": {
+            "old": 72,
+            "new": 72,
+            "gained": 0,
+            "lost": 0
+          },
+          "4": {
+            "old": 126,
+            "new": 126,
+            "gained": 0,
+            "lost": 0
+          },
+          "8": {
+            "old": 160,
+            "new": 160,
+            "gained": 0,
+            "lost": 0
+          },
+          "published": {
+            "old": 128,
+            "new": 128,
+            "gained": 0,
+            "lost": 0
+          }
+        },
+        "standalone_ordered_pair": {
+          "1": {
+            "old": 76,
+            "new": 76,
+            "gained": 0,
+            "lost": 0
+          },
+          "4": {
+            "old": 157,
+            "new": 157,
+            "gained": 0,
+            "lost": 0
+          },
+          "8": {
+            "old": 202,
+            "new": 202,
+            "gained": 0,
+            "lost": 0
+          },
+          "published": {
+            "old": 159,
+            "new": 159,
+            "gained": 0,
+            "lost": 0
+          }
+        }
+      },
+      "public_prior": {
+        "races": 207,
+        "races_with_some_follow_history": 192,
+        "races_with_direct_pair_history": 3,
+        "pair_logloss": [
+          2.714969492560516,
+          2.7149679644325238
+        ],
+        "trifecta": {
+          "1": {
+            "old": 27,
+            "new": 27,
+            "gained": 0,
+            "lost": 0
+          },
+          "4": {
+            "old": 70,
+            "new": 70,
+            "gained": 0,
+            "lost": 0
+          },
+          "8": {
+            "old": 93,
+            "new": 93,
+            "gained": 0,
+            "lost": 0
+          },
+          "published": {
+            "old": 71,
+            "new": 71,
+            "gained": 0,
+            "lost": 0
+          }
+        },
+        "correct_first_two_inside_trifecta": {
+          "1": {
+            "old": 56,
+            "new": 56,
+            "gained": 0,
+            "lost": 0
+          },
+          "4": {
+            "old": 97,
+            "new": 97,
+            "gained": 0,
+            "lost": 0
+          },
+          "8": {
+            "old": 119,
+            "new": 119,
+            "gained": 0,
+            "lost": 0
+          },
+          "published": {
+            "old": 98,
+            "new": 98,
+            "gained": 0,
+            "lost": 0
+          }
+        },
+        "standalone_ordered_pair": {
+          "1": {
+            "old": 59,
+            "new": 59,
+            "gained": 0,
+            "lost": 0
+          },
+          "4": {
+            "old": 117,
+            "new": 117,
+            "gained": 0,
+            "lost": 0
+          },
+          "8": {
+            "old": 149,
+            "new": 149,
+            "gained": 0,
+            "lost": 0
+          },
+          "published": {
+            "old": 117,
+            "new": 117,
+            "gained": 0,
+            "lost": 0
+          }
+        }
+      },
+      "public_nov24": {
+        "races": 80,
+        "races_with_some_follow_history": 55,
+        "races_with_direct_pair_history": 1,
+        "pair_logloss": [
+          2.8977174965533217,
+          2.8977140718918513
+        ],
+        "trifecta": {
+          "1": {
+            "old": 5,
+            "new": 5,
+            "gained": 0,
+            "lost": 0
+          },
+          "4": {
+            "old": 21,
+            "new": 21,
+            "gained": 0,
+            "lost": 0
+          },
+          "8": {
+            "old": 34,
+            "new": 34,
+            "gained": 0,
+            "lost": 0
+          },
+          "published": {
+            "old": 22,
+            "new": 22,
+            "gained": 0,
+            "lost": 0
+          }
+        },
+        "correct_first_two_inside_trifecta": {
+          "1": {
+            "old": 16,
+            "new": 16,
+            "gained": 0,
+            "lost": 0
+          },
+          "4": {
+            "old": 29,
+            "new": 29,
+            "gained": 0,
+            "lost": 0
+          },
+          "8": {
+            "old": 41,
+            "new": 41,
+            "gained": 0,
+            "lost": 0
+          },
+          "published": {
+            "old": 30,
+            "new": 30,
+            "gained": 0,
+            "lost": 0
+          }
+        },
+        "standalone_ordered_pair": {
+          "1": {
+            "old": 17,
+            "new": 17,
+            "gained": 0,
+            "lost": 0
+          },
+          "4": {
+            "old": 40,
+            "new": 40,
+            "gained": 0,
+            "lost": 0
+          },
+          "8": {
+            "old": 53,
+            "new": 53,
+            "gained": 0,
+            "lost": 0
+          },
+          "published": {
+            "old": 42,
+            "new": 42,
+            "gained": 0,
+            "lost": 0
+          }
+        }
+      },
+      "public_actual_cross": {
+        "races": 118,
+        "races_with_some_follow_history": 118,
+        "races_with_direct_pair_history": 3,
+        "pair_logloss": [
+          3.60011587502946,
+          3.600111730366961
+        ],
+        "trifecta": {
+          "1": {
+            "old": 2,
+            "new": 2,
+            "gained": 0,
+            "lost": 0
+          },
+          "4": {
+            "old": 8,
+            "new": 8,
+            "gained": 0,
+            "lost": 0
+          },
+          "8": {
+            "old": 19,
+            "new": 19,
+            "gained": 0,
+            "lost": 0
+          },
+          "published": {
+            "old": 9,
+            "new": 9,
+            "gained": 0,
+            "lost": 0
+          }
+        },
+        "correct_first_two_inside_trifecta": {
+          "1": {
+            "old": 3,
+            "new": 3,
+            "gained": 0,
+            "lost": 0
+          },
+          "4": {
+            "old": 12,
+            "new": 12,
+            "gained": 0,
+            "lost": 0
+          },
+          "8": {
+            "old": 26,
+            "new": 26,
+            "gained": 0,
+            "lost": 0
+          },
+          "published": {
+            "old": 13,
+            "new": 13,
+            "gained": 0,
+            "lost": 0
+          }
+        },
+        "standalone_ordered_pair": {
+          "1": {
+            "old": 3,
+            "new": 3,
+            "gained": 0,
+            "lost": 0
+          },
+          "4": {
+            "old": 24,
+            "new": 24,
+            "gained": 0,
+            "lost": 0
+          },
+          "8": {
+            "old": 53,
+            "new": 53,
+            "gained": 0,
+            "lost": 0
+          },
+          "published": {
+            "old": 26,
+            "new": 26,
+            "gained": 0,
+            "lost": 0
+          }
+        }
+      },
+      "public_known_lines": {
+        "races": 273,
+        "races_with_some_follow_history": 247,
+        "races_with_direct_pair_history": 4,
+        "pair_logloss": [
+          2.7579671301908983,
+          2.757964967936642
+        ],
+        "trifecta": {
+          "1": {
+            "old": 32,
+            "new": 32,
+            "gained": 0,
+            "lost": 0
+          },
+          "4": {
+            "old": 87,
+            "new": 87,
+            "gained": 0,
+            "lost": 0
+          },
+          "8": {
+            "old": 120,
+            "new": 120,
+            "gained": 0,
+            "lost": 0
+          },
+          "published": {
+            "old": 89,
+            "new": 89,
+            "gained": 0,
+            "lost": 0
+          }
+        },
+        "correct_first_two_inside_trifecta": {
+          "1": {
+            "old": 68,
+            "new": 68,
+            "gained": 0,
+            "lost": 0
+          },
+          "4": {
+            "old": 119,
+            "new": 119,
+            "gained": 0,
+            "lost": 0
+          },
+          "8": {
+            "old": 150,
+            "new": 150,
+            "gained": 0,
+            "lost": 0
+          },
+          "published": {
+            "old": 121,
+            "new": 121,
+            "gained": 0,
+            "lost": 0
+          }
+        },
+        "standalone_ordered_pair": {
+          "1": {
+            "old": 72,
+            "new": 72,
+            "gained": 0,
+            "lost": 0
+          },
+          "4": {
+            "old": 148,
+            "new": 148,
+            "gained": 0,
+            "lost": 0
+          },
+          "8": {
+            "old": 192,
+            "new": 192,
+            "gained": 0,
+            "lost": 0
+          },
+          "published": {
+            "old": 150,
+            "new": 150,
+            "gained": 0,
+            "lost": 0
+          }
+        }
+      }
+    },
+    "same_and_cross": {
+      "different": {
+        "races": 118,
+        "trifecta": 9,
+        "pair_in_ticket": 13
+      },
+      "same": {
+        "races": 131,
+        "trifecta": 73,
+        "pair_in_ticket": 98
+      },
+      "all_single": {
+        "races": 24,
+        "trifecta": 7,
+        "pair_in_ticket": 10
+      },
+      "missing": {
+        "races": 14,
+        "trifecta": 4,
+        "pair_in_ticket": 7
+      }
+    },
+    "later_planned_line_recovery": {
+      "base_sha256": "caab36c8a65d01520d37a2d020daf66957cb1b1b5cf4c09c3019e9ef6f6f4de5",
+      "db_sha256": "1bdad22b9744c9c5563f7bb1af31875170a3e6b7f4b0dd73fba8f98d645d8fc4",
+      "added_after_base_freeze": true,
+      "rules": "Full CSV field must equal independent SQL roster and all SQL full names must agree with the monthly record. Both registration IDs must agree with the census. Every SQL line position and line size must be contiguous and consistent; the line is retrospective, not predeadline timestamp evidence.",
+      "considered": 119,
+      "confirmed": 112,
+      "by_relationship": {
+        "followed_planned_predecessor": 110,
+        "planned_solo_followed_other_line": 2
+      },
+      "rejected": {
+        "incomplete_fields": 7
+      }
+    },
+    "merged_coverage": {
+      "merged_label_count": 5198,
+      "race_count": 4677,
+      "relationships_after_supplement": {
+        "all_registered_solo": {
+          "entries": 3,
+          "races": 3
+        },
+        "followed_other_planned_line": {
+          "entries": 12,
+          "races": 12
+        },
+        "followed_planned_predecessor": {
+          "entries": 1468,
+          "races": 1232
+        },
+        "left_planned_line_to_follow_solo": {
+          "entries": 2,
+          "races": 2
+        },
+        "no_standard_team_line": {
+          "entries": 491,
+          "races": 448
+        },
+        "planned_position_unknown": {
+          "entries": 3207,
+          "races": 2976
+        },
+        "planned_solo_followed_other_line": {
+          "entries": 8,
+          "races": 8
+        },
+        "planned_solo_followed_other_solo": {
+          "entries": 5,
+          "races": 5
+        },
+        "same_line_other_order": {
+          "entries": 2,
+          "races": 2
+        }
+      },
+      "cross_line_or_solo_entries": 27,
+      "cross_line_or_solo_races": 26,
+      "earliest_positive": "2023-11-24",
+      "latest_positive": "2026-08-26"
+    }
+  },
+  "contested_positions_forward": {
+    "frozen_utc": "2026-11-25T00:27:21.263737+00:00",
+    "upcoming_cutoff_JST": {
+      "202611253809": "2026-11-25T14:36:00+09:00",
+      "202611252603": "2026-11-25T16:40:00+09:00"
+    },
+    "models_sha256": "1d474027b42c527aba4f1deccdc1dba786f373d07caf9a0a32582cb034411a6b",
+    "source_cards_sha256": "edc002c1dc65b5a4e58178d3c70a57b56abb15f7814f6b1ac796c3dfded06de3",
+    "source_input_snapshot_sha256": "fccd91e7e7caa3cda753ee76ab5de4bf11f5a2eea0cca8ba86f849519062b27d",
+    "source_predictions_sha256": "a9226f6e6ccb5189665f4c3b16802400b9eb60b5b2506b9d1d6cde8fdf4998bb",
+    "script_sha256": "167862ea8028e6ac5dc1cd1e9dfa382f59736256d7a925449b89a735e6d2da8d",
+    "plan_sha256": "915dece25b28d9e99abb893919cc3ce1325a4f50f8dc861bbae7042048c480a8",
+    "plan_extension_sha256": "fb0c6fe3b24fb69ccb3cdbe40efbac355297115680bd35f1b5dad6eddb8fb156",
+    "prediction_file_sha256": "67b4e40c24554747874121807bb279ece4130f9ff07bb3cb2f3258ea87c9a6e5",
+    "selection": "1 earlier case newly identified through pre-race declarations outside previous 207 plus 2 upcoming contested cases with source fields, all included. November25 results read = 0. No site changes.",
+    "signature": {
+      "scheme": "Ed25519, ephemeral local research key, no external timestamp authority",
+      "public_key_base64": "90aZ+4J4auAsOQzN6jg/jy/OhJSQF48hr41xmfvjhKU=",
+      "signature_base64": "Stx8EjWYfWWWr3Wz20LcvWxlRMC+74RRkQTXwMhFNMqpyMA6GclNP+N2RDE+EnJbjLkkVISIU/3hH/wHp3JnCg==",
+      "signed_file": "freeze.json",
+      "signed_sha256": "0c6d412eaa93fbbbd39916a52950c8487cc3fc4aae2c4d21040f0bea0fad1a28",
+      "local_signed_at_utc": "2026-11-25T00:27:53.052065+00:00"
+    },
+    "signed_public_copy": "contest-forecast-receipt.json"
+  },
+  "contested_positions_replay": {
+    "scored_utc": "2026-11-25T00:29:59.804147+00:00",
+    "original_forecasts_sha256": "9be6770ec6737c392bf7c6840f92951b422f136ff53b62ca0fccefab71688574",
+    "scored_case_n": 3,
+    "hit_counts_order": [
+      "baseline",
+      "research_mixture"
+    ],
+    "counts": {
+      "case_cap": [
+        0,
+        1
+      ],
+      "1": [
+        0,
+        0
+      ],
+      "4": [
+        0,
+        1
+      ],
+      "8": [
+        0,
+        1
+      ]
+    },
+    "cases": {
+      "202611214202": {
+        "net": {
+          "url": "https://keirin.netkeiba.com/race/result/?race_id=202611214202",
+          "sha256": "39310aeda5dd41f8cf7a07f66411a0ec568ba8595a3bda106480e7d380f633bf",
+          "payout_orders": [
+            "1-5-4"
+          ]
+        },
+        "kd": {
+          "url": "https://keirin.kdreams.jp/nagoya/racedetail/4220261120020002/?pageType=showResult",
+          "sha256": "4b6ff813f2c71accc197c6f7e86225f00d8b1b8fb317b4df37a3e9bcb85077b3",
+          "payout_orders": [
+            "1-5-4"
+          ]
+        },
+        "trifecta": [
+          1,
+          5,
+          4
+        ],
+        "primary_cap": 8,
+        "per_arm": {
+          "baseline": {
+            "case_cap": false,
+            "1": false,
+            "4": false,
+            "8": false
+          },
+          "research_mixture": {
+            "case_cap": true,
+            "1": false,
+            "4": true,
+            "8": true
+          }
+        }
+      },
+      "202611226205": {
+        "net": {
+          "url": "https://keirin.netkeiba.com/race/result/?race_id=202611226205",
+          "sha256": "30f859cfd3fe0a47dde710b1f51c047599e170076930b120d25d9673ef140593",
+          "payout_orders": [
+            "5-3-7"
+          ]
+        },
+        "kd": {
+          "url": "https://keirin.kdreams.jp/hiroshima/racedetail/6220261122010005/?pageType=showResult",
+          "sha256": "ac81187714867ed46bac2d19a22b3c06e22db8f3589e599ec523b4b82530d7dc",
+          "payout_orders": [
+            "5-3-7"
+          ]
+        },
+        "trifecta": [
+          5,
+          3,
+          7
+        ],
+        "primary_cap": 8,
+        "per_arm": {
+          "baseline": {
+            "case_cap": false,
+            "1": false,
+            "4": false,
+            "8": false
+          },
+          "research_mixture": {
+            "case_cap": false,
+            "1": false,
+            "4": false,
+            "8": false
+          }
+        }
+      },
+      "202611234805": {
+        "net": {
+          "url": "https://keirin.netkeiba.com/race/result/?race_id=202611234805",
+          "sha256": "23345fa29ad4f42e47ee2d190389fe8fda88baaa9265eecb394b693c5ab35e09",
+          "payout_orders": [
+            "1-3-7"
+          ]
+        },
+        "kd": {
+          "url": "https://keirin.kdreams.jp/yokkaichi/racedetail/4820261123010005/?pageType=showResult",
+          "sha256": "f1dad1cb4010d1a5be8ef0175f75f93e0532ee2dc34d3183a13620eb53be4d78",
+          "payout_orders": [
+            "1-3-7"
+          ]
+        },
+        "trifecta": [
+          1,
+          3,
+          7
+        ],
+        "primary_cap": 8,
+        "per_arm": {
+          "baseline": {
+            "case_cap": false,
+            "1": false,
+            "4": false,
+            "8": false
+          },
+          "research_mixture": {
+            "case_cap": false,
+            "1": false,
+            "4": false,
+            "8": false
+          }
+        }
+      }
+    },
+    "retrospective_rankings_freeze_sha256": "078b1cd9e0497c9562793aa831afaa89e211ca4f819462ca3a8d647c5d13b626"
   }
 }
