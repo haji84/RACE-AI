@@ -9,6 +9,7 @@ def reviewed_growth(root):
     evidence = root / 'docs/evidence/keirin-live-accuracy-closure-20261125'
     past = json.loads((evidence / 'retrospective-score.json').read_bytes())
     forward = json.loads((evidence / 'authenticated-automatic-forward-score.json').read_bytes())
+    replay = json.loads((evidence.parent / 'keirin-takeo-1r-20261126' / 'site-replay-verification.json').read_bytes())
     if (past['scope'] != 'RETROSPECTIVE_CHRONOLOGICAL_RECONSTRUCTION_NOT_FUTURE_INDEPENDENT'
             or past['selected_arm'] != 'all_96' or past['production_weights_promoted'] is not False
             or forward['comparators'] != {'published': 'baseline_B', 'trial': 'joint_comparison_B'}
@@ -44,6 +45,20 @@ def reviewed_growth(root):
         if not -1 <= low <= high <= 1:
             raise ValueError('invalid growth comparison interval')
         intervals[metric] = [low, high]
+    replay_counts = ('frames', 'riders', 'agreed', 'correct', 'incorrect', 'abstained', 'unscorable',
+                     'official_finish_positions', 'trial_training_segments')
+    if (not isinstance(replay, dict)
+            or set(replay) != {'schema', 'day', 'race', 'production_weights_promoted', *replay_counts}
+            or replay['schema'] != 'KEIRIN_REPLAY_GROWTH_V1'
+            or (replay['day'], replay['race']) != ('2026-11-25', '武雄1R')
+            or replay['production_weights_promoted'] is not False
+            or any(type(replay[key]) is not int or replay[key] < 0 for key in replay_counts)
+            or replay['agreed'] <= 0
+            or replay['agreed'] + replay['unscorable'] != replay['frames'] * replay['riders']
+            or replay['agreed'] != replay['correct'] + replay['incorrect'] + replay['abstained']
+            or not 0 < replay['official_finish_positions'] <= replay['riders']
+            or replay['trial_training_segments'] <= 0):
+        raise ValueError('growth replay evidence does not match the reviewed observations')
     return {
         'historical': {'from': first, 'to': last, 'races': races, 'days': len(past['days']),
                        'hits': {key: pair(baseline[key], challenger[key], races) for key in forward_scores},
@@ -51,6 +66,7 @@ def reviewed_growth(root):
         'forward': {'day': date.fromisoformat(forward['date']).isoformat(), 'registered': forward['registered'],
                     'matched': matched, 'hits': {key: pair(score['published_hits'], score['trial_hits'], matched)
                                                  for key, (_, score) in forward_scores.items()}},
+        'replay': {key: replay[key] for key in ('day', 'race', *replay_counts)},
     }
 
 
