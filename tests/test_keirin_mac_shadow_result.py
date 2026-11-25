@@ -209,6 +209,12 @@ class MacShadowResultTest(unittest.TestCase):
                                           formal_model_admission=False, production_weight_switch=False,
                                           dates=[DAY]), recipient, kind='archive', clock=lambda: at(1, 42))
         feed.publish_snapshot(store, recipient, archive, expected_parent=None)
+        shallow = self.root / 'readback.git'
+        subprocess.run(['git', 'clone', '--quiet', '--bare', '--depth=1', '--branch', feed.BRANCH,
+                        remote.as_uri(), str(shallow)], check=True)
+        self.assertEqual(subprocess.check_output(['git', '-C', str(shallow), 'rev-parse',
+                                                  '--is-shallow-repository'], text=True).strip(), 'true')
+        store = LocalNoteFeed(shallow)
         record = site.prepare_record(self.root, self.request, archive['entry']['cipher_sha256'],
                                      clock=lambda: self.now)
         args = dict(clock=lambda: self.now, store=store, recipient=recipient, source_commit='f' * 40)
