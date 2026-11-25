@@ -10,11 +10,13 @@
 - `race_ai/keirin_official_rider_history.py`：利用可能時点、公式出走者、訂正の出典と時計を確認する履歴投影。
 - `scripts/keirin_rider_profile_history.py`：既存研究側の集計器を無変更で含める。残存期間や同日結果の扱いを新しく作り直さない。
 - `scripts/keirin_official_rider_history_readback.py` と2つの新テスト：固定 index／暗号文を鍵のない段階で検証し、私有履歴を0700/0600へ保存。公開は集計のみ。
-- 既存 `keirin-rider-dossier-readback.yml` の保護 main job に追加。既存 owner opt-in 変数、RSA secret、contents:read のまま。Artifact は従来の safe report と新しい明示した safe report のみ。
+- 既存 `keirin-rider-dossier-readback.yml` 内に、公式履歴専用の契約テストと保護 main 読戻しを追加。公式履歴の読戻しは既存 `RACE_AI_KEIRIN_AB_GIT_STORE_ENABLED` が `true` の場合に起動し、暗号文を先に検証してから既存 RSA secret で再生する。権限は `contents: read`。公式履歴の artifact は集計だけの safe report とし、従来のカルテ復元とは独立に実行する。
 
 ## 検証状態と未完了
 
-修正前の関連95テストが通過。独立レビューで固定 source receipt の末尾改行不足を発見し、既存 canonical encoder で修正した。実際の receipt を本番と同じ parser で読む回帰を加え、最終修正後の CLI 9テストを通過した。最終変更後の全体再実行とGitHub CIは未実施。
+修正前の関連95テストが通過。独立レビューで固定 source receipt の末尾改行不足を発見し、既存 canonical encoder で修正した。実際の receipt を本番と同じ parser で読む回帰を加え、最終修正後の CLI 9テストを通過した。停止保存時点では、最終変更後の全体再実行とGitHub CIは未実施だった。
+
+Macの分離worktreeで関連186テストが通過した。既存カルテ復元とその契約テストはmainと同じ定義で、公式履歴の読戻しだけが既存の許可変数で制御される。固定GitHub URLからindexと7暗号文を読み戻し、SHAとヘッダーを再検証した。GitHub CIと実鍵での再生は未実施。
 
 固定先は `official-rider-history-source.json`。原本4件・結果2件・保留0件を要求し、空の成功を拒否する。独立レビューで実際の7暗号文のSHAとヘッダーが一致した。実 owner-key runnerでの2件の平文再生と結果件数確認は未実行。新runnerの35秒上限のGit fetch（約400MBのstate treeを含む）は未検証。
 
