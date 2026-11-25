@@ -254,6 +254,30 @@ class NationwideExtensionTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError,'CLASS_OR_ROUND_NOT_YET_OBSERVED'):
             ext.build_baseline_candidate(**args)
 
+    def test_observed_s_preliminary_and_first_day_special_feed_existing_a_and_b(self):
+        for label, grade in (('S級予選', 'S2'), ('S級初日特選', 'S1')):
+            with self.subTest(label=label):
+                args = self.labelled_arguments(label, 'S', (grade,))
+                try:
+                    snapshot = ext.build_baseline_candidate(**args)['snapshot']
+                except ext.OfficialExtensionError as error:
+                    self.fail(f'An observed S card was rejected: {error}')
+                self.assertEqual(snapshot['competition'], 'S')
+                self.assertEqual(snapshot['round_stage'], label)
+                self.assertIsNone(snapshot['round_rule'])
+                self.assertEqual(snapshot['line_groups'], [[1, 2], [3], [4, 5], [6, 7]])
+                forecast = ext.core.generate_A_B(snapshot, generated_at=args['now'].isoformat())
+                self.assertTrue(forecast['A']['ranked_tickets'])
+                self.assertTrue(forecast['B']['ranked_tickets'])
+
+    def test_observed_s_rounds_hold_incompatible_grades_and_masked_l_evidence(self):
+        for label, grade in (('S級予選', 'S2'), ('S級初日特選', 'S1')):
+            with self.subTest(label=label):
+                with self.assertRaisesRegex(ValueError, 'CARD_CLASS_DISAGREEMENT'):
+                    ext.build_baseline_candidate(**self.labelled_arguments(label, 'S', (grade, 'L1')))
+        with self.assertRaisesRegex(ValueError, 'CLASS_OR_ROUND_NOT_YET_OBSERVED'):
+            ext.build_baseline_candidate(**self.labelled_arguments('UNRECOGNIZED_CLASS_LABEL', 'GIRLS'))
+
     def test_observed_a_rounds_feed_the_existing_baseline_a_and_b(self):
         cases=(('A級チャレンジ予選','CHALLENGE',('A3',)),
                ('A級予選','A1_A2',('A1','A2')),
