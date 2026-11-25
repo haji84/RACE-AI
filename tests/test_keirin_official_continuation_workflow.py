@@ -92,7 +92,7 @@ class ContinuationWorkflowTests(unittest.TestCase):
                 paths=re.findall(r'^\s+path: (.+)$',block,flags=re.M)
                 self.assertEqual(len(paths),1)
                 self.assertTrue(paths[0].endswith('/safe/summary.json'))
-        self.assertIn('--max-races 4',blocks['official-sp-capture'])
+        self.assertIn('--max-races 8',blocks['official-sp-capture'])
 
     def test_every_new_shell_step_parses_without_expanding_the_workflow_expressions(self):
         _, blocks = jobs()

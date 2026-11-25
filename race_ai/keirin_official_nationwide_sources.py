@@ -29,6 +29,19 @@ class SourceError(ValueError):
     pass
 
 
+class CaptureBudgetPending(SourceError):
+    """Capture stopped before requesting permission for another provider call."""
+
+
+REQUEST_SPACING_SECONDS = 1
+# Leave time for GitHub lease verification and the 25-second transport process.
+CAPTURE_LEASE_RESERVE_SECONDS = 60
+CAPTURE_START_MARGIN_SECONDS = 390
+CAPTURE_FINALIZATION_SECONDS = 240
+CONDITION_REQUEST_LIMIT = 90
+CONDITION_DURATION_SECONDS = 120
+
+
 def need(ok, code):
     if not ok: raise SourceError('OFFICIAL_CONTINUATION_'+code)
 
@@ -70,6 +83,17 @@ class OfficialSourceSession:
         self.sleep,self.monotonic=sleep,monotonic
         self._last_request=None;self._source_bytes=0
         self.capture_deadline=None
+        self.capture_budget_enabled=False
+
+    def has_capture_capacity(self, requests, *, seconds=CAPTURE_LEASE_RESERVE_SECONDS):
+        if self.halted:
+            return False
+        try:
+            left, remaining = self.lease.remaining_capture_capacity(now=self.clock())
+        except Exception:
+            self.halted = True
+            return False
+        return left >= requests and remaining > seconds
 
     def close(self):
         if self.transport is not None: self.transport.close()
@@ -121,9 +145,14 @@ class OfficialSourceSession:
         if self._last_request is not None:
             elapsed=self.monotonic()-self._last_request
             need(elapsed>=0,'MONOTONIC_CLOCK_CHANGED')
-            if elapsed<1:self.sleep(1-elapsed)
-        need(self.capture_deadline is None or form._aware(self.clock())<self.capture_deadline,
-             'CAPTURE_FINALIZATION_RESERVE')
+            if elapsed<REQUEST_SPACING_SECONDS:self.sleep(REQUEST_SPACING_SECONDS-elapsed)
+        if self.capture_deadline is not None and form._aware(self.clock()) >= self.capture_deadline:
+            raise CaptureBudgetPending('OFFICIAL_CONTINUATION_CAPTURE_FINALIZATION_RESERVE')
+        if self.capture_budget_enabled and not self.has_capture_capacity(1):
+            if self.halted:
+                self._diagnostic(purpose,url,method,'REQUEST','SOURCE_VALIDATION_FAILED')
+                raise SourceError('OFFICIAL_CONTINUATION_SOURCE_LEASE_CLOSED')
+            raise CaptureBudgetPending('OFFICIAL_CONTINUATION_CAPTURE_SOFT_BUDGET_PENDING')
         try:
             self.lease.before_request(purpose=purpose, method=method, url=url,
                                       fields=fields, now=self.clock())
@@ -230,7 +259,8 @@ def collect_candidate(*, session, inventory, race, clock):
              'LINE_VIEW_NOT_LINKED')
         args['line_view_source'] = session.fetch('https://keirin.jp'+extension.LINE_VIEW_PATH)
     card = extension.parse_extension_card(**args,now=clock())
-    need((form._aware(card['official_cutoff_at'])-form._aware(clock())).total_seconds()>=390,
+    need((form._aware(card['official_cutoff_at'])-form._aware(clock())).total_seconds()
+         >= CAPTURE_START_MARGIN_SECONDS,
          'CAPTURE_START_MARGIN_REQUIRED')
     linked = {n.attrs.get('src') for n in cards.browser_source._document(raw['raw_bytes']).nodes if n.tag=='script'}
     need(set(cards._TAB_SCRIPT_REQUIREMENTS)<=linked,'MARKS_SCRIPTS_NOT_LINKED')
@@ -250,8 +280,8 @@ def collect_candidate(*, session, inventory, race, clock):
 
 class GuardedHistoryCapture(history.OfficialHistoryCapture):
     """Use the existing rider selection with injected shared, leased transport."""
-    def __init__(self, *, session, cutoff_at, target_race_id, clock, max_requests=90,
-                 duration_seconds=120, monotonic=time.monotonic):
+    def __init__(self, *, session, cutoff_at, target_race_id, clock, max_requests=CONDITION_REQUEST_LIMIT,
+                 duration_seconds=CONDITION_DURATION_SECONDS, monotonic=time.monotonic):
         self.session, self.clock, self.monotonic = session, clock, monotonic
         self.cutoff = form._aware(cutoff_at)
         self.target_race_id = target_race_id
@@ -261,10 +291,10 @@ class GuardedHistoryCapture(history.OfficialHistoryCapture):
         self.receipts, self.cache, self.profile_url = [], {}, None
 
     def check(self):
-        need(form._aware(self.clock())+timedelta(seconds=240)<self.cutoff,
-             'CONDITION_MARGIN_EXHAUSTED')
-        need(self.count<self.max_requests and self.monotonic()<self.deadline,
-             'CONDITION_CAPTURE_BUDGET')
+        if form._aware(self.clock()) + timedelta(seconds=CAPTURE_FINALIZATION_SECONDS) >= self.cutoff:
+            raise CaptureBudgetPending('OFFICIAL_CONTINUATION_CONDITION_MARGIN_EXHAUSTED')
+        if self.count >= self.max_requests or self.monotonic() >= self.deadline:
+            raise CaptureBudgetPending('OFFICIAL_CONTINUATION_CONDITION_CAPTURE_BUDGET')
 
     def fetch(self, url, *, token=None):
         key = (url,token)

@@ -119,6 +119,24 @@ class ClassEvidenceTests(unittest.TestCase):
         self.assertTrue(out['provider_denied'])
         self.assertNotIn('SECRET', json.dumps(out['safe_summary']))
 
+    def test_soft_deferral_preserves_verified_class_evidence_without_adding_a_failed_sample(self):
+        inventory, details = self.fixture()
+        session = SourceSession(details)
+        fetch = session.fetch
+
+        def defer_later_card(url, fields=None, referer=None):
+            if fields and dict(fields)['encp'].startswith('D'):
+                raise sources.CaptureBudgetPending('CAPTURE_SOFT_BUDGET_PENDING')
+            return fetch(url, fields, referer)
+
+        session.fetch = defer_later_card
+        out = self.api().collect_unknown_class_evidence(session=session, inventory=inventory, clock=lambda:AT)
+        self.assertEqual([r['race_id'] for r in out['records']], ['203001159801'])
+        self.assertEqual([r['race_id'] for r in out['safe_summary']], ['203001159801'])
+        self.assertTrue(out['budget_pending'])
+        self.assertFalse(out['provider_denied'])
+        self.assertFalse(session.halted)
+
     def test_wrong_race_identity_and_changed_bytes_do_not_become_verified_grade_evidence(self):
         inventory, details = self.fixture(('A級選抜',)*3)
         for mode in ('identity', 'hash'):

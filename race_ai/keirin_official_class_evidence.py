@@ -104,6 +104,7 @@ def collect_unknown_class_evidence(*, session, inventory, clock, max_classes=4):
     cal = dict(inventory['calendar_receipt'])
     cal['observed_at'] = form._aware(cal['observed_at'])
     records, rejected, safe, attempted = [], [], [], set()
+    budget_pending = False
     before = session.count
     for race in sorted(registry['races'], key=lambda r:(r['race_no'], r['venue_code'])):
         if session.halted or len(attempted) >= max_classes:
@@ -154,6 +155,9 @@ def collect_unknown_class_evidence(*, session, inventory, clock, max_classes=4):
                 detail_sha256=raw['expected_sha256'])
             records.append(dict(race_id=race['race_id'], class_label=label, grades=grades,
                 list_source=listed, detail_source=raw, parsed_card=detail, prediction_admitted=False))
+        except sources.CaptureBudgetPending:
+            budget_pending = True
+            break
         except (ValueError, KeyError, TypeError, OSError):
             summary['state'] = stage
             if raw is not None:
@@ -162,4 +166,4 @@ def collect_unknown_class_evidence(*, session, inventory, clock, max_classes=4):
         safe.append(summary)
     return dict(schema=SCHEMA, day_jst=day, records=records, rejected_sources=rejected,
         safe_summary=safe, source_requests=session.count-before, provider_denied=session.provider_denied,
-        model_generation=0)
+        budget_pending=budget_pending, model_generation=0)

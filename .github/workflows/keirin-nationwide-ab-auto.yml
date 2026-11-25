@@ -1546,7 +1546,7 @@ jobs:
           python -m scripts.keirin_official_nationwide_continuation capture \
             --repo "$GITHUB_WORKSPACE" --private-root "$root" \
             --owner-public-pem "$GITHUB_WORKSPACE/docs/evidence/2026-11-18/keirin_owner_existing_rsa_public_spki3072.pem" \
-            --report "$root/safe/summary.json" --max-races 4 > "$root/counts.json" || status=$?
+            --report "$root/safe/summary.json" --max-races 8 > "$root/counts.json" || status=$?
           if [ -f "$root/safe/summary.json" ]; then
             cat "$root/safe/summary.json" >> "$GITHUB_STEP_SUMMARY"
             python - "$root/safe/summary.json" <<'PY'

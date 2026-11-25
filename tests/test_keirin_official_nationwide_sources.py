@@ -15,6 +15,7 @@ from tests.test_keirin_official_canary_join import fixture
 class Lease:
     def __init__(self): self.calls = []
     def before_request(self, **kwargs): self.calls.append(kwargs)
+    def remaining_capture_capacity(self, *, now): return 300 - len(self.calls), 900
 
 
 class NationwideSourceTests(unittest.TestCase):
@@ -61,6 +62,7 @@ class NationwideSourceTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as folder, patch('race_ai.keirin_github_provider_stop.record_denial') as denial:
             session = self.api().OfficialSourceSession(repo='/synthetic',private_root=folder,
                 lease=lease,clock=lambda:at,request=transport)
+            session.capture_budget_enabled = True
             with self.assertRaises(ValueError): session.fetch('https://keirin.jp/sp/raceschedule')
             with self.assertRaises(ValueError): session.fetch('https://keirin.jp/sp/static/js/SJ0201.js')
             self.assertEqual(events,['request']); denial.assert_called_once()
@@ -76,11 +78,36 @@ class NationwideSourceTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as folder, patch('race_ai.keirin_github_provider_stop.record_denial') as denial:
             session = self.api().OfficialSourceSession(repo='/synthetic',private_root=folder,
                 lease=Lease(),clock=lambda:at,request=request)
+            session.capture_budget_enabled = True
             first=session.fetch('https://keirin.jp/sp/raceschedule')
             self.assertEqual(session.fetch('https://keirin.jp/sp/raceschedule'),first)
             with self.assertRaises(ValueError): session.fetch('https://keirin.jp/sp/static/js/SJ0201.js')
             self.assertEqual(len(calls),2); self.assertFalse(session.provider_denied)
             self.assertTrue(session.halted); denial.assert_not_called()
+
+    def test_capture_capacity_defers_without_calling_or_closing_the_lease(self):
+        at = fixture()['now']
+        for remaining in ((0, 900), (15, 1)):
+            with self.subTest(remaining=remaining), tempfile.TemporaryDirectory() as folder:
+                lease = Lease()
+                lease.remaining_capture_capacity = lambda *, now: remaining
+                session = self.api().OfficialSourceSession(repo='/synthetic', private_root=folder,
+                    lease=lease, clock=lambda:at, request=lambda *args:self.fail('no provider'))
+                session.capture_budget_enabled = True
+                with self.assertRaisesRegex(self.api().CaptureBudgetPending, 'CAPTURE_SOFT_BUDGET_PENDING'):
+                    session.fetch('https://keirin.jp/sp/raceschedule')
+                self.assertEqual(lease.calls, [])
+                self.assertEqual(session.count, 0)
+                self.assertFalse(session.halted)
+                self.assertFalse(session.provider_denied)
+
+    def test_optional_history_limit_is_a_soft_deferral(self):
+        api = self.api()
+        at = fixture()['now']
+        capture = api.GuardedHistoryCapture(session=None, cutoff_at=at+timedelta(minutes=10),
+            target_race_id='203001159801', clock=lambda:at, max_requests=0, monotonic=lambda:0)
+        with self.assertRaisesRegex(api.CaptureBudgetPending, 'CONDITION_CAPTURE_BUDGET'):
+            capture.check()
 
     def test_future_card_requires_published_future_mapping_not_only_result_mapping(self):
         api=self.api();linked=''.join('<script src="'+path+'"></script>' for path in api.LIST_SCRIPTS)
@@ -107,7 +134,7 @@ class NationwideSourceTests(unittest.TestCase):
             session=self.api().OfficialSourceSession(repo='/synthetic',private_root=folder,
                 lease=lease,clock=lambda:at,request=lambda *args:self.fail('no provider'))
             session.capture_deadline=at
-            with self.assertRaisesRegex(ValueError,'CAPTURE_FINALIZATION_RESERVE'):
+            with self.assertRaisesRegex(self.api().CaptureBudgetPending,'CAPTURE_FINALIZATION_RESERVE'):
                 session.fetch('https://keirin.jp/sp/raceschedule')
             self.assertEqual(lease.calls,[])
 

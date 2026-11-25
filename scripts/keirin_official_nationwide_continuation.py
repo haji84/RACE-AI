@@ -185,6 +185,14 @@ def _seal_and_archive(*,candidate,condition_input,history_manifest,condition_sta
     return row,condition_state
 
 
+# Each baseline can add one card, one marks response and at most nine profiles.
+# The list, line and marks scripts are shared by the entire source session.
+BASELINE_RACE_REQUESTS = 11
+BASELINE_SHARED_REQUESTS = len(sources.LIST_SCRIPTS) + 1 + len(sources.cards._TAB_SCRIPT_REQUIREMENTS)
+CAPTURE_CLASS_SAMPLES = 4
+CLASS_EVIDENCE_REQUESTS = CAPTURE_CLASS_SAMPLES + len(sources.LIST_SCRIPTS)
+
+
 def run_capture(*,repo,private_root,owner_public_pem,owner_private_pem,day=None,clock=now_utc,max_races=4):
     repo,root,day,public,commit=_runtime(repo=repo,private_root=private_root,owner_public_pem=owner_public_pem,
         owner_private_pem=owner_private_pem,day=day,clock=clock,mode='capture')
@@ -213,19 +221,23 @@ def run_capture(*,repo,private_root,owner_public_pem,owner_private_pem,day=None,
             finish='PROVIDER_STOPPED' if session.provider_denied else 'PARTIAL'
             return report
         need(len(registry['registered_race_ids'])<=records.MAX_RACES,'REGISTRY_RACE_BOUND')
+        session.capture_budget_enabled=True
         states={rid:dict(race_id=rid,state='WAITING_SOURCE_CAPTURE',condition_state='HISTORY_NOT_COLLECTED')
                 for rid in registry['registered_race_ids']}
         report.update(registered_races=len(states),day_inventory_complete=registry['day_inventory_complete'])
         for rid in registry['disappeared_race_ids']:states[rid]['state']='RACE_DISAPPEARED_FROM_CURRENT_LIST'
         _save_registry(store,inventory,states,source_attempts,prior,public,clock)
         cohort=records.cohort(registry);attempted=0;earliest_frozen_cutoff=None
+        finalization_reserve = timedelta(seconds=sources.CAPTURE_FINALIZATION_SECONDS)
+        history_margin = finalization_reserve + timedelta(seconds=sources.CONDITION_DURATION_SECONDS)
+        required_calls = BASELINE_RACE_REQUESTS + BASELINE_SHARED_REQUESTS + CLASS_EVIDENCE_REQUESTS
         from race_ai.keirin_official_class_evidence import collect_unknown_class_evidence, replay_cutoff_hints, LABEL
         cutoff_hints=replay_cutoff_hints(previous,inventory,now=clock())
         unknown_cutoff=datetime.max.replace(tzinfo=timezone.utc)
         # Preserve the attempt and round order. Every capture still opens the current card.
         ordered=sorted(registry['races'],key=lambda r:(source_attempts.get(r['race_id'],0),
             r['race_no'],cutoff_hints.get(r['race_id'],unknown_cutoff),r['venue_code']))
-        for race in ordered:
+        for index, race in enumerate(ordered):
             rid=race['race_id'];row=states[rid]
             if _baseline_already_exists(store,rid):row['state']='FROZEN_ORIGINAL_PRESERVED';continue
             if race['source_state']=='RESULT_PUBLISHED':row['state']='PUBLISHED_RESULT_NO_PRE_CUTOFF_ORIGINAL';continue
@@ -233,48 +245,77 @@ def run_capture(*,repo,private_root,owner_public_pem,owner_private_pem,day=None,
                 row['state']='UNSUPPORTED_CLASS_OR_ROUND';continue
             if session.halted:
                 row['state']='PROVIDER_STOPPED' if session.provider_denied else 'SOURCE_UNAVAILABLE';continue
-            if earliest_frozen_cutoff is not None and (earliest_frozen_cutoff-form._aware(clock())).total_seconds()<390:
+            if (earliest_frozen_cutoff is not None and (earliest_frozen_cutoff-form._aware(clock())).total_seconds()
+                    < sources.CAPTURE_START_MARGIN_SECONDS):
                 row['state']='SOURCE_CAPTURE_BUDGET_PENDING';continue
             if attempted>=max_races:row['state']='SOURCE_CAPTURE_BUDGET_PENDING';continue
+            if not session.has_capture_capacity(required_calls, seconds=(
+                    sources.CAPTURE_LEASE_RESERVE_SECONDS + required_calls * sources.REQUEST_SPACING_SECONDS)):
+                row['state']='SOURCE_UNAVAILABLE' if session.halted else 'SOURCE_CAPTURE_BUDGET_PENDING'
+                continue
             attempted+=1
             source_attempts[rid]=source_attempts.get(rid,0)+1
             try:
                 candidate=sources.collect_candidate(session=session,inventory=inventory,race=race,clock=clock)
+            except sources.CaptureBudgetPending:
+                row['state']='SOURCE_CAPTURE_BUDGET_PENDING'
+                continue
             except (ValueError,KeyError,TypeError,OSError) as exc:
                 row['state']=('PROVIDER_STOPPED' if session.provider_denied else 'SOURCE_UNAVAILABLE' if session.halted else
                     'CUTOFF_MARGIN_INSUFFICIENT' if 'MARGIN' in str(exc) else 'BASELINE_SOURCE_UNVERIFIED')
                 continue
             joined=manifest=None;condition_state='HISTORY_NOT_COLLECTED'
-            try:
-                manifest=sources.collect_conditions(session=session,candidate=candidate,clock=clock)
-                args=candidate['arguments']
-                joined=sources.build_condition_candidate(snapshot=candidate['snapshot'],
-                    card_arguments=args['card_arguments'],prediction_source=args['prediction_source'],
-                    prediction_scripts=args['prediction_scripts'],history_manifest=manifest,
-                    source_bytes_by_sha=session.sources,now=clock())
-            except (ValueError,KeyError,TypeError,OSError):
-                joined=manifest=None
-                condition_state='HISTORY_SOURCE_UNAVAILABLE' if session.halted else 'HISTORY_UNVERIFIED'
+            remaining_baselines = min(max_races - attempted, len(ordered) - index - 1)
+            next_calls = CLASS_EVIDENCE_REQUESTS
+            if remaining_baselines:
+                next_calls += BASELINE_SHARED_REQUESTS + remaining_baselines * BASELINE_RACE_REQUESTS
+            cutoff = form._aware(candidate['snapshot']['published_cutoff_at'])
+            earliest_cutoff = min(cutoff, earliest_frozen_cutoff or cutoff)
+            if earliest_cutoff > form._aware(clock()) + history_margin and session.has_capture_capacity(
+                    sources.CONDITION_REQUEST_LIMIT + next_calls, seconds=(
+                        sources.CAPTURE_LEASE_RESERVE_SECONDS + sources.CONDITION_DURATION_SECONDS
+                        + next_calls * sources.REQUEST_SPACING_SECONDS)):
+                try:
+                    manifest=sources.collect_conditions(session=session,candidate=candidate,clock=clock)
+                    args=candidate['arguments']
+                    joined=sources.build_condition_candidate(snapshot=candidate['snapshot'],
+                        card_arguments=args['card_arguments'],prediction_source=args['prediction_source'],
+                        prediction_scripts=args['prediction_scripts'],history_manifest=manifest,
+                        source_bytes_by_sha=session.sources,now=clock())
+                except sources.CaptureBudgetPending:
+                    joined=manifest=None
+                except (ValueError,KeyError,TypeError,OSError):
+                    joined=manifest=None
+                    condition_state='HISTORY_SOURCE_UNAVAILABLE' if session.halted else 'HISTORY_UNVERIFIED'
+            elif session.halted:
+                condition_state='HISTORY_SOURCE_UNAVAILABLE'
             try:
                 saved,condition_state=_seal_and_archive(candidate=candidate,condition_input=joined,
                     history_manifest=manifest,condition_state=condition_state,session=session,store=store,
                     public=public,root=root,clock=clock,commit=commit,cohort=cohort)
                 report['new_encrypted_originals'].append(saved)
-                cutoff=form._aware(candidate['snapshot']['published_cutoff_at'])
-                earliest_frozen_cutoff=min(earliest_frozen_cutoff or cutoff,cutoff)
-                session.capture_deadline=earliest_frozen_cutoff-timedelta(seconds=240)
+                earliest_frozen_cutoff=earliest_cutoff
+                session.capture_deadline=earliest_frozen_cutoff-finalization_reserve
                 row.update(state='A_B_ARCHIVED_AWAITING_INDEPENDENT_READBACK',condition_state=condition_state)
             except (ValueError,KeyError,TypeError,OSError):
                 row.update(state='FROZEN_ARCHIVE_UNVERIFIED',condition_state=condition_state)
             _save_registry(store,inventory,states,source_attempts,prior,public,clock)
         if not session.halted and (earliest_frozen_cutoff is None or
-                form._aware(clock())<earliest_frozen_cutoff-timedelta(seconds=240)):
-            try:
-                evidence=collect_unknown_class_evidence(session=session,inventory=inventory,clock=clock,max_classes=4)
-                inventory['unadmitted_class_evidence']=evidence
-                report['class_evidence']=evidence['safe_summary']
-            except (ValueError,KeyError,TypeError,OSError):
-                report['class_evidence_hold']='UNADMITTED_CLASS_EVIDENCE_UNAVAILABLE'
+                form._aware(clock())<earliest_frozen_cutoff-finalization_reserve):
+            if session.has_capture_capacity(CLASS_EVIDENCE_REQUESTS, seconds=(
+                    sources.CAPTURE_LEASE_RESERVE_SECONDS + CLASS_EVIDENCE_REQUESTS * sources.REQUEST_SPACING_SECONDS)):
+                try:
+                    evidence=collect_unknown_class_evidence(session=session,inventory=inventory,clock=clock,
+                                                             max_classes=CAPTURE_CLASS_SAMPLES)
+                    inventory['unadmitted_class_evidence']=evidence
+                    report['class_evidence']=evidence['safe_summary']
+                    if evidence.get('budget_pending'):
+                        report['class_evidence_hold']='UNADMITTED_CLASS_EVIDENCE_BUDGET_PENDING'
+                except (ValueError,KeyError,TypeError,OSError):
+                    report['class_evidence_hold']='UNADMITTED_CLASS_EVIDENCE_UNAVAILABLE'
+            else:
+                report['class_evidence_hold']=('UNADMITTED_CLASS_EVIDENCE_UNAVAILABLE' if session.halted
+                                               else 'UNADMITTED_CLASS_EVIDENCE_BUDGET_PENDING')
         classes={}
         for race in registry['races']:
             label=_label(inventory,race)
@@ -293,6 +334,9 @@ def run_capture(*,repo,private_root,owner_public_pem,owner_private_pem,day=None,
     finally:
         report.update(source_requests=session.count,provider_denied=session.provider_denied,
                       safe_diagnostics=session.safe_diagnostics)
+        if session.halted and not session.provider_denied and report['state'] in (
+                'OFFICIAL_SP_BASELINES_ARCHIVED','OFFICIAL_SP_DAY_REGISTERED_WITH_EXPLICIT_HOLDS'):
+            report['state']='HOLD_OFFICIAL_SP_SOURCE_UNAVAILABLE'
         session.close()
         try:lease.finish(state=finish,now=clock())
         except Exception:
