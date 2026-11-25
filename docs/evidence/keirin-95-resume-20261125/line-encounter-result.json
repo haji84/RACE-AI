@@ -1,0 +1,2025 @@
+{
+  "source_sha256": "66c9f0f589962abd8b569d4e2742e1bfc330bbada26dcbc332f7e3e79d7e9b1a",
+  "fit": {
+    "coefficients": [
+      0.08220831746819336,
+      0.01288757761129114
+    ],
+    "training_cross_results": 6296,
+    "training_race_tally": {
+      "actual_cross_races": 6296,
+      "preexisting_true_pair_count": 1756,
+      "preexisting_same_context_true_pair_count": 902,
+      "active_residual_features_races": 5758
+    },
+    "unique_directed_pairs": 348528,
+    "unique_directed_role_context_pairs": 398502,
+    "training_initial_final_log_loss": [
+      2.9882861160571927,
+      2.9881674121237793
+    ],
+    "held_history_through": "20260523",
+    "source_cards_sha256": "afd1a3814c92b6172d17c5d02ce7a261945372ea945352c933c6e6ebc498db01",
+    "archive_sha256": "5a2235b92a872a7938d47b6e2cc09174d71b3276e5eff9c03f37861fd0e5d768",
+    "design_sha256": "fa2b72e18d83b5de38abda3ce2ab15eb37f1369edefc5003791f70e8ec5a2594",
+    "n_active_training_races": 14586
+  },
+  "result": {
+    "historical": {
+      "all": {
+        "races": 12234,
+        "caps": {
+          "1": {
+            "exact": [
+              1248,
+              1248
+            ],
+            "ordered_pair": [
+              2710,
+              2710
+            ],
+            "rescued": 0,
+            "lost": 0,
+            "paired_delta_95pp": [
+              0.0,
+              0.0
+            ]
+          },
+          "4": {
+            "exact": [
+              3234,
+              3233
+            ],
+            "ordered_pair": [
+              4946,
+              4946
+            ],
+            "rescued": 0,
+            "lost": 1,
+            "paired_delta_95pp": [
+              -0.024799793438368994,
+              0.0
+            ]
+          },
+          "8": {
+            "exact": [
+              4583,
+              4584
+            ],
+            "ordered_pair": [
+              6327,
+              6328
+            ],
+            "rescued": 1,
+            "lost": 0,
+            "paired_delta_95pp": [
+              0.0,
+              0.0247077281819176
+            ]
+          }
+        },
+        "rank": {
+          "pair_rank": {
+            "eligible": 9854,
+            "median": [
+              4.0,
+              4.0
+            ],
+            "top2": [
+              3539,
+              3540
+            ],
+            "top8": [
+              6583,
+              6581
+            ],
+            "better": 24,
+            "worse": 41
+          },
+          "win_rank": {
+            "eligible": 9854,
+            "median": [
+              2.0,
+              2.0
+            ],
+            "top2": [
+              6301,
+              6300
+            ],
+            "top8": [
+              9847,
+              9847
+            ],
+            "better": 3,
+            "worse": 2
+          },
+          "conditional_second_rank": {
+            "eligible": 9854,
+            "median": [
+              1.0,
+              2.0
+            ],
+            "top2": [
+              6829,
+              6826
+            ],
+            "top8": [
+              9854,
+              9854
+            ],
+            "better": 5,
+            "worse": 10
+          },
+          "distinct_first_rank": {
+            "eligible": 9854,
+            "median": [
+              4.0,
+              4.0
+            ],
+            "top2": [
+              3522,
+              3523
+            ],
+            "top8": [
+              6573,
+              6573
+            ],
+            "better": 32,
+            "worse": 33
+          }
+        },
+        "support": {
+          "named_cross_co_start": {
+            "1": 925,
+            "3": 110,
+            "5": 23
+          },
+          "same_named_role_co_start": {
+            "1": 509,
+            "3": 24,
+            "5": 2
+          }
+        }
+      },
+      "unmapped_or_individual": {
+        "races": 2380,
+        "caps": {
+          "1": {
+            "exact": [
+              186,
+              186
+            ],
+            "ordered_pair": [
+              503,
+              503
+            ],
+            "rescued": 0,
+            "lost": 0,
+            "paired_delta_95pp": [
+              0.0,
+              0.0
+            ]
+          },
+          "4": {
+            "exact": [
+              594,
+              594
+            ],
+            "ordered_pair": [
+              992,
+              992
+            ],
+            "rescued": 0,
+            "lost": 0,
+            "paired_delta_95pp": [
+              0.0,
+              0.0
+            ]
+          },
+          "8": {
+            "exact": [
+              885,
+              885
+            ],
+            "ordered_pair": [
+              1277,
+              1277
+            ],
+            "rescued": 0,
+            "lost": 0,
+            "paired_delta_95pp": [
+              0.0,
+              0.0
+            ]
+          }
+        },
+        "rank": {},
+        "support": null
+      },
+      "applied": {
+        "races": 9854,
+        "caps": {
+          "1": {
+            "exact": [
+              1062,
+              1062
+            ],
+            "ordered_pair": [
+              2207,
+              2207
+            ],
+            "rescued": 0,
+            "lost": 0,
+            "paired_delta_95pp": [
+              0.0,
+              0.0
+            ]
+          },
+          "4": {
+            "exact": [
+              2640,
+              2639
+            ],
+            "ordered_pair": [
+              3954,
+              3954
+            ],
+            "rescued": 0,
+            "lost": 1,
+            "paired_delta_95pp": [
+              -0.030979254354972504,
+              0.0
+            ]
+          },
+          "8": {
+            "exact": [
+              3698,
+              3699
+            ],
+            "ordered_pair": [
+              5050,
+              5051
+            ],
+            "rescued": 1,
+            "lost": 0,
+            "paired_delta_95pp": [
+              0.0,
+              0.030835804512212066
+            ]
+          }
+        },
+        "rank": {
+          "pair_rank": {
+            "eligible": 9854,
+            "median": [
+              4.0,
+              4.0
+            ],
+            "top2": [
+              3539,
+              3540
+            ],
+            "top8": [
+              6583,
+              6581
+            ],
+            "better": 24,
+            "worse": 41
+          },
+          "win_rank": {
+            "eligible": 9854,
+            "median": [
+              2.0,
+              2.0
+            ],
+            "top2": [
+              6301,
+              6300
+            ],
+            "top8": [
+              9847,
+              9847
+            ],
+            "better": 3,
+            "worse": 2
+          },
+          "conditional_second_rank": {
+            "eligible": 9854,
+            "median": [
+              1.0,
+              2.0
+            ],
+            "top2": [
+              6829,
+              6826
+            ],
+            "top8": [
+              9854,
+              9854
+            ],
+            "better": 5,
+            "worse": 10
+          },
+          "distinct_first_rank": {
+            "eligible": 9854,
+            "median": [
+              4.0,
+              4.0
+            ],
+            "top2": [
+              3522,
+              3523
+            ],
+            "top8": [
+              6573,
+              6573
+            ],
+            "better": 32,
+            "worse": 33
+          }
+        },
+        "support": {
+          "named_cross_co_start": {
+            "1": 925,
+            "3": 110,
+            "5": 23
+          },
+          "same_named_role_co_start": {
+            "1": 509,
+            "3": 24,
+            "5": 2
+          }
+        }
+      },
+      "same": {
+        "races": 5658,
+        "caps": {
+          "1": {
+            "exact": [
+              1037,
+              1037
+            ],
+            "ordered_pair": [
+              2139,
+              2139
+            ],
+            "rescued": 0,
+            "lost": 0,
+            "paired_delta_95pp": [
+              0.0,
+              0.0
+            ]
+          },
+          "4": {
+            "exact": [
+              2448,
+              2447
+            ],
+            "ordered_pair": [
+              3500,
+              3499
+            ],
+            "rescued": 0,
+            "lost": 1,
+            "paired_delta_95pp": [
+              -0.05438921197356551,
+              0.0
+            ]
+          },
+          "8": {
+            "exact": [
+              3208,
+              3209
+            ],
+            "ordered_pair": [
+              4057,
+              4058
+            ],
+            "rescued": 1,
+            "lost": 0,
+            "paired_delta_95pp": [
+              0.0,
+              0.05378295891162373
+            ]
+          }
+        },
+        "rank": {
+          "pair_rank": {
+            "eligible": 5658,
+            "median": [
+              2.0,
+              2.0
+            ],
+            "top2": [
+              3207,
+              3209
+            ],
+            "top8": [
+              4690,
+              4689
+            ],
+            "better": 6,
+            "worse": 8
+          },
+          "win_rank": {
+            "eligible": 5658,
+            "median": [
+              2.0,
+              2.0
+            ],
+            "top2": [
+              3840,
+              3840
+            ],
+            "top8": [
+              5655,
+              5655
+            ],
+            "better": 2,
+            "worse": 0
+          },
+          "conditional_second_rank": {
+            "eligible": 5658,
+            "median": [
+              1.0,
+              1.0
+            ],
+            "top2": [
+              5131,
+              5132
+            ],
+            "top8": [
+              5658,
+              5658
+            ],
+            "better": 1,
+            "worse": 1
+          },
+          "distinct_first_rank": {
+            "eligible": 5658,
+            "median": [
+              2.0,
+              2.0
+            ],
+            "top2": [
+              3197,
+              3197
+            ],
+            "top8": [
+              4716,
+              4715
+            ],
+            "better": 9,
+            "worse": 10
+          }
+        },
+        "support": {
+          "named_cross_co_start": {
+            "1": 0,
+            "3": 0,
+            "5": 0
+          },
+          "same_named_role_co_start": {
+            "1": 0,
+            "3": 0,
+            "5": 0
+          }
+        }
+      },
+      "cross": {
+        "races": 4196,
+        "caps": {
+          "1": {
+            "exact": [
+              25,
+              25
+            ],
+            "ordered_pair": [
+              68,
+              68
+            ],
+            "rescued": 0,
+            "lost": 0,
+            "paired_delta_95pp": [
+              0.0,
+              0.0
+            ]
+          },
+          "4": {
+            "exact": [
+              192,
+              192
+            ],
+            "ordered_pair": [
+              454,
+              455
+            ],
+            "rescued": 0,
+            "lost": 0,
+            "paired_delta_95pp": [
+              0.0,
+              0.0
+            ]
+          },
+          "8": {
+            "exact": [
+              490,
+              490
+            ],
+            "ordered_pair": [
+              993,
+              993
+            ],
+            "rescued": 0,
+            "lost": 0,
+            "paired_delta_95pp": [
+              0.0,
+              0.0
+            ]
+          }
+        },
+        "rank": {
+          "pair_rank": {
+            "eligible": 4196,
+            "median": [
+              10.0,
+              10.0
+            ],
+            "top2": [
+              332,
+              331
+            ],
+            "top8": [
+              1893,
+              1892
+            ],
+            "better": 18,
+            "worse": 33
+          },
+          "win_rank": {
+            "eligible": 4196,
+            "median": [
+              2.0,
+              2.0
+            ],
+            "top2": [
+              2461,
+              2460
+            ],
+            "top8": [
+              4192,
+              4192
+            ],
+            "better": 1,
+            "worse": 2
+          },
+          "conditional_second_rank": {
+            "eligible": 4196,
+            "median": [
+              3.0,
+              3.0
+            ],
+            "top2": [
+              1698,
+              1694
+            ],
+            "top8": [
+              4196,
+              4196
+            ],
+            "better": 4,
+            "worse": 9
+          },
+          "distinct_first_rank": {
+            "eligible": 4196,
+            "median": [
+              10.0,
+              10.0
+            ],
+            "top2": [
+              325,
+              326
+            ],
+            "top8": [
+              1857,
+              1858
+            ],
+            "better": 23,
+            "worse": 23
+          }
+        },
+        "support": {
+          "named_cross_co_start": {
+            "1": 925,
+            "3": 110,
+            "5": 23
+          },
+          "same_named_role_co_start": {
+            "1": 509,
+            "3": 24,
+            "5": 2
+          }
+        }
+      },
+      "cross_missing_top8_distinct": {
+        "races": 2339,
+        "caps": {
+          "1": {
+            "exact": [
+              0,
+              0
+            ],
+            "ordered_pair": [
+              0,
+              0
+            ],
+            "rescued": 0,
+            "lost": 0,
+            "paired_delta_95pp": [
+              0.0,
+              0.0
+            ]
+          },
+          "4": {
+            "exact": [
+              0,
+              0
+            ],
+            "ordered_pair": [
+              0,
+              0
+            ],
+            "rescued": 0,
+            "lost": 0,
+            "paired_delta_95pp": [
+              0.0,
+              0.0
+            ]
+          },
+          "8": {
+            "exact": [
+              0,
+              0
+            ],
+            "ordered_pair": [
+              0,
+              0
+            ],
+            "rescued": 0,
+            "lost": 0,
+            "paired_delta_95pp": [
+              0.0,
+              0.0
+            ]
+          }
+        },
+        "rank": {
+          "pair_rank": {
+            "eligible": 2339,
+            "median": [
+              17.0,
+              17.0
+            ],
+            "top2": [
+              0,
+              0
+            ],
+            "top8": [
+              131,
+              129
+            ],
+            "better": 13,
+            "worse": 22
+          },
+          "win_rank": {
+            "eligible": 2339,
+            "median": [
+              3.0,
+              3.0
+            ],
+            "top2": [
+              835,
+              834
+            ],
+            "top8": [
+              2335,
+              2335
+            ],
+            "better": 1,
+            "worse": 2
+          },
+          "conditional_second_rank": {
+            "eligible": 2339,
+            "median": [
+              4.0,
+              4.0
+            ],
+            "top2": [
+              572,
+              570
+            ],
+            "top8": [
+              2339,
+              2339
+            ],
+            "better": 3,
+            "worse": 4
+          },
+          "distinct_first_rank": {
+            "eligible": 2339,
+            "median": [
+              17.0,
+              17.0
+            ],
+            "top2": [
+              0,
+              0
+            ],
+            "top8": [
+              0,
+              2
+            ],
+            "better": 19,
+            "worse": 16
+          }
+        },
+        "support": {
+          "named_cross_co_start": {
+            "1": 531,
+            "3": 67,
+            "5": 13
+          },
+          "same_named_role_co_start": {
+            "1": 288,
+            "3": 13,
+            "5": 2
+          }
+        }
+      },
+      "cross_missing_top8_distinct_winner_and_second_below_top2": {
+        "races": 994,
+        "caps": {
+          "1": {
+            "exact": [
+              0,
+              0
+            ],
+            "ordered_pair": [
+              0,
+              0
+            ],
+            "rescued": 0,
+            "lost": 0,
+            "paired_delta_95pp": [
+              0.0,
+              0.0
+            ]
+          },
+          "4": {
+            "exact": [
+              0,
+              0
+            ],
+            "ordered_pair": [
+              0,
+              0
+            ],
+            "rescued": 0,
+            "lost": 0,
+            "paired_delta_95pp": [
+              0.0,
+              0.0
+            ]
+          },
+          "8": {
+            "exact": [
+              0,
+              0
+            ],
+            "ordered_pair": [
+              0,
+              0
+            ],
+            "rescued": 0,
+            "lost": 0,
+            "paired_delta_95pp": [
+              0.0,
+              0.0
+            ]
+          }
+        },
+        "rank": {
+          "pair_rank": {
+            "eligible": 994,
+            "median": [
+              24.0,
+              24.0
+            ],
+            "top2": [
+              0,
+              0
+            ],
+            "top8": [
+              8,
+              8
+            ],
+            "better": 4,
+            "worse": 10
+          },
+          "win_rank": {
+            "eligible": 994,
+            "median": [
+              4.0,
+              4.0
+            ],
+            "top2": [
+              0,
+              0
+            ],
+            "top8": [
+              991,
+              991
+            ],
+            "better": 1,
+            "worse": 1
+          },
+          "conditional_second_rank": {
+            "eligible": 994,
+            "median": [
+              4.0,
+              4.0
+            ],
+            "top2": [
+              0,
+              0
+            ],
+            "top8": [
+              994,
+              994
+            ],
+            "better": 2,
+            "worse": 1
+          },
+          "distinct_first_rank": {
+            "eligible": 994,
+            "median": [
+              24.0,
+              24.0
+            ],
+            "top2": [
+              0,
+              0
+            ],
+            "top8": [
+              0,
+              1
+            ],
+            "better": 4,
+            "worse": 7
+          }
+        },
+        "support": {
+          "named_cross_co_start": {
+            "1": 215,
+            "3": 28,
+            "5": 5
+          },
+          "same_named_role_co_start": {
+            "1": 127,
+            "3": 6,
+            "5": 1
+          }
+        }
+      },
+      "authentic_pre_cutoff_rows": {
+        "races": 321,
+        "caps": {
+          "1": {
+            "exact": [
+              38,
+              38
+            ],
+            "ordered_pair": [
+              66,
+              66
+            ],
+            "rescued": 0,
+            "lost": 0,
+            "paired_delta_95pp": [
+              0.0,
+              0.0
+            ]
+          },
+          "4": {
+            "exact": [
+              84,
+              84
+            ],
+            "ordered_pair": [
+              128,
+              128
+            ],
+            "rescued": 0,
+            "lost": 0,
+            "paired_delta_95pp": [
+              0.0,
+              0.0
+            ]
+          },
+          "8": {
+            "exact": [
+              119,
+              119
+            ],
+            "ordered_pair": [
+              164,
+              164
+            ],
+            "rescued": 0,
+            "lost": 0,
+            "paired_delta_95pp": [
+              0.0,
+              0.0
+            ]
+          }
+        },
+        "rank": {
+          "pair_rank": {
+            "eligible": 292,
+            "median": [
+              5.0,
+              5.0
+            ],
+            "top2": [
+              104,
+              104
+            ],
+            "top8": [
+              205,
+              205
+            ],
+            "better": 0,
+            "worse": 0
+          },
+          "win_rank": {
+            "eligible": 292,
+            "median": [
+              2.0,
+              2.0
+            ],
+            "top2": [
+              191,
+              191
+            ],
+            "top8": [
+              292,
+              292
+            ],
+            "better": 0,
+            "worse": 0
+          },
+          "conditional_second_rank": {
+            "eligible": 292,
+            "median": [
+              1.0,
+              1.0
+            ],
+            "top2": [
+              216,
+              216
+            ],
+            "top8": [
+              292,
+              292
+            ],
+            "better": 0,
+            "worse": 0
+          },
+          "distinct_first_rank": {
+            "eligible": 292,
+            "median": [
+              4.0,
+              4.0
+            ],
+            "top2": [
+              106,
+              106
+            ],
+            "top8": [
+              208,
+              208
+            ],
+            "better": 1,
+            "worse": 0
+          }
+        },
+        "support": {
+          "named_cross_co_start": {
+            "1": 28,
+            "3": 2,
+            "5": 1
+          },
+          "same_named_role_co_start": {
+            "1": 16,
+            "3": 0,
+            "5": 0
+          }
+        }
+      }
+    },
+    "recent": {
+      "all": {
+        "races": 287,
+        "caps": {
+          "1": {
+            "exact": [
+              32,
+              32
+            ],
+            "ordered_pair": [
+              72,
+              72
+            ],
+            "rescued": 0,
+            "lost": 0,
+            "paired_delta_95pp": [
+              0.0,
+              0.0
+            ]
+          },
+          "4": {
+            "exact": [
+              91,
+              91
+            ],
+            "ordered_pair": [
+              126,
+              126
+            ],
+            "rescued": 0,
+            "lost": 0,
+            "paired_delta_95pp": [
+              0.0,
+              0.0
+            ]
+          },
+          "8": {
+            "exact": [
+              127,
+              127
+            ],
+            "ordered_pair": [
+              160,
+              160
+            ],
+            "rescued": 0,
+            "lost": 0,
+            "paired_delta_95pp": [
+              0.0,
+              0.0
+            ]
+          },
+          "displayed": {
+            "exact": [
+              93,
+              93
+            ],
+            "ordered_pair": [
+              128,
+              128
+            ],
+            "rescued": 0,
+            "lost": 0,
+            "paired_delta_95pp": [
+              0.0,
+              0.0
+            ]
+          }
+        },
+        "rank": {
+          "pair_rank": {
+            "eligible": 249,
+            "median": [
+              4.0,
+              4.0
+            ],
+            "top2": [
+              101,
+              101
+            ],
+            "top8": [
+              172,
+              173
+            ],
+            "better": 2,
+            "worse": 3
+          },
+          "win_rank": {
+            "eligible": 249,
+            "median": [
+              2.0,
+              2.0
+            ],
+            "top2": [
+              164,
+              164
+            ],
+            "top8": [
+              249,
+              249
+            ],
+            "better": 0,
+            "worse": 0
+          },
+          "conditional_second_rank": {
+            "eligible": 249,
+            "median": [
+              1.0,
+              1.0
+            ],
+            "top2": [
+              170,
+              170
+            ],
+            "top8": [
+              249,
+              249
+            ],
+            "better": 1,
+            "worse": 0
+          },
+          "distinct_first_rank": {
+            "eligible": 249,
+            "median": [
+              4.0,
+              4.0
+            ],
+            "top2": [
+              97,
+              97
+            ],
+            "top8": [
+              165,
+              165
+            ],
+            "better": 0,
+            "worse": 0
+          }
+        },
+        "support": {
+          "named_cross_co_start": {
+            "1": 32,
+            "3": 6,
+            "5": 2
+          },
+          "same_named_role_co_start": {
+            "1": 17,
+            "3": 2,
+            "5": 0
+          }
+        }
+      },
+      "applied": {
+        "races": 249,
+        "caps": {
+          "1": {
+            "exact": [
+              30,
+              30
+            ],
+            "ordered_pair": [
+              63,
+              63
+            ],
+            "rescued": 0,
+            "lost": 0,
+            "paired_delta_95pp": [
+              0.0,
+              0.0
+            ]
+          },
+          "4": {
+            "exact": [
+              81,
+              81
+            ],
+            "ordered_pair": [
+              110,
+              110
+            ],
+            "rescued": 0,
+            "lost": 0,
+            "paired_delta_95pp": [
+              0.0,
+              0.0
+            ]
+          },
+          "8": {
+            "exact": [
+              109,
+              109
+            ],
+            "ordered_pair": [
+              135,
+              135
+            ],
+            "rescued": 0,
+            "lost": 0,
+            "paired_delta_95pp": [
+              0.0,
+              0.0
+            ]
+          },
+          "displayed": {
+            "exact": [
+              82,
+              82
+            ],
+            "ordered_pair": [
+              111,
+              111
+            ],
+            "rescued": 0,
+            "lost": 0,
+            "paired_delta_95pp": [
+              0.0,
+              0.0
+            ]
+          }
+        },
+        "rank": {
+          "pair_rank": {
+            "eligible": 249,
+            "median": [
+              4.0,
+              4.0
+            ],
+            "top2": [
+              101,
+              101
+            ],
+            "top8": [
+              172,
+              173
+            ],
+            "better": 2,
+            "worse": 3
+          },
+          "win_rank": {
+            "eligible": 249,
+            "median": [
+              2.0,
+              2.0
+            ],
+            "top2": [
+              164,
+              164
+            ],
+            "top8": [
+              249,
+              249
+            ],
+            "better": 0,
+            "worse": 0
+          },
+          "conditional_second_rank": {
+            "eligible": 249,
+            "median": [
+              1.0,
+              1.0
+            ],
+            "top2": [
+              170,
+              170
+            ],
+            "top8": [
+              249,
+              249
+            ],
+            "better": 1,
+            "worse": 0
+          },
+          "distinct_first_rank": {
+            "eligible": 249,
+            "median": [
+              4.0,
+              4.0
+            ],
+            "top2": [
+              97,
+              97
+            ],
+            "top8": [
+              165,
+              165
+            ],
+            "better": 0,
+            "worse": 0
+          }
+        },
+        "support": {
+          "named_cross_co_start": {
+            "1": 32,
+            "3": 6,
+            "5": 2
+          },
+          "same_named_role_co_start": {
+            "1": 17,
+            "3": 2,
+            "5": 0
+          }
+        }
+      },
+      "cross": {
+        "races": 118,
+        "caps": {
+          "1": {
+            "exact": [
+              2,
+              2
+            ],
+            "ordered_pair": [
+              3,
+              3
+            ],
+            "rescued": 0,
+            "lost": 0,
+            "paired_delta_95pp": [
+              0.0,
+              0.0
+            ]
+          },
+          "4": {
+            "exact": [
+              8,
+              8
+            ],
+            "ordered_pair": [
+              12,
+              12
+            ],
+            "rescued": 0,
+            "lost": 0,
+            "paired_delta_95pp": [
+              0.0,
+              0.0
+            ]
+          },
+          "8": {
+            "exact": [
+              19,
+              19
+            ],
+            "ordered_pair": [
+              26,
+              26
+            ],
+            "rescued": 0,
+            "lost": 0,
+            "paired_delta_95pp": [
+              0.0,
+              0.0
+            ]
+          },
+          "displayed": {
+            "exact": [
+              9,
+              9
+            ],
+            "ordered_pair": [
+              13,
+              13
+            ],
+            "rescued": 0,
+            "lost": 0,
+            "paired_delta_95pp": [
+              0.0,
+              0.0
+            ]
+          }
+        },
+        "rank": {
+          "pair_rank": {
+            "eligible": 118,
+            "median": [
+              9.0,
+              9.0
+            ],
+            "top2": [
+              9,
+              9
+            ],
+            "top8": [
+              53,
+              54
+            ],
+            "better": 2,
+            "worse": 3
+          },
+          "win_rank": {
+            "eligible": 118,
+            "median": [
+              2.0,
+              2.0
+            ],
+            "top2": [
+              66,
+              66
+            ],
+            "top8": [
+              118,
+              118
+            ],
+            "better": 0,
+            "worse": 0
+          },
+          "conditional_second_rank": {
+            "eligible": 118,
+            "median": [
+              3.0,
+              3.0
+            ],
+            "top2": [
+              44,
+              44
+            ],
+            "top8": [
+              118,
+              118
+            ],
+            "better": 1,
+            "worse": 0
+          },
+          "distinct_first_rank": {
+            "eligible": 118,
+            "median": [
+              11.0,
+              11.0
+            ],
+            "top2": [
+              9,
+              9
+            ],
+            "top8": [
+              47,
+              47
+            ],
+            "better": 0,
+            "worse": 0
+          }
+        },
+        "support": {
+          "named_cross_co_start": {
+            "1": 32,
+            "3": 6,
+            "5": 2
+          },
+          "same_named_role_co_start": {
+            "1": 17,
+            "3": 2,
+            "5": 0
+          }
+        }
+      },
+      "cross_missing_top8_distinct": {
+        "races": 71,
+        "caps": {
+          "1": {
+            "exact": [
+              0,
+              0
+            ],
+            "ordered_pair": [
+              0,
+              0
+            ],
+            "rescued": 0,
+            "lost": 0,
+            "paired_delta_95pp": [
+              0.0,
+              0.0
+            ]
+          },
+          "4": {
+            "exact": [
+              0,
+              0
+            ],
+            "ordered_pair": [
+              0,
+              0
+            ],
+            "rescued": 0,
+            "lost": 0,
+            "paired_delta_95pp": [
+              0.0,
+              0.0
+            ]
+          },
+          "8": {
+            "exact": [
+              0,
+              0
+            ],
+            "ordered_pair": [
+              0,
+              0
+            ],
+            "rescued": 0,
+            "lost": 0,
+            "paired_delta_95pp": [
+              0.0,
+              0.0
+            ]
+          },
+          "displayed": {
+            "exact": [
+              0,
+              0
+            ],
+            "ordered_pair": [
+              0,
+              0
+            ],
+            "rescued": 0,
+            "lost": 0,
+            "paired_delta_95pp": [
+              0.0,
+              0.0
+            ]
+          }
+        },
+        "rank": {
+          "pair_rank": {
+            "eligible": 71,
+            "median": [
+              15.0,
+              15.0
+            ],
+            "top2": [
+              0,
+              0
+            ],
+            "top8": [
+              7,
+              7
+            ],
+            "better": 1,
+            "worse": 3
+          },
+          "win_rank": {
+            "eligible": 71,
+            "median": [
+              3.0,
+              3.0
+            ],
+            "top2": [
+              24,
+              24
+            ],
+            "top8": [
+              71,
+              71
+            ],
+            "better": 0,
+            "worse": 0
+          },
+          "conditional_second_rank": {
+            "eligible": 71,
+            "median": [
+              4.0,
+              4.0
+            ],
+            "top2": [
+              16,
+              16
+            ],
+            "top8": [
+              71,
+              71
+            ],
+            "better": 1,
+            "worse": 0
+          },
+          "distinct_first_rank": {
+            "eligible": 71,
+            "median": [
+              16.0,
+              16.0
+            ],
+            "top2": [
+              0,
+              0
+            ],
+            "top8": [
+              0,
+              0
+            ],
+            "better": 0,
+            "worse": 0
+          }
+        },
+        "support": {
+          "named_cross_co_start": {
+            "1": 24,
+            "3": 5,
+            "5": 2
+          },
+          "same_named_role_co_start": {
+            "1": 14,
+            "3": 2,
+            "5": 0
+          }
+        }
+      },
+      "same": {
+        "races": 131,
+        "caps": {
+          "1": {
+            "exact": [
+              28,
+              28
+            ],
+            "ordered_pair": [
+              60,
+              60
+            ],
+            "rescued": 0,
+            "lost": 0,
+            "paired_delta_95pp": [
+              0.0,
+              0.0
+            ]
+          },
+          "4": {
+            "exact": [
+              73,
+              73
+            ],
+            "ordered_pair": [
+              98,
+              98
+            ],
+            "rescued": 0,
+            "lost": 0,
+            "paired_delta_95pp": [
+              0.0,
+              0.0
+            ]
+          },
+          "8": {
+            "exact": [
+              90,
+              90
+            ],
+            "ordered_pair": [
+              109,
+              109
+            ],
+            "rescued": 0,
+            "lost": 0,
+            "paired_delta_95pp": [
+              0.0,
+              0.0
+            ]
+          },
+          "displayed": {
+            "exact": [
+              73,
+              73
+            ],
+            "ordered_pair": [
+              98,
+              98
+            ],
+            "rescued": 0,
+            "lost": 0,
+            "paired_delta_95pp": [
+              0.0,
+              0.0
+            ]
+          }
+        },
+        "rank": {
+          "pair_rank": {
+            "eligible": 131,
+            "median": [
+              2.0,
+              2.0
+            ],
+            "top2": [
+              92,
+              92
+            ],
+            "top8": [
+              119,
+              119
+            ],
+            "better": 0,
+            "worse": 0
+          },
+          "win_rank": {
+            "eligible": 131,
+            "median": [
+              2.0,
+              2.0
+            ],
+            "top2": [
+              98,
+              98
+            ],
+            "top8": [
+              131,
+              131
+            ],
+            "better": 0,
+            "worse": 0
+          },
+          "conditional_second_rank": {
+            "eligible": 131,
+            "median": [
+              1.0,
+              1.0
+            ],
+            "top2": [
+              126,
+              126
+            ],
+            "top8": [
+              131,
+              131
+            ],
+            "better": 0,
+            "worse": 0
+          },
+          "distinct_first_rank": {
+            "eligible": 131,
+            "median": [
+              2.0,
+              2.0
+            ],
+            "top2": [
+              88,
+              88
+            ],
+            "top8": [
+              118,
+              118
+            ],
+            "better": 0,
+            "worse": 0
+          }
+        },
+        "support": {
+          "named_cross_co_start": {
+            "1": 0,
+            "3": 0,
+            "5": 0
+          },
+          "same_named_role_co_start": {
+            "1": 0,
+            "3": 0,
+            "5": 0
+          }
+        }
+      },
+      "cross_missing_top8_distinct_winner_and_second_below_top2": {
+        "races": 33,
+        "caps": {
+          "1": {
+            "exact": [
+              0,
+              0
+            ],
+            "ordered_pair": [
+              0,
+              0
+            ],
+            "rescued": 0,
+            "lost": 0,
+            "paired_delta_95pp": [
+              0.0,
+              0.0
+            ]
+          },
+          "4": {
+            "exact": [
+              0,
+              0
+            ],
+            "ordered_pair": [
+              0,
+              0
+            ],
+            "rescued": 0,
+            "lost": 0,
+            "paired_delta_95pp": [
+              0.0,
+              0.0
+            ]
+          },
+          "8": {
+            "exact": [
+              0,
+              0
+            ],
+            "ordered_pair": [
+              0,
+              0
+            ],
+            "rescued": 0,
+            "lost": 0,
+            "paired_delta_95pp": [
+              0.0,
+              0.0
+            ]
+          },
+          "displayed": {
+            "exact": [
+              0,
+              0
+            ],
+            "ordered_pair": [
+              0,
+              0
+            ],
+            "rescued": 0,
+            "lost": 0,
+            "paired_delta_95pp": [
+              0.0,
+              0.0
+            ]
+          }
+        },
+        "rank": {
+          "pair_rank": {
+            "eligible": 33,
+            "median": [
+              20.0,
+              20.0
+            ],
+            "top2": [
+              0,
+              0
+            ],
+            "top8": [
+              0,
+              0
+            ],
+            "better": 1,
+            "worse": 3
+          },
+          "win_rank": {
+            "eligible": 33,
+            "median": [
+              4.0,
+              4.0
+            ],
+            "top2": [
+              0,
+              0
+            ],
+            "top8": [
+              33,
+              33
+            ],
+            "better": 0,
+            "worse": 0
+          },
+          "conditional_second_rank": {
+            "eligible": 33,
+            "median": [
+              4.0,
+              4.0
+            ],
+            "top2": [
+              0,
+              0
+            ],
+            "top8": [
+              33,
+              33
+            ],
+            "better": 1,
+            "worse": 0
+          },
+          "distinct_first_rank": {
+            "eligible": 33,
+            "median": [
+              21.0,
+              21.0
+            ],
+            "top2": [
+              0,
+              0
+            ],
+            "top8": [
+              0,
+              0
+            ],
+            "better": 0,
+            "worse": 0
+          }
+        },
+        "support": {
+          "named_cross_co_start": {
+            "1": 15,
+            "3": 4,
+            "5": 2
+          },
+          "same_named_role_co_start": {
+            "1": 9,
+            "3": 2,
+            "5": 0
+          }
+        }
+      },
+      "unmapped_or_individual": {
+        "races": 38,
+        "caps": {
+          "1": {
+            "exact": [
+              2,
+              2
+            ],
+            "ordered_pair": [
+              9,
+              9
+            ],
+            "rescued": 0,
+            "lost": 0,
+            "paired_delta_95pp": [
+              0.0,
+              0.0
+            ]
+          },
+          "4": {
+            "exact": [
+              10,
+              10
+            ],
+            "ordered_pair": [
+              16,
+              16
+            ],
+            "rescued": 0,
+            "lost": 0,
+            "paired_delta_95pp": [
+              0.0,
+              0.0
+            ]
+          },
+          "8": {
+            "exact": [
+              18,
+              18
+            ],
+            "ordered_pair": [
+              25,
+              25
+            ],
+            "rescued": 0,
+            "lost": 0,
+            "paired_delta_95pp": [
+              0.0,
+              0.0
+            ]
+          },
+          "displayed": {
+            "exact": [
+              11,
+              11
+            ],
+            "ordered_pair": [
+              17,
+              17
+            ],
+            "rescued": 0,
+            "lost": 0,
+            "paired_delta_95pp": [
+              0.0,
+              0.0
+            ]
+          }
+        },
+        "rank": {},
+        "support": null
+      }
+    },
+    "design_sha256": "fa2b72e18d83b5de38abda3ce2ab15eb37f1369edefc5003791f70e8ec5a2594",
+    "coefficient_sha256": "79bb9e20608f8aaf409325acac19c18996eb04d60ebd632a7b11c6a157c3d20b",
+    "historical_forecast_sha256": "5bf09242380a2ba12aefcd7a81c4d19dff41709fee15fb2dd1b0650e112cdf54",
+    "recent_forecast_sha256": "f73dfadd9532e3f2c6ddcd52dfe84e176e6f87c161237ebbcb5e576e65c28e5e",
+    "diagnostic_scope": "Split based on actual lines/ordering only after predictions sealed. No use at application time."
+  },
+  "fit_compatible_field_note": "n_active_history_days in the original frozen local receipt counts races, not days; this summary labels it correctly.",
+  "local_sha256": {
+    "design.json": "fa2b72e18d83b5de38abda3ce2ab15eb37f1369edefc5003791f70e8ec5a2594",
+    "fit.json": "79bb9e20608f8aaf409325acac19c18996eb04d60ebd632a7b11c6a157c3d20b",
+    "historical-freeze.json": "982256f8ccbe1e8cbd9b58e023b9f62445b13f5090643c9f56261a4b0e8cf6c8",
+    "recent-freeze.json": "3aba26840eaf2a4c7ca45ecd4f51b32e24dfd40ddc8023cee8ab80c0b758a044",
+    "results.json": "23495116250d45bf4329f3c4de113588947667d0f087a061a966fa8bc4d330b4",
+    "trial.py": "4a2d53600ac2396568db085da3a8d9e57b048288d5c18e6010d5502d9359c020",
+    "score.py": "b066475791dad68e9987cca245c327d719b0e3487960a2d3c41b3dc3f0c7c2e8"
+  }
+}

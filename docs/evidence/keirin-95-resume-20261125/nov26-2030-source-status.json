@@ -1,0 +1,77 @@
+{
+  "matsuyama-after-meeting-113000": {
+    "checked_to_utc": "2026-11-25T11:30:02.185537+00:00",
+    "date": "2026-11-26",
+    "kdreams_calendar_lists_matsuyama": false,
+    "kdreams_calendar_meetings_visible": 7,
+    "kdreams_visible_matsuyama_races": 0,
+    "meeting": "松山",
+    "official_calendar_lists_matsuyama": true,
+    "official_entry_state": "OFFICIAL_SCHEDULE_IDENTITY_MISMATCH",
+    "official_exact_unpublished_message_confirmed": true,
+    "official_matsuyama_programme_races": 0,
+    "official_source_projection": {
+      "syusouDispFlag": 0
+    },
+    "operator": "normal source readback once",
+    "same_race_scope_confirmed": false,
+    "source_receipts": {
+      "kdreams-day": {
+        "observed_at": "2026-11-25T11:30:02.060750+00:00",
+        "source_sha256": "b0dfb74731262532ad0ffceca426fd1d675a8da1220f0260c046fd0cb76ce9d7"
+      },
+      "official-day": {
+        "observed_at": "2026-11-25T11:30:00.757742+00:00",
+        "source_sha256": "8c13d69e320a393fe1798ec8ee796e281c178cb281061fdf0e19a161b654fb77"
+      },
+      "official-matsuyama": {
+        "observed_at": "2026-11-25T11:30:01.227825+00:00",
+        "source_sha256": "f258eab61a287fe2049b1cad347333db8fe99da5c700ba208c3ed2c7297d8a73"
+      }
+    },
+    "venue_code": "75"
+  },
+  "known-first-h-113002": {
+    "attempted_venues": 7,
+    "date": "2026-11-26",
+    "expected_venues": 7,
+    "only_first_race_at_each_venue": true,
+    "states": {
+      "31": {
+        "observed_at": "2026-11-25T11:30:02.860194+00:00",
+        "sha256": "294a2ffe17f087581c50d27f3e78faf27502d69e9f36882cd1bdf8a8c7458929",
+        "state": "NETKEIRIN_COMPLETE_SOURCED_ENTRANTS_MISSING"
+      },
+      "38": {
+        "observed_at": "2026-11-25T11:30:03.339147+00:00",
+        "sha256": "84e36ae30283ae8f363ea386acefec7d2b1ad7bf7fc029420e12a6322b210a55",
+        "state": "NETKEIRIN_COMPLETE_SOURCED_ENTRANTS_MISSING"
+      },
+      "46": {
+        "observed_at": "2026-11-25T11:30:03.776714+00:00",
+        "sha256": "a591307a5a7a6995b62c0f4040b2990271798370d959be8729739f50b2d99025",
+        "state": "NETKEIRIN_COMPLETE_SOURCED_ENTRANTS_MISSING"
+      },
+      "47": {
+        "observed_at": "2026-11-25T11:30:04.243035+00:00",
+        "sha256": "917453aee6ab04bd81379d4332a727267c22852742b36ff841cd4ec7f0705e58",
+        "state": "NETKEIRIN_COMPLETE_SOURCED_ENTRANTS_MISSING"
+      },
+      "51": {
+        "observed_at": "2026-11-25T11:30:04.538064+00:00",
+        "sha256": "8e7e15d93051adb80755d20e9e0bd227e2d020dd88e2b0de012d09bbba5dabb5",
+        "state": "NETKEIRIN_COMPLETE_SOURCED_ENTRANTS_MISSING"
+      },
+      "73": {
+        "observed_at": "2026-11-25T11:30:04.968540+00:00",
+        "sha256": "c7401d589fb58761a87ab430ebcb2e1478755399fef6b68b9f59275f59d3bc89",
+        "state": "NETKEIRIN_COMPLETE_SOURCED_ENTRANTS_MISSING"
+      },
+      "83": {
+        "observed_at": "2026-11-25T11:30:05.434725+00:00",
+        "sha256": "633cef08c99f014f578cade0586bb38bd55db4217a9d2b1e9bbbec23d7cacff1",
+        "state": "NETKEIRIN_COMPLETE_SOURCED_ENTRANTS_MISSING"
+      }
+    }
+  }
+}

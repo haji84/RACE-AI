@@ -1,0 +1,181 @@
+{
+  "source_sha256": "cd926c61c4d6e0a59a86e7869da12c1bd17dfc29be961744e7b3b5ec6d1c700c",
+  "incomparable_arms_by_method": {
+    "home-first": 33,
+    "timed-odds": 12
+  },
+  "interpretation": "A hindsight diagnostic choosing at most one existing arm at same budget per race. No usable selector knew the results. A missing verified arm retains the original. Excludes nonmatching baseline and shorter plans at each cap. Not an upper bound on new algorithms.",
+  "methods": 29,
+  "public_matches": 51,
+  "public_roster": 75,
+  "result_checked_at": "2026-11-25T11:08:30.281559+00:00",
+  "scope_sha256": "4db06cebeab469729f799e9533559270c61bae82548940ddf4a87677c35e8ad7",
+  "scopes": {
+    "all": {
+      "1": {
+        "any_arm_hits": 6,
+        "base_hits": 4,
+        "no_ordered_pair_in_any_arm": 40,
+        "no_winner_as_first_in_any_arm": 28,
+        "oracle_gain": 2,
+        "races": 51,
+        "with_verified_arm": 19
+      },
+      "4": {
+        "any_arm_hits": 18,
+        "base_hits": 16,
+        "no_ordered_pair_in_any_arm": 25,
+        "no_winner_as_first_in_any_arm": 14,
+        "oracle_gain": 2,
+        "races": 51,
+        "with_verified_arm": 19
+      },
+      "8": {
+        "any_arm_hits": 26,
+        "base_hits": 26,
+        "no_ordered_pair_in_any_arm": 20,
+        "no_winner_as_first_in_any_arm": 13,
+        "oracle_gain": 0,
+        "races": 51,
+        "with_verified_arm": 7
+      },
+      "displayed": {
+        "any_arm_hits": 21,
+        "base_hits": 19,
+        "no_ordered_pair_in_any_arm": 24,
+        "no_winner_as_first_in_any_arm": 14,
+        "oracle_gain": 2,
+        "races": 51,
+        "with_verified_arm": 19
+      }
+    },
+    "different_lines": {
+      "1": {
+        "any_arm_hits": 0,
+        "base_hits": 0,
+        "no_ordered_pair_in_any_arm": 16,
+        "no_winner_as_first_in_any_arm": 9,
+        "oracle_gain": 0,
+        "races": 16,
+        "with_verified_arm": 8
+      },
+      "4": {
+        "any_arm_hits": 2,
+        "base_hits": 2,
+        "no_ordered_pair_in_any_arm": 13,
+        "no_winner_as_first_in_any_arm": 5,
+        "oracle_gain": 0,
+        "races": 16,
+        "with_verified_arm": 8
+      },
+      "8": {
+        "any_arm_hits": 3,
+        "base_hits": 3,
+        "no_ordered_pair_in_any_arm": 11,
+        "no_winner_as_first_in_any_arm": 6,
+        "oracle_gain": 0,
+        "races": 16,
+        "with_verified_arm": 2
+      },
+      "displayed": {
+        "any_arm_hits": 3,
+        "base_hits": 3,
+        "no_ordered_pair_in_any_arm": 12,
+        "no_winner_as_first_in_any_arm": 5,
+        "oracle_gain": 0,
+        "races": 16,
+        "with_verified_arm": 8
+      }
+    },
+    "individual_or_no_line": {
+      "1": {
+        "any_arm_hits": 0,
+        "base_hits": 0,
+        "no_ordered_pair_in_any_arm": 2,
+        "no_winner_as_first_in_any_arm": 1,
+        "oracle_gain": 0,
+        "races": 2,
+        "with_verified_arm": 0
+      },
+      "4": {
+        "any_arm_hits": 0,
+        "base_hits": 0,
+        "no_ordered_pair_in_any_arm": 0,
+        "no_winner_as_first_in_any_arm": 0,
+        "oracle_gain": 0,
+        "races": 2,
+        "with_verified_arm": 0
+      },
+      "8": {
+        "any_arm_hits": 1,
+        "base_hits": 1,
+        "no_ordered_pair_in_any_arm": 0,
+        "no_winner_as_first_in_any_arm": 0,
+        "oracle_gain": 0,
+        "races": 2,
+        "with_verified_arm": 0
+      },
+      "displayed": {
+        "any_arm_hits": 0,
+        "base_hits": 0,
+        "no_ordered_pair_in_any_arm": 0,
+        "no_winner_as_first_in_any_arm": 0,
+        "oracle_gain": 0,
+        "races": 2,
+        "with_verified_arm": 0
+      }
+    },
+    "same_line": {
+      "1": {
+        "any_arm_hits": 6,
+        "base_hits": 4,
+        "no_ordered_pair_in_any_arm": 22,
+        "no_winner_as_first_in_any_arm": 18,
+        "oracle_gain": 2,
+        "races": 33,
+        "with_verified_arm": 11
+      },
+      "4": {
+        "any_arm_hits": 16,
+        "base_hits": 14,
+        "no_ordered_pair_in_any_arm": 12,
+        "no_winner_as_first_in_any_arm": 9,
+        "oracle_gain": 2,
+        "races": 33,
+        "with_verified_arm": 11
+      },
+      "8": {
+        "any_arm_hits": 22,
+        "base_hits": 22,
+        "no_ordered_pair_in_any_arm": 9,
+        "no_winner_as_first_in_any_arm": 7,
+        "oracle_gain": 0,
+        "races": 33,
+        "with_verified_arm": 5
+      },
+      "displayed": {
+        "any_arm_hits": 18,
+        "base_hits": 16,
+        "no_ordered_pair_in_any_arm": 12,
+        "no_winner_as_first_in_any_arm": 9,
+        "oracle_gain": 2,
+        "races": 33,
+        "with_verified_arm": 11
+      }
+    }
+  },
+  "source": {
+    "checked_at": "2026-11-25T11:08:30.281559+00:00",
+    "public_results_sha256": "c9367260bd9b142800d259001f92112d728360f14b7c9cc29ca601a22b512f89",
+    "public_roster_races": 75,
+    "registered_distinct": 42,
+    "registered_distinct_matched": 19,
+    "result_states": {
+      "held": 1,
+      "matched": 51,
+      "missing": 23
+    },
+    "roster_sha256": "c96f35a0c0a9e26c34a491d162674f40a47a2e5fd0ae19f4583c86653d6aeb31",
+    "unregistered": 33
+  }
+}
