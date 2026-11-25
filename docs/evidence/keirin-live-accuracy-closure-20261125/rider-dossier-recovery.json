@@ -1,0 +1,30 @@
+{
+  "day_jst": "2026-11-25",
+  "files": {
+    "national-dossiers.json": {
+      "bytes": 12567046,
+      "sha256": "7b996d5d022514167b89d8ee820c512167cca317ef2d4550a68e2febfb21e75e"
+    },
+    "official-current-registry.json": {
+      "bytes": 1578871,
+      "sha256": "5a64db31e466f4f9aac0c47811fa3dc791b45cf7c8d5f07b3742372a7285d8ba"
+    }
+  },
+  "history_end_day": "2026-11-22",
+  "history_start_day": "2025-10-01",
+  "numeric_finish_records": 211212,
+  "recovery_cipher_bytes": 2379986,
+  "recovery_cipher_sha256": "0082205b9e88caefc5f1e6d68843a6f600214056844f4913501f73c816fb16fb",
+  "registered_riders": 2416,
+  "riders_with_numeric_history": 2393,
+  "schema": "KEIRIN_RIDER_DOSSIER_RECOVERY_RECEIPT_V1",
+  "archive_path": "state/keirin/research/rider-dossiers/v1/2026-11-25/0082205b9e88caefc5f1e6d68843a6f600214056844f4913501f73c816fb16fb.sealed.json",
+  "receipt_path": "state/keirin/research/rider-dossiers/v1/2026-11-25/0082205b9e88caefc5f1e6d68843a6f600214056844f4913501f73c816fb16fb.receipt.json",
+  "archive_commit": "4a269de3357f6e5063b41f8051e91948879bb112",
+  "parent_commit": "0cac8de34e516553debcd804f0188a2302c10ac0",
+  "git_readback_at": "2026-11-25T15:01:04.987671+00:00",
+  "private_plaintext_uploaded": false,
+  "old_state_paths_modified": false,
+  "original_forecasts_modified": false,
+  "accuracy_improvement_proven": false
+}

@@ -1,0 +1,80 @@
+{
+  "schema": "KEIRIN_RIDER_HISTORY_PRIVATE_PUBLICATION_V1",
+  "source_commit": "db5086fa8e25433660dc363dc0fd3d2c1d460246",
+  "descriptive_groups": [
+    {
+      "group": "prospective",
+      "races": 10,
+      "rider_rows": 70,
+      "cipher_sha256": "c4e90563d344ee5f2b4b99b9e134c84aa7f995594049e41d8821c2442d3cfe60",
+      "created_at": "2026-11-25T14:55:36.531157+00:00",
+      "publication": {
+        "state": "KEIRIN_NOTE_ENCRYPTED_GIT_READBACK_VERIFIED",
+        "source_commit": "4c60ed8f597d6bf4ccd6970ba8e465df23fca3cd",
+        "entries": 155,
+        "provider_denied": false,
+        "covered_races": 403,
+        "priority_window_races": 22,
+        "private_plaintext_uploaded": false,
+        "production_state_key_used": false
+      }
+    },
+    {
+      "group": "retrospective",
+      "races": 57,
+      "rider_rows": 394,
+      "cipher_sha256": "6d30fa1ea9e361d7c0f392078bb35b1fae418074eb67ea785578b1b00814a1e2",
+      "created_at": "2026-11-25T14:56:59.852093+00:00",
+      "publication": {
+        "state": "KEIRIN_NOTE_ENCRYPTED_GIT_READBACK_VERIFIED",
+        "source_commit": "c7fa82fca28d95189c249006ec0d8871dcd8e4ad",
+        "entries": 156,
+        "provider_denied": false,
+        "covered_races": 403,
+        "priority_window_races": 22,
+        "private_plaintext_uploaded": false,
+        "production_state_key_used": false
+      }
+    },
+    {
+      "group": "recovered-eight",
+      "races": 8,
+      "rider_rows": 52,
+      "cipher_sha256": "4ae87240f5f8d3d84236acfa7cd072ed1000c37cb9a632585fd0df74b8afd509",
+      "created_at": "2026-11-25T14:57:12.512112+00:00",
+      "publication": {
+        "state": "KEIRIN_NOTE_ENCRYPTED_GIT_READBACK_VERIFIED",
+        "source_commit": "a6b6fc3f1bb429e9ace90575655d24eb73eb3be1",
+        "entries": 157,
+        "provider_denied": false,
+        "covered_races": 403,
+        "priority_window_races": 22,
+        "private_plaintext_uploaded": false,
+        "production_state_key_used": false
+      }
+    }
+  ],
+  "archive": {
+    "cipher_sha256": "58397a7b5c8f5683d42dacd65450aadbe9af44fd489c3d46f182cfe177d4b28c",
+    "archive_sha256": "8e324becef7abd7903823c1e4e76a915eef7a2f10837ffacc48ce7fbeaea8339",
+    "compressed_bytes": 4722879,
+    "source_files": 339,
+    "expanded_bytes": 42401836,
+    "publication": {
+      "state": "KEIRIN_NOTE_ENCRYPTED_GIT_READBACK_VERIFIED",
+      "source_commit": "29ea0592830ef958022200da2d936b837f749e2c",
+      "entries": 158,
+      "provider_denied": false,
+      "covered_races": 403,
+      "priority_window_races": 22,
+      "private_plaintext_uploaded": false,
+      "production_state_key_used": false
+    }
+  },
+  "recovery_prepared_cipher_sha256": "0082205b9e88caefc5f1e6d68843a6f600214056844f4913501f73c816fb16fb",
+  "private_plaintext_uploaded": false,
+  "existing_owner_recipient_unchanged": true,
+  "original_forecasts_modified": false,
+  "pre_cutoff_performance_increment": 0,
+  "accuracy_improvement_proven": false
+}

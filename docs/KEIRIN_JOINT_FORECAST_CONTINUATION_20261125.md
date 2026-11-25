@@ -5,6 +5,7 @@
 ## main と実配信
 
 - [PR #330](https://github.com/haji84/RACE-AI/pull/330)を検査・独立レビュー後にmainへ統合。選手名から詳細、選手切替、全着順確率、2/3着以内、期待着順、資料の時点を表示する。比較Bの資料と保存出走表を分け、未知の能力を架空のスコアで補完しない。
+- [PR #334](https://github.com/haji84/RACE-AI/pull/334)で期間別・直近走別の着順履歴を追加。main `ebc22ed82a03edad6eec1f90e31b4c31906bcb76`、Pages `681edf78d15b6c33033bee6b9d129553ccc6f4fd`で14資産を実HTTP照合した。独立レビュー、関連Node65件、Chromium5件とPython note6件が成功。[配備](evidence/keirin-live-accuracy-closure-20261125/rider-history-pages-publication.json)・[HTTP照合](evidence/keirin-live-accuracy-closure-20261125/rider-history-pages-live-readback.json)
 - 全確率は既存 `JointFinish` の一つの同時分布から導出。上位8候補を100％に再正規化しない。全員完走・同着なしの条件付き、未校正の研究予測と明示する。旧A/B・C方針や本番重みの変更は行っていない。
 - 同一レース、全車、氏名、既知の登録番号、入力の実バイトSHA、資料SHA、生成・取得・締切の時点を照合する。不一致は保留。Pythonの `80.0` をブラウザで `80` に変換してハッシュを変えないよう、保存JSONの該当部分を構造に沿って取得する。
 - [GitHub Pages](https://haji84.github.io/RACE-AI/)の既存app/styleへ組込み、公開元の14資産をHTTPで読戻した。既存暗号原本・BOAT表示・asset範囲を保全。所有者の既存閲覧用capabilityを使う。[配備](evidence/keirin-live-accuracy-closure-20261125/pages-publication.json)・[HTTP確認](evidence/keirin-live-accuracy-closure-20261125/pages-live-readback.json)。新たなCloudflare/Vercel・鍵・課金・バックエンドは導入していない。
@@ -71,11 +72,15 @@ A級3班・L級・9車等は改善していない。区分を見て今回のモ�
 
 全国の現在登録名簿246ページ・10区分を通常取得し、2,416の公式登録番号を確認した。既存 `IdentityIndex` と `HistoryBook` を使い、2,416人の基礎カルテを生成・私用領域で読戻し。2,393人に211,212件の数値着順があり、23人は観測着順なし。取得範囲は約14か月で、完全な3年分ではない。4,421件の名寄せ不足、2,718件の事故等・非数値着順、178件の結果不足を分けて保持する。今回取得した登録級班と過去走の級班を分離し、登録名簿を過去時点の入力として認証しない。[名簿の検証](evidence/keirin-live-accuracy-closure-20261125/official-registry-verification.json)・[カルテの実集計](evidence/keirin-live-accuracy-closure-20261125/basic-dossiers.json)
 
+全カルテ、登録名簿、通常取得資料・出典・生成コードの339ファイル（展開42,401,836バイト）を既存所有者宛ての暗号化履歴へ保全した。表示用3資料は75件516人を含み、締切前実績の増分は0。生資料・カルテの平文を公開Gitへ追加していない。[暗号化保管と表示配信](evidence/keirin-live-accuracy-closure-20261125/rider-history-publication.json)
+
+[PR #335](https://github.com/haji84/RACE-AI/pull/335)を通常保護mergeし、[本番run 45641179956](https://github.com/haji84/RACE-AI/actions/runs/45641179956)で既存の所有者RSA鍵からカルテと名簿を別runnerへ実復元した。2ファイルの実SHA、全登録番号、取得時点、2,416人／履歴あり2,393人／211,212着順を確認。平文はrunner私用0700領域の0600ファイルで、公開artifactは件数とSHAだけ。新しい鍵・権限・保存先サービスは使っていない。これは実際の所有者鍵を使う復元であり、合成テストやローカルの復号代替とは区別する。[暗号文の参照](evidence/keirin-live-accuracy-closure-20261125/rider-dossier-recovery.json)・[独立実復元](evidence/keirin-live-accuracy-closure-20261125/rider-dossier-independent-readback.json)
+
 当日75レース516人も、保存した出走表と新しい掲載資料の氏名・車番・期別・府県を照合して公式番号へ結んだ。元の出走表の実バイトSHAへ結ぶ別の履歴資料を作り、全期間・3年・1年・6/4/3/1か月と直近30/20/10/5走を既存集計から表示できる。516人・46,028着順で画面モデルと保存予想不変を検査した。すべて締切後の資料であり、締切前予想の入力や実績へ追加しない。観測走数と欠損・取得時点を示し、実績率を今回の予測確率や能力値として扱わない。[生成と欠損](evidence/keirin-live-accuracy-closure-20261125/rider-history-build.json)・[実データの表示検査](evidence/keirin-live-accuracy-closure-20261125/rider-history-display-readback.json)
 
 1. 固定した未来10件と、先行作業で固定された11月26日の比較群を、同一入力と点数で継続採点する。新しい情報で元の予想を書き換えず、公開旧Bと今回の順位比較を混同しない。
 2. 締切後に補った8件を次回は締切前に収集し、独立取得できない登録番号・履歴・コメントを項目別に補う。長期能力と直近の調子、全戦術の試行分母、映像の連続イベント、バンク・気象・連係への接続は全条件で完成していない。
 3. 着順と展開の採点、履歴更新、改善候補の採否までの全国定期運転は未達。今回の未来原本に存在しない展開を事後追加しない。未知の原因は原因候補として扱う。
-4. 独立した複数開催日でのTop4／Top2・校正・区分別有効性を確認してから採用を判断する。3年分履歴の完全復元や、旧333私有ファイルの復元は達成していない。
+4. 独立した複数開催日でのTop4／Top2・校正・区分別有効性を確認してから採用を判断する。今回の全国基礎カルテの取得元は約14か月の2DBで、先行作業の3年履歴や333ファイル復元の記録とは別。全期間の完全性を今回の集計で証明しない。
 
 再実行では平文・鍵を公開Gitへ入れない。保存済みモデルを読み込む入口は `scripts.keirin_frozen_accuracy_study` とする。モデルSHAは外部receiptに固定し、評価済み出力へ上書きしない。旧ドライバを直接呼ぶ低水準APIだけで固定版の真正性を主張しない。main保護、旧予想、暗号原本と別runner、Cloudflare/Vercel禁止を継承する。
