@@ -1,0 +1,52 @@
+{
+  "schema": "KEIRIN_NOTE_COHORT_REAL_READBACK_CHECK_V1",
+  "checked_at": "2026-11-25T13:23:54.348825+00:00",
+  "authenticated_note_index_commit": "54f713d386b936f2c0f8a494fa12fc68d67d2a05",
+  "prior_day_packets": 4,
+  "prior_day_checks": {
+    "MATCHED": 53,
+    "HOLD": 1,
+    "PENDING": 1
+  },
+  "prior_day_case": {
+    "id": "202611252611",
+    "cohort_coverage": {
+      "checked_at": "2026-11-25T13:21:59.047Z",
+      "note_readback_sha256": "13c13780718ca16ef6b7f8a7fcbe225fbb699b0012d319c2ea23bd11c9e8d66c",
+      "note_index_sha256": "774ec0f739b30e1f6078dd85077c491328c392c9cc7f1a0f51af3b2ab32fdbb5",
+      "official_result_records_sha256": "649ad144af55e0d9b2e2d2bc5af2df85cc5f54952c3ed12305984bc4342416fb",
+      "note_matched_races": 1,
+      "official_roster_verified_races": 1,
+      "eligible_common_races": 1,
+      "eligible_result_states": {
+        "matched": 1
+      },
+      "eligible_hold_reasons": {},
+      "eligible_matched_pct": 100.0
+    },
+    "fixed_point_hits": {
+      "1": false,
+      "4": true,
+      "8": true
+    }
+  },
+  "next_day": {
+    "checked_at": "2026-11-25T13:21:59.529Z",
+    "note_readback_sha256": "764fb9fd4ad2170876f871ee71e3b74cdd5a23b165119891383c03708c9cd411",
+    "note_index_sha256": "774ec0f739b30e1f6078dd85077c491328c392c9cc7f1a0f51af3b2ab32fdbb5",
+    "official_result_records_sha256": null,
+    "note_matched_races": 0,
+    "official_roster_verified_races": 0,
+    "eligible_common_races": 84,
+    "eligible_result_states": {
+      "missing": 84
+    },
+    "eligible_hold_reasons": {},
+    "eligible_matched_pct": 0.0,
+    "fixed_budget_comparisons": 5,
+    "authenticated_predeadline_registrations": 84,
+    "matching_results_confirmed": 0,
+    "active_publication_changed": false
+  },
+  "scope": "real archive readback and one earlier already known case; next day has no settled observations"
+}

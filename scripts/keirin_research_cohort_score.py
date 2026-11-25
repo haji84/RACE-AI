@@ -4,8 +4,12 @@ The manifest identifies each native forecast, its receipt, and the corresponding
 local Git commit and docs/evidence path. Omit both roster and results to verify
 registration before the public result assets exist. The public roster identifies
 starters by their car numbers.
+
+Alternatively use a local owner note result readback and its Git index commit.
+Reparse saved official result records to verify the result-side roster and cutoff.
 """
 import argparse
+from base64 import b64decode
 from collections import Counter
 from datetime import date
 import json
@@ -112,6 +116,97 @@ def _public_results(roster_raw, results_raw, arm):
     return entries, outcomes, winners, results['checked_at']
 
 
+def _official_note_context(raw, day):
+    from race_ai import keirin_official_public_source as official
+    from scripts.keirin_official_day_pipeline import restore_private_snapshot_json
+
+    result = {}
+    for key, row in keirin_forward_score.unique_races(json.loads(raw)).items():
+        need(key.startswith(day.replace('-', '')), 'NOTE_COHORT_OFFICIAL_DAY_MISMATCH')
+        row = restore_private_snapshot_json(row)
+        if not official.reparse_race_result(row) or row['state'] != 'OFFICIAL_FINAL':
+            continue
+        final = row['result']
+        if len(final['winning_triples']) != 1:
+            continue
+        race, _ = official._evidence_race(row['provenance']['schedule_evidence'], key)
+        result[key] = dict(cutoff_at=final['official_cutoff_at'],
+                           starters={rider['car'] for rider in race['starters']},
+                           winning_triple=final['winning_triples'][0])
+    return result
+
+
+def _note_result_scope(rows, witnesses, day, raw, index_raw, index_time, official_raw=None):
+    from race_ai import keirin_note_cohort_results, keirin_note_feed, keirin_note_view
+
+    archive = json.loads(raw)
+    index = json.loads(index_raw)
+    checks = keirin_note_feed.checked_result_checks(index.get('result_checks', {}))
+    daily_checks = {key: row for key, row in checks.items() if key.startswith(day.replace('-', ''))}
+    packets = [entry for entry in index['entries'] if entry['kind'] == 'results' and day in entry['days']]
+    need(index['schema'] == keirin_note_feed.INDEX and index['repository'] == keirin_note_feed.REPO
+         and daily_checks == archive['result_checks'] and len(packets) == len(archive['packets'])
+         and instant(index_time) <= instant(archive['checked_at']), 'NOTE_COHORT_INDEX_READBACK_MISMATCH')
+    decoded = archive.pop('source_packets')
+    need(type(decoded) is list and len(decoded) == len(packets), 'NOTE_COHORT_SOURCE_PROOFS_REQUIRED')
+    file_path = f'data/{day}/research_results.json'
+    for entry, encoded, delta in zip(packets, decoded, archive['packets'], strict=True):
+        need(type(encoded) is str and 0 < len(encoded) <= keirin_note_feed.MAX_WIRE,
+             'NOTE_COHORT_SOURCE_PROOF_SIZE')
+        plain = b64decode(encoded, validate=True)
+        need(len(plain) <= keirin_note_view.MAX_VIEW and ledger._digest(plain) == entry['source_content_sha256'],
+             'NOTE_COHORT_SOURCE_PROOF_MISMATCH')
+        file = json.loads(plain)['files'][file_path]
+        contents = file['text'].encode()
+        need(len(contents) == file['bytes'] and ledger._digest(contents) == file['sha256']
+             and json.loads(contents) == delta, 'NOTE_COHORT_DECODED_PACKET_MISMATCH')
+    official = _official_note_context(official_raw, day) if official_raw is not None else {}
+    cohort = {}
+    exclusions = Counter()
+    for key, row in sorted(rows.items()):
+        proof = official.get(key)
+        if proof and proof['starters'] != set(row['starter_cars']):
+            exclusions['official_starter_numbers_changed'] += 1
+        elif proof and witnesses[key] >= instant(proof['cutoff_at']):
+            exclusions['witness_at_or_after_official_cutoff'] += 1
+        else:
+            cohort[key] = dict(starter_cars=row['starter_cars'], cutoff_at=row['official_cutoff_at'],
+                               result_cutoff_at=proof['cutoff_at'] if proof else None)
+    outcomes, winners, checked_at = keirin_note_cohort_results.admit(archive, day=day, registered=cohort)
+    for key, order in list(winners.items()):
+        if order != official[key]['winning_triple']:
+            outcomes[key] = dict(state='held', reason='official_note_order_disagreement')
+            del winners[key]
+    states = Counter(outcomes.get(key, {}).get('state', 'missing') for key in cohort)
+    holds = Counter(row['reason'] for row in outcomes.values() if row['state'] == 'held')
+    proof = dict(checked_at=checked_at, note_readback_sha256=ledger._digest(raw), note_index_sha256=ledger._digest(index_raw),
+                 official_result_records_sha256=ledger._digest(official_raw) if official_raw is not None else None,
+                 note_matched_races=sum(row['status'] == 'MATCHED' for key, row in daily_checks.items() if key in rows),
+                 official_roster_verified_races=len(official.keys() & cohort.keys()),
+                 eligible_common_races=len(cohort), eligible_result_states=dict(states), eligible_hold_reasons=dict(holds),
+                 eligible_matched_pct=round(100 * len(winners) / len(cohort), 4) if cohort else None)
+    return cohort.keys(), winners, exclusions, proof
+
+
+def _note_comparison(manifest, directory, read_commitment, baseline, challengers, registered, exclusions, report):
+    revision = manifest['note_index_commit']
+    need(ledger._sha(revision, 40), 'NOTE_COHORT_INDEX_COMMIT')
+    index_time, index_raw = read_commitment(revision, 'index.json')
+    raw = (directory / manifest['note_results']).read_bytes()
+    official_raw = ((directory / manifest['official_result_records']).read_bytes()
+                    if 'official_result_records' in manifest else None)
+    witness = max(arm['witness'] for arm in [baseline, *challengers])
+    cohort, winners, excluded, proof = _note_result_scope(
+        {key:baseline['rows'][key] for key in registered}, dict.fromkeys(registered, witness), baseline['day'],
+        raw, index_raw, index_time, official_raw,
+    )
+    return dict(report, status='OWNER_NOTE_TRIFECTA_CHECKED', note_index_commit=revision, **proof,
+                result_scope='owner-only archived 3T consensus requires a reparsed official result for scoring',
+                exclusions=dict(exclusions + excluded), uncertainty='Wilson intervals describe individual race hits on this date',
+                comparisons={arm['method']: {cap: _compare(cohort, winners, baseline, arm, cap) for cap in CAPS}
+                             for arm in challengers})
+
+
 def _compare(registered, settled, baseline, arm, cap):
     earlier = baseline['rows']
     later = arm['rows']
@@ -190,6 +285,11 @@ def collect(manifest, directory, read_commitment):
     report = dict(schema='KEIRIN_RESEARCH_COHORT_COUNTS_V1', date=baseline['day'], original_registered=len(race_ids),
                   witness='local Git commit clock and native forecast digest', commitments=metadata,
                   starter_evidence='car_numbers_only', registered_without_publication=len(registered))
+    if 'note_results' in manifest:
+        need('roster' not in manifest and 'results' not in manifest, 'COHORT_RESULT_SOURCE_MIXED')
+        return _note_comparison(manifest, directory, read_commitment, baseline, challengers, registered, exclusions, report)
+    need('note_index_commit' not in manifest and 'official_result_records' not in manifest,
+         'COHORT_REQUIRES_NOTE_READBACK')
     need(('roster' in manifest) == ('results' in manifest), 'COHORT_REQUIRES_BOTH_PUBLIC_FILES')
     if 'roster' not in manifest:
         return dict(report, status='AWAITING_PUBLIC_ROSTER_AND_RESULTS', exclusions=dict(exclusions))

@@ -441,7 +441,7 @@
     need(typeof value==='string'&&value.length>0&&value.length<=max&&value.length%4===0&&!/[^A-Za-z0-9+/=]/.test(value));
     const binary=atob(value);need(btoa(binary)===value);return Uint8Array.from(binary,c=>c.charCodeAt(0));
   }
-  async function openCipher(bytes,{cipherSha,key}){
+  async function openCipher(bytes,{cipherSha,key,onSource}){
     need(bytes instanceof Uint8Array&&bytes.length<=90*1024*1024&&hex(cipherSha)&&await digest(bytes)===cipherSha);
     const envelope=JSON.parse(new TextDecoder('utf-8',{fatal:true}).decode(bytes));
     need(record(envelope)&&Object.keys(envelope).sort().join(',')==='ciphertext,header,nonce');
@@ -453,7 +453,9 @@
     const aad=encoder.encode(JSON.stringify({schema:h.schema,source_content_sha256:h.source_content_sha256}));
     const plain=new Uint8Array(await apiCrypto().subtle.decrypt({name:'AES-GCM',iv:nonce,additionalData:aad,tagLength:128},imported,encrypted));
     need(plain.length<=LIMIT&&await digest(plain)===h.source_content_sha256);
-    return decodePacket(JSON.parse(new TextDecoder('utf-8',{fatal:true}).decode(plain)),cipherSha);
+    const result=await decodePacket(JSON.parse(new TextDecoder('utf-8',{fatal:true}).decode(plain)),cipherSha);
+    if(onSource)onSource(plain);
+    return result;
   }
   return {openPacket,openCipher,rows,historyRows,matchesHistory,historyPage,forecast,frozenArm,displayedPredictions,compare,summarize,allocate,resultUpdates,checkedDiagnostics,combineFrozen,mergeNationwide,nationwideSemantic,attachNationwide,safeUrl,digest,clock,utc,day,SCHEMA};
 });
