@@ -1,6 +1,6 @@
 {
   "schema": "KEIRIN_MAC_HANDOFF_READBACK_V1",
-  "checked_at": "2026-11-25T17:55:44.572443+00:00",
+  "checked_at": "2026-11-25T18:11:27.806764+00:00",
   "main_commit": "b7dd5e3bcabb1cda4fab18753551563d5d8bd839",
   "transferred_draft_commit": "4d61e0d6fda0f1e409b2066d763af01fecb770f7",
   "official_history_review": {
@@ -165,5 +165,25 @@
     "last_cycle_assets_reprocessed": 0,
     "last_cycle_reviewed_observations": 0,
     "reboot_and_24_hour_acceptance": false
+  },
+  "later_existing_official_sp_run": {
+    "run": 45669922501,
+    "day_jst": "2026-11-26",
+    "official_roster_races": 84,
+    "new_A_B_git_archived": 3,
+    "second_runner_cipher_verified": 3,
+    "published_originals": 3,
+    "RSA_private_decryption_verified": false,
+    "paired_comparable_races": 0,
+    "all_prediction_coverage_complete": false
+  },
+  "pages_growth_release": {
+    "pull_request": 340,
+    "protected_main_commit": "19acd611ff5f981e1d910b840bc46d5f5d157761",
+    "pages_commit": "f1e5ede450425890cd9a82a606ed3b1aab80d5e2",
+    "deployment_run": 45671989202,
+    "manifest_sha256": "ef0e5ff55c378d7ebc6092091944a032bb30234048ac08f26eb215106d5707cb",
+    "http_assets_verified": 73,
+    "iphone_safari_verified": false
   }
 }
