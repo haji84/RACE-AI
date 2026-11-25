@@ -1,0 +1,15 @@
+{
+  "schema": "KEIRIN_REPLAY_GROWTH_V1",
+  "day": "2026-11-25",
+  "race": "武雄1R",
+  "frames": 12,
+  "riders": 6,
+  "agreed": 65,
+  "correct": 46,
+  "incorrect": 7,
+  "abstained": 12,
+  "unscorable": 7,
+  "official_finish_positions": 6,
+  "trial_training_segments": 2,
+  "production_weights_promoted": false
+}

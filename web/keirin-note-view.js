@@ -155,7 +155,7 @@
     panel.hidden=!data||!reviewedGrowth;
     if(panel.hidden){panel.open=false;content.textContent='';return;}
     if(content.hasChildNodes())return;
-    const {historical,forward}=reviewedGrowth;
+    const {historical,forward,replay}=reviewedGrowth;
     const interval=key=>historical.intervals[key].map(value=>signedGrowth(value*100,2)).join('〜')+'ポイント';
     content.innerHTML=`<section aria-labelledby="kn-growth-historical"><h2 id="kn-growth-historical">既知期間の再現</h2>
       <p class="kn-small">${esc(historical.from)}〜${esc(historical.to)} · ${historical.races.toLocaleString('ja-JP')}件</p>
@@ -167,6 +167,10 @@
       <p>原本を別の実行環境で復号し、2媒体で一致した結果を同じ点数で採点しました。</p>
       ${growthTable(forward.hits,'kn-growth-forward')}
       <p class="kn-small">主催者による締切・公式結果の認証は未確認です。</p></section>
+      <section aria-labelledby="kn-growth-replay"><h2 id="kn-growth-replay">映像検証</h2>
+      <p class="kn-small">${esc(replay.day)} · ${esc(replay.race)} · ${replay.frames}フレーム・${replay.riders}車</p>
+      <p>追跡結果を伏せて別々に行ったAI判読が一致した${replay.agreed}件を照合しました。車番追跡は一致${replay.correct}件、誤り${replay.incorrect}件、判定保留${replay.abstained}件でした。判読できなかった${replay.unscorable}件は集計から外しました。</p>
+      <p>公式着順は${replay.official_finish_positions}車分を別に照合しました。映像で確認した動き${replay.trial_training_segments}件を試験学習に使用し、本番採用は保留です。</p></section>
       <p class="kn-growth-decision">比較Bの採用は保留です。精度向上を判定するには、未使用の複数開催日での比較が必要です。</p>`;
   }
   function renderCards(){

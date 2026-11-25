@@ -27,6 +27,9 @@ test('the note bundle contains only the reviewed growth aggregates',()=>{
       intervals:{top4_3t:paired.top4_3t,top2_2t:paired.top2_2t}},
     forward:{day:'2026-11-25',registered:10,matched:10,
       hits:hitPairs({top1_3t:2,top4_3t:3,top8_3t:4,top2_2t:3},
-        {top1_3t:2,top4_3t:4,top8_3t:4,top2_2t:3})}
+        {top1_3t:2,top4_3t:4,top8_3t:4,top2_2t:3})},
+    replay:{day:'2026-11-25',race:'武雄1R',frames:12,riders:6,agreed:65,
+      correct:46,incorrect:7,abstained:12,unscorable:7,official_finish_positions:6,
+      trial_training_segments:2}
   });
 });
