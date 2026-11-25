@@ -1,0 +1,14 @@
+{
+  "frozen_utc": "2026-11-25T07:05:44.447357+00:00",
+  "earliest_cutoff": "2026-11-25T16:10:00+09:00",
+  "latest_cutoff": "2026-11-25T23:25:00+09:00",
+  "included": 19,
+  "ticket_cap": {
+    "4": 14,
+    "8": 5
+  },
+  "forecast_sha256": "79c7e9e8c284aa7749f8a2d950ee7b9d331187196dc8661efed596f35dbf0783",
+  "frozen_design_sha256": "653b6862b07da09250e1ec6b5b49e8bca98c9ec7df560b340560134c350b3073",
+  "changed_displayed_sets": 14,
+  "scope": "Research only. Ordered trifectas. One fixed 50:50 arithmetic pool of current forecast probability and normalized full-board inverse odds. No finished or incomplete board accepted. No production publication."
+}
