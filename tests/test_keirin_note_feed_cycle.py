@@ -1,11 +1,15 @@
 """Scheduled display feed boundaries with invented pages and a local Git remote."""
+from contextlib import redirect_stdout
 from datetime import datetime,timezone,timedelta
 import importlib
+from io import StringIO
 import json
+import os
 from pathlib import Path
 import subprocess
 from tempfile import TemporaryDirectory
 import unittest
+from unittest.mock import patch
 
 from race_ai import keirin_note_feed as feed
 from tests.test_keirin_note_browser import packet
@@ -77,6 +81,194 @@ class FeedCycleTests(unittest.TestCase):
         self.assertEqual(index['covered_race_ids'],['203001159801'])
         self.assertEqual(index['entries'][0]['kind'],'import')
         self.assertEqual(index['entries'][1]['kind'],'research')
+
+    def append_archive(self):
+        incoming=feed.seal_snapshot(packet(),self.recipient,kind='archive')
+        return feed.publish_snapshot(self.store,self.recipient,incoming,expected_parent=self.store.head())
+
+    def test_stale_forecast_append_reuses_exact_cipher_and_retains_other_writer(self):
+        seed=self.seed()
+        collect=self.collect
+        def interleaved(**kwargs):
+            got=collect(**kwargs)
+            self.append_archive()
+            return got
+        self.collect=interleaved
+        with patch('scripts.keirin_note_feed_cycle.publish_snapshot',wraps=feed.publish_snapshot) as publish:
+            outcome=self.cycle()
+        self.assertEqual(outcome['state'],'KEIRIN_NOTE_ENCRYPTED_GIT_READBACK_VERIFIED')
+        self.assertEqual(len(self.calls),1)
+        self.assertEqual(len(self.result_calls),1)
+        self.assertEqual(publish.call_count,2)
+        first,retry=[call.args[2] for call in publish.call_args_list]
+        self.assertEqual(first,retry)
+        head=self.store.head()
+        index=feed.load_index(self.store,self.recipient,head)
+        self.assertEqual([entry['kind'] for entry in index['entries']],['import','archive','research'])
+        old=feed.load_index(self.store,self.recipient,seed['source_commit'])['entries'][0]
+        self.assertEqual(index['entries'][0],old)
+        self.assertEqual(
+            self.store.read(head,'views/'+first['entry']['cipher_sha256']+'.json'),
+            first['cipher'])
+
+    def test_second_concurrent_write_stops_after_one_retry(self):
+        self.seed()
+        attempts=[]
+        def interleaved(*args,**kwargs):
+            attempts.append(kwargs['expected_parent'])
+            self.append_archive()
+            return feed.publish_snapshot(*args,**kwargs)
+        with patch('scripts.keirin_note_feed_cycle.publish_snapshot',side_effect=interleaved):
+            with self.assertRaisesRegex(ValueError,'CONCURRENT_UPDATE'):
+                self.cycle()
+        self.assertEqual(len(attempts),2)
+        self.assertEqual(len(self.calls),1)
+        self.assertEqual(self.result_calls,[])
+        index=feed.load_index(self.store,self.recipient,self.store.head())
+        self.assertEqual([entry['kind'] for entry in index['entries']],['import','archive','archive'])
+
+    def test_non_fast_forward_change_cannot_rebase_a_cipher(self):
+        self.seed()
+        collect=self.collect
+        rewritten=[]
+        def interleaved(**kwargs):
+            got=collect(**kwargs)
+            changed=feed.seal_snapshot(packet(),self.recipient,kind='archive')
+            index=feed.append_index(None,self.recipient,entry=changed['entry'])
+            unrelated=self.store.commit({
+                'index.json':feed.canonical(index)+b'\n',
+                'views/'+changed['entry']['cipher_sha256']+'.json':changed['cipher'],
+            },None)
+            self.store.run(['push','--force','origin',unrelated+':refs/heads/'+self.store.ref])
+            rewritten.append(unrelated)
+            return got
+        self.collect=interleaved
+        with self.assertRaisesRegex(ValueError,'PARENT_NOT_FAST_FORWARD'):
+            self.cycle()
+        self.assertEqual(self.store.head(),rewritten[0])
+        self.assertEqual(self.result_calls,[])
+
+    def test_concurrent_denial_is_kept_and_prevents_result_collection(self):
+        self.seed()
+        collect=self.collect
+        def interleaved(**kwargs):
+            got=collect(**kwargs)
+            feed.publish_snapshot(self.store,self.recipient,expected_parent=self.store.head(),denied=True)
+            return got
+        self.collect=interleaved
+        with self.assertRaisesRegex(ValueError,'PREVIOUS_PROVIDER_DENIAL_NO_RETRY'):
+            self.cycle()
+        index=feed.load_index(self.store,self.recipient,self.store.head())
+        self.assertTrue(index['provider_denied'])
+        self.assertEqual(len(index['entries']),1)
+        self.assertEqual(len(self.calls),1)
+        self.assertEqual(self.result_calls,[])
+
+    def test_concurrent_forecast_for_the_same_race_preserves_existing_reference(self):
+        self.seed()
+        collect=self.collect
+        def interleaved(**kwargs):
+            got=collect(**kwargs)
+            competing=feed.seal_snapshot(packet(),self.recipient,kind='research',
+                                          captured_ids=['203001159801'])
+            feed.publish_snapshot(self.store,self.recipient,competing,
+                                  expected_parent=self.store.head())
+            return got
+        self.collect=interleaved
+        with patch('scripts.keirin_note_feed_cycle.publish_snapshot',wraps=feed.publish_snapshot) as publish:
+            with self.assertRaisesRegex(ValueError,'FORECAST_COVERAGE_CHANGED'):
+                self.cycle()
+        self.assertEqual(publish.call_count,1)
+        index=feed.load_index(self.store,self.recipient,self.store.head())
+        self.assertEqual([entry['kind'] for entry in index['entries']],['import','research'])
+        self.assertEqual(index['covered_race_ids'],['203001159801'])
+        self.assertEqual(self.result_calls,[])
+
+    def test_moved_readback_accepts_only_the_already_published_cipher(self):
+        self.seed()
+        def moved(*args,**kwargs):
+            feed.publish_snapshot(*args,**kwargs)
+            self.append_archive()
+            raise ValueError('KEIRIN_NOTE_FEED_REMOTE_READBACK')
+        with patch('scripts.keirin_note_feed_cycle.publish_snapshot',side_effect=moved) as publish:
+            outcome=self.cycle()
+        self.assertEqual(publish.call_count,1)
+        self.assertEqual(outcome['source_commit'],self.store.head())
+        self.assertEqual(len(self.calls),1)
+        index=feed.load_index(self.store,self.recipient,outcome['source_commit'])
+        self.assertEqual([entry['kind'] for entry in index['entries']],['import','research','archive'])
+
+    def test_unclassified_git_failure_never_retries_just_because_the_head_moved(self):
+        self.seed()
+        def failed(*args,**kwargs):
+            self.append_archive()
+            raise ValueError('KEIRIN_NOTE_FEED_GIT_OPERATION_FAILED')
+        with patch('scripts.keirin_note_feed_cycle.publish_snapshot',side_effect=failed) as publish:
+            with self.assertRaisesRegex(ValueError,'GIT_OPERATION_FAILED'):
+                self.cycle()
+        self.assertEqual(publish.call_count,1)
+        index=feed.load_index(self.store,self.recipient,self.store.head())
+        self.assertEqual([entry['kind'] for entry in index['entries']],['import','archive'])
+        self.assertEqual(self.result_calls,[])
+
+    def test_stale_result_delta_is_held_when_its_predecessor_changes(self):
+        from scripts.keirin_note_collect_results import _held, _status, fact_digest, SCHEMA
+        self.seed()
+        self.cycle()
+        self.collect=self.collect_empty
+        rid='203001159801'
+
+        def write_result(root,reason,at):
+            folder=root/'data/2030-01-15';folder.mkdir(parents=True)
+            obs=_held(rid,reason)
+            digest=fact_digest(obs)
+            obs.update(captured_at=at,observation_sha256=digest,previous_observation_sha256=None)
+            (folder/'research_results.json').write_text(json.dumps(
+                dict(schema=SCHEMA,day_jst='2030-01-15',observations=[obs])))
+            return {rid:dict(checked_at=at,digest=digest,status=_status(obs))}
+
+        # A different writer binds the first result for this race while the
+        # original collector is still creating a delta without a predecessor.
+        other=self.root/'other-result';other.mkdir(mode=0o700)
+        competing=write_result(other,'HOLD_SPECIAL_REFUND_OR_TIE_REQUIRES_OFFICIAL','2030-01-15T00:01:00+00:00')
+        from race_ai.keirin_note_view import import_site
+        snapshot=feed.seal_snapshot(import_site(other,source_commit='b'*40),self.recipient,kind='results')
+
+        def collect_results(**kwargs):
+            root=Path(kwargs['private_root'])
+            local=write_result(root,'PENDING_RESULT_NOT_PUBLISHED','2030-01-15T00:02:00+00:00')
+            feed.publish_snapshot(self.store,self.recipient,snapshot,
+                                  expected_parent=self.store.head(),result_checks=competing)
+            return dict(site_root=str(root),result_checks=local,safe_report=dict(
+                provider_denied=False,changed_observations=1,public_page_requests=1))
+        self.collect_results=collect_results
+        with patch('scripts.keirin_note_feed_cycle.publish_snapshot',wraps=feed.publish_snapshot) as publish:
+            with self.assertRaisesRegex(ValueError,'RESULT_PREDECESSOR_CHANGED'):
+                self.cycle()
+        self.assertEqual(publish.call_count,1)
+        index=feed.load_index(self.store,self.recipient,self.store.head())
+        self.assertEqual(index['result_checks'],competing)
+        self.assertEqual(index['entries'][-1],snapshot['entry'])
+
+    def test_cli_reports_collection_stage_without_exception_text(self):
+        seed=self.seed()
+        self.store.run(['update-ref','HEAD',seed['source_commit']])
+        config=self.repo/'config';config.mkdir()
+        (config/'keirin-note-recipient.json').write_text(json.dumps(self.recipient))
+        runtime=dict(GITHUB_REPOSITORY=feed.REPO,GITHUB_REF='refs/heads/main',
+                     GITHUB_EVENT_NAME='schedule')
+        output=StringIO()
+        from scripts import keirin_note_feed_cycle as cli
+        with patch.dict(os.environ,runtime), patch.object(cli,'NoteFeedGit',return_value=self.store), \
+                patch('scripts.keirin_note_collect_inputs.collect_day',
+                      side_effect=ValueError('https://fixture.invalid/private-invented-value')), \
+                redirect_stdout(output):
+            self.assertEqual(cli.main(['--repo',str(self.repo)]),2)
+        self.assertEqual(json.loads(output.getvalue()),{
+            'state':'HOLD_NOTE_SOURCE_OR_ENCRYPTED_PUBLICATION',
+            'failure_stage':'FORECAST_COLLECTION',
+            'failure_reason':'INVALID_DATA',
+        })
 
     def test_no_new_forecast_tick_still_checks_results_for_every_imported_day(self):
         self.seed()
