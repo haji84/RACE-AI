@@ -44,11 +44,16 @@ def _source(raw, expected):
 # The official continuation runs 44987254723, 45017430382 and 45023069187
 # also verified future cards for the six A-class labels below, with A3 or
 # A1/A2 grades.
+# Run 45684840895 also bound the exact challenge preliminary, A preliminary
+# and A general labels to published seven-rider cards with those grades.
 # A label never supplies a qualification rule or any missing card input.
 OBSERVED_CLASSES = {
+    'A級チャレンジ予選': 'CHALLENGE',
     'A級チャレンジ一般': 'CHALLENGE',
     'A級チャレンジ選抜': 'CHALLENGE',
     'A級チャレンジ決勝': 'CHALLENGE',
+    'A級予選': 'A1_A2',
+    'A級一般': 'A1_A2',
     'A級特一般': 'A1_A2',
     'A級特選': 'A1_A2',
     'A級決勝': 'A1_A2',
