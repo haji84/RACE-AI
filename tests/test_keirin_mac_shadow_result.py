@@ -156,6 +156,35 @@ class MacShadowResultTest(unittest.TestCase):
         self.assertEqual((self.root / 'original.json').read_bytes(), before)
         self.assertEqual(list(self.root.rglob('official-result.json')), [])
 
+    def test_site_projection_rechecks_saved_secondary_evidence_without_sources(self):
+        from scripts import keirin_mac_shadow_publication as site
+
+        self.approve_secondary()
+        self.result_calls = []
+        self.assertEqual(self.run_secondary(self.site_page)['state'], 'SHADOW_SECONDARY_PODIUM_SCORED')
+        result_path = self.root / 'keirin-mac-shadow-results' / RACE / 'site-two-source/result.json'
+        with (patch.object(capture, 'fetch_once', side_effect=AssertionError('unexpected provider request')),
+              patch.object(shadow, '_public_github_json', side_effect=AssertionError('unexpected GitHub request'))):
+            report = site.prepare_record(self.root, self.request, 'a' * 64, clock=lambda: self.now)
+            self.assertEqual(report['result']['evidence_sha256'], sha256(result_path.read_bytes()).hexdigest())
+            self.assertEqual(report['result']['scope'], 'TWO_SOURCE_MATCHED_PODIUM_ONLY')
+            self.assertEqual(report['scores']['trifecta'], dict(points=4, saved_hit=False, challenger_hit=True))
+            self.assertEqual(report['scores']['exacta'], dict(points=2, saved_hit=False, challenger_hit=True))
+            self.assertEqual(report['tracking_learning'], 'HELD')
+            self.assertFalse(report['production_weights_promoted'])
+            raw = next(result_path.parent.glob('raw/*.html'))
+            raw.write_bytes(b'new body with an invalid digest')
+            with self.assertRaises(ValueError):
+                site.prepare_record(self.root, self.request, 'a' * 64, clock=lambda: self.now)
+
+    def test_site_projection_stays_empty_until_an_exact_saved_result_exists(self):
+        from scripts import keirin_mac_shadow_publication as site
+
+        with (patch.object(shadow, 'run', side_effect=AssertionError('unexpected live settlement')),
+              patch.object(capture, 'fetch_once', side_effect=AssertionError('unexpected provider request'))):
+            for moment in (at(1, 43), at(3, 12)):
+                self.assertIsNone(site.prepare_record(self.root, self.request, 'a' * 64, clock=lambda: moment))
+
     def test_an_approved_pair_still_waits_for_the_stored_start(self):
         self.approve_secondary()
         self.result_calls = []
