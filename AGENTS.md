@@ -2,10 +2,10 @@
 
 ## Detailed KEIRIN development requirements (owner instruction 2026-11-25)
 
-- Continue the existing work against `docs/KEIRIN_DETAILED_DEVELOPMENT_SPEC_20261125.md` (the owner's 27-section requirements and six additional abilities). Start with `docs/KEIRIN_DEVELOPMENT_ACCEPTANCE_20261125.md` and existing PR #327; avoid duplicating the current models, state or PDCA authority.
-- Requirements are not completion evidence. Keep implementation, retrospective real-data studies, independent future validation, and actual production acceptance distinct. Never treat a correct finish as a correct race-flow prediction.
-- The Seibuen November 25 11R conversation case is retrospective/reference unless its exact pre-cutoff original is restored. User observations are not independently watched video. The published forecast asset is a separate record; preserve its unchanged bytes and identity.
-- The existing GitHub-only, encrypted-original, source-access and protected-review constraints below remain in force.
+- Continue against `docs/KEIRIN_DETAILED_DEVELOPMENT_SPEC_20261125.md` (the owner's 27 sections and six additional abilities). Read `docs/KEIRIN_DEVELOPMENT_ACCEPTANCE_20261125.md`, `docs/KEIRIN_JOINT_FORECAST_CONTINUATION_20261125.md` and existing Draft PR #327 first; preserve current work and avoid duplicate model/state/PDCA authorities.
+- Keep implementation, retrospective studies, independent future validation and production acceptance distinct. Neither a correct finish nor a small-cohort gain proves correct race-flow prediction or nationwide accuracy improvement.
+- Preserve the Seibuen conversation as reference unless its exact pre-cutoff original is restored. User observations, independently reviewed video, official records and AI estimates must remain distinguishable. Keep the published forecast asset as a separate, unchanged record.
+- The GitHub-only, encrypted-original, source-access, permission-approval and protected-review constraints below remain in force. PR #327 remains an active research handoff; do not merge its unrelated work wholesale.
 
 ## Cloudflare is prohibited
 
