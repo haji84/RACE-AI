@@ -5,6 +5,7 @@
 })(typeof window==='object'?window:globalThis,function(M){
   'use strict';
   const BASE='https://raw.githubusercontent.com/haji84/RACE-AI/state/keirin-note-view/';
+  const SHADOW_VERIFICATION='shadow-verification';
   const INFO='RACE_AI_KEIRIN_NOTE_FEED_V1:',encoder=new TextEncoder(),MAX=90*1024*1024;
   const need=v=>{if(!v)throw Error('KEIRIN_NOTE_FEED_INVALID');};
   const cryptoApi=()=>globalThis.crypto?.subtle?globalThis.crypto:require('node:crypto').webcrypto;
@@ -20,10 +21,11 @@
     const hashes=new Set(),covered=new Set(),priority=new Set();
     for(const e of index.entries){
       const keys='cipher_sha256,source_content_sha256,ephemeral_public_key,salt,created_at,days,kind,captured_race_ids,priority_window_race_ids'+(e?.kind==='result'?',result_revisions':e?.kind==='canary-original'?',original_revisions':e?.kind==='nationwide'?',day_revision,original_revisions,registered_race_ids':'');
-      need(sameKeys(e,keys)&&hex(e.cipher_sha256)&&hex(e.source_content_sha256)&&!hashes.has(e.cipher_sha256)&&['import','research','archive','result','results','canary-original','nationwide'].includes(e.kind));
+      need(sameKeys(e,keys)&&hex(e.cipher_sha256)&&hex(e.source_content_sha256)&&!hashes.has(e.cipher_sha256)&&['import','research','archive','result','results','canary-original','nationwide',SHADOW_VERIFICATION].includes(e.kind));
       need(decode(e.ephemeral_public_key).length===65&&decode(e.salt).length===32&&Array.isArray(e.days)&&e.days.length&&new Set(e.days).size===e.days.length&&e.days.every(M.day)&&Number.isFinite(Date.parse(e.created_at))&&ids(e.captured_race_ids)&&ids(e.priority_window_race_ids));
       need(e.captured_race_ids.every(id=>e.days.some(d=>id.startsWith(d.replaceAll('-',''))))&&(e.kind!=='results'||e.captured_race_ids.length===0&&e.priority_window_race_ids.length===0));
       need(e.priority_window_race_ids.every(id=>e.captured_race_ids.includes(id)));hashes.add(e.cipher_sha256);e.captured_race_ids.forEach(id=>covered.add(id));e.priority_window_race_ids.forEach(id=>priority.add(id));
+      if(e.kind===SHADOW_VERIFICATION)need(e.days.length===1&&e.captured_race_ids.length===0&&e.priority_window_race_ids.length===0);
       if(e.kind==='result')need(e.captured_race_ids.length===0&&e.priority_window_race_ids.length===0&&record(e.result_revisions)&&Object.keys(e.result_revisions).length>0&&Object.keys(e.result_revisions).length<=300&&ids(Object.keys(e.result_revisions))&&Object.values(e.result_revisions).every(hex));
       if(e.kind==='canary-original')need(e.captured_race_ids.length===0&&e.priority_window_race_ids.length===0&&record(e.original_revisions)&&Object.keys(e.original_revisions).length>0&&Object.keys(e.original_revisions).length<=300&&ids(Object.keys(e.original_revisions))&&Object.values(e.original_revisions).every(hex));
       if(e.kind==='nationwide'){
@@ -44,13 +46,24 @@
     const jwk=await c.subtle.exportKey('jwk',privateKey),raw=new Uint8Array(65);raw[0]=4;raw.set(decode(jwk.x),1);raw.set(decode(jwk.y),33);
     return {privateKey,recipient:await M.digest(raw)};
   }
-  async function openEntry(bytes,e,cap){
+  async function openEntry(bytes,e,cap,{archives=new Map()}={}){
     const c=cryptoApi(),ephemeral=await c.subtle.importKey('raw',decode(e.ephemeral_public_key),{name:'ECDH',namedCurve:'P-256'},false,[]);
     const shared=await c.subtle.deriveBits({name:'ECDH',public:ephemeral},cap.privateKey,256),material=await c.subtle.importKey('raw',shared,'HKDF',false,['deriveBits']);
     const key=await c.subtle.deriveBits({name:'HKDF',hash:'SHA-256',salt:decode(e.salt),info:encoder.encode(INFO+cap.recipient)},material,256);
     need(await M.digest(bytes)===e.cipher_sha256);const h=JSON.parse(new TextDecoder('utf-8',{fatal:true}).decode(bytes)).header;need(h?.source_content_sha256===e.source_content_sha256);
-    const data=await M.openCipher(bytes,{cipherSha:e.cipher_sha256,key:encode(key)});
+    const shadowOnly=e.kind===SHADOW_VERIFICATION;
+    const data=await M.openCipher(bytes,{cipherSha:e.cipher_sha256,key:encode(key),shadowOnly});
     need(data.dates.slice().sort().join(',')===e.days.slice().sort().join(','));
+    if(shadowOnly){
+      const value=data.shadowVerification,original=value.original,archive=archives.get(original.archive_cipher_sha256);
+      need(e.captured_race_ids.length===0&&e.priority_window_race_ids.length===0&&
+        archive?.kind==='archive'&&archive.days.length===1&&archive.days[0]===value.day_jst&&
+        archive.captured_race_ids.length===0&&archive.priority_window_race_ids.length===0);
+      const clocks=[original.generated_at,archive.created_at,original.cutoff_at,data.importedAt,e.created_at].map(M.instantMicros);
+      need(clocks.every(clock=>clock!==null));
+      const [generated,archived,cutoff,imported,published]=clocks;
+      need(generated<=archived&&archived<cutoff&&imported<=published);
+    }
     if(e.kind==='results')need(e.captured_race_ids.length===0&&e.priority_window_race_ids.length===0&&[...data.files.keys()].every(path=>/^data\/\d{4}-\d{2}-\d{2}\/research_results\.json$/.test(path))&&data.dates.every(date=>M.rows(data,date).length===0));
     if(e.kind==='result'){
       need([...data.files.keys()].every(path=>/^data\/\d{4}-\d{2}-\d{2}\/result_updates\.json$/.test(path))&&data.resultUpdates.size===data.dates.length);
@@ -73,8 +86,10 @@
   function merge(parts,{resultChecks={}}={}){
     need(Array.isArray(parts)&&parts.length>0);
     const days=new Map(),files=new Map(),fileShas=new Map(),results=new Map(),refreshHolds=[],updates=new Map(),histories=new Map(),frozen=new Map(),nationwide=new Map(),nationwideHistory=new Map();let importedAt=parts[0].importedAt;
+    const shadowVerifications=new Map(),shadowVerificationHolds=new Set();
     const stable=v=>Array.isArray(v)?'['+v.map(stable).join(',')+']':record(v)?'{'+Object.keys(v).sort().map(k=>JSON.stringify(k)+':'+stable(v[k])).join(',')+'}':JSON.stringify(v);
     const semantic=result=>Object.fromEntries(Object.entries(result).filter(([key])=>key!=='observed_at'));
+    const measurement=({verified_at,result,...value})=>stable({...value,result:semantic(result)});
 
     const roster=row=>row.riders.map(p=>p.number+':'+p.name.replace(/\s/g,'')).sort().join('|');
     const registrations=row=>{
@@ -85,6 +100,14 @@
       return result;
     };
     for(const part of parts){
+      const verification=part.shadowVerification;
+      if(verification){
+        const {race_id:id}=verification,prior=shadowVerifications.get(id);
+        // A later timestamp cannot replace a scored original or its outcome.
+        if(!prior)shadowVerifications.set(id,verification);
+        else if(measurement(prior)!==measurement(verification))shadowVerificationHolds.add(id);
+        continue;
+      }
       for(const [path,value] of part.files)files.set(path,value);
       for(const [path,value] of part.fileShas||[])fileShas.set(path,value);
       importedAt=part.importedAt;
@@ -180,7 +203,7 @@
       if(check.digest!==null)need(latest&&latest.observation_sha256===check.digest&&Date.parse(check.checked_at)>=Date.parse(latest.captured_at)&&check.status===(latest.state==='SECONDARY_TWO_SOURCES_MATCH_NOT_OFFICIAL'?'MATCHED':latest.state.startsWith('PENDING_')?'PENDING':'HOLD'));
       else need(!latest&&check.status!=='MATCHED');
     }
-    return {schema:M.SCHEMA,dates:[...days.keys()].sort(),days,files,fileShas,results,resultUpdates:updates,frozenForecasts:frozen,nationwide,nationwideHistory,resultChecks:checks,cipherSha:null,formal:false,importedAt,sourceCommit:parts[0].sourceCommit,refreshHolds};
+    return {schema:M.SCHEMA,dates:[...days.keys()].sort(),days,files,fileShas,results,resultUpdates:updates,frozenForecasts:frozen,nationwide,nationwideHistory,resultChecks:checks,cipherSha:null,formal:false,importedAt,sourceCommit:parts.find(part=>!part.shadowVerification)?.sourceCommit,refreshHolds,shadowVerifications,shadowVerificationHolds};
   }
   async function bytes(response,signal){
     need(response.ok);const length=response.headers?.get('content-length');need(length==null||/^\d+$/.test(length)&&Number(length)<=MAX);
@@ -203,13 +226,14 @@
           previous.entries.forEach((entry,i)=>need(sameEntry(entry,index.entries[i])));
           for(const [id,check] of Object.entries(previous.result_checks||{})){const fresh=index.result_checks?.[id];need(fresh&&Date.parse(fresh.checked_at)>=Date.parse(check.checked_at));}
         }
-        const parts=[],display=index.entries.filter(e=>e.kind!=='archive');
-        for(const entry of display){
+        const parts=[],archives=new Map(),displayCount=index.entries.filter(e=>e.kind!=='archive').length;
+        for(const entry of index.entries){
           need(!closed&&!signal?.aborted);
+          if(entry.kind==='archive'){archives.set(entry.cipher_sha256,entry);continue;}
           if(!cache.has(entry.cipher_sha256)){
-            onStatus?.('暗号化した保存履歴を確認しています。 '+(parts.length+1)+' / '+display.length);
+            onStatus?.('暗号化した保存履歴を確認しています。 '+(parts.length+1)+' / '+displayCount);
             const body=await bytes(await fetcher(BASE+'views/'+entry.cipher_sha256+'.json',options),signal);
-            const part=await openEntry(body,entry,cap);need(!closed&&!signal?.aborted);cache.set(entry.cipher_sha256,part);
+            const part=await openEntry(body,entry,cap,{archives});need(!closed&&!signal?.aborted);cache.set(entry.cipher_sha256,part);
           }
           parts.push(cache.get(entry.cipher_sha256));
         }

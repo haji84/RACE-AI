@@ -45,6 +45,43 @@
     return BigInt(Date.parse(value))*1000n+BigInt(fraction.padEnd(6,'0').slice(3));
   }
   function sameClock(left,right){const value=instantMicros(left);return value!==null&&value===instantMicros(right);}
+  function checkedShadowVerification(packet, files){
+    const fields=(value,names)=>record(value)&&Object.keys(value).length===names.length&&names.every(name=>Object.hasOwn(value,name));
+    need(fields(packet,['schema','scope','source_site','source_commit','imported_at','dates','files','formal_model_admission','production_weight_switch','wagers_placed','shadow_verification_private_nonce']) &&
+      packet.scope==='OWNER_MAC_SHADOW_VERIFICATION' && packet.source_site===null &&
+      typeof packet.source_commit==='string' && /^[0-9a-f]{40}$/.test(packet.source_commit) &&
+      packet.wagers_placed===false && packet.dates.length===1 && files.size===1);
+    const nonce=packet.shadow_verification_private_nonce;
+    need(typeof nonce==='string' && /^[A-Za-z0-9_-]{43}$/.test(nonce) &&
+      b64(nonce.replaceAll('-','+').replaceAll('_','/')+'=',44).length===32);
+    const dayKey=packet.dates[0],path='data/'+dayKey+'/shadow_verification.json';
+    const value=files.get(path);
+    need(value && fields(packet.files[path],['text','bytes','sha256']) && packet.files[path].bytes<=8192 && fields(value,
+      ['schema','day_jst','race_id','verified_at','start_at','original','result','scores','tracking_learning','production_weights_promoted']) &&
+      value.schema==='RACE_AI_KEIRIN_SHADOW_VERIFICATION_V1' && value.day_jst===dayKey &&
+      rid(value.race_id) && value.race_id.startsWith(dayKey.replaceAll('-','')) &&
+      /^(0[1-9]|1[0-2])$/.test(value.race_id.slice(-2)) &&
+      value.tracking_learning==='HELD' && value.production_weights_promoted===false);
+    const {original,result,scores}=value;
+    need(fields(original,['sha256','archive_cipher_sha256','generated_at','cutoff_at']) &&
+      fields(result,['evidence_sha256','observed_at','scope']) &&
+      ['TWO_SOURCE_MATCHED_PODIUM_ONLY','OFFICIAL_COMPLETE_FINISH_RESEARCH'].includes(result.scope));
+    const digests=[original.sha256,original.archive_cipher_sha256,result.evidence_sha256];
+    need(digests.every(value=>hex(value) && value!=='0'.repeat(64)) && new Set(digests).size===digests.length);
+    const clocks=[original.generated_at,original.cutoff_at,value.start_at,result.observed_at,value.verified_at,packet.imported_at].map(instantMicros);
+    need(clocks.every(t=>t!==null));
+    const [generated,cutoff,start,observed,verified,imported]=clocks;
+    const jstDay=instant=>new Date(Date.parse(instant)+9*60*60*1000).toISOString().slice(0,10);
+    need(jstDay(original.cutoff_at)===dayKey && jstDay(value.start_at)===dayKey &&
+      generated<cutoff && cutoff<start && start<=observed && observed<=verified && verified<=imported);
+    need(fields(scores,['trifecta','exacta']));
+    for(const [market,points] of [['trifecta',4],['exacta',2]]){
+      const score=scores[market];
+      need(fields(score,['points','saved_hit','challenger_hit']) && score.points===points &&
+        typeof score.saved_hit==='boolean' && typeof score.challenger_hit==='boolean');
+    }
+    return value;
+  }
   function tickets(value,places,cars){
     if(value==null)return [];
     need(Array.isArray(value)&&value.length<=504);
@@ -355,7 +392,7 @@
     }
     return days;
   }
-  async function decodePacket(packet,cipherSha){
+  async function decodePacket(packet,cipherSha,shadowOnly=false){
     need(record(packet)&&packet.schema===SCHEMA&&packet.formal_model_admission===false&&packet.production_weight_switch===false&&record(packet.files));
     need(Array.isArray(packet.dates)&&packet.dates.length>0&&packet.dates.every(day)&&new Set(packet.dates).size===packet.dates.length);
     const parsed=new Map(),fileShas=new Map();let total=0;
@@ -367,6 +404,7 @@
       const dated=/^data\/(\d{4}-\d{2}-\d{2})\//.exec(path);need(!dated||packet.dates.includes(dated[1]));
       const value=JSON.parse(entry.text);parsed.set(path,value);fileShas.set(path,entry.sha256);
     }
+    if(shadowOnly)return {dates:packet.dates,importedAt:packet.imported_at,shadowVerification:checkedShadowVerification(packet,parsed)};
     const results=await resultRecords(parsed,fileShas,cipherSha,packet.dates),days=new Map(packet.dates.slice().sort().map(date=>[date,normalize(date,parsed,fileShas,cipherSha,results)]));
     for(const [date,rows] of days){
       await jointSupplements(date,parsed,fileShas,rows,packet.files);
@@ -507,7 +545,7 @@
     need(typeof value==='string'&&value.length>0&&value.length<=max&&value.length%4===0&&!/[^A-Za-z0-9+/=]/.test(value));
     const binary=atob(value);need(btoa(binary)===value);return Uint8Array.from(binary,c=>c.charCodeAt(0));
   }
-  async function openCipher(bytes,{cipherSha,key}){
+  async function openCipher(bytes,{cipherSha,key,shadowOnly=false}){
     need(bytes instanceof Uint8Array&&bytes.length<=90*1024*1024&&hex(cipherSha)&&await digest(bytes)===cipherSha);
     const envelope=JSON.parse(new TextDecoder('utf-8',{fatal:true}).decode(bytes));
     need(record(envelope)&&Object.keys(envelope).sort().join(',')==='ciphertext,header,nonce');
@@ -518,8 +556,8 @@
     const imported=await apiCrypto().subtle.importKey('raw',rawKey,{name:'AES-GCM'},false,['decrypt']);
     const aad=encoder.encode(JSON.stringify({schema:h.schema,source_content_sha256:h.source_content_sha256}));
     const plain=new Uint8Array(await apiCrypto().subtle.decrypt({name:'AES-GCM',iv:nonce,additionalData:aad,tagLength:128},imported,encrypted));
-    need(plain.length<=LIMIT&&await digest(plain)===h.source_content_sha256);
-    return decodePacket(JSON.parse(new TextDecoder('utf-8',{fatal:true}).decode(plain)),cipherSha);
+    need(plain.length<=LIMIT&&(!shadowOnly||plain.length===2048)&&await digest(plain)===h.source_content_sha256);
+    return decodePacket(JSON.parse(new TextDecoder('utf-8',{fatal:true}).decode(plain)),cipherSha,shadowOnly);
   }
   return {openPacket,openCipher,rows,historyRows,matchesHistory,historyPage,forecast,frozenArm,displayedPredictions,compare,summarize,allocate,resultUpdates,checkedDiagnostics,combineFrozen,mergeNationwide,nationwideSemantic,attachNationwide,safeUrl,digest,clock,instantMicros,sameClock,utc,day,SCHEMA};
 });

@@ -109,6 +109,77 @@ class NoteFeedTests(unittest.TestCase):
             self.assertNotIn(nonce.encode(), snap['cipher'])
         self.assertNotEqual(*private_nonces)
 
+    def test_shadow_verification_seal_keeps_the_measurement_and_nonce_off_the_index(self):
+        from datetime import datetime
+        from tests.test_keirin_note_browser import DAY, shadow_packet, source
+
+        api=self.api()
+        cap=api.create_recipient(self.root/'owner')
+        def clock(hour_minute):
+            return lambda:datetime.fromisoformat(f'{DAY}T{hour_minute}:00+00:00')
+        archive=api.seal_snapshot(self.packet(),cap['public'],kind='archive',clock=clock('00:06'))
+        note,record=shadow_packet(archive['entry']['cipher_sha256'])
+        a=api.seal_snapshot(note,cap['public'],kind='shadow-verification',clock=clock('01:02'))
+        b=api.seal_snapshot(note,cap['public'],kind='shadow-verification',clock=clock('01:02'))
+        self.assertNotEqual(a['entry']['source_content_sha256'],b['entry']['source_content_sha256'])
+        official_note,official=shadow_packet(archive['entry']['cipher_sha256'],
+                                             scope='OFFICIAL_COMPLETE_FINISH_RESEARCH')
+        for market in official['scores'].values():
+            market['saved_hit']=False
+            market['challenger_hit']=False
+        official_note['files'][f'data/{DAY}/shadow_verification.json']=source(official)
+        c=api.seal_snapshot(official_note,cap['public'],kind='shadow-verification',clock=clock('01:02'))
+        self.assertEqual(len(a['cipher']),len(c['cipher']))
+        self.assertNotIn('shadow_verification_private_nonce',note)
+        index=api.append_index(None,cap['public'],entry=archive['entry'])
+        index=api.append_index(index,cap['public'],entry=a['entry'])
+        self.assertEqual(index['entries'][0],archive['entry'])
+        self.assertEqual(index['covered_race_ids'],[])
+        self.assertEqual(index['priority_window_race_ids'],[])
+        encoded=json.dumps(index)
+        for private in (record['race_id'],record['original']['sha256'],
+                        record['result']['evidence_sha256'],'challenger_hit','tracking_learning',
+                        'shadow_verification_private_nonce'):
+            self.assertNotIn(private,encoded)
+            self.assertNotIn(private.encode('ascii'),a['cipher'])
+
+        from race_ai import keirin_shadow_verification as shadow
+        shadow.checked_archive_binding(record,archive['entry'],a['entry']['created_at'])
+        with self.assertRaises(ValueError):
+            shadow.checked_archive_binding(record,{**archive['entry'],'created_at':f'{DAY}T00:40:00Z'},
+                                           a['entry']['created_at'])
+        with self.assertRaises(ValueError):
+            shadow.checked_archive_binding(record,{**archive['entry'],'days':['2030-01-16']},
+                                           a['entry']['created_at'])
+
+    def test_shadow_verification_rejects_extra_evidence_and_unpaired_or_unbound_scores(self):
+        from datetime import datetime
+        from tests.test_keirin_note_browser import DAY, shadow_packet, source
+        api=self.api()
+        cap=api.create_recipient(self.root/'owner')
+        clock=lambda:datetime.fromisoformat(f'{DAY}T01:02:00+00:00')
+        for invalid in ('out-of-day','changed-points','numeric-hit','unknown-scope','source-doc',
+                        'other-file','late-clock','malformed-offset','list-scope','promotion',
+                        'tracking-approval','forecast-coverage'):
+            with self.subTest(invalid=invalid):
+                note,receipt=shadow_packet('c'*64,scope='OFFICIAL_COMPLETE_FINISH_RESEARCH')
+                args={}
+                if invalid=='out-of-day':receipt['race_id']='203001169801'
+                if invalid=='changed-points':receipt['scores']['exacta']['points']=4
+                if invalid=='numeric-hit':receipt['scores']['exacta']['saved_hit']=1
+                if invalid=='unknown-scope':receipt['result']['scope']='AI ESTIMATE'
+                if invalid=='list-scope':receipt['result']['scope']=[]
+                if invalid=='source-doc':receipt['result']['raw']='fixture private source'
+                if invalid=='other-file':note['files'][f'data/{DAY}/verification.json']=source({})
+                if invalid=='late-clock':receipt['verified_at']=f'{DAY}T01:03:00Z'
+                if invalid=='malformed-offset':receipt['verified_at']=f'{DAY}T02:00:00+00:60'
+                if invalid=='promotion':receipt['production_weights_promoted']=True
+                if invalid=='tracking-approval':receipt['tracking_learning']='VALIDATED'
+                if invalid=='forecast-coverage':args['captured_ids']=[receipt['race_id']]
+                note['files'][f'data/{DAY}/shadow_verification.json']=source(receipt)
+                with self.assertRaises(ValueError):
+                    api.seal_snapshot(note,cap['public'],kind='shadow-verification',clock=clock,**args)
+
     def test_public_index_rejects_secret_or_unapproved_fields(self):
         api=self.api();p=api.create_recipient(self.root/'owner')['public']
         index=api.append_index(None,p);index['key']='not-allowed'

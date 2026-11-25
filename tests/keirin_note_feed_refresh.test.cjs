@@ -19,7 +19,9 @@ async function fixture(){
     const salt=webcrypto.getRandomValues(new Uint8Array(32));
     // Same reviewed public-recipient wire protocol as the Python writer.
     const actual=await c.deriveBits({name:'HKDF',hash:'SHA-256',salt,info:new TextEncoder().encode('RACE_AI_KEIRIN_NOTE_FEED_V1:'+recipient)},material,256);
-    const plain=enc(value),header={schema:'RACE_AI_SAVED_WEB_VIEW_V1',source_content_sha256:sha(plain)};
+    const raw=enc(value);
+    const plain=value.scope==='OWNER_MAC_SHADOW_VERIFICATION'?Buffer.concat([raw,Buffer.alloc(2048-raw.length,0x20)]):raw;
+    const header={schema:'RACE_AI_SAVED_WEB_VIEW_V1',source_content_sha256:sha(plain)};
     const nonce=webcrypto.getRandomValues(new Uint8Array(12)),aesKey=await c.importKey('raw',actual,'AES-GCM',false,['encrypt']);
     const cipher=await c.encrypt({name:'AES-GCM',iv:nonce,additionalData:enc(header)},aesKey,plain);
     const wire=enc({header,nonce:Buffer.from(nonce).toString('base64'),ciphertext:Buffer.from(cipher).toString('base64')});
@@ -78,6 +80,113 @@ test('public result revision metadata must match the decrypted result-only packe
   index.entries[1].result_revisions[rid]='d'.repeat(64);v.setIndex(index);
   const wrong=await F.createSession(v.key,{fetcher:v.fetcher});await assert.rejects(()=>wrong.refresh());wrong.close();
   const publicIndex=v.index();publicIndex.entries[1].result_revisions={secret:'c'.repeat(64)};assert.throws(()=>F.checkIndex(publicIndex,publicIndex.recipient_id));
+});
+
+const shadowDay='2030-01-15',shadowRace='203001159801',shadowKind='shadow-verification';
+const clock=hm=>shadowDay+'T'+hm+':00Z';
+
+function shadowNote(archive,change=value=>value){
+  const observation=change({
+    schema:'RACE_AI_KEIRIN_SHADOW_VERIFICATION_V1',day_jst:shadowDay,race_id:shadowRace,
+    verified_at:clock('01:00'),start_at:clock('00:45'),
+    original:{sha256:'a'.repeat(64),archive_cipher_sha256:archive.cipher_sha256,
+      generated_at:clock('00:05'),cutoff_at:clock('00:40')},
+    result:{evidence_sha256:'b'.repeat(64),observed_at:clock('00:50'),scope:'TWO_SOURCE_MATCHED_PODIUM_ONLY'},
+    scores:{trifecta:{points:4,saved_hit:false,challenger_hit:true},exacta:{points:2,saved_hit:true,challenger_hit:false}},
+    tracking_learning:'HELD',production_weights_promoted:false
+  });
+  return {
+    schema:'RACE_AI_KEIRIN_NOTE_VIEW_V1',scope:'OWNER_MAC_SHADOW_VERIFICATION',source_site:null,
+    source_commit:'e'.repeat(40),imported_at:observation.verified_at,dates:[shadowDay],
+    formal_model_admission:false,production_weight_switch:false,wagers_placed:false,
+    shadow_verification_private_nonce:b64(new Uint8Array(32).fill(93)),
+    files:{['data/'+shadowDay+'/shadow_verification.json']:source(observation)}
+  };
+}
+
+async function metadataEntry(v,value,stamp,kind){
+  const e=await v.entry(value,stamp);
+  return {...e,kind,captured_race_ids:[],priority_window_race_ids:[]};
+}
+
+test('the owner feed binds a private shadow verification without fetching the frozen archive',async()=>{
+  const v=await fixture();
+  const archive=await metadataEntry(v,{...packet(),files:{}},clock('00:06'),'archive');
+  const verifier=await metadataEntry(v,shadowNote(archive),clock('01:02'),shadowKind);
+  const index=v.index();index.entries.push(archive,verifier);v.setIndex(index);
+  const verified=await F.open(v.key,{fetcher:v.fetcher});
+  assert.equal(verified.shadowVerifications.size,1);
+  const receipt=verified.shadowVerifications.get(shadowRace);
+  assert.equal(receipt.result.scope,'TWO_SOURCE_MATCHED_PODIUM_ONLY');
+  assert.deepEqual(receipt.scores,{trifecta:{points:4,saved_hit:false,challenger_hit:true},
+    exacta:{points:2,saved_hit:true,challenger_hit:false}});
+  assert.equal(verified.results.size,0);
+  assert.equal(verified.resultUpdates.get(shadowDay).size,0);
+  assert.equal(verified.days.get(shadowDay).length,1);
+  assert.equal(verified.files.has('data/'+shadowDay+'/shadow_verification.json'),false);
+  assert.equal(v.requests.some(url=>url.includes(archive.cipher_sha256)),false);
+});
+
+test('an official complete finish keeps its own research scope',async()=>{
+  const v=await fixture();
+  const archive=await metadataEntry(v,{...packet(),files:{}},clock('00:06'),'archive');
+  const verifier=await metadataEntry(v,shadowNote(archive,value=>{
+    value.result.scope='OFFICIAL_COMPLETE_FINISH_RESEARCH';
+    return value;
+  }),clock('01:02'),shadowKind);
+  const index=v.index();index.entries.push(archive,verifier);v.setIndex(index);
+  const verified=await F.open(v.key,{fetcher:v.fetcher});
+  assert.equal(verified.shadowVerifications.get(shadowRace).result.scope,'OFFICIAL_COMPLETE_FINISH_RESEARCH');
+  assert.equal(verified.resultUpdates.get(shadowDay).size,0);
+});
+
+test('shadow verification never admits a late or undisclosed archive or a premature outcome',async()=>{
+  for(const invalid of ['absent','late','later-entry','prestart','kind','coverage','source-document']){
+    const v=await fixture();
+    const archive=await metadataEntry(v,{...packet(),files:{}},
+      clock(invalid==='late'?'00:41':'00:06'),invalid==='kind'?'research':'archive');
+    const note=shadowNote(archive,record=>{
+      if(invalid==='prestart')record.result.observed_at=clock('00:44');
+      if(invalid==='source-document')record.result.raw='fixture-private-source';
+      return record;
+    });
+    const verifier=await metadataEntry(v,note,clock('01:02'),shadowKind);
+    if(invalid==='coverage')verifier.captured_race_ids=[shadowRace];
+    const index=v.index();
+    if(invalid==='absent')index.entries.push(verifier);
+    else if(invalid==='later-entry')index.entries.push(verifier,archive);
+    else index.entries.push(archive,verifier);
+    v.setIndex(index);
+    await assert.rejects(()=>F.open(v.key,{fetcher:v.fetcher}),undefined,invalid);
+  }
+});
+
+test('equivalent checks count once and a different same-race score cannot supersede the first',async()=>{
+  const v=await fixture();
+  const archive=await metadataEntry(v,{...packet(),files:{}},clock('00:06'),'archive');
+  const first=await metadataEntry(v,shadowNote(archive),clock('01:02'),shadowKind);
+  const retry=await metadataEntry(v,shadowNote(archive,value=>({...value,verified_at:clock('01:03'),
+    result:{...value.result,observed_at:clock('00:51')}})),clock('01:04'),shadowKind);
+  const conflict=await metadataEntry(v,shadowNote(archive,value=>{
+    value.result.scope='OFFICIAL_COMPLETE_FINISH_RESEARCH';
+    value.result.evidence_sha256='c'.repeat(64);
+    value.scores.trifecta.challenger_hit=false;
+    value.verified_at=clock('01:05');
+    return value;
+  }),clock('01:06'),shadowKind);
+  const index=v.index();index.entries.push(archive,first,retry);v.setIndex(index);
+  const session=await F.createSession(v.key,{fetcher:v.fetcher});
+  try{
+    const initial=await session.refresh();
+    assert.equal(initial.shadowVerifications.size,1);
+    assert.equal(initial.shadowVerificationHolds.size,0);
+    index.entries.push(conflict);v.setIndex(index);
+    const final=await session.refresh();
+    assert.equal(final.shadowVerifications.size,1);
+    assert.deepEqual(final.shadowVerifications.get(shadowRace),initial.shadowVerifications.get(shadowRace));
+    assert.deepEqual([...final.shadowVerificationHolds],[shadowRace]);
+    assert.equal(final.days.get(shadowDay).length,1);
+  }finally{session.close();}
 });
 
 test('the visible-page watcher updates immediately, waits thirty seconds and stops on clear',async()=>{
