@@ -283,7 +283,8 @@ def audit_window(root, since, *, clock=_now):
         raise ValueError('The audit needs an aware start time in the past.')
     directory = _private_root(_private_root(root)/'ticks')
     start = since.astimezone(timezone.utc).strftime('%Y%m%dT%H%M%S%f')
-    ticks, counts = set(), {'new_recordings': 0, 'new_tracks': 0, 'new_candidate_fits': 0}
+    ticks, counts = {}, {'new_recordings': 0, 'new_tracks': 0, 'new_candidate_fits': 0}
+    shadow_states = {}
     for path in sorted(directory.glob('*.json')):
         if path.name < start:
             continue
@@ -294,28 +295,38 @@ def audit_window(root, since, *, clock=_now):
         if (path.name != f'{stamp}-{sha256(body).hexdigest()}.json'
                 or report['schema'] != 'KEIRIN_MAC_CYCLE_V1' or not since <= at <= now):
             raise ValueError('The cycle audit receipt does not match its recorded timestamp and hash.')
-        ticks.add(at)
+        duration = report['duration_ms']
+        if type(duration) is not int or duration < 0:
+            raise ValueError('Invalid cycle duration.')
+        ticks[at] = max(ticks.get(at, 0), duration/1000)
         video = report['video']
         counts['new_recordings'] += video.get('recorded', 0)
         counts['new_tracks'] += video.get('tracking', {}).get('state') == 'TRACKS_GENERATED'
         counts['new_candidate_fits'] += video.get('model_state') == 'TRIAL_PROFILE_FITTED'
+        if 'shadow_result' in report:
+            state = report['shadow_result']['state']
+            shadow_states[state] = shadow_states.get(state, 0) + 1
     ordered = sorted(ticks)
     intervals = [(end-begin).total_seconds() for begin, end in zip(ordered, ordered[1:])]
+    idle = [max(0, gap-ticks[begin]) for begin, gap in zip(ordered, intervals)]
     span = (ordered[-1]-ordered[0]).total_seconds() if ordered else 0
     last_age = (now-ordered[-1]).total_seconds() if ordered else None
-    longest = max(intervals, default=0)
-    return dict(schema='KEIRIN_MAC_CYCLE_TIMING_V1', scope='LOCAL_VIDEO_AND_MARKET_RESEARCH',
+    since_completion = max(0, last_age-ticks[ordered[-1]]) if ordered else None
+    longest_idle = max(idle, default=0)
+    return dict(schema='KEIRIN_MAC_CYCLE_TIMING_V1', scope='LOCAL_KEIRIN_RESEARCH',
                 since=since.isoformat(), checked_at=now.isoformat(), completed_ticks=len(ordered),
                 first_tick=ordered[0].isoformat() if ordered else None,
                 last_tick=ordered[-1].isoformat() if ordered else None,
-                seconds_observed=span, longest_interval_seconds=longest,
+                seconds_observed=span, longest_interval_seconds=max(intervals, default=0),
                 intervals_over_16_minutes=sum(gap > 960 for gap in intervals),
-                seconds_since_last_tick=last_age,
-                full_24h_local_cadence=span >= 86400 and longest <= 960 and last_age <= 960, **counts)
+                longest_idle_seconds=longest_idle, idle_intervals_over_16_minutes=sum(gap > 960 for gap in idle),
+                seconds_since_last_tick=last_age, seconds_since_last_completion=since_completion,
+                shadow_states=shadow_states,
+                full_24h_local_cadence=span >= 86400 and longest_idle <= 960 and since_completion <= 960, **counts)
 
 
 def run_cycle(root, *, census=None, manifest=None, bounds=None, reviewed=None, source_approval=None,
-              track_request=None,
+              track_request=None, shadow_request=None,
               browser=CHROME, clock=_now):
     root = _private_root(root)
     with _lock(root/'mac-cycle.lock', wait=False):
@@ -333,8 +344,14 @@ def run_cycle(root, *, census=None, manifest=None, bounds=None, reviewed=None, s
         except INPUT_ERRORS:
             video = {'state': 'HOLD_VIDEO_INPUT_OR_RUNTIME'}
         result = dict(schema='KEIRIN_MAC_CYCLE_V1', checked_at=now.isoformat(), video=video,
-                      market_third=market_third, production_weights_promoted=False,
-                      duration_ms=round(1000*(monotonic()-start)))
+                      market_third=market_third, production_weights_promoted=False)
+        if shadow_request is not None:
+            try:
+                from scripts import keirin_mac_shadow_result
+                result['shadow_result'] = keirin_mac_shadow_result.run(root, shadow_request, clock=clock)
+            except INPUT_ERRORS:
+                result['shadow_result'] = {'state': 'HOLD_SHADOW_RESULT_INPUT_OR_RUNTIME'}
+        result['duration_ms'] = round(1000*(monotonic()-start))
         _save_tick(root, now, result)
         with corpus.output_file(root/'cycle-report.json') as report:
             json.dump(result, report, ensure_ascii=False, allow_nan=False, sort_keys=True)
@@ -345,7 +362,7 @@ def main(argv=None):
     parser = ArgumentParser(description=__doc__, allow_abbrev=False)
     parser.add_argument('--state-dir', required=True, type=Path)
     parser.add_argument('--input-dir', type=Path, help='Optional private directory with the documented local inputs.')
-    for name in ('census', 'manifest', 'bounds', 'reviewed', 'source-approval', 'track-request'):
+    for name in ('census', 'manifest', 'bounds', 'reviewed', 'source-approval', 'track-request', 'shadow-request'):
         parser.add_argument('--'+name, type=Path)
     parser.add_argument('--audit-since', type=datetime.fromisoformat, help='Read completed cycles from this timestamp.')
     parser.add_argument('--browser', default=CHROME)
@@ -361,7 +378,7 @@ def main(argv=None):
             for key, name in (('census', 'census.jsonl'), ('manifest', 'owner-films.jsonl'),
                               ('bounds', 'crossings.jsonl'), ('reviewed', 'reviewed.jsonl'),
                               ('source_approval', 'reviewed-source-approval.json'),
-                              ('track_request', 'track-clip.json')):
+                              ('track_request', 'track-clip.json'), ('shadow_request', 'shadow-result.json')):
                 path = inputs/name
                 if options[key] is None and path.is_file():
                     options[key] = path

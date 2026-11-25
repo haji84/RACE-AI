@@ -1,0 +1,26 @@
+{
+  "app_sha256": "38d7270f72f1a21fdf4074c1a8ddbaf4e1f7dc871f705ca21d6dc0d2dd7be161",
+  "browser_fixture_growth_test_verified": true,
+  "browser_mac_widths_px": [
+    320,
+    390,
+    1440
+  ],
+  "changed_paths": [
+    "app.js",
+    "index.html",
+    "site-build.json"
+  ],
+  "checked_at": "2026-11-25T18:55:15.356989+00:00",
+  "http_manifest_assets": 73,
+  "iphone_safari_verified": false,
+  "live_verified_at": "2026-11-25T18:56:48.740673+00:00",
+  "main_commit": "346ac4608236632dab78b32a591c67e7c33e0023",
+  "manifest_assets": 73,
+  "manifest_sha256": "e549884fe2fe844e789f92d9025354776a482ce7d92735d2a9c824415b3b8a07",
+  "pages_commit": "0b1b630462e97b89adcb59b1e11b1efc97658cf4",
+  "pages_deployment_run": 45680000888,
+  "pages_parent": "f1e5ede450425890cd9a82a606ed3b1aab80d5e2",
+  "public_site": "https://haji84.github.io/RACE-AI/",
+  "pull_request": 341
+}

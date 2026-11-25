@@ -52,7 +52,20 @@ class MacCycleTests(unittest.TestCase):
         self.assertEqual(audit['longest_interval_seconds'], 31*60)
         self.assertEqual(audit['intervals_over_16_minutes'], 1)
         self.assertFalse(audit['full_24h_local_cadence'])
-        self.assertEqual(audit['scope'], 'LOCAL_VIDEO_AND_MARKET_RESEARCH')
+        self.assertEqual(audit['scope'], 'LOCAL_KEIRIN_RESEARCH')
+
+    def test_cycle_audit_excludes_active_work_from_idle_gaps(self):
+        from scripts import keirin_mac_cycle as cycle
+
+        later = NOW + timedelta(seconds=990)
+        with patch.object(cycle.market, 'evaluate_retained', return_value={}), \
+                patch.object(cycle, 'monotonic', side_effect=[0, 90, 990, 992]):
+            cycle.run_cycle(self.root, clock=lambda: NOW)
+            cycle.run_cycle(self.root, clock=lambda: later)
+        audit = cycle.audit_window(self.root, NOW, clock=lambda: later+timedelta(seconds=10))
+        self.assertEqual(audit['longest_interval_seconds'], 990)
+        self.assertEqual(audit['longest_idle_seconds'], 900)
+        self.assertEqual(audit['idle_intervals_over_16_minutes'], 0)
 
     def test_tracking_requires_the_exact_verified_race_and_media(self):
         from scripts import keirin_mac_cycle as cycle
