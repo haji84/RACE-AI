@@ -232,12 +232,25 @@ def checked_index(doc, day):
 
 class RecordStore:
     """Select bounded encrypted records without scanning all historical bytes."""
-    def __init__(self, repo, day, *, synthetic_local=False):
+    def __init__(self, repo, day, *, synthetic_local=False, partial_read=False):
         self.repo=archive._remote(repo,synthetic_local=synthetic_local)
-        self.day=history._day(day);self.path=ROOT+'/'+day+'/index.json';self.refresh()
+        self.day=history._day(day);self.path=ROOT+'/'+day+'/index.json'
+        if partial_read:
+            branch=archive.BRANCH
+            tracking=f'refs/remotes/origin/{branch}'
+            archive._cmd(self.repo,'fetch','--no-tags','--depth=1','--filter=blob:none',
+                '--no-recurse-submodules','origin',f'refs/heads/{branch}:{tracking}')
+            head=archive._cmd(self.repo,'rev-parse','--verify',f'{tracking}^{{commit}}')[1]
+            need(archive.COMMIT.fullmatch(head),'PARTIAL_ARCHIVE_HEAD')
+            self._load_index(head)
+        else:
+            self.refresh()
 
     def refresh(self):
-        self.head=archive._refresh(self.repo)
+        return self._load_index(archive._refresh(self.repo))
+
+    def _load_index(self, head):
+        self.head=head
         raw=archive.read_blob_bytes(self.repo,self.head,self.path,max_bytes=MAX_INDEX_BYTES)
         self.index=checked_index(history._json(raw),self.day) if raw is not None else _empty(self.day)
         return self.index
@@ -378,9 +391,9 @@ def admit_original(store, payload, owner_private_pem, *, origin_client=None, pac
     return original,packets
 
 
-def load_admitted_day(repo, owner_private_pem, day, *, origin_client=None, clock=None):
+def load_admitted_day(repo, owner_private_pem, day, *, origin_client=None, clock=None, partial_read=False):
     pipeline.check_owner_private_key(owner_private_pem)
-    store=RecordStore(repo,day);registry=None;states={}
+    store=RecordStore(repo,day,partial_read=partial_read);registry=None;states={}
     observed=form._aware((clock or (lambda:datetime.now(timezone.utc)))()).isoformat()
     if store.index['registry']:
         payload=store.read(store.index['registry'],owner_private_pem);registry=replay_registry(payload)

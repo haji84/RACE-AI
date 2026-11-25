@@ -306,7 +306,14 @@ def run_publish(*,repo,private_root,owner_public_pem,owner_private_pem,day=None,
     repo,root,day,public,commit=_runtime(repo=repo,private_root=private_root,owner_public_pem=owner_public_pem,
         owner_private_pem=owner_private_pem,day=day,clock=clock,mode='publish')
     from race_ai.keirin_nationwide_forecast_view import publish_day
-    admitted=records.load_admitted_day(repo,owner_private_pem,day)
+    # Keep the shallow promisor repository out of the archive and Note writer checkouts.
+    with TemporaryDirectory(prefix='official-publish-archive-',dir=root) as folder:
+        reader=Path(folder)
+        archive._cmd(reader,'init','--quiet','--template=')
+        archive._cmd(reader,'remote','add','origin',f'https://github.com/{archive.REPO}.git')
+        archive._cmd(reader,'config','--local','remote.origin.promisor','true')
+        archive._cmd(reader,'config','--local','remote.origin.partialclonefilter','blob:none')
+        admitted=records.load_admitted_day(reader,owner_private_pem,day,partial_read=True)
     result=publish_day(repo,admitted,commit,owner_private_pem)
     need(type(result) is dict and result.get('provider_requests')==0 and result.get('state') in
          ('KEIRIN_NOTE_ENCRYPTED_GIT_READBACK_VERIFIED','EXISTING_NATIONWIDE_DISPLAY_REUSED'),
