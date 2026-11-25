@@ -270,7 +270,11 @@ from scripts.keirin_frozen_accuracy_study import evaluate
 source = Path(sys.argv[1])
 guard.RUNTIME_SOURCE_SHA256 = {name: sha256((source/name).read_bytes()).hexdigest()
                                for name in guard.RUNTIME_SOURCE_SHA256}
-report = evaluate(Path(sys.argv[2]), Path(sys.argv[3]), sys.argv[4], source_root=source)
+# The subprocess uses an invented engine. Supply its package metadata without
+# requiring the real model runtime in the offline fixture environment.
+fixture_versions = {'numpy': '2.2.6', 'scipy': '1.17.0', 'lightgbm': '4.6.0'}
+report = evaluate(Path(sys.argv[2]), Path(sys.argv[3]), sys.argv[4], source_root=source,
+                  package_version_getter=fixture_versions.__getitem__)
 assert report['fixture_engine'] == 'VERIFIED_BYTES'
 assert report['frozen_runtime_verification']['frozen_model_sha256'] == sys.argv[4]
 '''
