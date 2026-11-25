@@ -367,8 +367,11 @@ class _Parser(argparse.ArgumentParser):
 
 def main(argv=None):
     # Remove the existing secret before any possible subprocess or diagnostics.
-    private_pem = os.environ.pop(KEY_ENV, '').encode('utf-8')
+    private_value = os.environ.pop(KEY_ENV, '')
+    private_pem = b''
     try:
+        private_pem = private_value.encode('utf-8')
+        private_value = ''
         parser = _Parser(description=__doc__, allow_abbrev=False)
         parser.add_argument('--cipher', required=True, type=Path)
         parser.add_argument('--receipt', required=True, type=Path)
@@ -395,6 +398,7 @@ def main(argv=None):
         return 2
     finally:
         private_pem = b''
+        private_value = ''
     print(json.dumps(report, ensure_ascii=False, sort_keys=True))
     return 0
 
