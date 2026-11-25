@@ -4,6 +4,7 @@ from hashlib import sha256
 import importlib
 from itertools import permutations
 import json
+from math import log
 import unittest
 
 from race_ai.keirin_joint_finish import JointFinish
@@ -175,6 +176,44 @@ class JointForwardScoreTests(unittest.TestCase):
         self.assertEqual(report['result_states'],dict(missing=6))
         self.assertEqual(report['exacta_top2']['matched'],0)
         self.assertEqual(report['trifecta_by_points']['8']['trial_hits'],0)
+
+    def test_probability_scores_use_only_confirmed_ordered_results_and_are_opt_in(self):
+        public = self.score()
+        private = self.score(include_probability_metrics=True)
+        evaluation = private.pop('probability_evaluation')
+        self.assertEqual(private, public)
+        self.assertEqual(evaluation['matched'], 3)
+        self.assertIs(evaluation['full_finish_verified'], False)
+        baseline = evaluation['published']
+        trifecta = baseline['ordered_trifecta']
+        self.assertAlmostEqual(trifecta['brier'], 0.79445)
+        self.assertAlmostEqual(trifecta['log_loss'], -(log(.08) + log(.5) + log(.2)) / 3)
+        self.assertEqual(trifecta['zero_probability_outcomes'], 0)
+        four = baseline['trifecta_top_n']['4']
+        self.assertAlmostEqual(four['mean_probability'], .9)
+        self.assertEqual(four['hits'], 3)
+        self.assertAlmostEqual(four['brier'], .01)
+        self.assertEqual([bin['count'] for bin in four['bins']], [0, 0, 0, 0, 3])
+        self.assertEqual(evaluation['trial']['trifecta_top_n']['4']['hits'], 2)
+        self.assertEqual(baseline['exacta_top_2']['hits'], 2)
+        self.assertEqual(set(baseline['by_rank']), {'1', '2', '3'})
+        self.assertNotIn('20261125620', json.dumps(evaluation))
+
+    def test_zero_probability_outcomes_are_counted_and_empty_denominators_stay_null(self):
+        matched = self.results['races'][0]['comparison']
+        matched['winning_3t'], matched['winning_2t'] = [1, 2, 4], [1, 2]
+        report = self.score(include_probability_metrics=True)['probability_evaluation']
+        for side in ('published', 'trial'):
+            triple = report[side]['ordered_trifecta']
+            self.assertEqual(triple['zero_probability_outcomes'], 1)
+            self.assertIsNone(triple['log_loss'])
+            self.assertIsNotNone(triple['brier'])
+
+        self.results['races'] = []
+        empty = self.score(include_probability_metrics=True)['probability_evaluation']
+        self.assertEqual(empty['matched'], 0)
+        self.assertIsNone(empty['published']['ordered_trifecta']['brier'])
+        self.assertIsNone(empty['published']['trifecta_top_n']['1']['mean_probability'])
 
     def test_arm_identity_and_original_distribution_consistency_are_enforced(self):
         for change in (lambda row:row.update(model_version='different-weights'),
