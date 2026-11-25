@@ -30,7 +30,7 @@
 
 **Files:** Create `race_ai/keirin_flow_evaluation.py`, `tests/test_keirin_flow_evaluation.py`; modify `scripts/keirin_forward_score.py`, `tests/test_keirin_forward_score.py` and existing persistent-core CI test command.
 
-**Interfaces:** `summarize_flow(predictions, observations, *, forecast_sha256, result_hits)` consumes the SHA-verified prediction document, separately timestamped observations, and already admitted result hits. Produces count-only formal/provisional A–E categories and metric denominators, no forecast orders.
+**Interfaces:** `summarize_flow(predictions, observations, *, forecast_sha256, receipt, orders_by_race, starters_by_race)` consumes SHA-verified predictions, the original receipt, separate observations and already admitted result orders. Reuses `keirin_form_fall_blind_pdca.compare_race_development`; produces count-only research/reference A–E categories and denominators, no forecast orders.
 
 - [x] Write tests for A/B/C/D/E, partial observations, missing original flow, source categories, invalid identity/hash/time, no result and unchanged legacy scoring.
 - [x] Run `python -m unittest tests.test_keirin_flow_evaluation tests.test_keirin_forward_score -q`; confirm missing implementation fails.
@@ -58,4 +58,8 @@
 - Ruling: A source category plus hash remains a producer attestation, not independent authentication. The scorer reports that boundary explicitly; formal production admission remains outside this component.
 - Ruling: The public forecast is a different record from the conversation prediction (top-one differs; top-four includes the reported result). Preserve both identities and add zero formal performance races from the conversation case.
 - Source check: secondary two-source 5-3-1 match, source bodies private; video not independently watched. Published 75-race asset SHA matches the inherited publication receipt.
-- Task 1/2 interface check: observation facts bind to the unchanged original prediction SHA. The retrospective case deliberately uses `evaluate_case` without manufacturing a pre-cutoff receipt.
+- Task 1/2 interface check: observation facts bind to the unchanged original prediction SHA. The retrospective case uses canonical `compare_race_development` with conversation_reference scope, without manufacturing a pre-cutoff receipt.
+- Ruling: During work PR #327 advanced to `345f0ac8`; integrate all 27 new paths and reuse its `compare_race_development`. Remove the duplicate classifier. Cost if wrong: the optional research adapter would duplicate or diverge from the canonical PDCA, so regression tests now exercise the shared function.
+- Final review: independent reviewer reproduced post-cutoff normalization admission, initial-prefix inconsistency, and compatible-partial-source conflicts. The latter two are handled by the shared canonical comparator; the adapter separately refuses late normalized bytes. Regression tests cover all three.
+- Review minor addressed by consolidation: a supplied conversation flow is never labeled a restored original; reference scope has no formal grade and contributes zero formal races.
+- Broad keirin discovery before integration: 1,549 tests, 1 failure, 8 errors, 11 skipped. Seven errors require missing legacy pinned modules, one requires Playwright Chromium. The failure was a negative fixture created as 0700 under umask0077 instead of intended 0755; explicit chmod fixes the fixture, without changing runtime permissions or code.

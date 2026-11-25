@@ -68,7 +68,7 @@ def score(predictions_raw, receipt_raw, roster_raw, results_raw, *, flow_observa
     states = Counter()
     published_hits = trial_hits = points = 0
     gained, lost = [], []
-    result_hits, starters_by_race = {}, {}
+    orders_by_race, starters_by_race = {}, {}
     for key, forecast in sorted(forecasts.items()):
         entry = entries[key]
         cutoff = entry['published_cutoff_at']
@@ -76,7 +76,7 @@ def score(predictions_raw, receipt_raw, roster_raw, results_raw, *, flow_observa
         need(frozen < instant(cutoff), 'FORECAST_AT_OR_AFTER_CUTOFF')
         starters = {rider['number'] for rider in entry['observed_riders']}
         starters_by_race[key] = starters
-        result_hits[key] = {'published': None, 'trial': None}
+        orders_by_race[key] = None
         budget = forecast['points']
         need(type(budget) is int and 1 <= budget <= 8, 'INVALID_TICKET_BUDGET')
         for side in ('published', 'trial'):
@@ -95,7 +95,7 @@ def score(predictions_raw, receipt_raw, roster_raw, results_raw, *, flow_observa
         winner = confirmed_order(outcome, cutoff, starters, checked_at)
         published_hit = winner in forecast['published'][:budget]
         trial_hit = winner in forecast['trial'][:budget]
-        result_hits[key] = {'published': published_hit, 'trial': trial_hit}
+        orders_by_race[key] = winner
         published_hits += published_hit
         trial_hits += trial_hit
         points += budget
@@ -115,7 +115,7 @@ def score(predictions_raw, receipt_raw, roster_raw, results_raw, *, flow_observa
         from race_ai.keirin_flow_evaluation import summarize_flow
         report['flow_evaluation'] = summarize_flow(
             predictions, json.loads(flow_observations_raw), forecast_sha256=forecast_sha,
-            result_hits=result_hits, starters_by_race=starters_by_race)
+            receipt=receipt, orders_by_race=orders_by_race, starters_by_race=starters_by_race)
     return report
 
 
