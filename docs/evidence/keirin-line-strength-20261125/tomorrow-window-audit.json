@@ -1,0 +1,43 @@
+{
+  "schema": "KEIRIN_HISTORICAL_PRIORITY_CADENCE_AND_NEXT_DAY_PLAN_V1",
+  "observed_note_index_commit": "373fc34e6e71e57f54a051a6c767ef2b43b9e490",
+  "note_index_sha256": "6df730020eae4f39202f0483b9b9546ff688e8a618980fd2b37e2758b9d34344",
+  "audit_time": "2026-11-25T14:06:31.948006+00:00",
+  "covered_all_days": 403,
+  "priority_all_days": 22,
+  "covered_all_days_by_date": {
+    "20261120": 33,
+    "20261121": 57,
+    "20261122": 68,
+    "20261123": 89,
+    "20261124": 81,
+    "20261125": 75
+  },
+  "priority_all_days_by_date": {
+    "20261120": 3,
+    "20261121": 3,
+    "20261122": 6,
+    "20261123": 4,
+    "20261124": 4,
+    "20261125": 2
+  },
+  "tomorrow_races": 84,
+  "nearest_cutoff_separation_minutes": 6,
+  "schedule_assumption": "On-time PR71 trigger at minute 3 modulo 5; no queue or acquisition delay other than listed. Public cutoff; Git persistence audited separately.",
+  "ideal_seconds_to_latest_priority_time": {
+    "60": 12,
+    "120": 33,
+    "180": 12,
+    "240": 14,
+    "300": 13
+  },
+  "hypothetical_ceiling_at_capture_generation_delay_seconds": {
+    "0": 84,
+    "60": 84,
+    "120": 72,
+    "180": 39,
+    "240": 27
+  },
+  "next_day_h_available_in_advance_verified": 0,
+  "provider_denied": false
+}
