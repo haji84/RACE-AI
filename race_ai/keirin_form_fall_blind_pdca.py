@@ -11,7 +11,7 @@ does not become a miss. C history remains a separate comparison family.
 from __future__ import annotations
 
 from datetime import datetime
-from collections import Counter
+from collections import Counter, defaultdict
 from itertools import product
 
 from . import keirin_nationwide_auto_generator as original
@@ -198,3 +198,148 @@ def compare_cohort(*, registered_race_ids, joined_private_rows,
         "statuses":dict(sorted(statuses.items())),
         "metrics":metrics, "records":per_race,
     }
+
+
+_CHECKPOINTS = original.PHASES[:-1]
+_FLOW_ASPECTS = (*_CHECKPOINTS, 'INITIATIVE', 'ATTACK_ORDER')
+_INDEPENDENT_FLOW_SOURCES = {'video', 'official', 'article'}
+
+
+def _flow_value(aspect, value, starters):
+    if aspect == 'INITIATIVE':
+        need(type(value) is int and value in starters, 'FLOW_INITIATIVE_INVALID')
+        return value
+    need(type(value) is list and all(type(car) is int and car in starters for car in value),
+         'FLOW_ORDER_INVALID')
+    if aspect in _CHECKPOINTS:
+        need(bool(value) and len(value) == len(set(value)), 'FLOW_CHECKPOINT_ORDER_INVALID')
+    return value
+
+
+def _is_subsequence(part, total):
+    rest = iter(total)
+    return all(car in rest for car in part)
+
+
+def _flow_agrees(aspect, predicted, observed, complete):
+    if aspect == 'ATTACK_ORDER':
+        return predicted == observed if complete else _is_subsequence(observed, predicted)
+    if aspect == 'INITIATIVE':
+        return predicted == observed
+    length = min(len(predicted), len(observed))
+    return predicted[:length] == observed[:length]
+
+
+def _compare_flow(predicted, evidence, starters):
+    compared = {}
+    for aspect in _FLOW_ASPECTS:
+        rows = evidence.get(aspect, [])
+        item = {'sources': sorted({row['source'] for row in rows})}
+        if aspect not in predicted:
+            state = 'forecast_missing'
+        elif not rows:
+            state = 'unobserved'
+        else:
+            main = max(rows, key=lambda row: (row['complete'],
+                       1 if aspect == 'INITIATIVE' else len(row['observed'])))
+            observed = main['observed']
+            if any(not _flow_agrees(aspect, observed, row['observed'], row['complete']) for row in rows):
+                state = 'conflict'
+            else:
+                expected = predicted[aspect]
+                item['observed'] = observed
+                item['predicted'] = expected
+                if not _flow_agrees(aspect, expected, observed, main['complete']):
+                    state = 'different'
+                elif not main['complete'] or aspect in _CHECKPOINTS and len(expected) < len(starters):
+                    state = 'partial_match'
+                else:
+                    state = 'match'
+        compared[aspect] = dict(item, state=state)
+    states = Counter(x['state'] for x in compared.values())
+    state = ('different' if states['different'] else
+             'match' if states['match'] == len(_FLOW_ASPECTS) else 'insufficient')
+    return {'state': state, 'aspects': compared, 'counts': dict(states)}
+
+
+def _development_grade(hit, flow):
+    if hit is None:
+        return None
+    if flow == 'match':
+        return 'A' if hit else 'C'
+    if flow == 'different':
+        return 'B' if hit else 'D'
+    return 'E'
+
+
+def compare_race_development(*, race_id, starters, forecast, order, observations,
+                             verify_forecast, verify_order, verify_observation):
+    """Score a saved order and the observed flow separately, with external evidence.
+
+    ``forecast`` carries its projected checkpoint sequences, the first main
+    move (INITIATIVE), and the expected late attacking actors (ATTACK_ORDER).
+    A checkpoint may be a measured leading prefix. An incomplete attack
+    sequence records only the relative order of the actions actually seen.
+    Verifiers must independently bind the inputs to their source receipts.
+    A conversation example can receive a reference grade only.
+    """
+    need(type(race_id) is str and original.VENUE.fullmatch(race_id) and
+         type(starters) is list and 3 <= len(starters) <= 9 and
+         all(type(car) is int and 1 <= car <= 9 for car in starters) and
+         len(set(starters)) == len(starters), 'FLOW_RACE_SCOPE_INVALID')
+    need(type(forecast) is dict and forecast.get('race_id') == race_id and
+         forecast.get('scope') in {'registered', 'conversation_reference'}, 'FLOW_FORECAST_SCOPE_INVALID')
+    need(all(callable(check) for check in (verify_forecast, verify_order, verify_observation)),
+         'FLOW_VERIFIERS_REQUIRED')
+    cars = set(starters)
+    reference = forecast['scope'] == 'conversation_reference'
+    registered = (not reference and original.when(forecast.get('sealed_at')) <
+                  original.when(forecast.get('cutoff_at')) and verify_forecast(forecast) is True)
+    tickets = _tickets({'ranked_tickets': forecast.get('tickets')}, cars)
+    need(len(tickets) <= 8, 'FLOW_TICKET_CAP_EXCEEDED')
+    predicted = forecast.get('flow', {})
+    need(type(predicted) is dict and set(predicted) <= set(_FLOW_ASPECTS), 'FLOW_PROJECTION_INVALID')
+    for aspect, value in predicted.items():
+        _flow_value(aspect, value, cars)
+
+    accepted, reported = defaultdict(list), defaultdict(list)
+    unverified = 0
+    need(type(observations) is list, 'FLOW_OBSERVATIONS_INVALID')
+    for row in observations:
+        need(type(row) is dict and row.get('race_id') == race_id and row.get('aspect') in _FLOW_ASPECTS and
+             row.get('source') in _INDEPENDENT_FLOW_SOURCES | {'user', 'estimate'} and
+             type(row.get('complete')) is bool and 'receipt' in row and 'observed' in row, 'FLOW_OBSERVATION_INVALID')
+        aspect, source = row['aspect'], row['source']
+        _flow_value(aspect, row['observed'], cars)
+        if aspect in _CHECKPOINTS and row['complete']:
+            need(len(row['observed']) == len(cars), 'FLOW_COMPLETE_CHECKPOINT_REQUIRES_FULL_ORDER')
+        if source in _INDEPENDENT_FLOW_SOURCES and verify_observation(row) is True:
+            accepted[aspect].append(row)
+        elif source == 'user':
+            reported[aspect].append(row)
+        else:
+            unverified += 1
+
+    need(order is None or type(order) is dict and order.get('race_id') == race_id, 'FLOW_RESULT_IDENTITY_INVALID')
+    winners = None
+    if order is not None and verify_order(order) is True:
+        result_tickets = order.get('winning_triples')
+        need(type(result_tickets) is list, 'FLOW_RESULT_ORDER_INVALID')
+        winners = {_ticket(value, cars) for value in result_tickets}
+        need(len(winners) == len(result_tickets), 'FLOW_RESULT_DUPLICATE_ORDER')
+    placing = {'formal': registered and bool(winners), 'hit': None, 'first_hit': None,
+               'points': len(tickets), 'matched_points': None, 'hit_rank': None}
+    if winners and (registered or reference):
+        ranks = [index for index, ticket in enumerate(tickets, 1) if ticket in winners]
+        placing.update(hit=bool(ranks), first_hit=1 in ranks, matched_points=len(ranks),
+                       hit_rank=ranks[0] if ranks else None)
+    flow = _compare_flow(predicted, accepted, cars)
+    flow['unverified_observations'] = unverified
+    reference_grade = None
+    reference_flow = None
+    if reference:
+        reference_flow = _compare_flow(predicted, reported | accepted, cars)
+        reference_grade = _development_grade(placing['hit'], reference_flow['state'])
+    grade = _development_grade(placing['hit'], flow['state']) if placing['formal'] else None
+    return {'race_id': race_id, 'placing': placing, 'flow': flow, 'grade': grade,
+            'reference_grade': reference_grade, 'reference_flow': reference_flow}
