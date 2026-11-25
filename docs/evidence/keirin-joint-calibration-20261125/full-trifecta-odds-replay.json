@@ -1,0 +1,460 @@
+{
+  "2026-11-23_complete": {
+    "both_T15_T10": 0,
+    "eligible_unique_races": 26,
+    "paired_scores": {
+      "1": {
+        "both_hits": 4,
+        "both_outside_top_cap_in_union": 21,
+        "neither_hits": 21,
+        "odds_equal_at_cap_boundary": 0,
+        "odds_hits": 5,
+        "odds_only_hits": 1,
+        "odds_wilson_95_pct": [
+          8.507,
+          37.876
+        ],
+        "original_hits": 4,
+        "original_only_hits": 0,
+        "original_wilson_95_pct": [
+          6.15,
+          33.531
+        ],
+        "paired_exact_p": 1,
+        "points_per_arm": 26,
+        "scored": 26
+      },
+      "4": {
+        "both_hits": 8,
+        "both_outside_top_cap_in_union": 17,
+        "neither_hits": 17,
+        "odds_equal_at_cap_boundary": 1,
+        "odds_hits": 8,
+        "odds_only_hits": 0,
+        "odds_wilson_95_pct": [
+          16.501,
+          49.988
+        ],
+        "original_hits": 9,
+        "original_only_hits": 1,
+        "original_wilson_95_pct": [
+          19.412,
+          53.779
+        ],
+        "paired_exact_p": 1,
+        "points_per_arm": 104,
+        "scored": 26
+      },
+      "8": {
+        "both_hits": 11,
+        "both_outside_top_cap_in_union": 13,
+        "neither_hits": 13,
+        "odds_equal_at_cap_boundary": 1,
+        "odds_hits": 12,
+        "odds_only_hits": 1,
+        "odds_wilson_95_pct": [
+          28.756,
+          64.542
+        ],
+        "original_hits": 12,
+        "original_only_hits": 1,
+        "original_wilson_95_pct": [
+          28.756,
+          64.542
+        ],
+        "paired_exact_p": 1,
+        "points_per_arm": 208,
+        "scored": 26
+      },
+      "display": {
+        "both_hits": 9,
+        "both_outside_top_cap_in_union": 17,
+        "neither_hits": 17,
+        "odds_equal_at_cap_boundary": 1,
+        "odds_hits": 9,
+        "odds_only_hits": 0,
+        "odds_wilson_95_pct": [
+          19.412,
+          53.779
+        ],
+        "original_hits": 9,
+        "original_only_hits": 0,
+        "original_wilson_95_pct": [
+          19.412,
+          53.779
+        ],
+        "paired_exact_p": null,
+        "points_per_arm": 120,
+        "scored": 26
+      }
+    },
+    "selected_capture_raw_sha256s": [
+      "004df29b4e63fe1367bef1bd2f7149e24eecfccaa0dd3a2d326e1d5949f83c43",
+      "09e8c1040dbcc9a2637d47a6445d7a358e9b2f69bf6fd7428c27c4bae0607092",
+      "159ffd614a6fef7c92ea462a815405ad5053adb3d66562029123a9ee9f81108e",
+      "1925693dcd7f759436a5f6a2d36e47e168139e72319a81f9bcdcf5e45be6f3d0",
+      "1b2bdf84ae6f7c352e1605e4ad35897db6c2bc45cdc6c762c23d2f4adb3a590b",
+      "203a5a02635681363719e9607a43638c07c28e222f359190d3615aca8b9adc22",
+      "2ff2592581a0c8e843e4c0ed6e8b25f70de83bf22b4950c36961871a0542af50",
+      "3b2cd6f3384fc01a6ed2347bdf02aaea18eb84e4236767755bd0dde40c9867c7",
+      "43a0f16229ec32a69d8e02fbc26b36b21cc5654bb0ad87a6497704249cff8bc1",
+      "4abff6faaef1eb4e68b8dc9d0b5c5548541b895847af7f83219dc9fe0d66c7a6",
+      "4b284727c4af327012eff916f7654036b40b22d0e070de6bd8ea8eb0d1c2ba93",
+      "52dd4a06685acd608ee7f20deeb9500379a1fecae3223f34039e3d462c518ec3",
+      "584b997b719420d088105e615cb368f718ee1997c5571ad3395d444bdeeeba5d",
+      "5a21b766e2fc5d97d7c1b9ef8b8ab65db309c9a1af7f642611cb4ef9984c2212",
+      "6f4eed86418726a08e3a195446146446a9ded53f98fcd4e3361ba038efa029e3",
+      "84230b878b5a14599d1753396e89092e478f4e0c6deff4b1346ba044e6457bba",
+      "94c601b9ccb3fb9439929785da2e56f2a079640cf06378934352e84b0b24254d",
+      "9a2884c4789bc717f7772196868c172bc84e56f5c45cef55692ebed9c3838e1d",
+      "a444b43af2c3d4bfdf50b84db3a7595154068b442ffa3c042a3a2ea2fec970e8",
+      "a572fdb9129a5d4905f249ce55805caca487b43eb7e95a10b5e86fe3844ec888",
+      "a8827748782fe40aad325f199d96e57caf1af321c038c77f90f61ba2da0d4c40",
+      "c77a144715f501e64d935d1dcbe472ccdd49769e4c254bba78e7be4c4b1ea748",
+      "d64b8619e2f6f60d6ed1bc498fce702af9da2a3ef5728efed78d419c1386a60a",
+      "dfb0b8663a87ecb2158b323ef2b5ea1c9e031960638882d1045f07abed6a11bd",
+      "e5c51442921ef46768f419f5ce4ae15d3a34d848de1271a26cdbae27a99d2f47",
+      "ede91612a972152c1af190d58610ec58fa35b5503e031432638bd42180f4f49d"
+    ],
+    "timing_min_median_max": {
+      "capture_minutes": [
+        4.529,
+        119.07,
+        650.542
+      ],
+      "provider_minutes": [
+        6.0,
+        120.0,
+        652.0
+      ]
+    }
+  },
+  "2026-11-25_complete": {
+    "both_T15_T10": 9,
+    "eligible_unique_races": 35,
+    "paired_scores": {
+      "1": {
+        "both_hits": 3,
+        "both_outside_top_cap_in_union": 28,
+        "neither_hits": 28,
+        "odds_equal_at_cap_boundary": 0,
+        "odds_hits": 6,
+        "odds_only_hits": 3,
+        "odds_wilson_95_pct": [
+          8.103,
+          32.682
+        ],
+        "original_hits": 4,
+        "original_only_hits": 1,
+        "original_wilson_95_pct": [
+          4.535,
+          25.951
+        ],
+        "paired_exact_p": 0.625,
+        "points_per_arm": 35,
+        "scored": 35
+      },
+      "4": {
+        "both_hits": 8,
+        "both_outside_top_cap_in_union": 19,
+        "neither_hits": 19,
+        "odds_equal_at_cap_boundary": 0,
+        "odds_hits": 14,
+        "odds_only_hits": 6,
+        "odds_wilson_95_pct": [
+          25.551,
+          56.427
+        ],
+        "original_hits": 10,
+        "original_only_hits": 2,
+        "original_wilson_95_pct": [
+          16.327,
+          45.055
+        ],
+        "paired_exact_p": 0.289062,
+        "points_per_arm": 140,
+        "scored": 35
+      },
+      "8": {
+        "both_hits": 12,
+        "both_outside_top_cap_in_union": 16,
+        "neither_hits": 16,
+        "odds_equal_at_cap_boundary": 0,
+        "odds_hits": 18,
+        "odds_only_hits": 6,
+        "odds_wilson_95_pct": [
+          35.569,
+          67.006
+        ],
+        "original_hits": 13,
+        "original_only_hits": 1,
+        "original_wilson_95_pct": [
+          23.166,
+          53.663
+        ],
+        "paired_exact_p": 0.125,
+        "points_per_arm": 280,
+        "scored": 35
+      },
+      "display": {
+        "both_hits": 9,
+        "both_outside_top_cap_in_union": 19,
+        "neither_hits": 19,
+        "odds_equal_at_cap_boundary": 0,
+        "odds_hits": 14,
+        "odds_only_hits": 5,
+        "odds_wilson_95_pct": [
+          25.551,
+          56.427
+        ],
+        "original_hits": 11,
+        "original_only_hits": 2,
+        "original_wilson_95_pct": [
+          18.551,
+          47.98
+        ],
+        "paired_exact_p": 0.453125,
+        "points_per_arm": 168,
+        "scored": 35
+      }
+    },
+    "selected_capture_raw_sha256s": [
+      "02365dd59cec9050e2eb51a8b28a487d4d16ecf77e4d90dac0eeac666910aa67",
+      "037b25ae4ac72b66872307ea7615a9612273e1fa08bf557a1e4839f0368c1a18",
+      "056745797ba5a236912ff68525e67b81f9416d731b1990d06ad332fdcc38c389",
+      "1151570ae8b0ec871bf27c7d64dff7e406c65b65ca6263a2e45fa784a27a575f",
+      "15d37a4fa2eb0379ae267363c9a36fc9384f505049dfefa33a9a6ab735b4a7fd",
+      "1d5494397d785b8166f01c21e73c66178d2e7fafd5c9ef06c9d619a2c7826d0d",
+      "1dfafff026ae332b7d8c2a3b477b5d8ec71eee331e9c18027b2f46539806b198",
+      "404bff0ab62af225327c3a5869a17bff3b8ed64c1d63160ecbbb735efafe28b7",
+      "4e1c64f906c3d6055b12f7a034de6b748644230c754e065797149ee1dc107722",
+      "4ff3d1bc3f53ad2b045d94daf098756208c2b725b2f5ff2c2accea56cb975bff",
+      "56cfa9b492c59d2681656b7b1f5e8791a671525ac46838d69ec1672e50adf6f8",
+      "59ecec44c76cf5863b78233652c3c0c2c446437e11b41a5ab0f5ead7af766e8a",
+      "5b4a5f403d79928df9b58d1da744435db5c6c4539adaab454dc2a48c31143a09",
+      "5bedc4928b55c790bc4b224d0e451e1ff0e49ccdf6fcbe08731e8a5c17550e68",
+      "6c739f2920ac16693144920aa11942b1b1ca75d9b957615d3bebabb7b289303c",
+      "7379a070ee18d505013656ff78595dafdf13ea9ceeaabb73b3d318d5a16d1508",
+      "744b0c2afe2d3e721117bea20b8b3e5e84d36b2673eb67c60ff5e188fc84a1eb",
+      "8947d31287b2ddafe18f7d4587d06199d42affedd29ba8cee9d37cc738ad8d47",
+      "8a210ef9998581c9345aec8a5a322062419b309031dbe9ed62885ba5208824f2",
+      "8ae7546434ccdf493a3c1411afff6213fed8cd00f1f3fa2effdd8757cffe77c9",
+      "8bd5bcd9bf355b94e516a5f386d04fe5e85472026be223c5101ac61a15f94d2c",
+      "950a405de262366b163a13c39e5253fdc7d2d2c55e1de76e945f5bdbbaae2d74",
+      "96eff5c9ba56f259d25c360ec4b9f9605e1afd13fcada0c864cc20c76086a3d3",
+      "9ec218aa2b59fa98b5cb05fc9140d6f940129d4e1dfcefac52fffdf0965d8fe7",
+      "9ed1e4d84990a613a51a07daf716a74aaa17a709a9f28bbedc6a08cbd049d625",
+      "ac4066542860fcceaf223e7a20b01517a3c20c0e801b73295321fc6645446227",
+      "ae6d51da54dba904ad9b45402f61ddd724441cebd1510e6b4bdc1c383724c7f8",
+      "b0c526e9e35fdf28f7c8106cc287c8b98c19bda1e5af6d5eb63ce2b37eae3541",
+      "b8695a24df444a559cb6d2b9099148a4531e3fa6751de55a41473e30bec16a43",
+      "bc12700b56218cfac9f9999a5cd314f4aec4c8c21adaa5a9aa59184b52491658",
+      "c25e3ce823c192090314fe43b6f1119bee439b35b503285b0024ae49bc04d842",
+      "e619d6aa66c39aa4846dcfd04327f72fef0822b05011ab4bfff0b158eaa7f3fd",
+      "e8ecc4b71b04f098a20ade157f0f3d865295ec431032daf91a48b8ed08ed1081",
+      "f15a0a31254626318c6f99bdca24b068e38be6776d6c7d99c501f88b27ecdb6b",
+      "fcafb6cd2267f3c06b2d0dfec3a1883b708ba894c6d167281f435e5d247c1527"
+    ],
+    "timing_min_median_max": {
+      "capture_minutes": [
+        3.325,
+        42.309,
+        343.209
+      ],
+      "provider_minutes": [
+        5.0,
+        45.0,
+        346.0
+      ]
+    }
+  },
+  "2026-11-25_price_captures_before_dedup": {
+    "complete_numeric_before_cutoff": 53,
+    "incomplete_numeric_board": 39,
+    "limited_or_final": 68
+  },
+  "2026-11-25_races_with_distinct_pre_cutoff_complete_price_updates": 15,
+  "2026-11-25_strict_T15_T10": {
+    "both_T15_T10": 9,
+    "eligible_unique_races": 9,
+    "paired_scores": {
+      "1": {
+        "both_hits": 2,
+        "both_outside_top_cap_in_union": 7,
+        "neither_hits": 7,
+        "odds_equal_at_cap_boundary": 0,
+        "odds_hits": 2,
+        "odds_only_hits": 0,
+        "odds_wilson_95_pct": [
+          6.323,
+          54.741
+        ],
+        "original_hits": 2,
+        "original_only_hits": 0,
+        "original_wilson_95_pct": [
+          6.323,
+          54.741
+        ],
+        "paired_exact_p": null,
+        "points_per_arm": 9,
+        "scored": 9
+      },
+      "4": {
+        "both_hits": 2,
+        "both_outside_top_cap_in_union": 4,
+        "neither_hits": 4,
+        "odds_equal_at_cap_boundary": 0,
+        "odds_hits": 5,
+        "odds_only_hits": 3,
+        "odds_wilson_95_pct": [
+          26.665,
+          81.122
+        ],
+        "original_hits": 2,
+        "original_only_hits": 0,
+        "original_wilson_95_pct": [
+          6.323,
+          54.741
+        ],
+        "paired_exact_p": 0.25,
+        "points_per_arm": 36,
+        "scored": 9
+      },
+      "8": {
+        "both_hits": 2,
+        "both_outside_top_cap_in_union": 4,
+        "neither_hits": 4,
+        "odds_equal_at_cap_boundary": 0,
+        "odds_hits": 5,
+        "odds_only_hits": 3,
+        "odds_wilson_95_pct": [
+          26.665,
+          81.122
+        ],
+        "original_hits": 2,
+        "original_only_hits": 0,
+        "original_wilson_95_pct": [
+          6.323,
+          54.741
+        ],
+        "paired_exact_p": 0.25,
+        "points_per_arm": 72,
+        "scored": 9
+      },
+      "display": {
+        "both_hits": 2,
+        "both_outside_top_cap_in_union": 4,
+        "neither_hits": 4,
+        "odds_equal_at_cap_boundary": 0,
+        "odds_hits": 5,
+        "odds_only_hits": 3,
+        "odds_wilson_95_pct": [
+          26.665,
+          81.122
+        ],
+        "original_hits": 2,
+        "original_only_hits": 0,
+        "original_wilson_95_pct": [
+          6.323,
+          54.741
+        ],
+        "paired_exact_p": 0.25,
+        "points_per_arm": 44,
+        "scored": 9
+      }
+    },
+    "selected_capture_raw_sha256s": [
+      "4ff3d1bc3f53ad2b045d94daf098756208c2b725b2f5ff2c2accea56cb975bff",
+      "59ecec44c76cf5863b78233652c3c0c2c446437e11b41a5ab0f5ead7af766e8a",
+      "5b4a5f403d79928df9b58d1da744435db5c6c4539adaab454dc2a48c31143a09",
+      "6c739f2920ac16693144920aa11942b1b1ca75d9b957615d3bebabb7b289303c",
+      "8947d31287b2ddafe18f7d4587d06199d42affedd29ba8cee9d37cc738ad8d47",
+      "8a210ef9998581c9345aec8a5a322062419b309031dbe9ed62885ba5208824f2",
+      "ae6d51da54dba904ad9b45402f61ddd724441cebd1510e6b4bdc1c383724c7f8",
+      "e619d6aa66c39aa4846dcfd04327f72fef0822b05011ab4bfff0b158eaa7f3fd",
+      "f15a0a31254626318c6f99bdca24b068e38be6776d6c7d99c501f88b27ecdb6b"
+    ],
+    "timing_min_median_max": {
+      "capture_minutes": [
+        12.48,
+        12.484,
+        12.703
+      ],
+      "provider_minutes": [
+        13.0,
+        14.0,
+        14.0
+      ]
+    }
+  },
+  "2026-11-25_strict_races_with_both_markets_complete_in_window": 9,
+  "existing_capture": {
+    "browserless_odds_parser": "saved-site-source:keirin-original-frontend-20261122/worker/odds.js:createOddsHandler",
+    "ordinary_source_capture": "saved-study:keirin-site-20261125-live/odds/capture.mjs",
+    "settlement_verification_reference": "saved-study:keirin-95-resume-20261125/market-close/market_audit.py",
+    "timing_and_source_receipt_reference": "saved-study:keirin-95-resume-20261125/market-close/close_market.py",
+    "trifecta_board_gate_only": "saved-study:keirin-accuracy-push-20261125/market/freeze.py:eligible"
+  },
+  "observation": "Historical comparator. Pick the lowest recorded odds within the exact original budget after verifying every ordered triple. No training, outcome-based selection, or held day from Nov26.",
+  "original_provenance": "Nov23 exact archived predictor and program hash, original cutoff and known lineup cross-check with the source. Nov25 exact released bytes, independent anonymous before-deadline receipt, immutable before-cutoff creation time and original full archived predictive ranking all cross-checked. Odds may have been captured later than the original model, without crossing cutoff.",
+  "outstanding_holdout": "Timestamp complete all-outlet trifecta and exacta boards with the normal listed capture at T-12m30s across multiple untouched dates. Keep the first budget and grading universe identical. Compare market-only, existing original, and a preregistered conditional-third market test that keeps the original ordered-pair marginal. Declare missing or capped cells and preserve the original as fallback. This does not repeat whole-triple or exacta-only 50/50 blending.",
+  "private_reproduction_packet_sha256": "d780066d81151246c03c68600645cd1c6f4a6ed322ec68f36fd5913db4ae663c",
+  "reproduction_script_sha256": "389276926fe20d4f5b0972146858ba69e18e9ae63c82a40849566f1fc2e27e52",
+  "retained_source_file_sha256": {
+    "repository:docs/evidence/keirin-95-resume-20261125/market-witness-202611253401.json": "5e4e5a832d91f0ed72bbe2702afafce3251d2447c18c747fa8790a2f4772ce87",
+    "repository:docs/evidence/keirin-95-resume-20261125/market-witness-202611253402.json": "116204df0e7e18a9f6aede3bd01df85cb826d1bb34eb68d4bbab8dc52e03a7f0",
+    "repository:docs/evidence/keirin-95-resume-20261125/market-witness-202611253403.json": "fe5e8d54436b883b263b0c4932477f2b6e2496a8607443b89e251fb7c1e9c871",
+    "repository:docs/evidence/keirin-95-resume-20261125/market-witness-202611254801.json": "237b4f2e5aeca338bdced047a683852addd5cc8acda5a0b535866ce79ea61520",
+    "repository:docs/evidence/keirin-95-resume-20261125/market-witness-202611254802.json": "63ce08cd8efc23fc7a93fcd361416b07f166860c452b57155c3967a208b98e8a",
+    "repository:docs/evidence/keirin-95-resume-20261125/market-witness-202611254803.json": "5db4d4673f2ae4eba315ecb6cb78689100b9feddf244d06b4621b99b5a240fdf",
+    "repository:docs/evidence/keirin-95-resume-20261125/market-witness-202611256101.json": "85da8e3bbeb31d073e618645168f2160cb19c39049baa686a97894bae0a349b6",
+    "repository:docs/evidence/keirin-95-resume-20261125/market-witness-202611256102.json": "e3fcd190fd548187ec84d3d993c1f5b624a2132328be9e6218b2efc0c7069708",
+    "repository:docs/evidence/keirin-pair-diagnosis-20261125/publication.json": "9edde4fb25909f0d2b1b1361379488b297e9bd03b690cdd7caca64d687c09745",
+    "saved-study:keirin-95-continue-20261125/live/state-2342/published.json": "2a62f3a6cf7f2a12d62b5b49b4d9a620db49309b0522814ed904c11c942e3d35",
+    "saved-study:keirin-95-continue-20261125/live/state-2342/result.json": "d80afbf50e1e39c61659255552a58546f88c6d11a4f93f5b23d57d27f26d3a1c",
+    "saved-study:keirin-95-resume-20261125/market-close/202611253401/by-race.json": "22a9f1d046d822ac287ef28d94cee0df18702bf5134558bdd33d65f1c65cce82",
+    "saved-study:keirin-95-resume-20261125/market-close/202611253401/cards.json": "a82b2c72447b52f71c42f181d3eb98880ade028574699abe6b02de35bc27310a",
+    "saved-study:keirin-95-resume-20261125/market-close/202611253402/by-race.json": "0f75408005308259ee21724af968405eabab12f8f6bcb0c879d209c0eaf5faea",
+    "saved-study:keirin-95-resume-20261125/market-close/202611253402/cards.json": "d4d30656ed8cc2d4fe5df1f652c5cd59629963504e176fd28b95c026e9ba8537",
+    "saved-study:keirin-95-resume-20261125/market-close/202611253403/by-race.json": "2cd3d45c739be4371bf3cf6b236b67e5d6a918558ae121e295fb1383fae2615f",
+    "saved-study:keirin-95-resume-20261125/market-close/202611253403/cards.json": "577d45ebd5a38bebde3f46be80bc3b31af93d01cc498bdfc797c446a148a532b",
+    "saved-study:keirin-95-resume-20261125/market-close/202611254801/by-race.json": "513bb493acd0a5adc2b42bc0e3be1d10c6957bf6ad13a290f9217196bc74d7ab",
+    "saved-study:keirin-95-resume-20261125/market-close/202611254801/cards.json": "c38458cd4941d6dde447f405581bb6083c69f4e5f73e37614e12623cb21fe743",
+    "saved-study:keirin-95-resume-20261125/market-close/202611254802/by-race.json": "726efd5ee430bd9ef0dfd83ec8d05a0f159edf9de7d9963ba3cba82cf65e0da9",
+    "saved-study:keirin-95-resume-20261125/market-close/202611254802/cards.json": "0597aadf19b900689cb3ef30718f2e74e82a3cc58be08f693895a3598e401b13",
+    "saved-study:keirin-95-resume-20261125/market-close/202611254803/by-race.json": "5d350664239e7a8d72b2ac1cf845f9a783114061b7695d029b0c840f9a374094",
+    "saved-study:keirin-95-resume-20261125/market-close/202611254803/cards.json": "30533363f9ac1cefd77765897d0bf5dc7a09ced63e62a9667388dbfa66541946",
+    "saved-study:keirin-95-resume-20261125/market-close/202611256101/by-race.json": "d7f37c06533edd239900ff53a54c8b6ef1223af03dbe8c2f910ea42ae2af453d",
+    "saved-study:keirin-95-resume-20261125/market-close/202611256101/cards.json": "53004ab9a102a453a0ee268953b1041bb0a738b86de90fe4f0aaaddb1ef63a10",
+    "saved-study:keirin-95-resume-20261125/market-close/202611256102/by-race.json": "5c39f1d778a118e08cc5199a2620796f6072ee43b803a4a1718373caa1f361cc",
+    "saved-study:keirin-95-resume-20261125/market-close/202611256102/cards.json": "c231afa97da9e8337b0126c89b86b5334f67aa022ec92bc6654a523dac08c13b",
+    "saved-study:keirin-accuracy-deeper-20261125/input-audit/fresh/by-race.json": "a1090dd70c5db628d4d5d4ec76f4b8cb1e5dc227294353c4797a9e55efbb0d3b",
+    "saved-study:keirin-accuracy-deeper-20261125/input-audit/fresh/cards.json": "a7b29e704a41469d0b210352748a01ca71d1d1ae4d8023e986b2b3b127a3564f",
+    "saved-study:keirin-accuracy-gap-20261125/ranks/all-predict-only.owner.json": "2694aba006671653466d9376f659f60f4e9658757e0f3a034c8e11e8be5bbaac",
+    "saved-study:keirin-accuracy-gap-20261125/sizing/frozen.json": "7a49f9883241f612c2c9d1f65374dd7173ef8888b9f54cf76e7d606539873365",
+    "saved-study:keirin-accuracy-gap-20261125/sizing/frozen.owner.json": "1525edd7bc46458b2c4656597d72ac483d95b31544696306fcf5ecc7635c2e31",
+    "saved-study:keirin-accuracy-next-20261125/market/audit.py": "409c4e9d7e6c2eecdb2a759bc8a6168576bbd720cd5592167a8a7bb83c426f22",
+    "saved-study:keirin-accuracy-push-20261125/market/freeze.py": "ad07cb250e0b10b961fa9e1125712807f105b1234af9ccdbc38c5dfed8496401",
+    "saved-study:keirin-accuracy-push-20261125/market/fresh/by-race.json": "cae6c2255b12a1225241567b5cc415e7af6cb8c487c266d1dd1eed7d702aa862",
+    "saved-study:keirin-accuracy-push-20261125/market/fresh/cards.json": "a6f3f66e8034b0c7bd79002389d6a7bf58e7d7b7c044bfee4e82956348bd7f40",
+    "saved-study:keirin-accuracy-push-20261125/market/model.owner.json": "d69b323e5f8f49851e6cf52cc4095a1fc638d8378b903faa5af1fb6594dc7494",
+    "saved-study:keirin-accuracy-push-20261125/market/prospective-receipt.json": "828e54f59d4394196d2fe0a8dbd449894403590ba9bbfef68ca1b025b566ae80",
+    "saved-study:keirin-all-watch-now/finish/player-final/freeze.json": "9b21a93d0e3f587bba930d6d7754804590d0262e740be9271bb00e93fe7cab8e",
+    "saved-study:keirin-all-watch-now/finish/player-final/predictions.owner.json": "e1823f711aa94d263e42cca5f00eb5d0298aa9c80bbe274f5167b9f448f424c3",
+    "saved-study:keirin-evidence-today-20261123/evidence-cards.json": "fac31353f4ebcbeeb9f57e780281b93821cbb1ef391d5cbed7adf19dd8ebdfeb",
+    "saved-study:keirin-input-opponent-20261124-zhL2CSpU/odds-commitment.json": "685ea6c5fa646eaa131bab1be61077032b5947e2a3653ada7a6a88a56b92b613",
+    "saved-study:keirin-input-opponent-20261124-zhL2CSpU/pre-cutoff-odds-forecasts.owner.json.gz": "ca0adac5a2e6922e1a00a9aaedc3f977e2b34c7431c4bfec57fcdbf20ecda910",
+    "saved-study:keirin-odds-audit-20261123/refresh.json": "e78f8c3ff26cc463cfa1b73bfe4f42984f110748063b8f71c86ef684b848bfbe",
+    "saved-study:keirin-race-risk-20261124-Jq4Fvd4a/oct_nov-score-labels.owner.json.gz": "ec587c9ef32db994f88c1ad2801806cc082e1ba4ae98b93b5d2e3c4031d333f9",
+    "saved-study:keirin-race-risk-20261124-Jq4Fvd4a/source-proof.json": "266be5ea1efae4964b949152b19ab0c6a91a1691a858abf604c9c09eeb4193c1",
+    "saved-study:keirin-rider-profiles-20261124-ekotFa/holdout.json.gz": "4d0d9719e50fdaef160a2bbc8e029ea0f95fc74fcba87f61bf29dfd2b3f0482b",
+    "saved-study:keirin-site-20261125-live/odds/by-race.json": "15b7cea5439dbf1b8d59728ca97dcdd19638f344d3d9d1cb99db7230cfab7ab1",
+    "saved-study:keirin-site-20261125-live/odds/cards.json": "c2423ad66722d97a7db9e038aa5ee6cbbcdb23bd4d45c5a91fd23ec6ee8bb395",
+    "saved-study:keirin-site-20261125-live/odds/t5/by-race.json": "e855a0710479a09a93215edc895e87b35ce464556392dfcb174b5d3a53c7afee",
+    "saved-study:keirin-site-20261125-live/odds/t5/cards.json": "fc1debda574eafd3c51704b74ef4b2acd67a1363725a4ab44f9a5be52bb22ecc"
+  },
+  "retrospective_no_promotion": "Strict 9 and 35 are subsets of one day, not independent holdouts or a population. Wilson limits reflect binomial counting uncertainty, not simultaneous inference or selection correction. Tri market-only ranks were read for this comparison after prior races ended.",
+  "run_command": "python -B saved-study:keirin-95-resume-20261125/full-trifecta-odds/report.py",
+  "schema": "KEIRIN_STRICT_PREDEADLINE_MARKET_COMPARATOR_V1",
+  "source_admission": "Unchanged original race ID, cutoff and active starters. Source update <= local acquisition < race cutoff; independent raw HTML SHA matches; all_outlets, not is_final; every ordered triple has finite available positive price below cap (9999.9). The T15–T10 subgroup requires both clocks in the same inclusive window."
+}
