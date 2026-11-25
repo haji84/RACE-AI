@@ -1,0 +1,16 @@
+{
+  "baseline_sha": "d69b323e5f8f49851e6cf52cc4095a1fc638d8378b903faa5af1fb6594dc7494",
+  "changed": 17,
+  "closed_replay_only": 3,
+  "design_sha": "34aa86d373a1992aac1f09177505a7cac1a7378f89ee95fecfb0bc9b6820951a",
+  "earliest": "2026-11-25T18:37:00+09:00",
+  "forecast_code_sha256": "3bee81bc1ad50409a468a94a0645506dc82273f7bf747beeb2452de3f88486b9",
+  "forecast_sha256": "c865711ec89c77b53830f2762717422b0f8264b402f6fc35c4ca6a79332d3c9e",
+  "frozen_utc": "2026-11-25T08:49:04.641205+00:00",
+  "latest": "2026-11-25T23:16:00+09:00",
+  "partial_scope": "Observed independent exacta pairs only. Unknown pairs and total known-pair prior mass fixed. Non-overlapping with the complete-board freeze.",
+  "primary_forecast_sha": "1ed2b6fdf4c8257252a59544fe9aa947fbcadbb9780af3e1409ca6eb4759939b",
+  "registered": 20,
+  "verified_utc": "2026-11-25T08:49:04.645977+00:00",
+  "receipt_sha256": "c3e24eebaaab942ed509f3d4635cd6c8c69e0ce7a5563a9c4f35d873fab35102"
+}
