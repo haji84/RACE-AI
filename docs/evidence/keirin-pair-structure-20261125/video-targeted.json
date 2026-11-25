@@ -1,0 +1,35 @@
+{
+  "diagnosis_by_type": {
+    "CROSS_SECOND": {
+      "4C_outside_confirmed_top_1": 1,
+      "4C_outside_confirmed_top_2": 1,
+      "B_2": 1,
+      "B_outside_confirmed_top_3": 1,
+      "actual_second_line_missing": 2,
+      "cases": 2,
+      "late_outside_confirmed_top_2": 1,
+      "late_unreadable": 1
+    },
+    "SAME_LINE_SECOND": {
+      "4C_outside_confirmed_top_1": 1,
+      "B_3": 1,
+      "cases": 1,
+      "correct_line_other_rider": 1,
+      "late_outside_confirmed_top_1": 1
+    }
+  },
+  "histogram_note": "Selected specifically for ordered pair misses, so these counts are case diagnostics. Current result is external to prerelease forecast. outside_confirmed_top_1 means the sole known leader is a different car; it leaves second-place still unknown.",
+  "locked_visual_sha256": "048ed21b9a02e00f17b86aebcc5de17168642ef16085256b10b7ff414751d111",
+  "n_replays": 3,
+  "n_selected": 3,
+  "official_result_sha256": "1ba652a638a56462ee9918a5f26c834e36580b00890c692cf31996249decb2ff",
+  "plan_sha256": "f294fb6dec0d8446709344a8aba89c2409788ca97894c600419eeae64f14970e",
+  "pre_race_registry_archive_sha256": "26c3a2c61edee2f70d85823b7e3891aea6ba95145cd4e1cd12de005b4d8c73ec",
+  "private_diagnosis_sha256": "dd1c5d5912e3158bd2a3175f5ac662d0aa453e735fddb6525c8239ff96e206f7",
+  "public_release_sha256": "b2a3064e1621497db0b6781024c56e429bd811cfb034b32a108d10403eb7601d",
+  "verified_at": "2026-11-25T12:30:29.994009+00:00",
+  "verified_counts": {
+    "official_B_agrees": 3,
+    "official_registration_all_riders_match": 3
+  }
+}

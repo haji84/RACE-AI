@@ -1,0 +1,53 @@
+{
+  "adds_n_with_both_ordered_pairs": 7,
+  "adds_new_validated_cross_line_examples": 1,
+  "archive_gold_reference_sha256": "ec587c9ef32db994f88c1ad2801806cc082e1ba4ae98b93b5d2e3c4031d333f9",
+  "frozen_plan_sha256": "de7ec9e1a2e0713d55efa477e95b0780ccb1fb4b3953d1899ccf8b06b83cdc1e",
+  "generated": "2026-11-25T12:26:07.584854+00:00",
+  "intervals": {
+    "B_C": {
+      "different_line_change": 1,
+      "same_line_change": 0,
+      "same_rider": 8,
+      "unreadable": 1
+    },
+    "C_goal": {
+      "different_line_change": 1,
+      "same_line_change": 5,
+      "same_rider": 3,
+      "unreadable": 1
+    }
+  },
+  "limitations": "Visual labels at explicit checkpoints only. The selection is date-ordered across previously unseen races; the same and cross-line second-place counts are post-outcome descriptions. No model changes evaluated here.",
+  "official_locations_sha256": "e7dce2ed62b2fe60b27962020550f832f3ad79c519c5275d8e820fc6ed1620e8",
+  "old_cross": 2,
+  "old_n": 24,
+  "played": 10,
+  "same_and_cross_second": {
+    "cross_line_second": {
+      "4C_pair_unreadable": 1,
+      "B_pair_unreadable": 1,
+      "cases": 1
+    },
+    "same_line_second": {
+      "4C_actual_second_already_second": 3,
+      "4C_actual_second_not_top_two": 1,
+      "4C_pair_readable": 8,
+      "4C_pair_unreadable": 1,
+      "B_actual_second_already_second": 2,
+      "B_actual_second_not_top_two": 2,
+      "B_pair_readable": 8,
+      "B_pair_unreadable": 1,
+      "cases": 9
+    }
+  },
+  "selected": 10,
+  "training_provisional_sha256": "7f801c347cb3e1e44c5bd4d58c471eb35e5a938ff9acca07ccc07e23558f0952",
+  "verified_counts": {
+    "official_B_matched": 10,
+    "official_podium_archived_agree": 10,
+    "visual_B_conflict": 0
+  },
+  "verified_events_sha256": "057971fbe05ef3a6198a565a162044a84f5c8a74e264bd756876759a17de0f00",
+  "visual_labels_sha256": "6fd01bde48f8ec109f7573ee380850836b7ad397925fc7691dc79c27281418ef"
+}

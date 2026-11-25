@@ -1,0 +1,1541 @@
+{
+  "source": "Original full published-family historical distributions. Date-separated replay; no production state or weights were touched.",
+  "proof": {
+    "original_holdout_forecast_receipt_sha256": "d4cb9eeae3d05e48c534bdca404e37b09e5193a30e850ce81ac9c735dfa7da58",
+    "finish_labels_sha256": "68d4c89c5630e3254f9265a5abc7d32acd73af29fa8ed76fa9de983014b20449",
+    "design_sha256": "42fb57d5691b7231436dd9ba443e2ef454ce6e5671b14fb0917095c0443b832c"
+  },
+  "cohorts": {
+    "all_held": {
+      "n": 12234,
+      "needed_95": 11623,
+      "ranks": {
+        "pair_marginal_rank": {
+          "median": 4.0,
+          "top1": 2680,
+          "top2": 4405
+        },
+        "pair_distinct_rank": {
+          "median": 4.0,
+          "top1": 2710,
+          "top2": 4388
+        },
+        "conditional_third_rank": {
+          "median": 2.0,
+          "top1": 5055,
+          "top2": 7944
+        }
+      },
+      "cap": {
+        "4": {
+          "same_budget_no_outcome": {
+            "original": {
+              "exact_hits": 3234,
+              "gained": 0,
+              "lost": 0,
+              "average_original_model_mass": 0.2679341123061567,
+              "paired_date_ci95_pp": [
+                0.0,
+                0.0
+              ]
+            },
+            "one_each_top_marginal": {
+              "exact_hits": 2750,
+              "gained": 509,
+              "lost": 993,
+              "average_original_model_mass": 0.2249402371374601,
+              "paired_date_ci95_pp": [
+                -4.582144594386688,
+                -3.346730958671301
+              ]
+            },
+            "one_each_top_max_trifecta": {
+              "exact_hits": 2806,
+              "gained": 518,
+              "lost": 946,
+              "average_original_model_mass": 0.22717437519315728,
+              "paired_date_ci95_pp": [
+                -4.137044435109964,
+                -2.8869973031367144
+              ]
+            }
+          },
+          "original_failure_stages": {
+            "hit": 3234,
+            "winner_not_listed": 4466,
+            "ordered_pair_absent": 2822,
+            "third_not_listed": 1712
+          },
+          "original_ordered_pair_covered": 4946,
+          "original_pair_not_covered": 7288,
+          "pair_budget_partition": {
+            "pair_in_marginal_topK": {
+              "pair_implied_before_cutoff_but_unfunded": 1378,
+              "pair_also_outside_K": 5910
+            },
+            "pair_in_distinct_topK": {
+              "pair_implied_before_cutoff_but_unfunded": 1281,
+              "pair_also_outside_K": 6007
+            }
+          },
+          "conditional_third_details": {
+            "unfunded_with_right_third_at_conditional_rank1": 2767,
+            "third_misses": 1712,
+            "allocated_1_tickets": 1116,
+            "needed_just_one_more_third_with_true_pair_preprovided": 736,
+            "allocated_2_tickets": 383,
+            "allocated_3_tickets": 165,
+            "allocated_4_tickets": 48
+          },
+          "hindsight_only": {
+            "known_winner_hindsight": 6096,
+            "known_pair_hindsight": 11338,
+            "known_third_with_old_pair_set_hindsight": 4946,
+            "oracle_union_fixed_three_arms": 3854
+          },
+          "top_k_marginal_pair_covered": 6239,
+          "top_k_distinct_pair_covered": 6227,
+          "average_distinct_pairs_in_original_K": 2.4580676802354096,
+          "time_span": [
+            "20260524",
+            "20261120"
+          ]
+        },
+        "8": {
+          "same_budget_no_outcome": {
+            "original": {
+              "exact_hits": 4583,
+              "gained": 0,
+              "lost": 0,
+              "average_original_model_mass": 0.393953813809015,
+              "paired_date_ci95_pp": [
+                0.0,
+                0.0
+              ]
+            },
+            "one_each_top_marginal": {
+              "exact_hits": 3570,
+              "gained": 734,
+              "lost": 1747,
+              "average_original_model_mass": 0.296888067060071,
+              "paired_date_ci95_pp": [
+                -9.069291599349551,
+                -7.5240682155365555
+              ]
+            },
+            "one_each_top_max_trifecta": {
+              "exact_hits": 3602,
+              "gained": 756,
+              "lost": 1737,
+              "average_original_model_mass": 0.29894418473389733,
+              "paired_date_ci95_pp": [
+                -8.835755517422594,
+                -7.217830923955525
+              ]
+            }
+          },
+          "original_failure_stages": {
+            "hit": 4583,
+            "winner_not_listed": 3213,
+            "ordered_pair_absent": 2694,
+            "third_not_listed": 1744
+          },
+          "original_ordered_pair_covered": 6327,
+          "original_pair_not_covered": 5907,
+          "pair_budget_partition": {
+            "pair_in_marginal_topK": {
+              "pair_implied_before_cutoff_but_unfunded": 1965,
+              "pair_also_outside_K": 3942
+            },
+            "pair_in_distinct_topK": {
+              "pair_implied_before_cutoff_but_unfunded": 1938,
+              "pair_also_outside_K": 3969
+            }
+          },
+          "conditional_third_details": {
+            "unfunded_with_right_third_at_conditional_rank1": 2209,
+            "third_misses": 1744,
+            "allocated_1_tickets": 1061,
+            "needed_just_one_more_third_with_true_pair_preprovided": 750,
+            "allocated_2_tickets": 440,
+            "allocated_3_tickets": 198,
+            "allocated_4_tickets": 43,
+            "allocated_5_tickets": 1,
+            "allocated_6_tickets": 1
+          },
+          "hindsight_only": {
+            "known_winner_hindsight": 8423,
+            "known_pair_hindsight": 12234,
+            "known_third_with_old_pair_set_hindsight": 6327,
+            "oracle_union_fixed_three_arms": 5432
+          },
+          "top_k_marginal_pair_covered": 8274,
+          "top_k_distinct_pair_covered": 8265,
+          "average_distinct_pairs_in_original_K": 4.145577897662252,
+          "time_span": [
+            "20260524",
+            "20261120"
+          ]
+        }
+      }
+    },
+    "individual": {
+      "n": 1010,
+      "needed_95": 960,
+      "ranks": {
+        "pair_marginal_rank": {
+          "median": 3.0,
+          "top1": 282,
+          "top2": 453
+        },
+        "pair_distinct_rank": {
+          "median": 3.0,
+          "top1": 282,
+          "top2": 453
+        },
+        "conditional_third_rank": {
+          "median": 2.0,
+          "top1": 441,
+          "top2": 681
+        }
+      },
+      "cap": {
+        "4": {
+          "same_budget_no_outcome": {
+            "original": {
+              "exact_hits": 354,
+              "gained": 0,
+              "lost": 0,
+              "average_original_model_mass": 0.23945949262998292,
+              "paired_date_ci95_pp": [
+                0.0,
+                0.0
+              ]
+            },
+            "one_each_top_marginal": {
+              "exact_hits": 297,
+              "gained": 65,
+              "lost": 122,
+              "average_original_model_mass": 0.2026325133341514,
+              "paired_date_ci95_pp": [
+                -8.308530968105437,
+                -3.0232629601084033
+              ]
+            },
+            "one_each_top_max_trifecta": {
+              "exact_hits": 297,
+              "gained": 65,
+              "lost": 122,
+              "average_original_model_mass": 0.20300736154343124,
+              "paired_date_ci95_pp": [
+                -8.309649565212572,
+                -3.013252858598436
+              ]
+            }
+          },
+          "original_failure_stages": {
+            "hit": 354,
+            "winner_not_listed": 255,
+            "ordered_pair_absent": 233,
+            "third_not_listed": 168
+          },
+          "original_ordered_pair_covered": 522,
+          "original_pair_not_covered": 488,
+          "pair_budget_partition": {
+            "pair_in_marginal_topK": {
+              "pair_implied_before_cutoff_but_unfunded": 142,
+              "pair_also_outside_K": 346
+            },
+            "pair_in_distinct_topK": {
+              "pair_implied_before_cutoff_but_unfunded": 144,
+              "pair_also_outside_K": 344
+            }
+          },
+          "conditional_third_details": {
+            "unfunded_with_right_third_at_conditional_rank1": 209,
+            "third_misses": 168,
+            "allocated_1_tickets": 99,
+            "needed_just_one_more_third_with_true_pair_preprovided": 81,
+            "allocated_3_tickets": 25,
+            "allocated_2_tickets": 44
+          },
+          "hindsight_only": {
+            "known_winner_hindsight": 537,
+            "known_pair_hindsight": 964,
+            "known_third_with_old_pair_set_hindsight": 522,
+            "oracle_union_fixed_three_arms": 424
+          },
+          "top_k_marginal_pair_covered": 663,
+          "top_k_distinct_pair_covered": 666,
+          "average_distinct_pairs_in_original_K": 2.4306930693069306,
+          "time_span": [
+            "20260524",
+            "20261120"
+          ]
+        },
+        "8": {
+          "same_budget_no_outcome": {
+            "original": {
+              "exact_hits": 497,
+              "gained": 0,
+              "lost": 0,
+              "average_original_model_mass": 0.3767493502002629,
+              "paired_date_ci95_pp": [
+                0.0,
+                0.0
+              ]
+            },
+            "one_each_top_marginal": {
+              "exact_hits": 368,
+              "gained": 78,
+              "lost": 207,
+              "average_original_model_mass": 0.270465665203102,
+              "paired_date_ci95_pp": [
+                -15.884161663184067,
+                -9.618815710956344
+              ]
+            },
+            "one_each_top_max_trifecta": {
+              "exact_hits": 366,
+              "gained": 76,
+              "lost": 207,
+              "average_original_model_mass": 0.27107260445926273,
+              "paired_date_ci95_pp": [
+                -16.082095045115256,
+                -9.811903884727167
+              ]
+            }
+          },
+          "original_failure_stages": {
+            "hit": 497,
+            "winner_not_listed": 182,
+            "ordered_pair_absent": 183,
+            "third_not_listed": 148
+          },
+          "original_ordered_pair_covered": 645,
+          "original_pair_not_covered": 365,
+          "pair_budget_partition": {
+            "pair_in_marginal_topK": {
+              "pair_implied_before_cutoff_but_unfunded": 186,
+              "pair_also_outside_K": 179
+            },
+            "pair_in_distinct_topK": {
+              "pair_implied_before_cutoff_but_unfunded": 181,
+              "pair_also_outside_K": 184
+            }
+          },
+          "conditional_third_details": {
+            "unfunded_with_right_third_at_conditional_rank1": 151,
+            "third_misses": 148,
+            "allocated_1_tickets": 78,
+            "needed_just_one_more_third_with_true_pair_preprovided": 65,
+            "allocated_2_tickets": 49,
+            "allocated_3_tickets": 19,
+            "allocated_4_tickets": 2
+          },
+          "hindsight_only": {
+            "known_winner_hindsight": 735,
+            "known_pair_hindsight": 1010,
+            "known_third_with_old_pair_set_hindsight": 645,
+            "oracle_union_fixed_three_arms": 576
+          },
+          "top_k_marginal_pair_covered": 831,
+          "top_k_distinct_pair_covered": 826,
+          "average_distinct_pairs_in_original_K": 3.8633663366336632,
+          "time_span": [
+            "20260524",
+            "20261120"
+          ]
+        }
+      }
+    },
+    "same_line": {
+      "n": 5661,
+      "needed_95": 5378,
+      "ranks": {
+        "pair_marginal_rank": {
+          "median": 2.0,
+          "top1": 2120,
+          "top2": 3209
+        },
+        "pair_distinct_rank": {
+          "median": 2.0,
+          "top1": 2141,
+          "top2": 3199
+        },
+        "conditional_third_rank": {
+          "median": 2.0,
+          "top1": 2662,
+          "top2": 3856
+        }
+      },
+      "cap": {
+        "4": {
+          "same_budget_no_outcome": {
+            "original": {
+              "exact_hits": 2450,
+              "gained": 0,
+              "lost": 0,
+              "average_original_model_mass": 0.3064936384663256,
+              "paired_date_ci95_pp": [
+                0.0,
+                0.0
+              ]
+            },
+            "one_each_top_marginal": {
+              "exact_hits": 1888,
+              "gained": 195,
+              "lost": 757,
+              "average_original_model_mass": 0.25480787638639174,
+              "paired_date_ci95_pp": [
+                -10.96754478549632,
+                -8.906372218256712
+              ]
+            },
+            "one_each_top_max_trifecta": {
+              "exact_hits": 1945,
+              "gained": 213,
+              "lost": 718,
+              "average_original_model_mass": 0.2574613108142675,
+              "paired_date_ci95_pp": [
+                -9.984290451990285,
+                -7.8942332574497485
+              ]
+            }
+          },
+          "original_failure_stages": {
+            "hit": 2450,
+            "winner_not_listed": 1777,
+            "ordered_pair_absent": 382,
+            "third_not_listed": 1052
+          },
+          "original_ordered_pair_covered": 3502,
+          "original_pair_not_covered": 2159,
+          "pair_budget_partition": {
+            "pair_in_marginal_topK": {
+              "pair_implied_before_cutoff_but_unfunded": 509,
+              "pair_also_outside_K": 1650
+            },
+            "pair_in_distinct_topK": {
+              "pair_implied_before_cutoff_but_unfunded": 473,
+              "pair_also_outside_K": 1686
+            }
+          },
+          "conditional_third_details": {
+            "unfunded_with_right_third_at_conditional_rank1": 930,
+            "third_misses": 1052,
+            "allocated_1_tickets": 641,
+            "needed_just_one_more_third_with_true_pair_preprovided": 470,
+            "allocated_3_tickets": 114,
+            "allocated_2_tickets": 250,
+            "allocated_4_tickets": 47
+          },
+          "hindsight_only": {
+            "known_winner_hindsight": 4239,
+            "known_pair_hindsight": 5298,
+            "known_third_with_old_pair_set_hindsight": 3502,
+            "oracle_union_fixed_three_arms": 2713
+          },
+          "top_k_marginal_pair_covered": 3944,
+          "top_k_distinct_pair_covered": 3975,
+          "average_distinct_pairs_in_original_K": 2.418653948065713,
+          "time_span": [
+            "20260524",
+            "20261120"
+          ]
+        },
+        "8": {
+          "same_budget_no_outcome": {
+            "original": {
+              "exact_hits": 3210,
+              "gained": 0,
+              "lost": 0,
+              "average_original_model_mass": 0.4360471994501433,
+              "paired_date_ci95_pp": [
+                0.0,
+                0.0
+              ]
+            },
+            "one_each_top_marginal": {
+              "exact_hits": 2229,
+              "gained": 259,
+              "lost": 1240,
+              "average_original_model_mass": 0.32685063659360136,
+              "paired_date_ci95_pp": [
+                -18.65570657613704,
+                -16.090993996707773
+              ]
+            },
+            "one_each_top_max_trifecta": {
+              "exact_hits": 2261,
+              "gained": 283,
+              "lost": 1232,
+              "average_original_model_mass": 0.3291924780804202,
+              "paired_date_ci95_pp": [
+                -18.13008055960954,
+                -15.499391439945743
+              ]
+            }
+          },
+          "original_failure_stages": {
+            "hit": 3210,
+            "winner_not_listed": 1209,
+            "ordered_pair_absent": 393,
+            "third_not_listed": 849
+          },
+          "original_ordered_pair_covered": 4059,
+          "original_pair_not_covered": 1602,
+          "pair_budget_partition": {
+            "pair_in_marginal_topK": {
+              "pair_implied_before_cutoff_but_unfunded": 647,
+              "pair_also_outside_K": 955
+            },
+            "pair_in_distinct_topK": {
+              "pair_implied_before_cutoff_but_unfunded": 660,
+              "pair_also_outside_K": 942
+            }
+          },
+          "conditional_third_details": {
+            "unfunded_with_right_third_at_conditional_rank1": 684,
+            "third_misses": 849,
+            "allocated_1_tickets": 479,
+            "needed_just_one_more_third_with_true_pair_preprovided": 370,
+            "allocated_2_tickets": 212,
+            "allocated_3_tickets": 121,
+            "allocated_4_tickets": 35,
+            "allocated_5_tickets": 1,
+            "allocated_6_tickets": 1
+          },
+          "hindsight_only": {
+            "known_winner_hindsight": 5061,
+            "known_pair_hindsight": 5661,
+            "known_third_with_old_pair_set_hindsight": 4059,
+            "oracle_union_fixed_three_arms": 3534
+          },
+          "top_k_marginal_pair_covered": 4692,
+          "top_k_distinct_pair_covered": 4719,
+          "average_distinct_pairs_in_original_K": 4.12241653418124,
+          "time_span": [
+            "20260524",
+            "20261120"
+          ]
+        }
+      }
+    },
+    "cross_line": {
+      "n": 4196,
+      "needed_95": 3987,
+      "ranks": {
+        "pair_marginal_rank": {
+          "median": 10.0,
+          "top1": 57,
+          "top2": 332
+        },
+        "pair_distinct_rank": {
+          "median": 10.0,
+          "top1": 68,
+          "top2": 325
+        },
+        "conditional_third_rank": {
+          "median": 2.0,
+          "top1": 1513,
+          "top2": 2640
+        }
+      },
+      "cap": {
+        "4": {
+          "same_budget_no_outcome": {
+            "original": {
+              "exact_hits": 192,
+              "gained": 0,
+              "lost": 0,
+              "average_original_model_mass": 0.2585146838390947,
+              "paired_date_ci95_pp": [
+                0.0,
+                0.0
+              ]
+            },
+            "one_each_top_marginal": {
+              "exact_hits": 369,
+              "gained": 203,
+              "lost": 26,
+              "average_original_model_mass": 0.21708979939721745,
+              "paired_date_ci95_pp": [
+                3.584043182758621,
+                4.8722249612995485
+              ]
+            },
+            "one_each_top_max_trifecta": {
+              "exact_hits": 364,
+              "gained": 191,
+              "lost": 19,
+              "average_original_model_mass": 0.21983902775467443,
+              "paired_date_ci95_pp": [
+                3.5023876014441324,
+                4.687887054937268
+              ]
+            }
+          },
+          "original_failure_stages": {
+            "hit": 192,
+            "winner_not_listed": 1870,
+            "ordered_pair_absent": 1872,
+            "third_not_listed": 262
+          },
+          "original_ordered_pair_covered": 454,
+          "original_pair_not_covered": 3742,
+          "pair_budget_partition": {
+            "pair_in_marginal_topK": {
+              "pair_implied_before_cutoff_but_unfunded": 570,
+              "pair_also_outside_K": 3172
+            },
+            "pair_in_distinct_topK": {
+              "pair_implied_before_cutoff_but_unfunded": 513,
+              "pair_also_outside_K": 3229
+            }
+          },
+          "conditional_third_details": {
+            "unfunded_with_right_third_at_conditional_rank1": 1340,
+            "third_misses": 262,
+            "allocated_1_tickets": 236,
+            "needed_just_one_more_third_with_true_pair_preprovided": 100,
+            "allocated_2_tickets": 23,
+            "allocated_3_tickets": 3
+          },
+          "hindsight_only": {
+            "known_winner_hindsight": 806,
+            "known_pair_hindsight": 3871,
+            "known_third_with_old_pair_set_hindsight": 454,
+            "oracle_union_fixed_three_arms": 428
+          },
+          "top_k_marginal_pair_covered": 1009,
+          "top_k_distinct_pair_covered": 967,
+          "average_distinct_pairs_in_original_K": 2.485224022878932,
+          "time_span": [
+            "20260524",
+            "20261120"
+          ]
+        },
+        "8": {
+          "same_budget_no_outcome": {
+            "original": {
+              "exact_hits": 490,
+              "gained": 0,
+              "lost": 0,
+              "average_original_model_mass": 0.38346759884922543,
+              "paired_date_ci95_pp": [
+                0.0,
+                0.0
+              ]
+            },
+            "one_each_top_marginal": {
+              "exact_hits": 705,
+              "gained": 332,
+              "lost": 117,
+              "average_original_model_mass": 0.2911486373406365,
+              "paired_date_ci95_pp": [
+                4.148091860396798,
+                6.131562450488031
+              ]
+            },
+            "one_each_top_max_trifecta": {
+              "exact_hits": 699,
+              "gained": 324,
+              "lost": 115,
+              "average_original_model_mass": 0.29361313964449226,
+              "paired_date_ci95_pp": [
+                3.937318155368054,
+                6.011766942813457
+              ]
+            }
+          },
+          "original_failure_stages": {
+            "hit": 490,
+            "winner_not_listed": 1387,
+            "ordered_pair_absent": 1816,
+            "third_not_listed": 503
+          },
+          "original_ordered_pair_covered": 993,
+          "original_pair_not_covered": 3203,
+          "pair_budget_partition": {
+            "pair_in_marginal_topK": {
+              "pair_implied_before_cutoff_but_unfunded": 904,
+              "pair_also_outside_K": 2299
+            },
+            "pair_in_distinct_topK": {
+              "pair_implied_before_cutoff_but_unfunded": 864,
+              "pair_also_outside_K": 2339
+            }
+          },
+          "conditional_third_details": {
+            "third_misses": 503,
+            "allocated_1_tickets": 384,
+            "needed_just_one_more_third_with_true_pair_preprovided": 207,
+            "unfunded_with_right_third_at_conditional_rank1": 1138,
+            "allocated_2_tickets": 99,
+            "allocated_3_tickets": 20
+          },
+          "hindsight_only": {
+            "known_winner_hindsight": 1840,
+            "known_pair_hindsight": 4196,
+            "known_third_with_old_pair_set_hindsight": 993,
+            "oracle_union_fixed_three_arms": 858
+          },
+          "top_k_marginal_pair_covered": 1893,
+          "top_k_distinct_pair_covered": 1857,
+          "average_distinct_pairs_in_original_K": 4.237368922783603,
+          "time_span": [
+            "20260524",
+            "20261120"
+          ]
+        }
+      }
+    },
+    "unmapped": {
+      "n": 1367,
+      "needed_95": 1299,
+      "ranks": {
+        "pair_marginal_rank": {
+          "median": 5.0,
+          "top1": 221,
+          "top2": 411
+        },
+        "pair_distinct_rank": {
+          "median": 5.0,
+          "top1": 219,
+          "top2": 411
+        },
+        "conditional_third_rank": {
+          "median": 2.0,
+          "top1": 439,
+          "top2": 767
+        }
+      },
+      "cap": {
+        "4": {
+          "same_budget_no_outcome": {
+            "original": {
+              "exact_hits": 238,
+              "gained": 0,
+              "lost": 0,
+              "average_original_model_mass": 0.1582031760428144,
+              "paired_date_ci95_pp": [
+                0.0,
+                0.0
+              ]
+            },
+            "one_each_top_marginal": {
+              "exact_hits": 196,
+              "gained": 46,
+              "lost": 88,
+              "average_original_model_mass": 0.14183162851361045,
+              "paired_date_ci95_pp": [
+                -4.461766249449792,
+                -1.7698944860449286
+              ]
+            },
+            "one_each_top_max_trifecta": {
+              "exact_hits": 200,
+              "gained": 49,
+              "lost": 87,
+              "average_original_model_mass": 0.1421220409480893,
+              "paired_date_ci95_pp": [
+                -4.119388662387231,
+                -1.5563123883803391
+              ]
+            }
+          },
+          "original_failure_stages": {
+            "hit": 238,
+            "winner_not_listed": 564,
+            "ordered_pair_absent": 335,
+            "third_not_listed": 230
+          },
+          "original_ordered_pair_covered": 468,
+          "original_pair_not_covered": 899,
+          "pair_budget_partition": {
+            "pair_in_marginal_topK": {
+              "pair_implied_before_cutoff_but_unfunded": 157,
+              "pair_also_outside_K": 742
+            },
+            "pair_in_distinct_topK": {
+              "pair_implied_before_cutoff_but_unfunded": 151,
+              "pair_also_outside_K": 748
+            }
+          },
+          "conditional_third_details": {
+            "third_misses": 230,
+            "allocated_1_tickets": 140,
+            "allocated_2_tickets": 66,
+            "needed_just_one_more_third_with_true_pair_preprovided": 85,
+            "unfunded_with_right_third_at_conditional_rank1": 288,
+            "allocated_3_tickets": 23,
+            "allocated_4_tickets": 1
+          },
+          "hindsight_only": {
+            "known_winner_hindsight": 514,
+            "known_pair_hindsight": 1205,
+            "known_third_with_old_pair_set_hindsight": 468,
+            "oracle_union_fixed_three_arms": 289
+          },
+          "top_k_marginal_pair_covered": 623,
+          "top_k_distinct_pair_covered": 619,
+          "average_distinct_pairs_in_original_K": 2.558156547183614,
+          "time_span": [
+            "20260824",
+            "20260915"
+          ]
+        },
+        "8": {
+          "same_budget_no_outcome": {
+            "original": {
+              "exact_hits": 386,
+              "gained": 0,
+              "lost": 0,
+              "average_original_model_mass": 0.26453611819942435,
+              "paired_date_ci95_pp": [
+                0.0,
+                0.0
+              ]
+            },
+            "one_each_top_marginal": {
+              "exact_hits": 268,
+              "gained": 65,
+              "lost": 183,
+              "average_original_model_mass": 0.2099467114265451,
+              "paired_date_ci95_pp": [
+                -10.132284503599442,
+                -7.020981538833709
+              ]
+            },
+            "one_each_top_max_trifecta": {
+              "exact_hits": 276,
+              "gained": 73,
+              "lost": 183,
+              "average_original_model_mass": 0.21063677627585728,
+              "paired_date_ci95_pp": [
+                -9.617051763112526,
+                -6.318678085074509
+              ]
+            }
+          },
+          "original_failure_stages": {
+            "hit": 386,
+            "winner_not_listed": 435,
+            "ordered_pair_absent": 302,
+            "third_not_listed": 244
+          },
+          "original_ordered_pair_covered": 630,
+          "original_pair_not_covered": 737,
+          "pair_budget_partition": {
+            "pair_in_marginal_topK": {
+              "pair_implied_before_cutoff_but_unfunded": 228,
+              "pair_also_outside_K": 509
+            },
+            "pair_in_distinct_topK": {
+              "pair_implied_before_cutoff_but_unfunded": 233,
+              "pair_also_outside_K": 504
+            }
+          },
+          "conditional_third_details": {
+            "third_misses": 244,
+            "allocated_2_tickets": 80,
+            "needed_just_one_more_third_with_true_pair_preprovided": 108,
+            "allocated_1_tickets": 120,
+            "unfunded_with_right_third_at_conditional_rank1": 236,
+            "allocated_3_tickets": 38,
+            "allocated_4_tickets": 6
+          },
+          "hindsight_only": {
+            "known_winner_hindsight": 787,
+            "known_pair_hindsight": 1367,
+            "known_third_with_old_pair_set_hindsight": 630,
+            "oracle_union_fixed_three_arms": 464
+          },
+          "top_k_marginal_pair_covered": 858,
+          "top_k_distinct_pair_covered": 863,
+          "average_distinct_pairs_in_original_K": 4.168251645940015,
+          "time_span": [
+            "20260824",
+            "20260915"
+          ]
+        }
+      }
+    },
+    "timestamped": {
+      "n": 321,
+      "needed_95": 305,
+      "ranks": {
+        "pair_marginal_rank": {
+          "median": 5.0,
+          "top1": 63,
+          "top2": 111
+        },
+        "pair_distinct_rank": {
+          "median": 4.0,
+          "top1": 66,
+          "top2": 114
+        },
+        "conditional_third_rank": {
+          "median": 2.0,
+          "top1": 142,
+          "top2": 219
+        }
+      },
+      "cap": {
+        "4": {
+          "same_budget_no_outcome": {
+            "original": {
+              "exact_hits": 84,
+              "gained": 0,
+              "lost": 0,
+              "average_original_model_mass": 0.27307086974074696,
+              "paired_date_ci95_pp": [
+                0.0,
+                0.0
+              ]
+            },
+            "one_each_top_marginal": {
+              "exact_hits": 77,
+              "gained": 15,
+              "lost": 22,
+              "average_original_model_mass": 0.23267421069701547,
+              "paired_date_ci95_pp": [
+                -3.6036036036036037,
+                -1.0
+              ]
+            },
+            "one_each_top_max_trifecta": {
+              "exact_hits": 80,
+              "gained": 16,
+              "lost": 20,
+              "average_original_model_mass": 0.23546298278541664,
+              "paired_date_ci95_pp": [
+                -3.3536585365853657,
+                1.0
+              ]
+            }
+          },
+          "original_failure_stages": {
+            "hit": 84,
+            "winner_not_listed": 123,
+            "ordered_pair_absent": 70,
+            "third_not_listed": 44
+          },
+          "original_ordered_pair_covered": 128,
+          "original_pair_not_covered": 193,
+          "pair_budget_partition": {
+            "pair_in_marginal_topK": {
+              "pair_implied_before_cutoff_but_unfunded": 35,
+              "pair_also_outside_K": 158
+            },
+            "pair_in_distinct_topK": {
+              "pair_implied_before_cutoff_but_unfunded": 35,
+              "pair_also_outside_K": 158
+            }
+          },
+          "conditional_third_details": {
+            "third_misses": 44,
+            "allocated_3_tickets": 3,
+            "needed_just_one_more_third_with_true_pair_preprovided": 22,
+            "allocated_1_tickets": 31,
+            "unfunded_with_right_third_at_conditional_rank1": 78,
+            "allocated_2_tickets": 10
+          },
+          "hindsight_only": {
+            "known_winner_hindsight": 166,
+            "known_pair_hindsight": 307,
+            "known_third_with_old_pair_set_hindsight": 128,
+            "oracle_union_fixed_three_arms": 103
+          },
+          "top_k_marginal_pair_covered": 158,
+          "top_k_distinct_pair_covered": 163,
+          "average_distinct_pairs_in_original_K": 2.5109034267912773,
+          "time_span": [
+            "20261116",
+            "20261120"
+          ]
+        },
+        "8": {
+          "same_budget_no_outcome": {
+            "original": {
+              "exact_hits": 119,
+              "gained": 0,
+              "lost": 0,
+              "average_original_model_mass": 0.39602266706235817,
+              "paired_date_ci95_pp": [
+                0.0,
+                0.0
+              ]
+            },
+            "one_each_top_marginal": {
+              "exact_hits": 104,
+              "gained": 24,
+              "lost": 39,
+              "average_original_model_mass": 0.30549352974711447,
+              "paired_date_ci95_pp": [
+                -6.956521739130435,
+                -2.0202020202020203
+              ]
+            },
+            "one_each_top_max_trifecta": {
+              "exact_hits": 106,
+              "gained": 26,
+              "lost": 39,
+              "average_original_model_mass": 0.3076537086231513,
+              "paired_date_ci95_pp": [
+                -6.3768115942028984,
+                -1.2987012987012987
+              ]
+            }
+          },
+          "original_failure_stages": {
+            "hit": 119,
+            "winner_not_listed": 81,
+            "ordered_pair_absent": 76,
+            "third_not_listed": 45
+          },
+          "original_ordered_pair_covered": 164,
+          "original_pair_not_covered": 157,
+          "pair_budget_partition": {
+            "pair_in_marginal_topK": {
+              "pair_implied_before_cutoff_but_unfunded": 59,
+              "pair_also_outside_K": 98
+            },
+            "pair_in_distinct_topK": {
+              "pair_implied_before_cutoff_but_unfunded": 62,
+              "pair_also_outside_K": 95
+            }
+          },
+          "conditional_third_details": {
+            "third_misses": 45,
+            "allocated_1_tickets": 33,
+            "needed_just_one_more_third_with_true_pair_preprovided": 19,
+            "unfunded_with_right_third_at_conditional_rank1": 62,
+            "allocated_4_tickets": 2,
+            "allocated_2_tickets": 7,
+            "allocated_3_tickets": 3
+          },
+          "hindsight_only": {
+            "known_winner_hindsight": 235,
+            "known_pair_hindsight": 321,
+            "known_third_with_old_pair_set_hindsight": 164,
+            "oracle_union_fixed_three_arms": 147
+          },
+          "top_k_marginal_pair_covered": 223,
+          "top_k_distinct_pair_covered": 226,
+          "average_distinct_pairs_in_original_K": 4.205607476635514,
+          "time_span": [
+            "20261116",
+            "20261120"
+          ]
+        }
+      }
+    },
+    "timestamped_same_line": {
+      "n": 169,
+      "needed_95": 161,
+      "ranks": {
+        "pair_marginal_rank": {
+          "median": 2.0,
+          "top1": 56,
+          "top2": 90
+        },
+        "pair_distinct_rank": {
+          "median": 2.0,
+          "top1": 59,
+          "top2": 93
+        },
+        "conditional_third_rank": {
+          "median": 1.0,
+          "top1": 88,
+          "top2": 121
+        }
+      },
+      "cap": {
+        "4": {
+          "same_budget_no_outcome": {
+            "original": {
+              "exact_hits": 73,
+              "gained": 0,
+              "lost": 0,
+              "average_original_model_mass": 0.3080954320330742,
+              "paired_date_ci95_pp": [
+                0.0,
+                0.0
+              ]
+            },
+            "one_each_top_marginal": {
+              "exact_hits": 59,
+              "gained": 5,
+              "lost": 19,
+              "average_original_model_mass": 0.26137079542714775,
+              "paired_date_ci95_pp": [
+                -12.5,
+                -3.7974683544303796
+              ]
+            },
+            "one_each_top_max_trifecta": {
+              "exact_hits": 63,
+              "gained": 7,
+              "lost": 17,
+              "average_original_model_mass": 0.264646663785739,
+              "paired_date_ci95_pp": [
+                -11.11111111111111,
+                0.0
+              ]
+            }
+          },
+          "original_failure_stages": {
+            "hit": 73,
+            "winner_not_listed": 56,
+            "ordered_pair_absent": 11,
+            "third_not_listed": 29
+          },
+          "original_ordered_pair_covered": 102,
+          "original_pair_not_covered": 67,
+          "pair_budget_partition": {
+            "pair_in_marginal_topK": {
+              "pair_implied_before_cutoff_but_unfunded": 15,
+              "pair_also_outside_K": 52
+            },
+            "pair_in_distinct_topK": {
+              "pair_implied_before_cutoff_but_unfunded": 17,
+              "pair_also_outside_K": 50
+            }
+          },
+          "conditional_third_details": {
+            "third_misses": 29,
+            "allocated_3_tickets": 3,
+            "needed_just_one_more_third_with_true_pair_preprovided": 13,
+            "allocated_1_tickets": 18,
+            "unfunded_with_right_third_at_conditional_rank1": 32,
+            "allocated_2_tickets": 8
+          },
+          "hindsight_only": {
+            "known_winner_hindsight": 128,
+            "known_pair_hindsight": 162,
+            "known_third_with_old_pair_set_hindsight": 102,
+            "oracle_union_fixed_three_arms": 82
+          },
+          "top_k_marginal_pair_covered": 113,
+          "top_k_distinct_pair_covered": 119,
+          "average_distinct_pairs_in_original_K": 2.4792899408284024,
+          "time_span": [
+            "20261116",
+            "20261120"
+          ]
+        },
+        "8": {
+          "same_budget_no_outcome": {
+            "original": {
+              "exact_hits": 92,
+              "gained": 0,
+              "lost": 0,
+              "average_original_model_mass": 0.43525231154960964,
+              "paired_date_ci95_pp": [
+                0.0,
+                0.0
+              ]
+            },
+            "one_each_top_marginal": {
+              "exact_hits": 73,
+              "gained": 9,
+              "lost": 28,
+              "average_original_model_mass": 0.33498265663128135,
+              "paired_date_ci95_pp": [
+                -17.77777777777778,
+                -4.137931034482759
+              ]
+            },
+            "one_each_top_max_trifecta": {
+              "exact_hits": 75,
+              "gained": 11,
+              "lost": 28,
+              "average_original_model_mass": 0.3372637338719005,
+              "paired_date_ci95_pp": [
+                -15.909090909090908,
+                -3.401360544217687
+              ]
+            }
+          },
+          "original_failure_stages": {
+            "hit": 92,
+            "winner_not_listed": 39,
+            "ordered_pair_absent": 10,
+            "third_not_listed": 28
+          },
+          "original_ordered_pair_covered": 120,
+          "original_pair_not_covered": 49,
+          "pair_budget_partition": {
+            "pair_in_marginal_topK": {
+              "pair_implied_before_cutoff_but_unfunded": 22,
+              "pair_also_outside_K": 27
+            },
+            "pair_in_distinct_topK": {
+              "pair_implied_before_cutoff_but_unfunded": 26,
+              "pair_also_outside_K": 23
+            }
+          },
+          "conditional_third_details": {
+            "third_misses": 28,
+            "allocated_1_tickets": 19,
+            "needed_just_one_more_third_with_true_pair_preprovided": 14,
+            "unfunded_with_right_third_at_conditional_rank1": 24,
+            "allocated_4_tickets": 2,
+            "allocated_2_tickets": 5,
+            "allocated_3_tickets": 2
+          },
+          "hindsight_only": {
+            "known_winner_hindsight": 155,
+            "known_pair_hindsight": 169,
+            "known_third_with_old_pair_set_hindsight": 120,
+            "oracle_union_fixed_three_arms": 103
+          },
+          "top_k_marginal_pair_covered": 142,
+          "top_k_distinct_pair_covered": 146,
+          "average_distinct_pairs_in_original_K": 4.14792899408284,
+          "time_span": [
+            "20261116",
+            "20261120"
+          ]
+        }
+      }
+    },
+    "timestamped_individual": {
+      "n": 29,
+      "needed_95": 28,
+      "ranks": {
+        "pair_marginal_rank": {
+          "median": 5.0,
+          "top1": 4,
+          "top2": 7
+        },
+        "pair_distinct_rank": {
+          "median": 5.0,
+          "top1": 5,
+          "top2": 8
+        },
+        "conditional_third_rank": {
+          "median": 2.0,
+          "top1": 7,
+          "top2": 15
+        }
+      },
+      "cap": {
+        "4": {
+          "same_budget_no_outcome": {
+            "original": {
+              "exact_hits": 4,
+              "gained": 0,
+              "lost": 0,
+              "average_original_model_mass": 0.1592438921779442,
+              "paired_date_ci95_pp": [
+                0.0,
+                0.0
+              ]
+            },
+            "one_each_top_marginal": {
+              "exact_hits": 5,
+              "gained": 2,
+              "lost": 1,
+              "average_original_model_mass": 0.1461118495732933,
+              "paired_date_ci95_pp": [
+                -7.407407407407407,
+                13.793103448275861
+              ]
+            },
+            "one_each_top_max_trifecta": {
+              "exact_hits": 5,
+              "gained": 2,
+              "lost": 1,
+              "average_original_model_mass": 0.1462159654745519,
+              "paired_date_ci95_pp": [
+                -7.407407407407407,
+                13.793103448275861
+              ]
+            }
+          },
+          "original_failure_stages": {
+            "hit": 4,
+            "winner_not_listed": 11,
+            "ordered_pair_absent": 8,
+            "third_not_listed": 6
+          },
+          "original_ordered_pair_covered": 10,
+          "original_pair_not_covered": 19,
+          "pair_budget_partition": {
+            "pair_in_marginal_topK": {
+              "pair_implied_before_cutoff_but_unfunded": 3,
+              "pair_also_outside_K": 16
+            },
+            "pair_in_distinct_topK": {
+              "pair_implied_before_cutoff_but_unfunded": 3,
+              "pair_also_outside_K": 16
+            }
+          },
+          "conditional_third_details": {
+            "third_misses": 6,
+            "allocated_1_tickets": 5,
+            "needed_just_one_more_third_with_true_pair_preprovided": 4,
+            "unfunded_with_right_third_at_conditional_rank1": 4,
+            "allocated_2_tickets": 1
+          },
+          "hindsight_only": {
+            "known_winner_hindsight": 7,
+            "known_pair_hindsight": 26,
+            "known_third_with_old_pair_set_hindsight": 10,
+            "oracle_union_fixed_three_arms": 6
+          },
+          "top_k_marginal_pair_covered": 13,
+          "top_k_distinct_pair_covered": 13,
+          "average_distinct_pairs_in_original_K": 2.6206896551724137,
+          "time_span": [
+            "20261116",
+            "20261120"
+          ]
+        },
+        "8": {
+          "same_budget_no_outcome": {
+            "original": {
+              "exact_hits": 8,
+              "gained": 0,
+              "lost": 0,
+              "average_original_model_mass": 0.2724750728070806,
+              "paired_date_ci95_pp": [
+                0.0,
+                0.0
+              ]
+            },
+            "one_each_top_marginal": {
+              "exact_hits": 6,
+              "gained": 1,
+              "lost": 3,
+              "average_original_model_mass": 0.2103532009313102,
+              "paired_date_ci95_pp": [
+                -13.793103448275861,
+                0.0
+              ]
+            },
+            "one_each_top_max_trifecta": {
+              "exact_hits": 6,
+              "gained": 1,
+              "lost": 3,
+              "average_original_model_mass": 0.21104799437629645,
+              "paired_date_ci95_pp": [
+                -13.793103448275861,
+                0.0
+              ]
+            }
+          },
+          "original_failure_stages": {
+            "hit": 8,
+            "winner_not_listed": 7,
+            "ordered_pair_absent": 9,
+            "third_not_listed": 5
+          },
+          "original_ordered_pair_covered": 13,
+          "original_pair_not_covered": 16,
+          "pair_budget_partition": {
+            "pair_in_marginal_topK": {
+              "pair_implied_before_cutoff_but_unfunded": 5,
+              "pair_also_outside_K": 11
+            },
+            "pair_in_distinct_topK": {
+              "pair_implied_before_cutoff_but_unfunded": 5,
+              "pair_also_outside_K": 11
+            }
+          },
+          "conditional_third_details": {
+            "third_misses": 5,
+            "allocated_1_tickets": 4,
+            "needed_just_one_more_third_with_true_pair_preprovided": 2,
+            "unfunded_with_right_third_at_conditional_rank1": 2,
+            "allocated_2_tickets": 1
+          },
+          "hindsight_only": {
+            "known_winner_hindsight": 14,
+            "known_pair_hindsight": 29,
+            "known_third_with_old_pair_set_hindsight": 13,
+            "oracle_union_fixed_three_arms": 9
+          },
+          "top_k_marginal_pair_covered": 18,
+          "top_k_distinct_pair_covered": 18,
+          "average_distinct_pairs_in_original_K": 3.9310344827586206,
+          "time_span": [
+            "20261116",
+            "20261120"
+          ]
+        }
+      }
+    },
+    "timestamped_cross_line": {
+      "n": 123,
+      "needed_95": 117,
+      "ranks": {
+        "pair_marginal_rank": {
+          "median": 8.0,
+          "top1": 3,
+          "top2": 14
+        },
+        "pair_distinct_rank": {
+          "median": 8.0,
+          "top1": 2,
+          "top2": 13
+        },
+        "conditional_third_rank": {
+          "median": 2.0,
+          "top1": 47,
+          "top2": 83
+        }
+      },
+      "cap": {
+        "4": {
+          "same_budget_no_outcome": {
+            "original": {
+              "exact_hits": 7,
+              "gained": 0,
+              "lost": 0,
+              "average_original_model_mass": 0.25178494552869796,
+              "paired_date_ci95_pp": [
+                0.0,
+                0.0
+              ]
+            },
+            "one_each_top_marginal": {
+              "exact_hits": 13,
+              "gained": 8,
+              "lost": 2,
+              "average_original_model_mass": 0.21365458186120714,
+              "paired_date_ci95_pp": [
+                1.6666666666666667,
+                7.936507936507937
+              ]
+            },
+            "one_each_top_max_trifecta": {
+              "exact_hits": 12,
+              "gained": 7,
+              "lost": 2,
+              "average_original_model_mass": 0.21640705931355156,
+              "paired_date_ci95_pp": [
+                0.9009009009009009,
+                6.666666666666667
+              ]
+            }
+          },
+          "original_failure_stages": {
+            "hit": 7,
+            "winner_not_listed": 56,
+            "ordered_pair_absent": 51,
+            "third_not_listed": 9
+          },
+          "original_ordered_pair_covered": 16,
+          "original_pair_not_covered": 107,
+          "pair_budget_partition": {
+            "pair_in_marginal_topK": {
+              "pair_implied_before_cutoff_but_unfunded": 17,
+              "pair_also_outside_K": 90
+            },
+            "pair_in_distinct_topK": {
+              "pair_implied_before_cutoff_but_unfunded": 15,
+              "pair_also_outside_K": 92
+            }
+          },
+          "conditional_third_details": {
+            "third_misses": 9,
+            "allocated_1_tickets": 8,
+            "unfunded_with_right_third_at_conditional_rank1": 42,
+            "needed_just_one_more_third_with_true_pair_preprovided": 5,
+            "allocated_2_tickets": 1
+          },
+          "hindsight_only": {
+            "known_winner_hindsight": 31,
+            "known_pair_hindsight": 119,
+            "known_third_with_old_pair_set_hindsight": 16,
+            "oracle_union_fixed_three_arms": 15
+          },
+          "top_k_marginal_pair_covered": 32,
+          "top_k_distinct_pair_covered": 31,
+          "average_distinct_pairs_in_original_K": 2.5284552845528454,
+          "time_span": [
+            "20261116",
+            "20261120"
+          ]
+        },
+        "8": {
+          "same_budget_no_outcome": {
+            "original": {
+              "exact_hits": 19,
+              "gained": 0,
+              "lost": 0,
+              "average_original_model_mass": 0.3712508810059154,
+              "paired_date_ci95_pp": [
+                0.0,
+                0.0
+              ]
+            },
+            "one_each_top_marginal": {
+              "exact_hits": 25,
+              "gained": 14,
+              "lost": 8,
+              "average_original_model_mass": 0.2874074085457659,
+              "paired_date_ci95_pp": [
+                -0.8849557522123894,
+                11.278195488721805
+              ]
+            },
+            "one_each_top_max_trifecta": {
+              "exact_hits": 25,
+              "gained": 14,
+              "lost": 8,
+              "average_original_model_mass": 0.2897469724127462,
+              "paired_date_ci95_pp": [
+                0.9079153605015677,
+                9.022556390977444
+              ]
+            }
+          },
+          "original_failure_stages": {
+            "hit": 19,
+            "winner_not_listed": 35,
+            "ordered_pair_absent": 57,
+            "third_not_listed": 12
+          },
+          "original_ordered_pair_covered": 31,
+          "original_pair_not_covered": 92,
+          "pair_budget_partition": {
+            "pair_in_marginal_topK": {
+              "pair_implied_before_cutoff_but_unfunded": 32,
+              "pair_also_outside_K": 60
+            },
+            "pair_in_distinct_topK": {
+              "pair_implied_before_cutoff_but_unfunded": 31,
+              "pair_also_outside_K": 61
+            }
+          },
+          "conditional_third_details": {
+            "third_misses": 12,
+            "allocated_1_tickets": 10,
+            "unfunded_with_right_third_at_conditional_rank1": 36,
+            "needed_just_one_more_third_with_true_pair_preprovided": 3,
+            "allocated_3_tickets": 1,
+            "allocated_2_tickets": 1
+          },
+          "hindsight_only": {
+            "known_winner_hindsight": 66,
+            "known_pair_hindsight": 123,
+            "known_third_with_old_pair_set_hindsight": 31,
+            "oracle_union_fixed_three_arms": 35
+          },
+          "top_k_marginal_pair_covered": 63,
+          "top_k_distinct_pair_covered": 62,
+          "average_distinct_pairs_in_original_K": 4.349593495934959,
+          "time_span": [
+            "20261116",
+            "20261120"
+          ]
+        }
+      }
+    }
+  }
+}
