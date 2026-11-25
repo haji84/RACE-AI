@@ -59,6 +59,7 @@ jobs:
             tests.test_keirin_flow_evaluation tests.test_keirin_form_fall_blind_pdca \
             tests.test_keirin_race_development -v
       - name: Verify public witness metadata with the existing read token
+        if: github.event_name != 'workflow_run'
         env:
           RACE_AI_GITHUB_READ_TOKEN: ${{ github.token }}
         run: |
