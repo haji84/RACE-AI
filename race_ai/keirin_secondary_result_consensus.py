@@ -114,6 +114,21 @@ def normalize_html(value):
         raise ResultConsensusError("RESULT_HTML_NOT_READABLE") from None
 
 
+def apparent_trifecta_values(text, provider):
+    """Find each distinct, valid trifecta order and amount in normalized page text."""
+    apparent = TRIFECTA.findall(text)
+    if provider == "Kdreams":
+        # Kdreams sometimes separates the label from the order and amount.
+        apparent += KD_TRIFECTA_PAYOUT.findall(text)
+    matches = set()
+    for a, b, c, yen in apparent:
+        order = int(a), int(b), int(c)
+        amount = int(yen.replace(",", ""))
+        if len(set(order)) == 3 and 100 <= amount <= 1_000_000_000:
+            matches.add((order, amount))
+    return matches
+
+
 def parse_observation(*, raw, provider, source_url, race_id, observed_at):
     """Extract one clear finished race, or hold. Never infer a publication time."""
     check_race_url(provider=provider, url=source_url, race_id=race_id)
@@ -136,23 +151,11 @@ def parse_observation(*, raw, provider, source_url, race_id, observed_at):
             "SOURCE_HTML_NOT_FINAL_RESULT_PAGE")
     if any(k in text for k in ("レース中止", "発売中止", "返還", "同着")):
         raise ResultConsensusError("SPECIAL_REFUND_OR_TIE_REQUIRES_OFFICIAL")
-    matches = []
-    apparent = TRIFECTA.findall(text)
-    if provider == "Kdreams":
-        # The actual grid sometimes emits '... 単 7-3-4 5,590円'
-        # while the 3連単 label is in a different column.
-        apparent += KD_TRIFECTA_PAYOUT.findall(text)
-    for a,b,c,yen in apparent:
-        order = [int(a),int(b),int(c)]
-        if len(set(order)) != 3:
-            continue
-        amount = int(yen.replace(",", ""))
-        if 100 <= amount <= 1_000_000_000:
-            matches.append((tuple(order),amount))
+    matches = apparent_trifecta_values(text, provider)
     # Never choose one of several conflicting apparent results in the same HTML.
     require(len(matches) > 0, "TRIFECTA_RESULT_NOT_PUBLISHED")
-    require(len(set(matches)) == 1, "MULTIPLE_CONFLICTING_TRIFECTA_VALUES")
-    tickets, payout = matches[0]
+    require(len(matches) == 1, "MULTIPLE_CONFLICTING_TRIFECTA_VALUES")
+    (tickets, payout), = matches
     return {
         "race_id":race_id, "provider":provider,
         "source_url":source_url,
