@@ -84,5 +84,16 @@ class JointForecastSerializationTests(unittest.TestCase):
         for rank in range(9):
             self.assertAlmostEqual(sum(r['rank_probabilities'][rank] for r in record['riders']),1.)
 
+    def test_public_projection_never_copies_private_extensions(self):
+        record=serialize()
+        record['private_source']={'secret':'top-level-canary'}
+        record['riders'][0]['private_history']='rider-canary'
+        before=deepcopy(record)
+        projected=wire.public_projection(record)
+        self.assertNotIn('private_source',projected)
+        self.assertNotIn('private_history',projected['riders'][0])
+        self.assertNotIn('canary',str(projected))
+        self.assertEqual(record,before)
+
 
 if __name__=='__main__':unittest.main()

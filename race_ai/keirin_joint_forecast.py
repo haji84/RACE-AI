@@ -147,7 +147,11 @@ def build_forecast(joint,*,race_id,generated_at,cutoff_at,source_as_of,model_id,
 def public_projection(record):
     """Retain public marginals and selected picks without exposing the full law."""
     validate_forecast(record)
-    projection={key:deepcopy(value) for key,value in record.items() if key not in {'trifectas','exactas'}}
+    fields=(*META,'scope','premise','calibration_status','cars')
+    projection={key:deepcopy(record[key]) for key in fields}
+    rider_fields=('car','name','registration','rank_probabilities','top2_probability',
+                  'top3_probability','outside_top3_probability','most_likely_rank','expected_rank')
+    projection['riders']=[{key:deepcopy(row[key]) for key in rider_fields} for row in record['riders']]
     projection.update(schema=PROJECTION,source_joint_sha256=digest(record),ranked_markets={
         '3t':deepcopy(sorted(record['trifectas'],key=lambda r:(-r['probability'],r['order']))[:8]),
         '2t':deepcopy(sorted(record['exactas'],key=lambda r:(-r['probability'],r['order']))[:4])})
