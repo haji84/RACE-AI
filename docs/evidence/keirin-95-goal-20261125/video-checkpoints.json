@@ -183,5 +183,62 @@
     },
     "exclusive_availability": "2026-11-24T00:00:00+09:00"
   },
-  "cli_sha256": "6913cbca61b8e8d75cb8f042297988a9e8dbef7869233893f6b4e301e773a781"
+  "cli_sha256": "6913cbca61b8e8d75cb8f042297988a9e8dbef7869233893f6b4e301e773a781",
+  "ordinary_public_player_extension": {
+    "remaining_panel_size": 38,
+    "source_sites_and_requested_points": 6,
+    "ordinary_racedetail_http_200": 6,
+    "ordinary_player_target_decoded": 6,
+    "requested_points_with_unique_third": 5,
+    "requested_points_ambiguous": 1,
+    "body": {
+      "matched": 5,
+      "exact_order_retained": 2,
+      "unordered_trio_retained": 2,
+      "third_retained": 2,
+      "same_top2_unordered": 3,
+      "third_retained_given_same_top2_unordered": 2
+    },
+    "failures": [],
+    "selection_sha256": "0a6996dbbe2e46f2babaf57a1406454ca074394be32ab75255e361c1091cf646",
+    "labels_sha256": "a28b4f411339afc705f8a01553821a8362648839ace6d2fb505be19fc0f4f39a",
+    "authenticated_rows_sha256": "7b2e5eec0edc2ea8c0c97b1863f0a31c5dfd7e58bb1e6e75801eb27e52000692",
+    "scope": "Ordinary browser viewing without retention. Additional independently matched settlements for readable checkpoint trios; technical proof, not accuracy for prestart forecasts.",
+    "official_identity_restored": "函館1Rはローリング台帳で2人欠測。KEIRIN.JPの確定着順票で全6人の車番・登録番号を確認し、登録台帳と両結果元の氏名が一致。",
+    "page_range": {
+      "earliest": "2023-11-24",
+      "latest": "2026-10-30"
+    },
+    "ordinary_methods": {
+      "facing_detail_result_page_alt_digest_button": 5,
+      "official_venue_listing_public_popup_link": 1
+    },
+    "source_location_counts": {
+      "2023112413": 6,
+      "2024061156": 9,
+      "2025091611": 8,
+      "2026092075": 1,
+      "2026092843": 1,
+      "2026103042": 1,
+      "2026111053": 1,
+      "2026111151": 1,
+      "2026111773": 3,
+      "2026111873": 1,
+      "2026111981": 2,
+      "2026112281": 2,
+      "2026112361": 1,
+      "2026112426": 1
+    },
+    "source_terms_sha256": "ff69509ffc6c827517df931aa01ecf26864467b54e70bcdd01a6a1f74072ff17",
+    "summary_sha256": "61ed54442fcfee43722b6852b4f5e2e9124dac00b73dea23606dc958b1ae8601"
+  },
+  "total_unique_identity_and_two_source_confirmed": 17,
+  "ordinary_public_player_recovery": {
+    "aggregate_sha256": "61ed54442fcfee43722b6852b4f5e2e9124dac00b73dea23606dc958b1ae8601",
+    "cipher_sha256": "9c86d698bc3f7e8142770f9180cb0acfe64299bafe946f5700bca063d446f124",
+    "files": 9,
+    "label_sha256": "7b2e5eec0edc2ea8c0c97b1863f0a31c5dfd7e58bb1e6e75801eb27e52000692",
+    "restored_at": "2026-11-25T10:21:47.234922+00:00",
+    "video_copies": 0
+  }
 }
