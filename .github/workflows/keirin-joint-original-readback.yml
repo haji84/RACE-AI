@@ -8,12 +8,14 @@ on:
       - 'race_ai/keirin_joint_finish.py'
       - 'race_ai/keirin_joint_forecast.py'
       - 'scripts/keirin_joint_original_readback.py'
+      - 'scripts/keirin_joint_readback_http.py'
       - 'scripts/keirin_joint_recovery_score.py'
       - 'scripts/keirin_joint_forward_score.py'
       - 'scripts/keirin_forward_score.py'
       - 'race_ai/keirin_secondary_result_consensus.py'
       - 'tests/test_keirin_joint_forecast.py'
       - 'tests/test_keirin_joint_original_readback.py'
+      - 'tests/test_keirin_joint_readback_http.py'
       - 'docs/evidence/keirin-live-accuracy-closure-20261125/joint-original-rsa-recovery.json'
       - 'docs/evidence/keirin-live-accuracy-closure-20261125/independent-runner-readback.json'
   push:
@@ -21,6 +23,7 @@ on:
     paths:
       - '.github/workflows/keirin-joint-original-readback.yml'
       - 'scripts/keirin_joint_original_readback.py'
+      - 'scripts/keirin_joint_readback_http.py'
       - 'scripts/keirin_joint_recovery_score.py'
       - 'scripts/keirin_joint_forward_score.py'
       - 'scripts/keirin_forward_score.py'
@@ -50,6 +53,7 @@ jobs:
       - name: Verify joint laws and recovery bounds with invented records
         run: |
           python -m unittest tests.test_keirin_joint_forecast tests.test_keirin_joint_original_readback \
+            tests.test_keirin_joint_readback_http \
             tests.test_keirin_forward_score tests.test_keirin_joint_forward_score \
             tests.test_keirin_joint_recovery_score tests.test_keirin_published_result_validation \
             tests.test_keirin_flow_evaluation tests.test_keirin_form_fall_blind_pdca \
@@ -79,21 +83,14 @@ jobs:
         shell: bash
         run: |
           python - <<'PY'
-          import hashlib, json, os, re, urllib.request
+          import hashlib, json, os, re
           from datetime import datetime, timezone, timedelta
           from pathlib import Path
-          class NoRedirect(urllib.request.HTTPRedirectHandler):
-              def redirect_request(self, *args, **kwargs): return None
+          from scripts.keirin_joint_readback_http import diagnostic, get
+          stage = 'local_receipts'
           try:
               receipt = json.loads(Path('docs/evidence/keirin-live-accuracy-closure-20261125/joint-original-rsa-recovery.json').read_bytes())
               witness = json.loads(Path('docs/evidence/keirin-live-accuracy-closure-20261125/independent-runner-readback.json').read_bytes())
-              def get(url, limit):
-                  request = urllib.request.Request(url, headers={'User-Agent':'RACE-AI-joint-origin-readback/1'})
-                  with urllib.request.build_opener(NoRedirect()).open(request, timeout=45) as response:
-                      assert response.status == 200 and response.geturl() == url
-                      raw = response.read(limit + 1)
-                  assert 0 < len(raw) <= limit
-                  return raw
               def clock(value): return datetime.fromisoformat(value.replace('Z','+00:00'))
               publication = json.loads(Path('docs/evidence/keirin-live-accuracy-closure-20261125/prospective-publication.json').read_bytes())
               # The automatic one-day experiment is bounded. Manual audits remain available.
@@ -110,17 +107,20 @@ jobs:
               assert witness['state'] == 'INDEPENDENT_RUNNER_CIPHER_SHA_READBACK_VERIFIED'
               assert witness['registered_comparison_races'] == witness['still_pre_cutoff_races'] == 10
               original_base = 'https://raw.githubusercontent.com/haji84/RACE-AI/' + original_commit + '/'
+              stage = 'original_cipher'
               original_wire = get(original_base + 'views/' + original_cipher + '.json', 90 * 1024 * 1024)
               assert hashlib.sha256(original_wire).hexdigest() == original_cipher and len(original_wire) == witness['cipher_bytes']
               original_header = json.loads(original_wire)['header']
               assert original_header['schema'] == 'RACE_AI_SAVED_WEB_VIEW_V1'
               assert original_header['source_content_sha256'] == receipt['original_note_sha256']
+              stage = 'original_index'
               index = json.loads(get(original_base + 'index.json', 2 * 1024 * 1024))
               entries = [e for e in index['entries'] if e['cipher_sha256'] == original_cipher]
               assert len(entries) == 1 and entries[0]['kind'] == 'research'
               assert entries[0]['created_at'] == receipt['expected_original_created_at']
               assert entries[0]['source_content_sha256'] == receipt['original_note_sha256']
               jobs_url = 'https://api.github.com/repos/haji84/RACE-AI/actions/runs/' + str(receipt['original_witness_run']) + '/jobs'
+              stage = 'witness_jobs'
               jobs = json.loads(get(jobs_url, 2 * 1024 * 1024))['jobs']
               jobs = [j for j in jobs if j['id'] == receipt['original_witness_job']]
               assert len(jobs) == 1
@@ -129,11 +129,13 @@ jobs:
               assert job['name'] == 'comparison-cipher-independent-readback' and job['status'] == 'completed' and job['conclusion'] == 'success'
               assert clock(job['started_at']) <= clock(witness['observed_at']) <= clock(job['completed_at']) < clock(receipt['earliest_cutoff'])
               assert re.fullmatch('[a-f0-9]{40}', job['head_sha'])
+              stage = 'prior_publication'
               prior = json.loads(get('https://raw.githubusercontent.com/haji84/RACE-AI/' + job['head_sha'] + '/docs/evidence/keirin-live-accuracy-closure-20261125/prospective-publication.json', 128 * 1024))
               assert prior['cipher_sha256'] == original_cipher and prior['publication']['source_commit'] == original_commit
               assert publication['cipher_sha256'] == original_cipher and publication['publication']['source_commit'] == original_commit
               assert set(publication['race_ids']) == set(prior['race_ids']) and publication['cutoffs'] == prior['cutoffs']
               assert publication['generated_at'] == prior['generated_at'] and publication['model_sha256'] == prior['model_sha256']
+              stage = 'recovery_cipher'
               commit, path, expected = (receipt[k] for k in ('recovery_archive_commit','recovery_archive_path','recovery_cipher_sha256'))
               assert re.fullmatch('[a-f0-9]{40}', commit) and re.fullmatch('[a-f0-9]{64}', expected)
               assert re.fullmatch(r'state/keirin/research/joint-comparison/v1/\d{4}-\d{2}-\d{2}/'+expected+r'\.sealed\.json', path)
@@ -141,6 +143,7 @@ jobs:
               raw = get(url, 24 * 1024 * 1024)
               assert len(raw) == receipt['recovery_cipher_bytes'] <= 24 * 1024 * 1024
               assert hashlib.sha256(raw).hexdigest() == expected
+              stage = 'write_snapshot'
               folder = Path(os.environ['RUNNER_TEMP']) / 'keirin-joint-independent'
               folder.mkdir(mode=0o700)
               descriptor = os.open(folder/'recovery.sealed.json', os.O_WRONLY|os.O_CREAT|os.O_EXCL, 0o600)
@@ -150,23 +153,26 @@ jobs:
               compact = next(iter(days))
               day = compact[:4] + '-' + compact[4:6] + '-' + compact[6:8]
               assert re.fullmatch(r'20\d{2}-\d{2}-\d{2}', day)
+              stage = 'result_ref'
               result_ref = json.loads(get('https://api.github.com/repos/haji84/RACE-AI/git/ref/heads/state/keirin-public-results', 128 * 1024))['object']
               result_commit = result_ref['sha']
               assert result_ref['type'] == 'commit' and re.fullmatch('[a-f0-9]{40}', result_commit)
               result_base = 'https://raw.githubusercontent.com/haji84/RACE-AI/' + result_commit + '/'
-              for name, remote in (('roster.json','rosters/'),('results.json','results/')):
+              for stage, name, remote in (('result_roster','roster.json','rosters/'),('result_data','results.json','results/')):
                   body = get(result_base + remote + day + '.json', 12 * 1024 * 1024)
                   value = json.loads(body)
                   assert value['date'] == day
                   descriptor = os.open(folder/name, os.O_WRONLY|os.O_CREAT|os.O_EXCL, 0o600)
                   with os.fdopen(descriptor,'wb') as stream: stream.write(body)
+              stage = 'write_snapshot'
               source = dict(repository='haji84/RACE-AI', branch='state/keirin-public-results', commit=result_commit, day_jst=day,
                   roster_sha256=hashlib.sha256((folder/'roster.json').read_bytes()).hexdigest(),
                   results_sha256=hashlib.sha256((folder/'results.json').read_bytes()).hexdigest())
               descriptor = os.open(folder/'result-source.json', os.O_WRONLY|os.O_CREAT|os.O_EXCL, 0o600)
               with os.fdopen(descriptor,'w') as stream: json.dump(source,stream)
               with open(os.environ['GITHUB_OUTPUT'],'a') as output: output.write('run_score=true\n')
-          except Exception:
+          except Exception as error:
+              print(json.dumps(diagnostic(stage, error)), flush=True)
               raise SystemExit('HOLD_JOINT_RECOVERY_PINNED_CIPHERTEXT_UNAVAILABLE') from None
           PY
       - name: Independently decrypt and score the same original after result updates
