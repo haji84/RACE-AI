@@ -9,7 +9,7 @@ def build(root=None):
     web = root / 'web'
     parts = [web/'keirin-note-source/staking.js', web/'keirin-note-source/staking_flexible.js',
              web/'keirin-note-source/rollover.js', web/'confidence.js', web/'keirin-joint-forecast.js',
-             web/'keirin-note-model.js', web/'keirin-note-feed.js', web/'keirin-note-view.js']
+             web/'keirin-rider-history.js', web/'keirin-note-model.js', web/'keirin-note-feed.js', web/'keirin-note-view.js']
     original = (web/'race-app-core.js').read_bytes()
     prefix = b"if (typeof window === 'object' && typeof location === 'object') window.RaceNoteInitialFragment = location.hash;\n"
     bundle = prefix + original + b'\n' + b'\n'.join(path.read_bytes() for path in parts)

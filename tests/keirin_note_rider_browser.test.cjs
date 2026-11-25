@@ -54,7 +54,7 @@ describe('rider cards in the GitHub note view', { skip: !chromium }, () => {
 
   async function open(t, options = {}) {
     const components = ['keirin-note-source/staking.js', 'keirin-note-source/staking_flexible.js',
-      'keirin-note-source/rollover.js', 'confidence.js', 'keirin-joint-forecast.js',
+      'keirin-note-source/rollover.js', 'confidence.js', 'keirin-joint-forecast.js', 'keirin-rider-history.js',
       'keirin-note-model.js', 'keirin-note-feed.js'];
     const script = 'window.RaceNoteInitialFragment=location.hash;\n' + components.map(name =>
       fs.readFileSync(path.join(ROOT, 'web', name), 'utf8')).join('\n') +
@@ -208,6 +208,27 @@ describe('rider cards in the GitHub note view', { skip: !chromium }, () => {
     await modal.getByRole('button', { name: '閉じる', exact: true }).click();
     await page.waitForFunction(() => document.querySelector('.kn-host').shadowRoot.activeElement?.dataset.riderCar === '3');
     assert.equal(await page.evaluate('document.querySelector(".kn-host").shadowRoot.activeElement.dataset.riderCar'), '3');
+  });
+
+  test('long and recent observed finishes open independently of a joint forecast',async t=>{
+    const page=await open(t,{state:'missing'});
+    const {fixture,file,prefix}=require('./keirin_rider_history_fixture.cjs');
+    const v=fixture();
+    v.packet.files[prefix+'rider_histories.json']=file(v.raw);
+    await page.locator('#kn-file').setInputFiles({name:'invented-history.json',mimeType:'application/json',
+      buffer:Buffer.from(JSON.stringify(v.packet))});
+    const first=page.locator('.kn-rider-list button').filter({hasText:'架空1'});
+    await first.click();
+    const modal=page.locator('#kn-rider-details');
+    await modal.getByText('長期・直近の着順履歴',{exact:true}).click();
+    const details=modal.locator('.kn-rider-history');
+    assert.equal(await details.locator('tbody tr').count(),11);
+    assert.match(await details.innerText(),/2走/);
+    assert.match(await details.innerText(),/締切後/);
+    await modal.locator('#kn-rider-select').selectOption('2');
+    await modal.getByText('長期・直近の着順履歴',{exact:true}).click();
+    assert.match(await details.innerText(),/0走/);
+    assert.doesNotMatch(await details.innerText(),/0\.0%/);
   });
 
   test('fresh comparison input statistics retain their own source time and do not replace saved roster statistics', async t => {

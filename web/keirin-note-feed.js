@@ -79,7 +79,7 @@
     const roster=row=>row.riders.map(p=>p.number+':'+p.name.replace(/\s/g,'')).sort().join('|');
     const registrations=row=>{
       const result=new Map();
-      for(const p of [...row.riders,...(row.jointForecast?.riders||[])])if(typeof p.registration==='string'&&/^[0-9]{6}$/.test(p.registration)){
+      for(const p of [...row.riders,...(row.jointForecast?.riders||[]),...(row.riderHistory?.riders||[])])if(typeof p.registration==='string'&&/^[0-9]{6}$/.test(p.registration)){
         const car=p.number??p.car;need(!result.has(car)||result.get(car)===p.registration);result.set(car,p.registration);
       }
       return result;
@@ -118,10 +118,20 @@
           const predicted=authored||Boolean(prior.jointForecast)||Object.keys(prior.reference||{}).length>0||(prior.two.tickets||[]).length>0||Object.keys(prior.flexible?.markets||{}).length>0;
           const sameCutoff=prior.cutoff===row.cutoff||M.sameClock(prior.cutoff,row.cutoff);
           const oldIds=registrations(prior),newIds=registrations(row),identityConflict=[...oldIds].some(([car,id])=>newIds.has(car)&&newIds.get(car)!==id);
-          if((predicted||row.jointForecast)&&(roster(prior)!==roster(row)||!sameCutoff||identityConflict)){
+          if((predicted||row.jointForecast||prior.riderHistory||row.riderHistory)&&(roster(prior)!==roster(row)||!sameCutoff||identityConflict)){
             refreshHolds.push({raceId:row.id,reason:'HOLD_RESEARCH_REFRESH_SOURCE_CONTEXT_CHANGED'});continue;
           }
           const combined={...prior,bindings:{...prior.bindings}};
+          if(row.riderHistory){
+            const priorHistory=prior.riderHistory, incoming=row.riderHistory;
+            const versions=[...(prior.riderHistoryVersions||[])];
+            if(priorHistory&&stable(priorHistory)!==stable(incoming)){
+              need(M.instantMicros(incoming.generated_at)>M.instantMicros(priorHistory.generated_at));
+              need(M.instantMicros(incoming.knowledge_as_of)>=M.instantMicros(priorHistory.knowledge_as_of));
+              versions.push(priorHistory);
+            }
+            combined.riderHistory=incoming;combined.riderHistoryVersions=versions;
+          }
           if(row.jointForecast){
             const history=[...(prior.jointForecastHistory||[])];
             if(prior.jointForecast&&stable(prior.jointForecast)!==stable(row.jointForecast)){
