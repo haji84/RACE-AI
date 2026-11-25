@@ -249,13 +249,16 @@ class NationwideExtensionTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError,'FUTURE_CARD_REFERENCE_REQUIRED'):
             ext.build_baseline_candidate(**args)
 
-    def test_unobserved_a_class_is_not_enabled_by_s_and_girls_label_expansion(self):
-        args=self.labelled_arguments('A級予選','S')
+    def test_unobserved_a_class_remains_held(self):
+        args=self.labelled_arguments('A級特予選','A1_A2',('A1','A2'))
         with self.assertRaisesRegex(ValueError,'CLASS_OR_ROUND_NOT_YET_OBSERVED'):
             ext.build_baseline_candidate(**args)
 
     def test_observed_a_rounds_feed_the_existing_baseline_a_and_b(self):
-        cases=(('A級チャレンジ一般','CHALLENGE',('A3',)),
+        cases=(('A級チャレンジ予選','CHALLENGE',('A3',)),
+               ('A級予選','A1_A2',('A1','A2')),
+               ('A級一般','A1_A2',('A1','A2')),
+               ('A級チャレンジ一般','CHALLENGE',('A3',)),
                ('A級チャレンジ選抜','CHALLENGE',('A3',)),
                ('A級チャレンジ決勝','CHALLENGE',('A3',)),
                ('A級特一般','A1_A2',('A1','A2')),
@@ -275,6 +278,9 @@ class NationwideExtensionTests(unittest.TestCase):
 
     def test_observed_a_round_requires_every_rider_to_have_its_matching_grade(self):
         for label,competition,grades in (
+                ('A級予選','A1_A2',('A1','A3')),
+                ('A級チャレンジ予選','CHALLENGE',('A3','A2')),
+                ('A級一般','A1_A2',('A1','A3')),
                 ('A級特選','A1_A2',('A1','A3')),
                 ('A級チャレンジ選抜','CHALLENGE',('A3','A2'))):
             with self.subTest(label=label):
