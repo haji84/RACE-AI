@@ -1,0 +1,32 @@
+{
+  "base_configuration_sha256": "60e88f53496f934cb968706e38291d8d68fc664429a3356de617cc0e634c9a47",
+  "calibration_status": "UNVALIDATED",
+  "examples_sha256": "92373efbd75cf6cfcbbe019aab643bd46959edc44d6518222424bbd94b8095fe",
+  "feature_holds": {
+    "COMPETITION_POINTS_UNAVAILABLE_FOR_ALL": 19
+  },
+  "fit_end": "20260731",
+  "fit_races": 20649,
+  "frozen_at": "2026-11-25T12:54:17.959719+00:00",
+  "mark_dropout_training_races": 5210,
+  "model_id": "keirin-comparison-B-residual",
+  "schema": "KEIRIN_FROZEN_RESIDUAL_COMPARISON_V1",
+  "selected_arm": "all_96",
+  "source_files_sha256": {
+    "race_ai/keirin_archive_study.py": "8752168a3cd2976f697521821e3ebc9738aa25800e3d06f600d2b7b42856f5e5",
+    "race_ai/keirin_joint_finish.py": "1ae8dd3865f8ed5681afe2ddde8a9f0af5ea63991f8f6e5edeb160aa3d4a1aaf",
+    "scripts/keirin_accuracy_study.py": "e4135174de7e6b62f7946871cb1bfdc9fa355151755edf441f64602e2f69b470",
+    "scripts/keirin_boosted_choice_study.py": "63c91a3a04f076534090ff3df49a56c5083d2f3a9ec48c5340d864c9e52a72fd",
+    "scripts/keirin_line_event_study.py": "12cb75f0a6cbf99e5eea3530d4be386f8ab8900e638b6a7ffd34af7e5f786535",
+    "scripts/keirin_ordered_ticket_study.py": "56a14c06bc7f4775c84084ae9c72433177274ed2b23d59f722aeef66d8a91d92"
+  },
+  "source_scope": "RETROSPECTIVE_ARCHIVE_NO_PRE_CUTOFF_ATTESTATION",
+  "stage_sha256": [
+    "660f4420daccf3c152016c5a9c6677dca092d1994eeaf0dab3c1dca471adeaff",
+    "b28fa423694ca2f73bd3236bd4ff15b31c340cb410583465ed1d1921a21275e9",
+    "2fd5e2599f1879e7fcb585c9ffb52b05c5d0c9b7bb85c54ee4f8ead9df03db33"
+  ],
+  "test_end": "20261122",
+  "tune_end": "20260930",
+  "tune_races": 2787
+}

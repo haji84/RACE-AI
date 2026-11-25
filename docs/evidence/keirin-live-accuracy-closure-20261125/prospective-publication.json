@@ -1,0 +1,48 @@
+{
+  "cipher_sha256": "e12d24ead30bef9f228cf22e6c47f2765a1d043c2a6c12673c1ed87f01bc8b51",
+  "earliest_cutoff": "2026-11-25T22:04:00+09:00",
+  "generated_at": "2026-11-25T12:59:58.596732+00:00",
+  "git_readback_at": "2026-11-25T13:00:10.693233+00:00",
+  "model_sha256": "c023c2ff1fac2e4501645992e2b20a476d5e91899fd515a5fb4b07751767a261",
+  "pre_cutoff_git_readback": true,
+  "private_plaintext_uploaded": false,
+  "production_weights_promoted": false,
+  "publication": {
+    "covered_races": 403,
+    "entries": 151,
+    "priority_window_races": 22,
+    "private_plaintext_uploaded": false,
+    "production_state_key_used": false,
+    "provider_denied": false,
+    "source_commit": "54f713d386b936f2c0f8a494fa12fc68d67d2a05",
+    "state": "KEIRIN_NOTE_ENCRYPTED_GIT_READBACK_VERIFIED"
+  },
+  "race_ids": [
+    "202611256104",
+    "202611254805",
+    "202611253405",
+    "202611256105",
+    "202611254806",
+    "202611253406",
+    "202611256106",
+    "202611254807",
+    "202611253407",
+    "202611256107"
+  ],
+  "races": 10,
+  "recipient_id": "b36fb7cd8bcd861ab503065a12ae50e10c5232cbc479d1fc339f9170aaa99381",
+  "schema": "KEIRIN_JOINT_COMPARISON_FREEZE_RECEIPT_V1",
+  "cutoffs": {
+    "202611256104": "2026-11-25T22:04:00+09:00",
+    "202611254805": "2026-11-25T22:13:00+09:00",
+    "202611253405": "2026-11-25T22:22:00+09:00",
+    "202611256105": "2026-11-25T22:31:00+09:00",
+    "202611254806": "2026-11-25T22:40:00+09:00",
+    "202611253406": "2026-11-25T22:49:00+09:00",
+    "202611256106": "2026-11-25T22:58:00+09:00",
+    "202611254807": "2026-11-25T23:07:00+09:00",
+    "202611253407": "2026-11-25T23:16:00+09:00",
+    "202611256107": "2026-11-25T23:25:00+09:00"
+  },
+  "independent_RSA_decryption_readback": false
+}

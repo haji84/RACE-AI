@@ -61,3 +61,57 @@ jobs:
             tests.test_keirin_flow_evaluation tests.test_keirin_race_development \
             tests.test_keirin_forward_score tests.test_keirin_research_ledger \
             tests.test_keirin_research_cohort_score tests.test_keirin_official_owner_view -v
+          "$runner_python" -m unittest \
+            tests.test_keirin_archive_study tests.test_keirin_accuracy_study \
+            tests.test_keirin_joint_forecast -v
+
+  comparison-cipher-independent-readback:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 4
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          persist-credentials: false
+      - name: Independently read the frozen research ciphertext, without private keys
+        shell: bash
+        run: |
+          python - <<'PY'
+          import hashlib, json, urllib.request
+          from datetime import datetime, timezone
+          from pathlib import Path
+          path = Path('docs/evidence/keirin-live-accuracy-closure-20261125/prospective-publication.json')
+          if not path.exists():
+              raise SystemExit('No joint comparison receipt on this source revision')
+          receipt = json.loads(path.read_bytes())
+          commit = receipt['publication']['source_commit']
+          cipher = receipt['cipher_sha256']
+          assert len(commit) == 40 and all(c in '0123456789abcdef' for c in commit)
+          assert len(cipher) == 64 and all(c in '0123456789abcdef' for c in cipher)
+          base = 'https://raw.githubusercontent.com/haji84/RACE-AI/' + commit + '/'
+          def read(name, bound):
+              with urllib.request.urlopen(base + name, timeout=60) as response:
+                  assert response.status == 200
+                  raw = response.read(bound + 1)
+              assert 0 < len(raw) <= bound
+              return raw
+          index = json.loads(read('index.json', 2000000))
+          assert index['recipient_id'] == receipt['recipient_id']
+          entry = [x for x in index['entries'] if x['cipher_sha256'] == cipher]
+          assert len(entry) == 1 and entry[0]['kind'] == 'research'
+          raw = read('views/' + cipher + '.json', 90000000)
+          assert hashlib.sha256(raw).hexdigest() == cipher
+          doc = json.loads(raw)
+          assert doc['header']['source_content_sha256'] == entry[0]['source_content_sha256']
+          now = datetime.now(timezone.utc)
+          future = sum(now < datetime.fromisoformat(cutoff) for cutoff in receipt['cutoffs'].values())
+          safe = dict(state='INDEPENDENT_RUNNER_CIPHER_SHA_READBACK_VERIFIED',
+              cipher_sha256=cipher, cipher_bytes=len(raw), archive_commit=commit,
+              observed_at=now.isoformat(), still_pre_cutoff_races=future,
+              registered_comparison_races=len(receipt['cutoffs']),
+              source_pages_requested=0, private_key_used=False, plaintext_decrypted=False,
+              formal_pre_cutoff_original_authenticated=False, accuracy_improvement_proven=False)
+          import os
+          with open(os.environ['GITHUB_STEP_SUMMARY'], 'a') as report:
+              report.write(json.dumps(safe, sort_keys=True) + '\n')
+          print(json.dumps(safe, sort_keys=True))
+          PY
