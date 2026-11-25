@@ -115,6 +115,12 @@
           sum(selected) <= rider.top3_probability + TOLERANCE);
       }
     }
+    const selectedTriples=new Map();
+    for(const row of record.ranked_markets['3t']){
+      const key=row.order.slice(0,2).join('-');
+      selectedTriples.set(key,(selectedTriples.get(key)||0)+row.probability);
+    }
+    for(const row of record.ranked_markets['2t'])need(row.probability+TOLERANCE>=(selectedTriples.get(row.order.join('-'))||0));
   }
 
   function validateForecast(record, binding) {
@@ -132,7 +138,14 @@
     const generated = timestamp(record.generated_at), cutoff = timestamp(record.cutoff_at);
     const asOf = timestamp(record.source_as_of), sourceGenerated = timestamp(record.source_forecast_generated_at);
     need(generated !== null && cutoff !== null && asOf !== null && sourceGenerated !== null &&
-      asOf <= generated && sourceGenerated <= generated);
+      record.cutoff_at===binding.cutoff_at && record.source_as_of===binding.source_as_of &&
+      asOf <= sourceGenerated && sourceGenerated <= generated);
+    const raceDate=record.race_id.slice(0,4)+'-'+record.race_id.slice(4,6)+'-'+record.race_id.slice(6,8);
+    const raceDay=Date.parse(raceDate+'T00:00:00Z');
+    need(Number.isFinite(raceDay)&&new Date(raceDay).toISOString().slice(0,10)===raceDate);
+    const cutoffDay=Date.parse(new Date(Number(cutoff/1000n)+9*3600000).toISOString().slice(0,10)+'T00:00:00Z');
+    need(cutoffDay>=raceDay&&cutoffDay<=raceDay+86400000);
+    need(record.scope === (generated < cutoff ? 'PROSPECTIVE_RESEARCH' : 'RETROSPECTIVE_RESEARCH'));
     if (record.scope === 'PROSPECTIVE_RESEARCH') need(generated < cutoff && asOf < cutoff && sourceGenerated < cutoff);
     const byCar = riders(record);
     if (record.schema === FULL) completeLaw(record, byCar);

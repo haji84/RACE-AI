@@ -1,8 +1,8 @@
 /* Owner-provided Site view adapter. Original/revised/research records stay separate. */
 (function(root,factory){
-  if(typeof module==='object'&&module.exports)module.exports=factory(require('./keirin-note-source/staking_flexible.js'),require('./confidence.js'));
-  else root.RaceKeirinNote=factory(root.KeirinStaking,root.RaceKeirinConfidence);
-})(typeof window==='object'?window:globalThis,function(staking,confidence){
+  if(typeof module==='object'&&module.exports)module.exports=factory(require('./keirin-note-source/staking_flexible.js'),require('./confidence.js'),require('./keirin-joint-forecast.js'));
+  else root.RaceKeirinNote=factory(root.KeirinStaking,root.RaceKeirinConfidence,root.RaceKeirinJointForecast);
+})(typeof window==='object'?window:globalThis,function(staking,confidence,joint){
   'use strict';
   const SCHEMA='RACE_AI_KEIRIN_NOTE_VIEW_V1',OUTER='RACE_AI_SAVED_WEB_VIEW_V1';
   const LIMIT=64*1024*1024,encoder=new TextEncoder();
@@ -39,6 +39,12 @@
     if(!parts||!day(parts[1])||Number(parts[2])>23||Number(parts[3])>59||Number(parts[4]||0)>59)return null;
     const n=Date.parse(stamp);return Number.isFinite(n)?stamp:null;
   }
+  function instantMicros(value){
+    if(typeof value!=='string'||!/^\d{4}-\d{2}-\d{2}T\d\d:\d\d:\d\d(?:\.\d{1,6})?(?:Z|[+-]\d\d:\d\d)$/.test(value)||!clock(value.slice(0,10),value))return null;
+    const fraction=/\.(\d{1,6})(?:Z|[+-]\d\d:\d\d)$/.exec(value)?.[1]||'';
+    return BigInt(Date.parse(value))*1000n+BigInt(fraction.padEnd(6,'0').slice(3));
+  }
+  function sameClock(left,right){const value=instantMicros(left);return value!==null&&value===instantMicros(right);}
   function tickets(value,places,cars){
     if(value==null)return [];
     need(Array.isArray(value)&&value.length<=504);
@@ -53,6 +59,57 @@
   function binding(files,shas,cipherSha,date,name,legacy=false){
     const path=files.has('data/'+date+'/'+name)?'data/'+date+'/'+name:legacy&&files.has('data/'+name)?'data/'+name:null;
     return path?{cipherSha,fileSha256:shas.get(path),path}:null;
+  }
+  function inputSpans(text){
+    // Hash the stored Python JSON bytes: parsing and stringifying would change
+    // 80.0 into 80 and invalidate authentic originals. Walk JSON structure so
+    // strings containing "input" cannot masquerade as an input member.
+    need(typeof text==='string');let at=0;const spans=new Map();
+    const space=()=>{while(/\s/.test(text[at]||'')&&at<text.length)at++;};
+    function string(){const begin=at;need(text[at++]==='"');while(at<text.length){const c=text[at++];if(c==='"')return JSON.parse(text.slice(begin,at));if(c==='\\')at++;}fail();}
+    function value(path,depth){
+      need(depth<=32);space();const begin=at,c=text[at];
+      if(c==='{'){
+        at++;space();const keys=new Set();
+        if(text[at]!=='}')for(;;){space();const key=string();need(!keys.has(key));keys.add(key);space();need(text[at++]===':');value([...path,key],depth+1);space();if(text[at]!==',')break;at++;}
+        need(text[at++]==='}');
+      }else if(c==='['){
+        at++;space();let index=0;if(text[at]!==']')for(;;){value([...path,index++],depth+1);space();if(text[at]!==',')break;at++;}need(text[at++]==']');
+      }else if(c==='"')string();
+      else{while(at<text.length&&!/[\s,}\]]/.test(text[at]))at++;need(at>begin);}
+      if(path.length===3&&path[0]==='races'&&Number.isInteger(path[1])&&path[2]==='input')spans.set(path[1],text.slice(begin,at));
+    }
+    value([],0);space();need(at===text.length);return spans;
+  }
+  async function jointSupplements(date,files,shas,rows,rawFiles){
+    const path='data/'+date+'/',doc=files.get(path+'joint_forecasts.json');
+    if(doc==null)return;
+    const inputs=files.get(path+'comparison_inputs.json'),sourceSha=shas.get(path+'comparison_inputs.json');
+    need(joint&&exact(doc,['schema','races'])&&doc.schema==='RACE_AI_KEIRIN_JOINT_FORECASTS_V1'&&Array.isArray(doc.races)&&doc.races.length<=300);
+    need(exact(inputs,['schema','races'])&&inputs.schema==='RACE_AI_KEIRIN_COMPARISON_INPUTS_V1'&&Array.isArray(inputs.races)&&inputs.races.length<=300&&hex(sourceSha));
+    const sources=mapRows(inputs),byId=new Map(rows.map(row=>[row.id,row])),seen=new Set();
+    const spans=inputSpans(rawFiles[path+'comparison_inputs.json'].text),hashes=new Map();
+    for(const [index,source] of inputs.races.entries()){const raw=spans.get(index);need(typeof raw==='string');hashes.set(source.race_id,await digest(raw));}
+    const name=value=>typeof value==='string'?value.replace(/\s/g,''):'';
+    for(const forecast of doc.races){
+      need(rid(forecast?.race_id)&&forecast.race_id.startsWith(date.replaceAll('-',''))&&!seen.has(forecast.race_id));seen.add(forecast.race_id);
+      const row=byId.get(forecast.race_id),source=sources.get(forecast.race_id);
+      need(row&&source&&forecast.input_sha256===hashes.get(row.id)&&forecast.source_as_of===source.source_as_of&&forecast.cutoff_at===source.cutoff_at);
+      need(sameClock(row.cutoff,source.cutoff_at)&&utc(source.source_as_of)&&utc(source.forecast_generated_at));
+      need(forecast.input_sha256&&source.input?.race_id===row.id&&Array.isArray(source.roster)&&source.roster.length===row.riders.length&&Array.isArray(source.input.riders));
+      const people=new Map();for(const p of source.roster){need(record(p)&&Number.isInteger(p.car)&&!people.has(p.car)&&name(p.name));people.set(p.car,p);}
+      need(source.input.riders.length===row.riders.length&&new Set(source.input.riders.map(p=>p.car)).size===row.riders.length&&source.input.riders.every(p=>row.cars.has(p.car)));
+      for(const p of row.riders){
+        const expected=people.get(p.number);need(expected&&name(expected.name)===name(p.name));
+        const known=value=>typeof value==='string'&&/^[0-9]{6}$/.test(value);
+        need(!known(p.registration)||!known(expected.registration)||p.registration===expected.registration);
+      }
+      const context={race_id:row.id,cars:[...row.cars],source_packet_sha256:sourceSha,source_forecast_generated_at:source.forecast_generated_at,cutoff_at:source.cutoff_at,source_as_of:source.source_as_of};
+      joint.validateForecast(forecast,context);
+      for(const p of forecast.riders){const expected=people.get(p.car);need(expected&&name(expected.name)===name(p.name)&&(expected.registration??null)===(p.registration??null));}
+      row.jointForecast=forecast;row.jointForecastBindings=context;row.jointForecastHistory=[];
+      row.comparisonRiders=source.input.riders.map(p=>({...p,name:people.get(p.car).name}));
+    }
   }
   function normalize(date,files,shas,cipherSha,results){
     const read=name=>files.get('data/'+date+'/'+name);
@@ -311,6 +368,7 @@
       const value=JSON.parse(entry.text);parsed.set(path,value);fileShas.set(path,entry.sha256);
     }
     const results=await resultRecords(parsed,fileShas,cipherSha,packet.dates),days=new Map(packet.dates.slice().sort().map(date=>[date,normalize(date,parsed,fileShas,cipherSha,results)]));
+    for(const [date,rows] of days)await jointSupplements(date,parsed,fileShas,rows,packet.files);
     const updates=new Map([...days.keys()].map(date=>[date,resultUpdates(date,parsed)]));
     const frozen=new Map([...days.keys()].map(date=>[date,frozenForecasts(date,parsed)]));
     const nationwide=new Map([...days.keys()].flatMap(date=>{const doc=nationwideDay(date,parsed);return doc?[[date,doc]]:[];}));
@@ -457,5 +515,5 @@
     if(onSource)onSource(plain);
     return result;
   }
-  return {openPacket,openCipher,rows,historyRows,matchesHistory,historyPage,forecast,frozenArm,displayedPredictions,compare,summarize,allocate,resultUpdates,checkedDiagnostics,combineFrozen,mergeNationwide,nationwideSemantic,attachNationwide,safeUrl,digest,clock,utc,day,SCHEMA};
+  return {openPacket,openCipher,rows,historyRows,matchesHistory,historyPage,forecast,frozenArm,displayedPredictions,compare,summarize,allocate,resultUpdates,checkedDiagnostics,combineFrozen,mergeNationwide,nationwideSemantic,attachNationwide,safeUrl,digest,clock,instantMicros,sameClock,utc,day,SCHEMA};
 });

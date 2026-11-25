@@ -77,6 +77,13 @@
     const semantic=result=>Object.fromEntries(Object.entries(result).filter(([key])=>key!=='observed_at'));
 
     const roster=row=>row.riders.map(p=>p.number+':'+p.name.replace(/\s/g,'')).sort().join('|');
+    const registrations=row=>{
+      const result=new Map();
+      for(const p of [...row.riders,...(row.jointForecast?.riders||[])])if(typeof p.registration==='string'&&/^[0-9]{6}$/.test(p.registration)){
+        const car=p.number??p.car;need(!result.has(car)||result.get(car)===p.registration);result.set(car,p.registration);
+      }
+      return result;
+    };
     for(const part of parts){
       for(const [path,value] of part.files)files.set(path,value);
       for(const [path,value] of part.fileShas||[])fileShas.set(path,value);
@@ -108,12 +115,21 @@
           // Immutable snapshots keep every version. An input refresh does not
           // replace the authored originals imported from the owner's Site.
           const authored=(prior.original.tickets||[]).length>0;
-          const predicted=authored||Object.keys(prior.reference||{}).length>0||(prior.two.tickets||[]).length>0||Object.keys(prior.flexible?.markets||{}).length>0;
-          const sameCutoff=prior.cutoff===row.cutoff||prior.cutoff&&row.cutoff&&Date.parse(prior.cutoff)===Date.parse(row.cutoff);
-          if(predicted&&(roster(prior)!==roster(row)||!sameCutoff)){
+          const predicted=authored||Boolean(prior.jointForecast)||Object.keys(prior.reference||{}).length>0||(prior.two.tickets||[]).length>0||Object.keys(prior.flexible?.markets||{}).length>0;
+          const sameCutoff=prior.cutoff===row.cutoff||M.sameClock(prior.cutoff,row.cutoff);
+          const oldIds=registrations(prior),newIds=registrations(row),identityConflict=[...oldIds].some(([car,id])=>newIds.has(car)&&newIds.get(car)!==id);
+          if((predicted||row.jointForecast)&&(roster(prior)!==roster(row)||!sameCutoff||identityConflict)){
             refreshHolds.push({raceId:row.id,reason:'HOLD_RESEARCH_REFRESH_SOURCE_CONTEXT_CHANGED'});continue;
           }
           const combined={...prior,bindings:{...prior.bindings}};
+          if(row.jointForecast){
+            const history=[...(prior.jointForecastHistory||[])];
+            if(prior.jointForecast&&stable(prior.jointForecast)!==stable(row.jointForecast)){
+              need(M.instantMicros(row.jointForecast.generated_at)>M.instantMicros(prior.jointForecast.generated_at));
+              history.push({forecast:prior.jointForecast,binding:prior.jointForecastBindings});
+            }
+            combined.jointForecast=row.jointForecast;combined.jointForecastBindings=row.jointForecastBindings;combined.jointForecastHistory=history;combined.comparisonRiders=row.comparisonRiders;
+          }
           for(const name of ['original','two','flexible','rollover','settlement']){
             const old=prior[name],fresh=row[name];
             if(name==='settlement'&&fresh&&(!record(fresh)||Object.keys(fresh).length))combined[name]=fresh;

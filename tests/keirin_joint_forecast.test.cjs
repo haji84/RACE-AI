@@ -62,7 +62,8 @@ function fixture({ cars = [1, 2, 3, 4], uniform = false } = {}) {
 function binding(value) {
   return { race_id: value.race_id, cars: value.cars.slice(),
     source_packet_sha256: value.source_packet_sha256,
-    source_forecast_generated_at: value.source_forecast_generated_at };
+    source_forecast_generated_at: value.source_forecast_generated_at,
+    cutoff_at: value.cutoff_at, source_as_of: value.source_as_of };
 }
 
 function projection() {
@@ -165,11 +166,22 @@ test('prospective data cannot use future sources or reach the cutoff including m
   rejected((value, b) => { value.source_forecast_generated_at = b.source_forecast_generated_at = '2030-01-15T04:00:00Z'; });
   rejected(value => { value.generated_at = '2030-02-30T01:00:00Z'; });
   rejected(value => { value.scope = 'PRODUCTION'; });
+  rejected(value => { value.scope = 'RETROSPECTIVE_RESEARCH'; });
   rejected(value => { value.calibration_status = 'CALIBRATED'; });
   rejected(value => { value.premise = 'UNCONDITIONAL'; });
   const value = fixture();
   value.cutoff_at = '2030-01-15T01:01:00.000003Z';
   assert.equal(api().validateForecast(value, binding(value)), value);
+});
+
+test('cutoff and source clocks must match authoritative bindings and the race day', () => {
+  for (const key of ['cutoff_at', 'source_as_of']) rejected((value, b) => { delete b[key]; });
+  rejected(value => { value.cutoff_at = '2031-01-15T03:00:00Z'; });
+  rejected(value => { value.source_as_of = '2030-01-15T00:59:00Z'; });
+  rejected((value, b) => { value.cutoff_at = b.cutoff_at = '2031-01-15T03:00:00Z'; });
+  rejected((value, b) => { value.source_as_of = b.source_as_of = '2030-01-15T01:00:00.000002Z'; });
+  const nextDay = fixture(); nextDay.cutoff_at = '2030-01-16T03:00:00Z';
+  assert.equal(api().validateForecast(nextDay, binding(nextDay)), nextDay);
 });
 
 test('a nine-car field retains all 504 triples, 72 pairs and nine places without inflating ties', () => {
@@ -279,6 +291,10 @@ test('selected ranks remain nonincreasing even when an inversion is smaller than
     value.ranked_markets['2t'][0].probability = .25;
     value.ranked_markets['2t'][1].probability = .250000000001;
   }, projection());
+});
+
+test('a displayed exacta must include the mass of its displayed trifecta prefixes', () => {
+  rejected(value => { value.ranked_markets['2t'].forEach(row => { row.probability = 0; }); }, projection());
 });
 
 test('the browser global exposes the same validation and rendering behavior without CommonJS', () => {

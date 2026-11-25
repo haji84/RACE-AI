@@ -2468,11 +2468,216 @@ if (typeof window === 'object' && typeof location === 'object') window.RaceNoteI
   return { normalize, displayLabel, matches, predictionMatches, selected, validate, validateBaseline, validateAuthored, universeFromBaseline, authoredPredictionBody, canonical, digest, timestamp, SCHEMA, RULES, UNIVERSE_SCHEMA };
 });
 
+/* Checked comparison-B probabilities. This module never changes saved tickets or grades. */
+(function (root, factory) {
+  if (typeof module === 'object' && module.exports) module.exports = factory();
+  else root.RaceKeirinJointForecast = factory();
+})(typeof window === 'object' ? window : globalThis, function () {
+  'use strict';
+
+  const FULL = 'RACE_AI_KEIRIN_JOINT_FORECAST_V1';
+  const PROJECTION = 'RACE_AI_KEIRIN_JOINT_PROJECTION_V1';
+  const TOLERANCE = 1e-8;
+  const checked = new WeakMap();
+  const object = value => value !== null && typeof value === 'object' && !Array.isArray(value);
+  const need = condition => { if (!condition) throw new Error('KEIRIN_JOINT_FORECAST_INVALID'); };
+  const hash = value => typeof value === 'string' && /^[a-f0-9]{64}$/.test(value);
+  const text = (value, max) => typeof value === 'string' && value.trim().length > 0 && value.length <= max;
+  const probability = value => typeof value === 'number' && Number.isFinite(value) && value >= 0 && value <= 1;
+  const close = (a, b) => Math.abs(a - b) <= TOLERANCE;
+  const sum = values => values.reduce((total, value) => total + value, 0);
+  const field = cars => Array.isArray(cars) && cars.length >= 3 && cars.length <= 9 &&
+    new Set(cars).size === cars.length && cars.every(car => Number.isInteger(car) && car >= 1 && car <= 9);
+  const sameField = (a, b) => field(a) && field(b) && a.length === b.length && a.every(car => b.includes(car));
+  const escape = value => String(value).replace(/[&<>"']/g, character =>
+    ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[character]);
+
+  function timestamp(value) {
+    if (typeof value !== 'string') return null;
+    const parts = /^(\d{4}-\d{2}-\d{2})T(\d\d):(\d\d):(\d\d)(?:\.(\d{1,6}))?(Z|[+-]\d\d:\d\d)$/.exec(value);
+    if (!parts || Number(parts[2]) > 23 || Number(parts[3]) > 59 || Number(parts[4]) > 59) return null;
+    const midnight = Date.parse(parts[1] + 'T00:00:00Z'), milliseconds = Date.parse(value);
+    if (!Number.isFinite(midnight) || !Number.isFinite(milliseconds) ||
+      new Date(midnight).toISOString().slice(0, 10) !== parts[1]) return null;
+    // Preserve Python's six-digit clocks at the cutoff; Date.parse alone drops microseconds.
+    return BigInt(milliseconds) * 1000n + BigInt((parts[5] || '').padEnd(6, '0').slice(3));
+  }
+
+  function events(rows, places, cars, maximum, complete) {
+    need(Array.isArray(rows) && rows.length <= maximum && (!complete || rows.length === maximum));
+    const seen = new Set();
+    for (const row of rows) {
+      need(object(row) && Array.isArray(row.order) && row.order.length === places &&
+        new Set(row.order).size === places && row.order.every(car => Number.isInteger(car) && cars.includes(car)) &&
+        probability(row.probability));
+      const key = row.order.join('-');
+      need(!seen.has(key));
+      seen.add(key);
+    }
+    if (complete) need(close(sum(rows.map(row => row.probability)), 1));
+    return rows;
+  }
+
+  function riders(record) {
+    const cars = record.cars, n = cars.length;
+    need(Array.isArray(record.riders) && record.riders.length === n);
+    const byCar = new Map(), registrations = new Set();
+    for (const rider of record.riders) {
+      need(object(rider) && Number.isInteger(rider.car) && cars.includes(rider.car) && !byCar.has(rider.car) &&
+        text(rider.name, 200) && (rider.registration === null ||
+          typeof rider.registration === 'string' && /^\d{6}$/.test(rider.registration)));
+      if (rider.registration !== null) {
+        need(!registrations.has(rider.registration));
+        registrations.add(rider.registration);
+      }
+      const ranks = rider.rank_probabilities;
+      need(Array.isArray(ranks) && ranks.length === n && ranks.every(probability) && close(sum(ranks), 1));
+      for (const name of ['top2_probability', 'top3_probability', 'outside_top3_probability']) need(probability(rider[name]));
+      need(close(rider.top2_probability, sum(ranks.slice(0, 2))) &&
+        close(rider.top3_probability, sum(ranks.slice(0, 3))) &&
+        close(rider.outside_top3_probability, sum(ranks.slice(3))));
+      const mode = ranks.reduce((best, p, index) => p > ranks[best] ? index : best, 0) + 1;
+      need(Number.isInteger(rider.most_likely_rank) && rider.most_likely_rank === mode &&
+        typeof rider.expected_rank === 'number' && Number.isFinite(rider.expected_rank) &&
+        rider.expected_rank >= 1 && rider.expected_rank <= n &&
+        close(rider.expected_rank, sum(ranks.map((p, index) => p * (index + 1)))));
+      byCar.set(rider.car, rider);
+    }
+    for (let place = 0; place < n; place++) need(close(sum(record.riders.map(rider => rider.rank_probabilities[place])), 1));
+    return byCar;
+  }
+
+  function completeLaw(record, byCar) {
+    const n = record.cars.length;
+    const triples = events(record.trifectas, 3, record.cars, n * (n - 1) * (n - 2), true);
+    const pairs = events(record.exactas, 2, record.cars, n * (n - 1), true);
+    const mass = new Map(record.cars.map(car => [car, [0, 0, 0]])), pairMass = new Map();
+    for (const row of triples) {
+      row.order.forEach((car, place) => { mass.get(car)[place] += row.probability; });
+      const key = row.order.slice(0, 2).join('-');
+      pairMass.set(key, (pairMass.get(key) || 0) + row.probability);
+    }
+    for (const row of pairs) need(close(row.probability, pairMass.get(row.order.join('-'))));
+    for (const car of record.cars) for (let place = 0; place < 3; place++) {
+      need(close(byCar.get(car).rank_probabilities[place], mass.get(car)[place]));
+    }
+  }
+
+  function projectionLaw(record, byCar) {
+    need(hash(record.source_joint_sha256) && !Object.hasOwn(record, 'trifectas') &&
+      !Object.hasOwn(record, 'exactas') && object(record.ranked_markets));
+    for (const [market, places, maximum] of [['3t', 3, 8], ['2t', 2, 4]]) {
+      const rows = events(record.ranked_markets[market], places, record.cars, maximum, false);
+      need(sum(rows.map(row => row.probability)) <= 1 + TOLERANCE);
+      const mass = new Map(record.cars.map(car => [car, Array(places).fill(0)]));
+      rows.forEach((row, index) => {
+        if (index) need(row.probability <= rows[index - 1].probability);
+        row.order.forEach((car, place) => {
+          need(row.probability <= byCar.get(car).rank_probabilities[place] + TOLERANCE);
+          mass.get(car)[place] += row.probability;
+        });
+      });
+      // Selected events are disjoint. Their partial mass must also fit each marginal.
+      for (const car of record.cars) {
+        const selected = mass.get(car), rider = byCar.get(car);
+        selected.forEach((p, place) => need(p <= rider.rank_probabilities[place] + TOLERANCE));
+        need(sum(selected.slice(0, 2)) <= rider.top2_probability + TOLERANCE &&
+          sum(selected) <= rider.top3_probability + TOLERANCE);
+      }
+    }
+    const selectedTriples=new Map();
+    for(const row of record.ranked_markets['3t']){
+      const key=row.order.slice(0,2).join('-');
+      selectedTriples.set(key,(selectedTriples.get(key)||0)+row.probability);
+    }
+    for(const row of record.ranked_markets['2t'])need(row.probability+TOLERANCE>=(selectedTriples.get(row.order.join('-'))||0));
+  }
+
+  function validateForecast(record, binding) {
+    need(object(record));
+    checked.delete(record);
+    need([FULL, PROJECTION].includes(record.schema) && object(binding) &&
+      typeof record.race_id === 'string' && /^20\d{10}$/.test(record.race_id) &&
+      record.race_id === binding.race_id && sameField(record.cars, binding.cars) &&
+      hash(record.input_sha256) && hash(record.source_packet_sha256) &&
+      record.source_packet_sha256 === binding.source_packet_sha256 &&
+      record.source_forecast_generated_at === binding.source_forecast_generated_at &&
+      text(record.model_id, 200) && text(record.model_version, 200) &&
+      ['PROSPECTIVE_RESEARCH', 'RETROSPECTIVE_RESEARCH'].includes(record.scope) &&
+      record.premise === 'ALL_FINISH_NO_TIES' && record.calibration_status === 'UNVALIDATED');
+    const generated = timestamp(record.generated_at), cutoff = timestamp(record.cutoff_at);
+    const asOf = timestamp(record.source_as_of), sourceGenerated = timestamp(record.source_forecast_generated_at);
+    need(generated !== null && cutoff !== null && asOf !== null && sourceGenerated !== null &&
+      record.cutoff_at===binding.cutoff_at && record.source_as_of===binding.source_as_of &&
+      asOf <= sourceGenerated && sourceGenerated <= generated);
+    const raceDate=record.race_id.slice(0,4)+'-'+record.race_id.slice(4,6)+'-'+record.race_id.slice(6,8);
+    const raceDay=Date.parse(raceDate+'T00:00:00Z');
+    need(Number.isFinite(raceDay)&&new Date(raceDay).toISOString().slice(0,10)===raceDate);
+    const cutoffDay=Date.parse(new Date(Number(cutoff/1000n)+9*3600000).toISOString().slice(0,10)+'T00:00:00Z');
+    need(cutoffDay>=raceDay&&cutoffDay<=raceDay+86400000);
+    need(record.scope === (generated < cutoff ? 'PROSPECTIVE_RESEARCH' : 'RETROSPECTIVE_RESEARCH'));
+    if (record.scope === 'PROSPECTIVE_RESEARCH') need(generated < cutoff && asOf < cutoff && sourceGenerated < cutoff);
+    const byCar = riders(record);
+    if (record.schema === FULL) completeLaw(record, byCar);
+    else projectionLaw(record, byCar);
+    // Keep only checked display fields in private memory. Caller-owned source bytes stay untouched.
+    const snapshot = {};
+    for (const key of ['schema', 'race_id', 'model_id', 'model_version', 'scope', 'generated_at',
+      'cutoff_at', 'source_as_of', 'source_forecast_generated_at', 'input_sha256',
+      'source_packet_sha256', 'source_joint_sha256']) snapshot[key] = record[key];
+    snapshot.riders = new Map([...byCar].map(([car, rider]) => [car, {
+      car, name: rider.name, registration: rider.registration, rank_probabilities: rider.rank_probabilities.slice(),
+      top2_probability: rider.top2_probability, top3_probability: rider.top3_probability,
+      outside_top3_probability: rider.outside_top3_probability,
+      most_likely_rank: rider.most_likely_rank, expected_rank: rider.expected_rank
+    }]));
+    checked.set(record, snapshot);
+    return record;
+  }
+
+  function renderForecast(record, car) {
+    const snapshot = checked.get(record), rider = snapshot?.riders.get(car);
+    need(snapshot && Number.isInteger(car) && rider);
+    const percent = p => (p * 100).toFixed(1) + '%';
+    const clock = (label, value) => '<p>' + label + ' <time datetime="' + escape(value) + '">' + escape(value) + '</time></p>';
+    const summary = [
+      ['2着以内', percent(rider.top2_probability)], ['3着以内', percent(rider.top3_probability)],
+      ['着外（4着以下）', percent(rider.outside_top3_probability)],
+      ['最頻着順', rider.most_likely_rank + '着'], ['期待着順', rider.expected_rank.toFixed(2)],
+      ['登録番号', rider.registration || '未取得']
+    ];
+    const projection = snapshot.schema === PROJECTION;
+    return '<section class="kn-joint-forecast" aria-label="' +
+      escape(car + '番の比較B・着順確率') + '" data-joint-race="' + escape(snapshot.race_id) + '">' +
+      '<h3>' + escape(car + '番 ' + rider.name) + ' · 比較Bの着順確率</h3>' +
+      '<p class="kn-joint-scope">' + (snapshot.scope === 'PROSPECTIVE_RESEARCH' ?
+        '締切前に生成した研究予測' : '締切後の参考解析・事後研究') + ' · 確率は未校正</p>' +
+      '<p>全員完走・同着なしを条件とする確率です。欠場・失格・落車・同着を含む無条件の確率ではありません。</p>' +
+      '<p>比較Bの新しい解析です。保存済みの旧買い目とは別です。信頼度の格上げには使用していません。</p>' +
+      '<ol class="kn-joint-ranks">' + rider.rank_probabilities.map((p, index) =>
+        '<li><span>' + (index + 1) + '着</span><meter min="0" max="1" value="' + p +
+        '" aria-label="' + (index + 1) + '着の予測確率">' + percent(p) + '</meter><span>' + percent(p) + '</span></li>').join('') +
+      '</ol><dl class="kn-joint-summary">' +
+      summary.map(([label, value]) => '<div><dt>' + label + '</dt><dd>' + escape(value) + '</dd></div>').join('') + '</dl>' +
+      '<details class="kn-joint-source"><summary>モデル・出典・予想時点</summary><p>モデル ' + escape(snapshot.model_id) +
+      ' · 版 ' + escape(snapshot.model_version) + '</p>' + clock('比較Bの生成', snapshot.generated_at) +
+      clock('資料の基準', snapshot.source_as_of) + clock('元資料の予想時点', snapshot.source_forecast_generated_at) +
+      clock('掲載締切', snapshot.cutoff_at) + '<p>元資料SHA256 ' + escape(snapshot.source_packet_sha256) +
+      '</p><p>比較B入力SHA256 ' + escape(snapshot.input_sha256) + '</p>' + (projection ?
+        '<p>元同時分布SHA256 ' + escape(snapshot.source_joint_sha256) + '</p><p>同時分布の出典ハッシュに結んだ派生表示です。' +
+        'この画面は予想原本を独立認証しません。選択した上位買い目を100%へ正規化していません。</p>' :
+        '<p>全三連単・二車単・上位3着の周辺確率を同じ分布として検査しました。出典資料の真正性の独立認証は別途必要です。</p>') +
+      '</details></section>';
+  }
+
+  return { validateForecast, renderForecast };
+});
+
 /* Owner-provided Site view adapter. Original/revised/research records stay separate. */
 (function(root,factory){
-  if(typeof module==='object'&&module.exports)module.exports=factory(require('./keirin-note-source/staking_flexible.js'),require('./confidence.js'));
-  else root.RaceKeirinNote=factory(root.KeirinStaking,root.RaceKeirinConfidence);
-})(typeof window==='object'?window:globalThis,function(staking,confidence){
+  if(typeof module==='object'&&module.exports)module.exports=factory(require('./keirin-note-source/staking_flexible.js'),require('./confidence.js'),require('./keirin-joint-forecast.js'));
+  else root.RaceKeirinNote=factory(root.KeirinStaking,root.RaceKeirinConfidence,root.RaceKeirinJointForecast);
+})(typeof window==='object'?window:globalThis,function(staking,confidence,joint){
   'use strict';
   const SCHEMA='RACE_AI_KEIRIN_NOTE_VIEW_V1',OUTER='RACE_AI_SAVED_WEB_VIEW_V1';
   const LIMIT=64*1024*1024,encoder=new TextEncoder();
@@ -2509,6 +2714,12 @@ if (typeof window === 'object' && typeof location === 'object') window.RaceNoteI
     if(!parts||!day(parts[1])||Number(parts[2])>23||Number(parts[3])>59||Number(parts[4]||0)>59)return null;
     const n=Date.parse(stamp);return Number.isFinite(n)?stamp:null;
   }
+  function instantMicros(value){
+    if(typeof value!=='string'||!/^\d{4}-\d{2}-\d{2}T\d\d:\d\d:\d\d(?:\.\d{1,6})?(?:Z|[+-]\d\d:\d\d)$/.test(value)||!clock(value.slice(0,10),value))return null;
+    const fraction=/\.(\d{1,6})(?:Z|[+-]\d\d:\d\d)$/.exec(value)?.[1]||'';
+    return BigInt(Date.parse(value))*1000n+BigInt(fraction.padEnd(6,'0').slice(3));
+  }
+  function sameClock(left,right){const value=instantMicros(left);return value!==null&&value===instantMicros(right);}
   function tickets(value,places,cars){
     if(value==null)return [];
     need(Array.isArray(value)&&value.length<=504);
@@ -2523,6 +2734,57 @@ if (typeof window === 'object' && typeof location === 'object') window.RaceNoteI
   function binding(files,shas,cipherSha,date,name,legacy=false){
     const path=files.has('data/'+date+'/'+name)?'data/'+date+'/'+name:legacy&&files.has('data/'+name)?'data/'+name:null;
     return path?{cipherSha,fileSha256:shas.get(path),path}:null;
+  }
+  function inputSpans(text){
+    // Hash the stored Python JSON bytes: parsing and stringifying would change
+    // 80.0 into 80 and invalidate authentic originals. Walk JSON structure so
+    // strings containing "input" cannot masquerade as an input member.
+    need(typeof text==='string');let at=0;const spans=new Map();
+    const space=()=>{while(/\s/.test(text[at]||'')&&at<text.length)at++;};
+    function string(){const begin=at;need(text[at++]==='"');while(at<text.length){const c=text[at++];if(c==='"')return JSON.parse(text.slice(begin,at));if(c==='\\')at++;}fail();}
+    function value(path,depth){
+      need(depth<=32);space();const begin=at,c=text[at];
+      if(c==='{'){
+        at++;space();const keys=new Set();
+        if(text[at]!=='}')for(;;){space();const key=string();need(!keys.has(key));keys.add(key);space();need(text[at++]===':');value([...path,key],depth+1);space();if(text[at]!==',')break;at++;}
+        need(text[at++]==='}');
+      }else if(c==='['){
+        at++;space();let index=0;if(text[at]!==']')for(;;){value([...path,index++],depth+1);space();if(text[at]!==',')break;at++;}need(text[at++]==']');
+      }else if(c==='"')string();
+      else{while(at<text.length&&!/[\s,}\]]/.test(text[at]))at++;need(at>begin);}
+      if(path.length===3&&path[0]==='races'&&Number.isInteger(path[1])&&path[2]==='input')spans.set(path[1],text.slice(begin,at));
+    }
+    value([],0);space();need(at===text.length);return spans;
+  }
+  async function jointSupplements(date,files,shas,rows,rawFiles){
+    const path='data/'+date+'/',doc=files.get(path+'joint_forecasts.json');
+    if(doc==null)return;
+    const inputs=files.get(path+'comparison_inputs.json'),sourceSha=shas.get(path+'comparison_inputs.json');
+    need(joint&&exact(doc,['schema','races'])&&doc.schema==='RACE_AI_KEIRIN_JOINT_FORECASTS_V1'&&Array.isArray(doc.races)&&doc.races.length<=300);
+    need(exact(inputs,['schema','races'])&&inputs.schema==='RACE_AI_KEIRIN_COMPARISON_INPUTS_V1'&&Array.isArray(inputs.races)&&inputs.races.length<=300&&hex(sourceSha));
+    const sources=mapRows(inputs),byId=new Map(rows.map(row=>[row.id,row])),seen=new Set();
+    const spans=inputSpans(rawFiles[path+'comparison_inputs.json'].text),hashes=new Map();
+    for(const [index,source] of inputs.races.entries()){const raw=spans.get(index);need(typeof raw==='string');hashes.set(source.race_id,await digest(raw));}
+    const name=value=>typeof value==='string'?value.replace(/\s/g,''):'';
+    for(const forecast of doc.races){
+      need(rid(forecast?.race_id)&&forecast.race_id.startsWith(date.replaceAll('-',''))&&!seen.has(forecast.race_id));seen.add(forecast.race_id);
+      const row=byId.get(forecast.race_id),source=sources.get(forecast.race_id);
+      need(row&&source&&forecast.input_sha256===hashes.get(row.id)&&forecast.source_as_of===source.source_as_of&&forecast.cutoff_at===source.cutoff_at);
+      need(sameClock(row.cutoff,source.cutoff_at)&&utc(source.source_as_of)&&utc(source.forecast_generated_at));
+      need(forecast.input_sha256&&source.input?.race_id===row.id&&Array.isArray(source.roster)&&source.roster.length===row.riders.length&&Array.isArray(source.input.riders));
+      const people=new Map();for(const p of source.roster){need(record(p)&&Number.isInteger(p.car)&&!people.has(p.car)&&name(p.name));people.set(p.car,p);}
+      need(source.input.riders.length===row.riders.length&&new Set(source.input.riders.map(p=>p.car)).size===row.riders.length&&source.input.riders.every(p=>row.cars.has(p.car)));
+      for(const p of row.riders){
+        const expected=people.get(p.number);need(expected&&name(expected.name)===name(p.name));
+        const known=value=>typeof value==='string'&&/^[0-9]{6}$/.test(value);
+        need(!known(p.registration)||!known(expected.registration)||p.registration===expected.registration);
+      }
+      const context={race_id:row.id,cars:[...row.cars],source_packet_sha256:sourceSha,source_forecast_generated_at:source.forecast_generated_at,cutoff_at:source.cutoff_at,source_as_of:source.source_as_of};
+      joint.validateForecast(forecast,context);
+      for(const p of forecast.riders){const expected=people.get(p.car);need(expected&&name(expected.name)===name(p.name)&&(expected.registration??null)===(p.registration??null));}
+      row.jointForecast=forecast;row.jointForecastBindings=context;row.jointForecastHistory=[];
+      row.comparisonRiders=source.input.riders.map(p=>({...p,name:people.get(p.car).name}));
+    }
   }
   function normalize(date,files,shas,cipherSha,results){
     const read=name=>files.get('data/'+date+'/'+name);
@@ -2781,6 +3043,7 @@ if (typeof window === 'object' && typeof location === 'object') window.RaceNoteI
       const value=JSON.parse(entry.text);parsed.set(path,value);fileShas.set(path,entry.sha256);
     }
     const results=await resultRecords(parsed,fileShas,cipherSha,packet.dates),days=new Map(packet.dates.slice().sort().map(date=>[date,normalize(date,parsed,fileShas,cipherSha,results)]));
+    for(const [date,rows] of days)await jointSupplements(date,parsed,fileShas,rows,packet.files);
     const updates=new Map([...days.keys()].map(date=>[date,resultUpdates(date,parsed)]));
     const frozen=new Map([...days.keys()].map(date=>[date,frozenForecasts(date,parsed)]));
     const nationwide=new Map([...days.keys()].flatMap(date=>{const doc=nationwideDay(date,parsed);return doc?[[date,doc]]:[];}));
@@ -2925,7 +3188,7 @@ if (typeof window === 'object' && typeof location === 'object') window.RaceNoteI
     need(plain.length<=LIMIT&&await digest(plain)===h.source_content_sha256);
     return decodePacket(JSON.parse(new TextDecoder('utf-8',{fatal:true}).decode(plain)),cipherSha);
   }
-  return {openPacket,openCipher,rows,historyRows,matchesHistory,historyPage,forecast,frozenArm,displayedPredictions,compare,summarize,allocate,resultUpdates,checkedDiagnostics,combineFrozen,mergeNationwide,nationwideSemantic,attachNationwide,safeUrl,digest,clock,utc,day,SCHEMA};
+  return {openPacket,openCipher,rows,historyRows,matchesHistory,historyPage,forecast,frozenArm,displayedPredictions,compare,summarize,allocate,resultUpdates,checkedDiagnostics,combineFrozen,mergeNationwide,nationwideSemantic,attachNationwide,safeUrl,digest,clock,instantMicros,sameClock,utc,day,SCHEMA};
 });
 
 /* Independent display capability. Its private key never enters a request URL. */
@@ -3007,6 +3270,13 @@ if (typeof window === 'object' && typeof location === 'object') window.RaceNoteI
     const semantic=result=>Object.fromEntries(Object.entries(result).filter(([key])=>key!=='observed_at'));
 
     const roster=row=>row.riders.map(p=>p.number+':'+p.name.replace(/\s/g,'')).sort().join('|');
+    const registrations=row=>{
+      const result=new Map();
+      for(const p of [...row.riders,...(row.jointForecast?.riders||[])])if(typeof p.registration==='string'&&/^[0-9]{6}$/.test(p.registration)){
+        const car=p.number??p.car;need(!result.has(car)||result.get(car)===p.registration);result.set(car,p.registration);
+      }
+      return result;
+    };
     for(const part of parts){
       for(const [path,value] of part.files)files.set(path,value);
       for(const [path,value] of part.fileShas||[])fileShas.set(path,value);
@@ -3038,12 +3308,21 @@ if (typeof window === 'object' && typeof location === 'object') window.RaceNoteI
           // Immutable snapshots keep every version. An input refresh does not
           // replace the authored originals imported from the owner's Site.
           const authored=(prior.original.tickets||[]).length>0;
-          const predicted=authored||Object.keys(prior.reference||{}).length>0||(prior.two.tickets||[]).length>0||Object.keys(prior.flexible?.markets||{}).length>0;
-          const sameCutoff=prior.cutoff===row.cutoff||prior.cutoff&&row.cutoff&&Date.parse(prior.cutoff)===Date.parse(row.cutoff);
-          if(predicted&&(roster(prior)!==roster(row)||!sameCutoff)){
+          const predicted=authored||Boolean(prior.jointForecast)||Object.keys(prior.reference||{}).length>0||(prior.two.tickets||[]).length>0||Object.keys(prior.flexible?.markets||{}).length>0;
+          const sameCutoff=prior.cutoff===row.cutoff||M.sameClock(prior.cutoff,row.cutoff);
+          const oldIds=registrations(prior),newIds=registrations(row),identityConflict=[...oldIds].some(([car,id])=>newIds.has(car)&&newIds.get(car)!==id);
+          if((predicted||row.jointForecast)&&(roster(prior)!==roster(row)||!sameCutoff||identityConflict)){
             refreshHolds.push({raceId:row.id,reason:'HOLD_RESEARCH_REFRESH_SOURCE_CONTEXT_CHANGED'});continue;
           }
           const combined={...prior,bindings:{...prior.bindings}};
+          if(row.jointForecast){
+            const history=[...(prior.jointForecastHistory||[])];
+            if(prior.jointForecast&&stable(prior.jointForecast)!==stable(row.jointForecast)){
+              need(M.instantMicros(row.jointForecast.generated_at)>M.instantMicros(prior.jointForecast.generated_at));
+              history.push({forecast:prior.jointForecast,binding:prior.jointForecastBindings});
+            }
+            combined.jointForecast=row.jointForecast;combined.jointForecastBindings=row.jointForecastBindings;combined.jointForecastHistory=history;combined.comparisonRiders=row.comparisonRiders;
+          }
           for(const name of ['original','two','flexible','rollover','settlement']){
             const old=prior[name],fresh=row[name];
             if(name==='settlement'&&fresh&&(!record(fresh)||Object.keys(fresh).length))combined[name]=fresh;
@@ -3160,6 +3439,7 @@ if (typeof window === 'object' && typeof location === 'object') window.RaceNoteI
   const strip=document.createElement('div');strip.className='kn-launch-strip';strip.append(launcher);(document.getElementById('data-banner')||document.querySelector('main'))?.after(strip);
   let data=null,currentDay='',venue='',query='',market='3t',variant='flexible',confidenceFilter='all',futureOnly=false,selectedOnly=false;
   let period='day',rangeFrom='',rangeTo='',raceNumber='',pageNumber=1;
+  let riderDetails=null;
   let loadVersion=0,activeLoadAbort=null,feedWatcher=null,pendingFeed=null;
   const preferences=new Map(),selected=new Set(),expanded=new Set();
   const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -3170,9 +3450,10 @@ if (typeof window === 'object' && typeof location === 'object') window.RaceNoteI
   const num=(v,suffix='')=>typeof v==='number'&&Number.isFinite(v)?esc(v)+suffix:'未確認';
   const car=n=>Number.isInteger(n)&&n>=1&&n<=9?'<span class="kn-car kn-c'+n+'">'+n+'</span>':'';
   const pref=row=>{const key=row.id+':'+market+':'+variant;if(!preferences.has(key))preferences.set(key,{budget:2500,excluded:new Set()});return preferences.get(key);};
+  const riderAbilities=['捲りへの抵抗力','番手からの自力発動','並走時の持続力','戦術の切り替え能力','消耗後の末脚','内外の位置別能力'];
   function sourceLink(url,label){const safe=M.safeUrl(url);return safe?'<a target="_blank" rel="noopener noreferrer" href="'+esc(safe)+'">'+esc(label)+'</a>':'';}
   function note(message,error=false){$('kn-status').textContent=message;$('kn-status').classList.toggle('kn-error',error);}
-  function beginLoad(){loadVersion++;activeLoadAbort?.abort();activeLoadAbort=null;feedWatcher?.stop();feedWatcher=null;pendingFeed=null;return loadVersion;}
+  function beginLoad(){closeRiderDetails(false);loadVersion++;activeLoadAbort?.abort();activeLoadAbort=null;feedWatcher?.stop();feedWatcher=null;pendingFeed=null;return loadVersion;}
   function build(){
     shell.innerHTML=`<header class="kn-head"><div><p class="kn-eyebrow">RACE AI · KEIRIN NOTE</p><h1>競輪の読みどころ</h1><p>保存された分析・参考モデル・買い目を確認する</p></div><button type="button" id="kn-close" class="kn-close">閉じる</button></header>
       <div class="kn-scroll"><section class="kn-import"><div><label class="kn-file">保存データを開く<input id="kn-file" type="file" accept=".json,application/json"></label><button id="kn-clear" type="button" class="kn-secondary">読込データを消す</button></div><p id="kn-status" role="status">本人用リンク、または保存データJSONから開けます。</p></section>
@@ -3182,8 +3463,17 @@ if (typeof window === 'object' && typeof location === 'object') window.RaceNoteI
       <section id="kn-nationwide-summary" class="kn-result kn-nationwide-summary" hidden></section><section id="kn-research-summary" class="kn-result" hidden></section><div id="kn-result-only"></div><div id="kn-races" class="kn-grid"></div>
       <details class="kn-rollover"><summary>転がし・2段階の資金配分を試算する</summary><p>受取額は払戻と返還の合計を手入力します。実購入の記録とは別の試算です。</p><div class="kn-controls"><label>初回の予算<select id="kn-roll-budget"><option>2000</option><option selected>2500</option><option>3000</option></select></label><label>1戦目の受取額<input id="kn-return-one" type="number" min="0" max="100000000" step="100" placeholder="未入力"></label><label>2戦目の受取額<input id="kn-return-two" type="number" min="0" max="100000000" step="100" placeholder="未入力"></label></div><div id="kn-roll-result"></div></details>
       <footer class="kn-footer"><p>個別分析・改訂・参考A/Bはそれぞれの保存原本を保持します。参考Cの未生成も表示します。参考モデルの重みは校正済み確率ではありません。</p><p>画面での選択と配分は購入候補です。投票・決済は行いません。データと本人用リンクの鍵は外部へ送信しません。</p><p id="kn-provenance"></p></footer></div>
-      <div class="kn-selection"><div><strong id="kn-selection-count">検討リスト 0件</strong><small>候補・配分の試算</small></div><button id="kn-copy-selection" type="button">検討リストをコピー</button></div>`;
+      <div class="kn-selection"><div><strong id="kn-selection-count">検討リスト 0件</strong><small>候補・配分の試算</small></div><button id="kn-copy-selection" type="button">検討リストをコピー</button></div>
+      <dialog id="kn-rider-details" class="kn-rider-dialog" aria-labelledby="kn-rider-heading">
+        <header><div><p id="kn-rider-venue" class="kn-small"></p><h2 id="kn-rider-heading"></h2></div><button type="button" data-rider-close autofocus>閉じる</button></header>
+        <label class="kn-rider-switch">選手を切り替える<select id="kn-rider-select"></select></label>
+        <div id="kn-rider-facts"></div>
+      </dialog>`;
     $('kn-close').addEventListener('click',()=>dialog.close());
+    dialog.addEventListener('close',()=>closeRiderDetails(false));
+    $('kn-rider-select').addEventListener('change',event=>renderRiderDetails(Number(event.target.value)));
+    $('kn-rider-details').addEventListener('close',restoreRiderFocus);
+    $('kn-rider-details').addEventListener('cancel',event=>event.stopPropagation());
     $('kn-file').addEventListener('change',async event=>{
       // Shadow-tree event targets are cleared after dispatch. Keep the input
       // itself before awaiting file reads so the completed import can reset it.
@@ -3287,6 +3577,7 @@ if (typeof window === 'object' && typeof location === 'object') window.RaceNoteI
     renderNationwideSummary();
     renderResearchSummary(list);
     selectionSummary();
+    if(riderDetails&&$('kn-rider-details').open)renderRiderDetails(riderDetails.number);
   }
   function displayedPredictions(row){return M.displayedPredictions(row,market,variant);}
   function confidenceBadge(prediction){const value=C.normalize(prediction.confidence);return '<span class="kn-confidence kn-confidence-'+value.rank+'" data-confidence-rank="'+value.rank+'">信頼度 '+esc(C.displayLabel(prediction.confidence))+'</span>';}
@@ -3310,7 +3601,7 @@ if (typeof window === 'object' && typeof location === 'object') window.RaceNoteI
     const outcome=row.settlement;
     const result=liveResult(row)+(outcome?'<section class="kn-result"><b>提供サイトの保存分析の照合</b><p>'+esc(outcome.winning_combo||'結果未確認')+' · '+(outcome.sources_agree===false?'出典間の相違で保留':outcome.hit?'的中':outcome.status==='MISS'?'不的中':esc(outcome.status||'照合未確認'))+'</p><p>各100円の想定：'+money(outcome.net_yen)+'（実購入ではありません）</p></section>':'');
     const budget=prediction.allocatable?'<div class="kn-budget"><label>候補予算<select data-budget="'+row.id+'">'+[2000,2500,3000].map(n=>'<option value="'+n+'" '+(n===p.budget?'selected':'')+'>'+money(n)+'</option>').join('')+'</select></label><span>配分 '+allocation.chosen.length+'点 / 合計 '+money(allocation.total)+'</span></div>':'';
-    return '<article class="kn-race" data-note-race="'+row.id+'"><div class="kn-race-top"><div><p class="kn-race-date">'+esc(row.date)+'</p><h2>'+esc(row.venue)+' '+row.number+'R</h2><p>'+esc(row.title)+'</p></div><div class="kn-time"><small>掲載締切</small><b>'+time(row.cutoff)+'</b><small>発走 '+time(row.start)+'</small></div></div><div class="kn-badges"><span>'+esc(prediction.label)+'</span>'+(late?'<span class="kn-past">掲載締切後</span>':'')+confidenceBadge(prediction)+'</div><h3>'+esc(prediction.headline)+'</h3><p class="kn-reason">'+esc(prediction.reason)+'</p>'+confidenceEvidence(prediction)+'<div class="kn-lines">'+lineHtml(row)+'</div><p class="kn-small">媒体の並び予想・位置取りの参考です。</p>'+budget+
+    return '<article class="kn-race" data-note-race="'+row.id+'"><div class="kn-race-top"><div><p class="kn-race-date">'+esc(row.date)+'</p><h2>'+esc(row.venue)+' '+row.number+'R</h2><p>'+esc(row.title)+'</p></div><div class="kn-time"><small>掲載締切</small><b>'+time(row.cutoff)+'</b><small>発走 '+time(row.start)+'</small></div></div><div class="kn-badges"><span>'+esc(prediction.label)+'</span>'+(late?'<span class="kn-past">掲載締切後</span>':'')+confidenceBadge(prediction)+'</div><h3>'+esc(prediction.headline)+'</h3><p class="kn-reason">'+esc(prediction.reason)+'</p>'+confidenceEvidence(prediction)+'<div class="kn-lines">'+lineHtml(row)+'</div><p class="kn-small">媒体の並び予想・位置取りの参考です。</p>'+riderButtons(row)+budget+
       '<div class="kn-point-heading"><b>予想 '+prediction.tickets.length+'点'+(prediction.allocatable?' · 配分 '+allocation.chosen.length+'点':'')+'</b></div><div class="kn-tickets">'+(items||'<p class="kn-empty">'+esc(prediction.reason||'この券種の保存予想はありません。')+'</p>')+'</div>'+(prediction.tickets.length>3?'<button type="button" class="kn-more" data-expand="'+row.id+'">'+(open?'上位3点に戻す':'全'+prediction.tickets.length+'点を表示')+'</button>':'')+
       (prediction.allocatable&&!allocation.available?'<p class="kn-warning">配分対象がないか、全点への100円単位の配分に予算が足りません。点数を選び直してください。</p>':'')+
       '<div class="kn-race-actions"><button type="button" data-select="'+row.id+'" aria-pressed="'+selected.has(row.id)+'">'+(selected.has(row.id)?'検討リストから外す':'検討リストに追加')+'</button><button type="button" data-copy="'+row.id+'" '+(prediction.allocatable&&!allocation.available?'disabled':'')+'>買い目をコピー</button></div>'+nationalStatus(row)+result+researchResult(row)+
@@ -3330,7 +3621,7 @@ if (typeof window === 'object' && typeof location === 'object') window.RaceNoteI
     return '<section class="kn-nationwide-status" data-nationwide-state="'+esc(status.state)+'"><p><b>'+nationalStateLabel(status.state)+'</b></p><p>'+conditionLabel(status.condition_state)+'</p>'+(status.original_identity&&!row.frozenForecast?'<p class="kn-warning">以前に保存した買い目は未読込です。未作成や不的中には数えていません。</p>':'')+'</section>';
   }
   function renderNationwideRace(row){
-    return '<article class="kn-race kn-national-race" data-note-race="'+row.id+'"><div class="kn-race-top"><div><p class="kn-race-date">'+esc(row.date)+'</p><h2>'+esc(row.venue)+' '+row.number+'R</h2><p>各予想の買い目・根拠・採点を確認できます。</p></div><div class="kn-time"><small>掲載締切</small><b>'+time(row.cutoff)+'</b></div></div>'+nationalStatus(row)+liveResult(row)+researchResult(row)+'</article>';
+    return '<article class="kn-race kn-national-race" data-note-race="'+row.id+'"><div class="kn-race-top"><div><p class="kn-race-date">'+esc(row.date)+'</p><h2>'+esc(row.venue)+' '+row.number+'R</h2><p>各予想の買い目・根拠・採点を確認できます。</p></div><div class="kn-time"><small>掲載締切</small><b>'+time(row.cutoff)+'</b></div></div>'+riderButtons(row)+nationalStatus(row)+liveResult(row)+researchResult(row)+roster(row)+'</article>';
   }
   function renderNationwideSummary(){
     const panel=$('kn-nationwide-summary'),doc=period==='day'?data?.nationwide?.get(currentDay):null;
@@ -3429,7 +3720,82 @@ if (typeof window === 'object' && typeof location === 'object') window.RaceNoteI
     }).join('')+'</details>';
   }
   function roster(row){
-    return '<details class="kn-details"><summary>選手の数字・コメント・近況</summary><div class="kn-table-scroll"><table><thead><tr><th>車</th><th>選手</th><th>得点</th><th>S/H/B</th><th>逃/捲/差/マ</th><th>勝率</th><th>3連対</th></tr></thead><tbody>'+row.riders.map(p=>'<tr><td>'+car(p.number)+'</td><td>'+esc(p.name)+'</td><td>'+num(p.score)+'</td><td>'+[p.S,p.H,p.B].map(v=>num(v)).join('/')+'</td><td>'+[p.nige??p.escape,p.makuri,p.sashi,p.mark].map(v=>num(v)).join('/')+'</td><td>'+num(p.win_rate??p.win,'%')+'</td><td>'+num(p.top3_rate,'%')+'</td></tr>').join('')+'</tbody></table></div>'+row.riders.map(p=>'<p class="kn-rider-note"><b>'+p.number+' '+esc(p.name)+'</b><span>コメント：'+esc(p.comment||'未取得')+'</span><span>近況：'+esc((Array.isArray(p.recent_meets)?p.recent_meets:Array.isArray(p.recent_meetings)?p.recent_meetings:Object.values(p.recent_meetings||{})).filter(Boolean).join(' / ')||'未取得')+'</span></p>'+fieldProvenance(p)).join('')+'<p class="kn-small">主表示の統計は掲載元の値を保持します。参考A/Bのnetkeirin統計と平均しません。H/Bは過去の先頭回数で、今日の隊列ではありません。</p></details>';
+    return '<details class="kn-details"><summary>選手の数字・コメント・近況</summary><div class="kn-table-scroll"><table><thead><tr><th>車</th><th>選手</th><th>得点</th><th>S/H/B</th><th>逃/捲/差/マ</th><th>勝率</th><th>3連対</th></tr></thead><tbody>'+row.riders.map(p=>'<tr><td>'+car(p.number)+'</td><td>'+riderButton(row,p)+'</td><td>'+num(p.score)+'</td><td>'+[p.S,p.H,p.B].map(v=>num(v)).join('/')+'</td><td>'+[p.nige??p.escape,p.makuri,p.sashi,p.mark].map(v=>num(v)).join('/')+'</td><td>'+num(p.win_rate??p.win,'%')+'</td><td>'+num(p.top3_rate,'%')+'</td></tr>').join('')+'</tbody></table></div>'+row.riders.map(p=>'<p class="kn-rider-note"><b>'+p.number+' '+esc(p.name)+'</b><span>コメント：'+esc(p.comment||'未取得')+'</span><span>近況：'+esc((Array.isArray(p.recent_meets)?p.recent_meets:Array.isArray(p.recent_meetings)?p.recent_meetings:Object.values(p.recent_meetings||{})).filter(Boolean).join(' / ')||'未取得')+'</span></p>'+fieldProvenance(p)).join('')+'<p class="kn-small">主表示の統計は掲載元の値を保持します。参考A/Bのnetkeirin統計と平均しません。H/Bは過去の先頭回数で、今日の隊列ではありません。</p></details>';
+  }
+  function riderButton(row,rider){return '<button type="button" class="kn-rider-open" data-rider-open="'+esc(row.id)+'" data-rider-car="'+rider.number+'" aria-haspopup="dialog">'+car(rider.number)+'<span>'+esc(rider.name)+'</span></button>';}
+  function riderButtons(row){return row.riders.length?'<ul class="kn-rider-list" aria-label="出走選手">'+row.riders.map(rider=>'<li>'+riderButton(row,rider)+'</li>').join('')+'</ul>':'';}
+  function riderRow(id){return M.historyRows(data,{period:'all'}).find(row=>row.id===id);}
+  function clearRiderContents(){for(const id of ['kn-rider-heading','kn-rider-venue'])$(id).textContent='';$('kn-rider-select').innerHTML='';$('kn-rider-facts').innerHTML='';}
+  function closeRiderDetails(restore=true){
+    const modal=$('kn-rider-details');if(!modal)return;
+    if(!restore){riderDetails=null;clearRiderContents();}
+    if(modal.open)modal.close();
+  }
+  function restoreRiderFocus(){
+    const saved=riderDetails;riderDetails=null;clearRiderContents();if(!saved)return;
+    const opener=saved.opener.isConnected?saved.opener:root.querySelector('[data-rider-open="'+saved.raceId+'"][data-rider-car="'+saved.openerCar+'"]');
+    (opener||$('kn-races')).focus({preventScroll:true});
+  }
+  function jointRiderForecast(row,number){
+    const forecast=row.jointForecast,binding=row.jointForecastBindings,J=window.RaceKeirinJointForecast;
+    if(!forecast)return {admitted:false,html:'<p class="kn-rider-probability-state" data-joint-state="unavailable">比較Bの着順確率は未取得です。</p>'};
+    try{
+      const cars=row.riders.map(rider=>rider.number);
+      if(!J||forecast.schema!=='RACE_AI_KEIRIN_JOINT_PROJECTION_V1'||!binding||binding.race_id!==row.id||!Array.isArray(binding.cars)||binding.cars.length!==cars.length||!cars.every(car=>binding.cars.includes(car))||row.cutoff&&!sameRiderClock(row.cutoff,binding.cutoff_at))throw Error();
+      if(!Array.isArray(forecast.riders)||!forecast.riders.every(p=>row.riders.some(person=>person.number===p.car&&person.name.replace(/\s/g,'')===p.name.replace(/\s/g,''))))throw Error();
+      const known=value=>typeof value==='string'&&/^[0-9]{6}$/.test(value);
+      if(forecast.riders.some(p=>row.riders.some(person=>person.number===p.car&&known(person.registration)&&known(p.registration)&&person.registration!==p.registration)))throw Error();
+      J.validateForecast(forecast,binding);
+      return {admitted:true,html:J.renderForecast(forecast,number)};
+    }catch{return {admitted:false,html:'<p class="kn-rider-probability-state" data-joint-state="held">比較Bの着順確率は出典・対象選手・予想時点を照合できないため、表示を保留しています。</p>'};}
+  }
+  function sameRiderClock(left,right){
+    const identity=value=>{const parsed=Date.parse(value),fraction=typeof value==='string'?/\.(\d{1,6})(?:Z|[+-]\d\d:\d\d)$/.exec(value)?.[1]||'':'';return Number.isFinite(parsed)?parsed+':'+fraction.padEnd(6,'0').slice(3):null;};
+    const expected=identity(left);return expected!==null&&expected===identity(right);
+  }
+  function riderRole(row,number){
+    if(row.raw.line_type==='individual_positions'||row.frozenForecast?.facts.competition==='GIRLS')return '個人戦の位置取り参考';
+    const line=row.lines.find(group=>Array.isArray(group)&&group.some(value=>value===number||value?.contest?.includes(number)));
+    if(!line)return '掲載の並び未取得';
+    const position=line.indexOf(number);if(position<0)return '競り（掲載の並び）';
+    return line.length===1?'単騎':['先頭','番手'][position]||String(position+1)+'番手';
+  }
+  function comparisonRiderFacts(row,rider){
+    const fresh=Array.isArray(row.comparisonRiders)&&row.comparisonRiders.find(person=>person.car===rider.number&&typeof person.name==='string'&&person.name.replace(/\s/g,'')===rider.name.replace(/\s/g,''));
+    if(!fresh)return '';
+    const styles={NIGE:'逃げ',MAKURI:'捲り',SASHI:'差し',MARK:'追込',ALLROUND:'自在',UNKNOWN:'未取得'};
+    const rate=value=>typeof value==='number'&&Number.isFinite(value)&&value>=0&&value<=100?num(Number(value.toFixed(2)),'%'):'未取得';
+    const win=fresh.win_rate??(typeof fresh.recent_form_score==='number'&&fresh.recent_form_score>=0&&fresh.recent_form_score<=1?fresh.recent_form_score*100:null);
+    const values=[['級班',esc(fresh.class??fresh.racer_class??fresh.rider_class??'未取得')],['脚質',esc(styles[fresh.style]||fresh.style||'未取得')],
+      ['競走得点',num(fresh.competition_points)],['4か月勝率',rate(win)],['4か月2連対率',rate(fresh.top2_rate)],['4か月3連対率',rate(fresh.top3_rate)],
+      ['H',num(fresh.h_count)],['B',num(fresh.b_count)]];
+    const asOf=row.jointForecastBindings.source_as_of;
+    return '<section class="kn-comparison-input"><h3>比較Bの入力資料</h3><p class="kn-small">資料の基準 <time datetime="'+esc(asOf)+'">'+stamp(asOf)+'</time>。今回の比較Bに使用した掲載値です。</p><dl class="kn-rider-stats">'+values.map(([label,value])=>'<div><dt>'+label+'</dt><dd>'+value+'</dd></div>').join('')+'</dl></section>';
+  }
+  function renderRiderDetails(number){
+    const row=riderDetails&&riderRow(riderDetails.raceId),rider=row?.riders.find(person=>person.number===number);
+    if(!rider){closeRiderDetails(false);return;}
+    riderDetails.number=number;
+    $('kn-rider-venue').textContent=row.date+' '+row.venue+' '+row.number+'R';
+    $('kn-rider-heading').textContent=number+'番 '+rider.name;
+    $('kn-rider-select').innerHTML=row.riders.map(person=>'<option value="'+person.number+'">'+person.number+'番 '+esc(person.name)+'</option>').join('');
+    $('kn-rider-select').value=String(number);
+    const stats=[['競走得点',num(rider.score)],['脚質',esc(rider.style||'未取得')],['掲載の並びでの役割',esc(riderRole(row,number))],
+      ['勝率（掲載値）',num(rider.win_rate??rider.win,'%')],['2連対率（掲載値）',num(rider.top2_rate,'%')],['3連対率（掲載値）',num(rider.top3_rate,'%')],
+      ['S',num(rider.S)],['H',num(rider.H)],['B',num(rider.B)]];
+    const recent=Array.isArray(rider.recent_meets)?rider.recent_meets:Array.isArray(rider.recent_meetings)?rider.recent_meetings:Object.values(rider.recent_meetings||{});
+    const forecast=jointRiderForecast(row,number);
+    $('kn-rider-facts').innerHTML=forecast.html+(forecast.admitted?comparisonRiderFacts(row,rider):'')+'<h3>保存した出走表の掲載値</h3><dl class="kn-rider-stats kn-rider-source-stats">'+stats.map(([label,value])=>'<div><dt>'+label+'</dt><dd>'+value+'</dd></div>').join('')+'</dl>'+
+      '<p class="kn-small">成績の集計期間：'+esc(row.raw.source_data_period||'掲載資料の期間未確認')+'。掲載率と今回の予測確率は別の値です。</p>'+
+      '<details class="kn-details"><summary>コメント・近況・出典</summary><p>コメント：'+esc(rider.comment||'未取得')+'</p><p>近況：'+esc(recent.filter(value=>typeof value==='string'&&value).join(' / ')||'未取得')+'</p>'+fieldProvenance(rider)+
+      '<p class="kn-small">出走表の取得 '+stamp(row.raw.source_as_of||row.raw.fetched_at)+'<br>'+sourceLink(row.sourceUrl,'掲載した出走表')+'</p></details>'+
+      '<details class="kn-details"><summary>戦術・能力の資料</summary><dl class="kn-rider-stats">'+riderAbilities.map(label=>'<div data-rider-ability><dt>'+label+'</dt><dd>観測資料未取得</dd></div>').join('')+'</dl><p class="kn-small">確認できた観測機会・期間・出典がそろうまで、能力値や成功率は表示しません。</p></details>';
+  }
+  function openRiderDetails(opener){
+    const row=riderRow(opener.dataset.riderOpen),number=Number(opener.dataset.riderCar);
+    if(!row?.riders.some(rider=>rider.number===number))return;
+    riderDetails={raceId:row.id,number,openerCar:number,opener};
+    renderRiderDetails(number);$('kn-rider-details').showModal();
   }
   function providerName(url){const host=new URL(url).hostname;return host==='keirin.netkeiba.com'?'netkeirin':host==='keirin.kdreams.jp'?'Kドリームス':host;}
   function referenceProvenance(row){const pages=row.referenceEnvelope?.input?.source_pages;if(!Array.isArray(pages))return '';const seen=new Set(),links=pages.flatMap(page=>{const url=M.safeUrl(page?.url);if(!url||seen.has(url))return [];seen.add(url);return [sourceLink(url,'参考A/Bの入力・'+providerName(url))];});return links.length?'<p class="kn-small kn-reference-provenance">'+links.join(' / ')+'</p>':'';}
@@ -3439,6 +3805,8 @@ if (typeof window === 'object' && typeof location === 'object') window.RaceNoteI
   async function copy(value){if(!value)return;try{await navigator.clipboard.writeText(value);note('買い目候補をコピーしました。');}catch{const area=document.createElement('textarea');area.value=value;root.append(area);area.select();const ok=document.execCommand('copy');area.remove();note(ok?'買い目候補をコピーしました。':'このブラウザーではコピーできませんでした。',!ok);}}
   function click(button){
     if(!button)return;
+    if(button.dataset.riderOpen){openRiderDetails(button);return;}
+    if(Object.hasOwn(button.dataset,'riderClose')){closeRiderDetails();return;}
     if(button.id==='kn-page-next'||button.id==='kn-page-prev'){
       pageNumber+=button.id==='kn-page-next'?1:-1;renderCards();$('kn-races').focus({preventScroll:true});$('kn-races').scrollIntoView({block:'start'});return;
     }

@@ -136,6 +136,7 @@ jobs:
             tests.test_keirin_note_result_reader \
             tests.test_keirin_note_feed_cycle
           node --test tests/keirin_note_*.test.cjs
+          node --test tests/keirin_joint*.test.cjs
       - name: Verify the owner view refresh in Chromium using invented loopback data
         shell: bash
         run: |
@@ -149,6 +150,9 @@ jobs:
           fi
           "$browser_path" --version
           RACE_AI_TEST_CHROMIUM="$browser_path" python -m unittest tests.test_keirin_note_browser -v
+          playwright_package="$(python -c "from pathlib import Path; import playwright; print(Path(playwright.__file__).resolve().parent / 'driver' / 'package')")"
+          RACE_AI_TEST_CHROMIUM="$browser_path" RACE_AI_NODE_PLAYWRIGHT="$playwright_package" \
+            RACE_AI_REQUIRE_RIDER_BROWSER=1 node --test tests/keirin_note_rider_browser.test.cjs
 
   observe-results:
     # Same owner key/store and permissions. The admitted official-SP path
