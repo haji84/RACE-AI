@@ -64,7 +64,7 @@ jobs:
             tests.test_keirin_official_owner_view -v
           "$runner_python" -m unittest \
             tests.test_keirin_archive_study tests.test_keirin_accuracy_study \
-            tests.test_keirin_joint_forecast tests.test_keirin_comparison_snapshot \
+            tests.test_keirin_joint_forecast tests.test_keirin_comparison_snapshot tests.test_keirin_market_third_study \
             tests.test_keirin_joint_original_readback tests.test_keirin_joint_forward_score \
             tests.test_keirin_joint_recovery_score tests.test_keirin_published_result_validation -v
           "$runner_python" -m unittest \

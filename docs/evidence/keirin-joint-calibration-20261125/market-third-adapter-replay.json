@@ -1,0 +1,47 @@
+{
+  "schema": "KEIRIN_MARKET_THIRD_ADAPTER_REPLAY_V1",
+  "scope": "REPLAY_SAVED_PODIUM_ODDS_AND_PAIRED_HISTORICAL_LABELS",
+  "baseline_fit_sha256": "d299766d899456dd73397e75ef9a911d8413c915e4f13134db0bfa6e3375ebf1",
+  "baseline_fit_before": "2026-05-24",
+  "previous_historical_comparison_sha256": "0e0ccceb2bc0cf6405feaa25d0ef8a9911b37491e4ac03763a8a5ab1dccc66a3",
+  "adapter_sha256": "9eee2278c66ff36543297d1f415a2ba03d238a28e95136d27f582721dfe078c9",
+  "replay_source_sha256": "109b201646134c4c3c8678f7516b9a26a9a0d43106cf26f4b6c38f4f24a93531",
+  "historical_unique_races": 61,
+  "scores": {
+    "2026-11-23_complete": {
+      "races": 26,
+      "prior_1": 4,
+      "trial_1": 4,
+      "prior_4": 9,
+      "trial_4": 9,
+      "prior_8": 12,
+      "trial_8": 12
+    },
+    "2026-11-25_complete": {
+      "races": 35,
+      "prior_1": 4,
+      "trial_1": 4,
+      "prior_4": 10,
+      "trial_4": 9,
+      "prior_8": 13,
+      "trial_8": 17
+    },
+    "2026-11-25_strict_T15_T10": {
+      "races": 9,
+      "prior_1": 2,
+      "trial_1": 2,
+      "prior_4": 2,
+      "trial_4": 3,
+      "prior_8": 2,
+      "trial_8": 6
+    }
+  },
+  "exacta_pair_mass_return_identical": true,
+  "conditional_tail_scores_return_identical": true,
+  "original_support_identical": true,
+  "max_exacta_direct_mass_error": 5.551115123125783e-17,
+  "max_first_two_marginal_error": 0.0,
+  "accessed_new_results": false,
+  "prospective_market_candidates": 0,
+  "production_changes": false
+}
