@@ -1,0 +1,33 @@
+{
+  "roster_late_line": 15,
+  "state": {
+    "pending": 1,
+    "pre_cutoff": 13,
+    "matched": 1
+  },
+  "actual_budgets": 8,
+  "asof": "2026-11-25T12:13:05.346182+00:00",
+  "corner_commit": "a37b8c968de35834a036f5b8ef7b21d52dd1ce17",
+  "public_result_sha256": "22a9f3bbcd6f5355d258e335f548599596a805af5c6445180a21fcada85ccb23",
+  "all_arms_scores": {
+    "public": true,
+    "late-line": true,
+    "corner-third": true
+  },
+  "confirmed_distinct": 1,
+  "approved_final_races": {
+    "202611254802": {
+      "points_per_arm": 8,
+      "winning_trifecta": [
+        1,
+        2,
+        3
+      ],
+      "public": true,
+      "late-line": true,
+      "corner-third": true,
+      "changed_site_to_line": true,
+      "changed_line_to_corner": true
+    }
+  }
+}

@@ -1,0 +1,106 @@
+{
+  "schema": "KEIRIN_TACTICAL_DOSSIER_SITE_RELEASE_V1",
+  "site_url": "https://keirin-20261119-race-note.chankuma.chatgpt.site/",
+  "audience": "existing_public",
+  "source_revision": "f24bcac891fc08f5fdef4855fab5303598a38339",
+  "previous_source_revision": "df55ec3361eeb9a24f0ff3ee357a4a48912e45f7",
+  "site_version": 34,
+  "site_version_id": "appgprj_6afe2bc8d25c8191a65f81c6203dbe71~appgver_1ed073511ba88191987cd1e21f182f49",
+  "deployment_id": "appgdep_6b06d10f41a4819196ac9f5f992053e8",
+  "deployed_at": "2026-11-25T12:14:21.459060+00:00",
+  "verified_at": "2026-11-25T12:16:36.166897+00:00",
+  "worker_sha256": "e7e398a5e1ac493983b1e053f7fb53a2292bbdc7749057b0da7641fb0296cd6d",
+  "hosting_archive_sha256": "5c93c7593666d20ea73757875a5f182f4ce675a81a4b65f3fb5bb47701cfd627",
+  "root_http": 200,
+  "source_bound_asset_digests": {
+    "live.html": "7c284bd4797bb65aca645b6d89f3ce8efb97bf63a29f0a0bb0217193a243ec43",
+    "live-observations.json": "3eb8574b43d806c10c446f289e8fa8dc8b083f130759b9fe17d0a106dacc63ab",
+    "live-view.js": "53ca66e05779c92c3a1690745cc057e174aa71ddfe9555c1dff60b88f6371a1d",
+    "live-v3-public.json": "2a62f3a6cf7f2a12d62b5b49b4d9a620db49309b0522814ed904c11c942e3d35"
+  },
+  "canonical_observation_digest": "92f184e4f3b386fe6f0110dee956db8e73f8d92c97eec89061a52e667c00995e",
+  "canonical_observation_case_sha256": "18e7993de94e971715e55b4cc2dc16248a362f68112ec88da9c2d94871941eb8",
+  "source_overlay_sha256": "5a5611cd21deab1ee49df1665eeb237c40b3bf02714d1a48a446f70f516d5298",
+  "original_forecast_body_byte_identical": true,
+  "local_node_tests_passed": 176,
+  "live_rider_observation_browser_checks": [
+    {
+      "viewport": [
+        1366,
+        900
+      ],
+      "emulated_touch": false,
+      "checked_rider_buttons": 516,
+      "checked_missing_traits": 6,
+      "riders_with_observations": [
+        1,
+        4,
+        5
+      ],
+      "riders_without_observations_checked": [
+        3
+      ],
+      "same_market_switch_and_focus": true,
+      "page_errors": 0
+    },
+    {
+      "viewport": [
+        380,
+        780
+      ],
+      "emulated_touch": true,
+      "checked_rider_buttons": 516,
+      "checked_missing_traits": 6,
+      "riders_with_observations": [
+        1,
+        4,
+        5
+      ],
+      "riders_without_observations_checked": [
+        3
+      ],
+      "same_market_switch_and_focus": true,
+      "page_errors": 0
+    }
+  ],
+  "live_result_tab_browser_checks": [
+    {
+      "viewport": [
+        1366,
+        900
+      ],
+      "touch": false,
+      "results_http": 200,
+      "result_race": "202611252611",
+      "confirmed_hits_in_3t_and_2t": true,
+      "payout_yen": [
+        840,
+        360
+      ],
+      "totals": "照合済み 57/75 · 結果待ち 1 · 照合保留 1 · 締切前 16",
+      "results_checked_at": "2026-11-25T12:13:05.346182+00:00",
+      "javascript_errors": 0,
+      "checked_at": "2026-11-25T12:15:28.924308+00:00"
+    },
+    {
+      "viewport": [
+        380,
+        780
+      ],
+      "touch": true,
+      "results_http": 200,
+      "result_race": "202611252611",
+      "confirmed_hits_in_3t_and_2t": true,
+      "payout_yen": [
+        840,
+        360
+      ],
+      "totals": "照合済み 57/75 · 結果待ち 1 · 照合保留 1 · 締切前 16",
+      "results_checked_at": "2026-11-25T12:13:05.346182+00:00",
+      "javascript_errors": 0,
+      "checked_at": "2026-11-25T12:15:30.857741+00:00"
+    }
+  ],
+  "results_workflow_url": "https://github.com/haji84/RACE-AI/actions/runs/45611590181",
+  "verified_on_physical_iphone": false
+}

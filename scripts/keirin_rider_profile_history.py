@@ -129,6 +129,33 @@ def _months_before(day, months):
     return date(year, month + 1, min(day.day, monthrange(year, month + 1)[1]))
 
 
+def _matching_finishes(rows, filters):
+    matched = []
+    known_nonmatch = undetermined = 0
+    missing = dict.fromkeys(filters, 0)
+    for row in rows:
+        race_id, _, role, grade = row
+        track_code = race_id[8:10]
+        observed = dict(track_code=track_code if track_code != '00' else None, role=role, grade=grade)
+        incomplete = different = False
+        for field, required in filters.items():
+            value = observed[field]
+            if value is None:
+                missing[field] += 1
+                incomplete = True
+            elif value != required:
+                different = True
+        if different:
+            known_nonmatch += 1
+        elif incomplete:
+            undetermined += 1
+        else:
+            matched.append(row)
+    return matched, dict(examined_count=len(rows), matched_count=len(matched),
+                         known_nonmatch_count=known_nonmatch, undetermined_count=undetermined,
+                         missing_by_field=missing)
+
+
 class HistoryBook:
     """Keep independently dated series, so a query cannot consume a same-day result."""
 
@@ -142,7 +169,7 @@ class HistoryBook:
                 raise ValueError('Repeated rider and race in prior history.')
             seen.add(key)
             observation = date.fromisoformat(ride.race_id[:8]).toordinal(), ride.metrics()
-            finishes[ride.registration].append((ride.race_id, ride.finish))
+            finishes[ride.registration].append((ride.race_id, ride.finish, ride.role, ride.grade))
             history[ride.registration, 'all', None].append(observation)
             history[ride.registration, 'track', ride.race_id[8:10]].append(observation)
             if ride.role is not None:
@@ -154,22 +181,34 @@ class HistoryBook:
         }
         self.finishes = {registration: tuple(sorted(rows)) for registration, rows in finishes.items()}
 
-    def finish_history(self, registration, *, race_id, latest_day=None):
+    def finish_history(self, registration, *, race_id, latest_day=None, track_code=None, role=None, grade=None):
         """Summarize bound numeric finishes available in the archive strictly before the cutoff day.
 
         The archive can omit starts entirely, so the count of missing finishes is unknown.
         Last-N windows use observable finishes and omit a boundary day if its order is unknown.
+        Optional filters intersect all known matching fields before forming any of the windows.
+        Filter coverage counts examined earlier finishes, including each requested field's missing values.
         Historical prediction callers must use the archive revision available at their cutoff.
         """
         if not is_registration(registration):
             raise ValueError('A rider registration is required for a finish history.')
+        if track_code is not None and (not isinstance(track_code, str) or track_code == '00'
+                                       or not re.fullmatch(r'[0-9]{2}', track_code)):
+            raise ValueError('A track filter requires an observed two-digit venue code.')
+        if role not in (*ROLES, None) or grade not in (*GRADES, None):
+            raise ValueError('Unknown historical role or grade filter.')
         cutoff = _history_cutoff(race_id, latest_day)
         rows = self.finishes.get(registration, ())
         right = bisect_left(rows, (cutoff.isoformat().replace('-', ''),))
+        filters = {field: value for field, value in dict(track_code=track_code, role=role, grade=grade).items()
+                   if value is not None}
+        if filters:
+            rows, coverage = _matching_finishes(rows[:right], filters)
+            right = len(rows)
 
         def summary(left):
             observed = right - left
-            counts = Counter(finish for _, finish in rows[left:right])
+            counts = Counter(row[1] for row in rows[left:right])
             counts = {rank: counts[rank] for rank in range(1, 10)}
             return dict(observed_count=observed, missing_finish_count=None, finish_counts=counts,
                         finish_rates={rank: count / observed for rank, count in counts.items()} if observed else None,
@@ -194,8 +233,11 @@ class HistoryBook:
             last_starts[count] = dict(summary(left), unfilled_slots=count - (right - left),
                                       tied_boundary_observations=tied)
 
-        return dict(registration=registration, as_of_exclusive=cutoff.isoformat(),
-                    periods=periods, last_starts=last_starts)
+        report = dict(registration=registration, as_of_exclusive=cutoff.isoformat(),
+                      periods=periods, last_starts=last_starts)
+        if filters:
+            report.update(filters=filters, filter_coverage=coverage)
+        return report
 
     def features(self, registration, *, race_id, role, grade, latest_day=None):
         cutoff = _history_cutoff(race_id, latest_day).toordinal()

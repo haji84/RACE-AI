@@ -135,6 +135,51 @@ class KeirinRiderProfileStudyTests(unittest.TestCase):
         self.assertEqual(last_five['finish_counts'][8], 0)
         self.assertEqual(last_five['finish_counts'][9], 0)
 
+    def test_finish_history_filters_intersection_before_taking_recent_runs(self):
+        from scripts.keirin_rider_profile_history import HistoryBook, Ride
+
+        book = HistoryBook(Ride(race_id, '012345', finish, None, role, grade)
+                           for race_id, finish, role, grade in (
+            ('202611182401', 8, None, 'A'), ('202611192401', 3, 'LEAD', 'S'),
+            ('202611202601', 2, 'LEAD', 'A'), ('202611210001', 7, 'LEAD', 'A'),
+            ('202611222601', 4, None, 'A'), ('202611232601', 5, 'LEAD', None),
+            ('202611242601', 6, 'SECOND', 'A'), ('202611252601', 1, 'LEAD', 'A'),
+        ))
+        race_id = '202611252611'
+        unfiltered = book.finish_history('012345', race_id=race_id)
+        self.assertEqual(unfiltered['periods']['all']['observed_count'], 7)
+        self.assertNotIn('filter_coverage', unfiltered)
+        filtered = book.finish_history('012345', race_id=race_id, track_code='26', role='LEAD', grade='A')
+        self.assertEqual(filtered['filters'], {'track_code': '26', 'role': 'LEAD', 'grade': 'A'})
+        self.assertEqual(filtered['filter_coverage'], {
+            'examined_count': 7, 'matched_count': 1, 'known_nonmatch_count': 3, 'undetermined_count': 3,
+            'missing_by_field': {'track_code': 1, 'role': 2, 'grade': 1},
+        })
+        one_month = filtered['periods']['1_month']
+        self.assertEqual(one_month['observed_count'], 1)
+        self.assertEqual(one_month['finish_counts'][2], 1)
+        self.assertEqual(one_month['finish_counts'][1], 0)
+        self.assertEqual(filtered['last_starts'][5]['unfilled_slots'], 4)
+
+    def test_finish_history_applies_single_filters_and_the_earlier_history_lock(self):
+        from scripts.keirin_rider_profile_history import HistoryBook, Ride
+
+        book = HistoryBook(Ride(race_id, '012345', finish, None, role, grade)
+                           for race_id, finish, role, grade in (
+            ('202611192401', 3, 'LEAD', 'S'), ('202611202601', 2, 'SECOND', 'A'),
+            ('202611212601', 1, 'LEAD', 'A'),
+        ))
+        context = dict(race_id='202611252611', latest_day='20261120')
+        for filter_, chosen in (({'role': 'LEAD'}, 3), ({'grade': 'S'}, 3), ({'track_code': '26'}, 2)):
+            with self.subTest(filter_=filter_):
+                report = book.finish_history('012345', **context, **filter_)
+                self.assertEqual(report['filter_coverage']['examined_count'], 2)
+                self.assertEqual(report['periods']['all']['observed_count'], 1)
+                self.assertEqual(report['periods']['all']['finish_counts'][chosen], 1)
+        for filter_ in ({'role': 'unknown'}, {'grade': 'X'}, {'track_code': '00'}, {'track_code': 26}):
+            with self.subTest(filter_=filter_), self.assertRaises(ValueError):
+                book.finish_history('012345', **context, **filter_)
+
     def test_registration_binding_recovers_the_documented_prefecture_split(self):
         from scripts.keirin_rider_profile_identity import IdentityIndex
 
