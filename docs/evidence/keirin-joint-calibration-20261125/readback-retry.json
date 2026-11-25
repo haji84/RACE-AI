@@ -1,0 +1,16 @@
+{
+  "schema": "KEIRIN_JOINT_READBACK_RETRY_VERIFICATION_V1",
+  "run": "https://github.com/haji84/RACE-AI/actions/runs/45636908765",
+  "triggering_result_run": "https://github.com/haji84/RACE-AI/actions/runs/45636802486",
+  "failed_job": 139284944499,
+  "initial_failure": "HOLD_JOINT_RECOVERY_PINNED_CIPHERTEXT_UNAVAILABLE",
+  "initial_secret_step": "skipped",
+  "first_attempt_failing_endpoint_confirmed": false,
+  "same_preflight_passed_locally_with_ordinary_public_GitHub_reads": true,
+  "successful_attempt": 2,
+  "successful_job": 139285945747,
+  "result_state_commit": "495fb2b8292d4544c9f8fc7a7c0a608e2829452a",
+  "safe_score_receipt_sha256": "188ba9d58a59b7158ef4efb1d2837478a7719f7abc387f109c4b053d5308de95",
+  "source_commit": "71c97f358d2e0905dad78f0bb550777969c1b53f",
+  "model_promoted": false
+}
