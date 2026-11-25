@@ -1,0 +1,56 @@
+{
+  "scope": "offline_replay_of_unchanged_saved_provider_pages",
+  "public_state_commit": "495fb2b8292d4544c9f8fc7a7c0a608e2829452a",
+  "roster_sha256": "19511419d30b1e9ef543588262289565c49009b5ff1815e7bbfdd8cc574ef270",
+  "previous_result_sha256": "294cf62d86ebb3756d319578af5cf35b399aeaf58a9f5918175badab44d4da88",
+  "cases": [
+    {
+      "race_id": "202611246206",
+      "before": {
+        "state": "held",
+        "reason": "source_disagreement"
+      },
+      "replay": {
+        "race_id": "202611246206",
+        "state": "held",
+        "reason": "special_result"
+      },
+      "diagnostic": "SPECIAL_LOWER_FINISH_TIE",
+      "sources": [
+        {
+          "url": "https://keirin.kdreams.jp/hiroshima/racedetail/6220261122030006/?pageType=result",
+          "sha256": "906093af65ee9ee0ba327316efea1793178b2cc1ee7999a483dd543c34f4a7b7"
+        },
+        {
+          "url": "https://keirin.netkeiba.com/race/result/?race_id=202611246206",
+          "sha256": "2604b7ffca35f258d6408d93d87d16e0fc52746e243ef1d8009a2c023af74bcf"
+        }
+      ]
+    },
+    {
+      "race_id": "202611244804",
+      "before": {
+        "state": "pending",
+        "reason": "result_unpublished"
+      },
+      "replay": {
+        "race_id": "202611244804",
+        "state": "held",
+        "reason": "special_result"
+      },
+      "diagnostic": "SPECIAL_CANCELLED_REFUND_CONFIRMED",
+      "sources": [
+        {
+          "url": "https://keirin.kdreams.jp/yokkaichi/racedetail/4820261123020004/?pageType=result",
+          "sha256": "5a65544c8985004f853341329db05a63342b652f0c2042a722ef55c3acbe96de"
+        },
+        {
+          "url": "https://keirin.netkeiba.com/race/result/?race_id=202611244804",
+          "sha256": "e93a5427d2d3a19396e5f1ed14b15c6490f48afb264d28f4122e55bfdae41704"
+        }
+      ]
+    }
+  ],
+  "external_requests": 0,
+  "publication_changed": false
+}
