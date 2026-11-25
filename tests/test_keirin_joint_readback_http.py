@@ -1,4 +1,5 @@
 from io import BytesIO
+from email.message import Message
 import unittest
 from urllib.error import HTTPError, URLError
 
@@ -62,6 +63,14 @@ class JointReadbackHttpTests(unittest.TestCase):
                 self.read([result])
             self.assertEqual(len(self.requests), 1)
             self.assertEqual(self.delays, [])
+
+    def test_an_empty_retry_after_header_also_stops(self):
+        headers = Message()
+        headers['Retry-After'] = ''
+        with self.assertRaises(readback.ReadbackError):
+            self.read([HTTPError(URL, 503, 'private detail', headers, None), Response()])
+        self.assertEqual(len(self.requests), 1)
+        self.assertEqual(self.delays, [])
 
     def test_other_hosts_and_unsafe_urls_are_not_requested(self):
         for url in ('https://other.example/test', 'http://api.github.com/test', 'https://user@api.github.com/test'):

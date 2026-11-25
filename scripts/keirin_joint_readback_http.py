@@ -56,7 +56,7 @@ def get(url, limit, *, open_request=None, pause=time.sleep):
             return raw
         except HTTPError as error:
             status = error.code
-            retry = status in RETRYABLE_HTTP and not (error.headers and error.headers.get('Retry-After'))
+            retry = status in RETRYABLE_HTTP and (error.headers is None or error.headers.get('Retry-After') is None)
             error.close()
             failure = ReadbackError('HTTP_STATUS', attempt, status)
         except URLError as error:
