@@ -46,6 +46,8 @@ def _source(raw, expected):
 # A1/A2 grades.
 # Run 45684840895 also bound the exact challenge preliminary, A preliminary
 # and A general labels to published seven-rider cards with those grades.
+# Run 45693553031 verified seven-rider special preliminary, semifinal and
+# first-day special selection cards in the same A1/A2 scoring group.
 # A label never supplies a qualification rule or any missing card input.
 OBSERVED_CLASSES = {
     'A級チャレンジ予選': 'CHALLENGE',
@@ -53,6 +55,9 @@ OBSERVED_CLASSES = {
     'A級チャレンジ選抜': 'CHALLENGE',
     'A級チャレンジ決勝': 'CHALLENGE',
     'A級予選': 'A1_A2',
+    'A級特予選': 'A1_A2',
+    'A級準決勝': 'A1_A2',
+    'A級初日特選': 'A1_A2',
     'A級一般': 'A1_A2',
     'A級特一般': 'A1_A2',
     'A級特選': 'A1_A2',

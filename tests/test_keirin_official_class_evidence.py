@@ -45,7 +45,7 @@ class ClassEvidenceTests(unittest.TestCase):
     def api(self):
         return importlib.import_module('race_ai.keirin_official_class_evidence')
 
-    def fixture(self, labels=('A級特予選', 'A級特予選', 'A級チャレンジ準決勝'), kind='1'):
+    def fixture(self, labels=('A級選抜', 'A級選抜', 'A級チャレンジ準決勝'), kind='1'):
         data = list_data()
         rows = data['SJ0301']['kaisaiDayList'][1]['raceProgramList']
         details = {}
@@ -86,7 +86,8 @@ class ClassEvidenceTests(unittest.TestCase):
                 (('S級一般',)*3, '1'),
                 (('A級チャレンジ一般', 'A級特選', 'A級チャレンジ選抜'), '1'),
                 (('A級一般', 'A級チャレンジ予選', 'A級予選'), '1'),
-                (('A級特予選',)*3, '2')):
+                (('A級特予選', 'A級準決勝', 'A級初日特選'), '1'),
+                (('A級選抜',)*3, '2')):
             inventory, details = self.fixture(labels, kind)
             session = SourceSession(details)
             out = self.api().collect_unknown_class_evidence(session=session, inventory=inventory,
@@ -105,7 +106,7 @@ class ClassEvidenceTests(unittest.TestCase):
         self.assertNotIn('SECRET', json.dumps(out['safe_summary']))
 
     def test_wrong_race_identity_and_changed_bytes_do_not_become_verified_grade_evidence(self):
-        inventory, details = self.fixture(('A級特予選',)*3)
+        inventory, details = self.fixture(('A級選抜',)*3)
         for mode in ('identity', 'hash'):
             with self.subTest(mode=mode):
                 session = SourceSession(deepcopy(details))
