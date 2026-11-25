@@ -1,0 +1,448 @@
+{
+  "assessment": {
+    "sha256": "dedd72417d81abbe814489621a4a9a5ee2452a912a608d3bcef5b711e7ae89a9",
+    "record": {
+      "conversation_reference_assessment": {
+        "flow": {
+          "aspects": {
+            "ATTACK_ORDER": {
+              "sources": [
+                "video"
+              ],
+              "state": "forecast_missing"
+            },
+            "BELL": {
+              "sources": [],
+              "state": "forecast_missing"
+            },
+            "FINAL_BACK": {
+              "sources": [
+                "official"
+              ],
+              "state": "forecast_missing"
+            },
+            "FINAL_HOME": {
+              "sources": [
+                "official"
+              ],
+              "state": "forecast_missing"
+            },
+            "FOURTH_CORNER": {
+              "sources": [],
+              "state": "forecast_missing"
+            },
+            "INITIAL": {
+              "sources": [],
+              "state": "unobserved"
+            },
+            "INITIATIVE": {
+              "observed": 2,
+              "predicted": 4,
+              "sources": [
+                "video"
+              ],
+              "state": "different"
+            }
+          },
+          "counts": {
+            "different": 1,
+            "forecast_missing": 5,
+            "unobserved": 1
+          },
+          "state": "different",
+          "unverified_observations": 0
+        },
+        "grade": null,
+        "placing": {
+          "first_hit": true,
+          "formal": false,
+          "hit": true,
+          "hit_rank": 1,
+          "matched_points": 1,
+          "points": 1
+        },
+        "race_id": "202611252611",
+        "reference_flow": {
+          "aspects": {
+            "ATTACK_ORDER": {
+              "sources": [
+                "video"
+              ],
+              "state": "forecast_missing"
+            },
+            "BELL": {
+              "sources": [],
+              "state": "forecast_missing"
+            },
+            "FINAL_BACK": {
+              "sources": [
+                "official"
+              ],
+              "state": "forecast_missing"
+            },
+            "FINAL_HOME": {
+              "sources": [
+                "official"
+              ],
+              "state": "forecast_missing"
+            },
+            "FOURTH_CORNER": {
+              "sources": [],
+              "state": "forecast_missing"
+            },
+            "INITIAL": {
+              "observed": [
+                5,
+                3,
+                4,
+                6,
+                1,
+                2,
+                7
+              ],
+              "predicted": [
+                2
+              ],
+              "sources": [
+                "user"
+              ],
+              "state": "different"
+            },
+            "INITIATIVE": {
+              "observed": 2,
+              "predicted": 4,
+              "sources": [
+                "video"
+              ],
+              "state": "different"
+            }
+          },
+          "counts": {
+            "different": 2,
+            "forecast_missing": 5
+          },
+          "state": "different"
+        },
+        "reference_grade": "B"
+      },
+      "finding_scope": "Published tickets and conversation flow scored separately; no original conversation forecast witness",
+      "observations": [
+        {
+          "aspect": "INITIAL",
+          "complete": true,
+          "observed": [
+            5,
+            3,
+            4,
+            6,
+            1,
+            2,
+            7
+          ],
+          "race_id": "202611252611",
+          "receipt": "202611252611/user-observation",
+          "source": "user"
+        },
+        {
+          "aspect": "INITIATIVE",
+          "complete": true,
+          "observed": 2,
+          "race_id": "202611252611",
+          "receipt": "202611252611/replay/before_bell_attack",
+          "source": "video"
+        },
+        {
+          "aspect": "FINAL_HOME",
+          "complete": false,
+          "observed": [
+            2
+          ],
+          "race_id": "202611252611",
+          "receipt": "202611252611/official-result",
+          "source": "official"
+        },
+        {
+          "aspect": "FINAL_BACK",
+          "complete": false,
+          "observed": [
+            2
+          ],
+          "race_id": "202611252611",
+          "receipt": "202611252611/official-result",
+          "source": "official"
+        },
+        {
+          "aspect": "ATTACK_ORDER",
+          "complete": false,
+          "observed": [
+            4,
+            1,
+            5
+          ],
+          "race_id": "202611252611",
+          "receipt": [
+            "202611252611/replay/back_straight_attack",
+            "202611252611/replay/solo_outer_advance",
+            "202611252611/replay/late_outer_pass"
+          ],
+          "source": "video"
+        }
+      ],
+      "observed_video_events": [
+        {
+          "description": "冒頭にペーサー後ろ⑤③、続いて④⑥、①②⑦は後方。競走開始から初周全体は未確認。",
+          "provenance": {
+            "evidence_id": "202611252611/replay/early_visible_order",
+            "relative_to_cutoff": "source_after_cutoff_verified",
+            "scope": "映像に入った時点の前方",
+            "source_timestamp": "2026-11-25T11:35:01.171361+00:00",
+            "source_type": "public_digest_direct_visual_review",
+            "unknown": [
+              "開始からの初周全体",
+              "後方の正確な並び"
+            ],
+            "verified_at": "2026-11-25T11:39:59.049638+00:00"
+          },
+          "range_seconds": [
+            6.9,
+            9.5
+          ],
+          "tag": "early_visible_order"
+        },
+        {
+          "attack_rider": 2,
+          "description": "打鐘前に②⑦が外を前進。先頭に出た②が⑦を連れる。",
+          "following_rider": 7,
+          "provenance": {
+            "evidence_id": "202611252611/replay/before_bell_attack",
+            "relative_to_cutoff": "source_after_cutoff_verified",
+            "scope": "打鐘前の②の前進と⑦の追走",
+            "source_timestamp": "2026-11-25T11:35:01.171361+00:00",
+            "source_type": "public_digest_direct_visual_review",
+            "unknown": [
+              "実レース時刻"
+            ],
+            "verified_at": "2026-11-25T11:39:59.049638+00:00"
+          },
+          "range_seconds": [
+            18.5,
+            28.7
+          ],
+          "tag": "before_bell_attack"
+        },
+        {
+          "order": [
+            2,
+            7,
+            4,
+            6,
+            1,
+            5,
+            3
+          ],
+          "provenance": {
+            "evidence_id": "202611252611/replay/mid_last_lap_visible_order",
+            "relative_to_cutoff": "source_after_cutoff_verified",
+            "scope": "一場面の車番順",
+            "source_timestamp": "2026-11-25T11:35:01.171361+00:00",
+            "source_type": "public_digest_direct_visual_review",
+            "unknown": [
+              "実レース時刻"
+            ],
+            "verified_at": "2026-11-25T11:39:59.049638+00:00"
+          },
+          "range_seconds": [
+            42.5,
+            42.5
+          ],
+          "tag": "mid_last_lap_visible_order"
+        },
+        {
+          "attack_rider": 4,
+          "description": "最終バック付近で④が外から進出し、⑥が続く。公式のBは②。横切った地点の厳密な同定は未確認。",
+          "following_rider": 6,
+          "provenance": {
+            "evidence_id": "202611252611/replay/back_straight_attack",
+            "relative_to_cutoff": "source_after_cutoff_verified",
+            "scope": "最終バック付近の④の進出と⑥の追走",
+            "source_timestamp": "2026-11-25T11:35:01.171361+00:00",
+            "source_type": "public_digest_direct_visual_review",
+            "unknown": [
+              "バック線に対する厳密な仕掛け位置"
+            ],
+            "verified_at": "2026-11-25T11:39:59.049638+00:00"
+          },
+          "range_seconds": [
+            47.3,
+            51.8
+          ],
+          "tag": "back_straight_attack"
+        },
+        {
+          "attack_rider": 1,
+          "description": "単騎①が④⑥の外を進出して④をかわす。",
+          "provenance": {
+            "evidence_id": "202611252611/replay/solo_outer_advance",
+            "relative_to_cutoff": "source_after_cutoff_verified",
+            "scope": "①の外からの進出",
+            "source_timestamp": "2026-11-25T11:35:01.171361+00:00",
+            "source_type": "public_digest_direct_visual_review",
+            "unknown": [
+              "実レース時刻"
+            ],
+            "verified_at": "2026-11-25T11:39:59.049638+00:00"
+          },
+          "range_seconds": [
+            52.4,
+            55.65
+          ],
+          "tag": "solo_outer_advance"
+        },
+        {
+          "attack_rider": 5,
+          "description": "⑤がさらに外から①をかわし、追走した③も①をかわす。",
+          "following_rider": 3,
+          "provenance": {
+            "evidence_id": "202611252611/replay/late_outer_pass",
+            "relative_to_cutoff": "source_after_cutoff_verified",
+            "scope": "⑤の外からの進出と③の追走",
+            "source_timestamp": "2026-11-25T11:35:01.171361+00:00",
+            "source_type": "public_digest_direct_visual_review",
+            "unknown": [
+              "実レース時刻"
+            ],
+            "verified_at": "2026-11-25T11:39:59.049638+00:00"
+          },
+          "range_seconds": [
+            56.3,
+            62
+          ],
+          "tag": "late_outer_pass"
+        }
+      ],
+      "official_digest": "0b9a5f6e33931d79dac8ec70342cd0eb85de5ca6977161fe7f8dc244439895d8",
+      "official_native_reparsed": true,
+      "official_order": [
+        5,
+        3,
+        1
+      ],
+      "official_payout_yen": 840,
+      "printed_method": "差し",
+      "public_ticket_assessment": {
+        "flow": {
+          "aspects": {
+            "ATTACK_ORDER": {
+              "sources": [
+                "video"
+              ],
+              "state": "forecast_missing"
+            },
+            "BELL": {
+              "sources": [],
+              "state": "forecast_missing"
+            },
+            "FINAL_BACK": {
+              "sources": [
+                "official"
+              ],
+              "state": "forecast_missing"
+            },
+            "FINAL_HOME": {
+              "sources": [
+                "official"
+              ],
+              "state": "forecast_missing"
+            },
+            "FOURTH_CORNER": {
+              "sources": [],
+              "state": "forecast_missing"
+            },
+            "INITIAL": {
+              "sources": [],
+              "state": "forecast_missing"
+            },
+            "INITIATIVE": {
+              "sources": [
+                "video"
+              ],
+              "state": "forecast_missing"
+            }
+          },
+          "counts": {
+            "forecast_missing": 7
+          },
+          "state": "insufficient",
+          "unverified_observations": 0
+        },
+        "grade": "E",
+        "placing": {
+          "first_hit": false,
+          "formal": true,
+          "hit": true,
+          "hit_rank": 2,
+          "matched_points": 1,
+          "points": 4
+        },
+        "race_id": "202611252611",
+        "reference_flow": null,
+        "reference_grade": null
+      },
+      "publication_git_commit": "48f9d7d93229b4c4b5a174fe4764eda61394a611",
+      "publication_sha256": "9edde4fb25909f0d2b1b1361379488b297e9bd03b690cdd7caca64d687c09745",
+      "published_asset_sha256": "2a62f3a6cf7f2a12d62b5b49b4d9a620db49309b0522814ed904c11c942e3d35",
+      "race_id": "202611252611",
+      "recorded_at": "2026-11-25T11:46:14.542603+00:00",
+      "roster_sha256": "c96f35a0c0a9e26c34a491d162674f40a47a2e5fd0ae19f4583c86653d6aeb31"
+    }
+  },
+  "official_receipt": {
+    "sha256": "9df9fe53a917fe0f87cdc0c8f56e27cc825eb6e0c18919ad2c43fcd5cb92a446",
+    "record": {
+      "diagnostic_providers": [
+        {
+          "provider": "Kdreams",
+          "sha256": "94919ae8dcd6c7ab93fcdde45e7a556b8cbdc7e4b53d165b3ffdf905d887bd6e"
+        },
+        {
+          "provider": "netkeirin",
+          "sha256": "f64d5dda9cd89181ff2eb117f61c85d7a2a9fa3bd56aa61fcab77c8f0a5b0348"
+        }
+      ],
+      "native_receipt_sha256": "4740ae56baa2db2700bce828c1464fd4ea0dd261bcf05616b7adbae7749c72ec",
+      "observation_at": "2026-11-25T11:33:24.838161+00:00",
+      "official_cutoff_at": "2026-11-25T20:12:00+09:00",
+      "official_payout_yen": 840,
+      "official_verified_order": [
+        5,
+        3,
+        1
+      ],
+      "race_id": "202611252611",
+      "registered_starters": 7,
+      "reparsed_from_saved_receipts": true,
+      "secondary_consensus": "SECONDARY_TWO_SOURCES_MATCH_NOT_OFFICIAL",
+      "source_sha256": "0b9a5f6e33931d79dac8ec70342cd0eb85de5ca6977161fe7f8dc244439895d8",
+      "state": "OFFICIAL_FINAL"
+    }
+  },
+  "owner_recovery": {
+    "sha256": "0d84034a619c13adc0ff0bf6500406c79429611a316e34c2f8e0bd2a1373822d",
+    "record": {
+      "audio_video_or_frame_copies_in_envelope": 0,
+      "case_audit_sha256": "bcbfb56ea40fcbecdd5fdd68433981c2766e127114fb9cd35d713eed37c31b57",
+      "local_owner_envelope_sha256": "c82af93f6809e87a8dc20e28536b7459ec29797202dfcccf36c020c93f3437ba",
+      "packed_sha256": "b1772bf84b944d082104c99550150428adee3e31018d980b890cc5a5f1b600fd",
+      "race_id": "202611252611",
+      "restored_files": 13,
+      "verified_at": "2026-11-25T11:40:15.356934+00:00"
+    }
+  },
+  "official_reparse_and_dual_score_recovery": {
+    "restored_files": 7,
+    "encrypted_sha256": "daf94f5c20ade6799154f1c4dfa80a09edf30cb90636e64f69b3275676ea4240",
+    "verified_at": "2026-11-25T11:49:11.794803+00:00",
+    "case_code_sha256": "2ea2ec4d92e58dd8175b4eb641fbd49e63bab36b7cddc8de4bf94691d94b4d94",
+    "retained_images_or_video": false
+  }
+}
