@@ -1,0 +1,28 @@
+{
+  "frozen_utc": "2026-11-25T07:20:37.429469+00:00",
+  "design": "00f03e65f0f19e2f4a4ed8435c474feaf9a80f406be2818ef26bc98884a810bf",
+  "inputs_script": "50dac0cefcc6e87edb271ca7eac9744af0fbbf985f5a165731e292f5ab6a8bc0",
+  "model": "3724c03b883ee649fc5e3571983fe766c19ae9349f8c611c6432f60ddd8f7bec",
+  "inputs": {
+    "timed-inputs.json": "3847b83427ee2082cca4a80cae2afad74f0e845586c9d017befe41afd251a7d4",
+    "historical-inputs.json": "638bcf7a718e414528a2148ecffc47f5833600314c921ce96a20156dfc6ccb51"
+  },
+  "payload_hashes": {
+    "coefficients.json": "cedc89cd2a9a07208b517f5e6bb886af1bd874c61bfa989086f041b4c89dcfdd",
+    "historical-predictions.json": "0ff0a5cffa1a51f09f7e67508efa044c709147a98035311bd24c46473b5b764a",
+    "recent-predictions.json": "7d90afcd2763642c9e2a2cc5ce64355351d312eb2d1e1f5d10995a52d8b1f81e",
+    "forward-predictions.json": "a32dbf3ec33aeee7134ad87ec51baa64dbc53d4b3ef32c55c4bdf7b16a711b69"
+  },
+  "train": 284,
+  "train_days": 72,
+  "test": 80,
+  "test_days": 52,
+  "recent": 119,
+  "recent_by_day": {
+    "20261121": 37,
+    "20261123": 82
+  },
+  "fwd": 40,
+  "fwd_changed": 19,
+  "audit": {}
+}
