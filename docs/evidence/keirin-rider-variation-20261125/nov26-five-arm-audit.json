@@ -1,0 +1,1298 @@
+{
+  "schema": "KEIRIN_84_JOINT_SCORING_AUDIT_V1",
+  "date": "2026-11-26",
+  "generated_at": "2026-11-25T13:07:34.785602+00:00",
+  "registered": 84,
+  "common_eligible": 84,
+  "matched": 0,
+  "mode": "registration_only",
+  "result_input_files_read": 0,
+  "status": "AWAITING_PUBLIC_ROSTER_AND_RESULTS",
+  "binding": {
+    "early": [
+      {
+        "method": "early_existing_static",
+        "git_commit": "293d048b0eacff16eae937c764120babb9811a9c",
+        "commit_time": "2026-11-25T10:34:51+00:00",
+        "frozen_at": "2026-11-25T10:33:57.303985+00:00",
+        "forecast_sha256": "4dfd19466281f226481e7232190bdf4b0a3aa816c5946c665eea7c8ee0658f9b",
+        "receipt_sha256": "747a77f505465065d5f9b57405e6911c748ed7ad005dfbff7e2e05bf8b451570",
+        "protocol_sha256": "65f032b62eaabe9b64511076b8f24a2fa998bfa25b779663ea29fa0b7c528c04"
+      },
+      {
+        "method": "existing_published_line",
+        "git_commit": "3d6248b67e2012e9c8683520c65a8401531ae844",
+        "commit_time": "2026-11-25T10:37:33+00:00",
+        "frozen_at": "2026-11-25T10:36:51.869283+00:00",
+        "forecast_sha256": "75f82d0553e28fc73bca8ded4989cd604b8b0facd8d209648b862fd9abe48c86",
+        "receipt_sha256": "046b18e42c7d398a533f4ae1972eef8cf243117389814cc1163dbff524a2ef78",
+        "protocol_sha256": "1c1608344a5f39c63968ee0233021cbe58e1fc89fff8b07c529a4f8756f11381"
+      },
+      {
+        "method": "existing_phase_h_unavailable",
+        "git_commit": "3821b3556a156940b709877ad88ef3a062a83c69",
+        "commit_time": "2026-11-25T10:39:55+00:00",
+        "frozen_at": "2026-11-25T10:39:39.111087+00:00",
+        "forecast_sha256": "7e3fd286a9459f8e15b5cf9315512ca0b2893598133c0b4b58e0e0c578c613fd",
+        "receipt_sha256": "19dcc7b6286c337f18b7eab4498850b5974f33051d896d4aedb0e000d504a8c2",
+        "protocol_sha256": "5ee114e9b92a7b521488de8943fa412ed3450b45056bccffa5d55dd19ab2d81e"
+      }
+    ],
+    "matsuyama": {
+      "method": "matsuyama_static_with_documented_advanced_fallback",
+      "frozen_at": "2026-11-25T12:25:17.671023+00:00",
+      "readback_at": "2026-11-25T12:25:17.675294+00:00",
+      "archive_verified_at": "2026-11-25T12:25:51.690706+00:00",
+      "witness": "owner-encrypted originals, verified source-derived programme and local clock",
+      "forecast_sha256": "91061a80a9cebf968b41c9b049eee244b324ff1549488491c02fd821ea0c3f17",
+      "comparison_sha256": "43bf9eee7cdf343f9ea4fc2530ed7e81e27edafadfb22522fe6f730059b10378",
+      "receipt_sha256": "eed4e7080e567568de31acc077d4c6edb39567e9c97917f1d6fa91de231a08ad",
+      "encrypted_archive_sha256": "a0fb3d3e43399c3ef57b8518611c15e08371316051c7f91b296e7dd1aabe562e",
+      "independent_source_scope_sha256": "35578e7236dedef32af8a148dbd5b8ff3fafc2a286c9be9c8b5b72c3f2273a7c"
+    },
+    "pair": {
+      "sha256": "d88eead255f8f15c60bd35fc402d0504220102d58f5e2db43044476d453a6040",
+      "proof_sha256": "72c9f75d02240889ff1db935f94640b4789d2b9b648cbeeb0fce1d9e304dcf99",
+      "git": "0da79e6ee41ea92a54d2c3d1213e77af60cb7580",
+      "witnessed_at": "2026-11-25T12:38:46+00:00",
+      "changed_by_cap": {
+        "1": 3,
+        "4": 6,
+        "8": 22
+      }
+    },
+    "variation": {
+      "sha256": "ec602cfa08a6141c3c520680f5f5d8a29c1ba88ee6ad15773b9e391fc333600e",
+      "proof_sha256": "4970aea33e9baf067d5be486886eb38f549352702a9ea146e91514efe0356310",
+      "git": "6b9e34e3c6978ac10af6b9e2a1d94e7ad1a9b5af",
+      "witnessed_at": "2026-11-25T12:56:48+00:00",
+      "changed_by_cap": {
+        "1": 1,
+        "4": 8,
+        "8": 24
+      }
+    },
+    "all_scope_sha256": "58dde634aea88eec3ac1054c493ca7abdae256394dbc10c013ff24c4b41a93b6",
+    "line_groups_usable": 61,
+    "line_groups_unclassified": 23,
+    "line_groups_sha256": "ffbd047a66e00da6c408d80dc231934cb87dba78114d31654ad835bad69cb5cf",
+    "conservative_cutoff_source_lead_minutes": {
+      "min": 793.85,
+      "median": 1201.8,
+      "max": 1672.87,
+      "at_T15_to_T10": 0
+    },
+    "conservative_cutoff_latest_witness_lead_minutes": {
+      "min": 648.2,
+      "median": 1083.2,
+      "max": 1528.2,
+      "at_T15_to_T10": 0
+    }
+  },
+  "evidence_boundary": "Published result rosters identify starter car numbers only. Original advance source programmes bind riders by official IDs.",
+  "all_caps": {
+    "early_existing_static__vs__existing_published_line": {
+      "1": {
+        "changed_registered": 44,
+        "changed_scored": 0,
+        "baseline_hits": 0,
+        "challenger_hits": 0,
+        "gained": 0,
+        "lost": 0,
+        "scored": 0,
+        "tickets_per_arm": 0,
+        "baseline_hit_pct": null,
+        "challenger_hit_pct": null,
+        "baseline_correct_first_two": 0,
+        "challenger_correct_first_two": 0,
+        "baseline_wilson_95_pct": null,
+        "challenger_wilson_95_pct": null,
+        "paired_delta_pp": null,
+        "misses_by_first_failed_position": {
+          "baseline": {},
+          "challenger": {}
+        },
+        "target_95_hits_on_matched": null,
+        "gap_to_95_hits_on_matched": null,
+        "both_hit": 0,
+        "both_missed": 0
+      },
+      "4": {
+        "changed_registered": 66,
+        "changed_scored": 0,
+        "baseline_hits": 0,
+        "challenger_hits": 0,
+        "gained": 0,
+        "lost": 0,
+        "scored": 0,
+        "tickets_per_arm": 0,
+        "baseline_hit_pct": null,
+        "challenger_hit_pct": null,
+        "baseline_correct_first_two": 0,
+        "challenger_correct_first_two": 0,
+        "baseline_wilson_95_pct": null,
+        "challenger_wilson_95_pct": null,
+        "paired_delta_pp": null,
+        "misses_by_first_failed_position": {
+          "baseline": {},
+          "challenger": {}
+        },
+        "target_95_hits_on_matched": null,
+        "gap_to_95_hits_on_matched": null,
+        "both_hit": 0,
+        "both_missed": 0
+      },
+      "8": {
+        "changed_registered": 68,
+        "changed_scored": 0,
+        "baseline_hits": 0,
+        "challenger_hits": 0,
+        "gained": 0,
+        "lost": 0,
+        "scored": 0,
+        "tickets_per_arm": 0,
+        "baseline_hit_pct": null,
+        "challenger_hit_pct": null,
+        "baseline_correct_first_two": 0,
+        "challenger_correct_first_two": 0,
+        "baseline_wilson_95_pct": null,
+        "challenger_wilson_95_pct": null,
+        "paired_delta_pp": null,
+        "misses_by_first_failed_position": {
+          "baseline": {},
+          "challenger": {}
+        },
+        "target_95_hits_on_matched": null,
+        "gap_to_95_hits_on_matched": null,
+        "both_hit": 0,
+        "both_missed": 0
+      }
+    },
+    "early_existing_static__vs__existing_phase_h_unavailable": {
+      "1": {
+        "changed_registered": 54,
+        "changed_scored": 0,
+        "baseline_hits": 0,
+        "challenger_hits": 0,
+        "gained": 0,
+        "lost": 0,
+        "scored": 0,
+        "tickets_per_arm": 0,
+        "baseline_hit_pct": null,
+        "challenger_hit_pct": null,
+        "baseline_correct_first_two": 0,
+        "challenger_correct_first_two": 0,
+        "baseline_wilson_95_pct": null,
+        "challenger_wilson_95_pct": null,
+        "paired_delta_pp": null,
+        "misses_by_first_failed_position": {
+          "baseline": {},
+          "challenger": {}
+        },
+        "target_95_hits_on_matched": null,
+        "gap_to_95_hits_on_matched": null,
+        "both_hit": 0,
+        "both_missed": 0
+      },
+      "4": {
+        "changed_registered": 65,
+        "changed_scored": 0,
+        "baseline_hits": 0,
+        "challenger_hits": 0,
+        "gained": 0,
+        "lost": 0,
+        "scored": 0,
+        "tickets_per_arm": 0,
+        "baseline_hit_pct": null,
+        "challenger_hit_pct": null,
+        "baseline_correct_first_two": 0,
+        "challenger_correct_first_two": 0,
+        "baseline_wilson_95_pct": null,
+        "challenger_wilson_95_pct": null,
+        "paired_delta_pp": null,
+        "misses_by_first_failed_position": {
+          "baseline": {},
+          "challenger": {}
+        },
+        "target_95_hits_on_matched": null,
+        "gap_to_95_hits_on_matched": null,
+        "both_hit": 0,
+        "both_missed": 0
+      },
+      "8": {
+        "changed_registered": 67,
+        "changed_scored": 0,
+        "baseline_hits": 0,
+        "challenger_hits": 0,
+        "gained": 0,
+        "lost": 0,
+        "scored": 0,
+        "tickets_per_arm": 0,
+        "baseline_hit_pct": null,
+        "challenger_hit_pct": null,
+        "baseline_correct_first_two": 0,
+        "challenger_correct_first_two": 0,
+        "baseline_wilson_95_pct": null,
+        "challenger_wilson_95_pct": null,
+        "paired_delta_pp": null,
+        "misses_by_first_failed_position": {
+          "baseline": {},
+          "challenger": {}
+        },
+        "target_95_hits_on_matched": null,
+        "gap_to_95_hits_on_matched": null,
+        "both_hit": 0,
+        "both_missed": 0
+      }
+    },
+    "existing_phase_h_unavailable__vs__fixed_rider_marginal_pair_structure": {
+      "1": {
+        "changed_registered": 3,
+        "changed_scored": 0,
+        "baseline_hits": 0,
+        "challenger_hits": 0,
+        "gained": 0,
+        "lost": 0,
+        "scored": 0,
+        "tickets_per_arm": 0,
+        "baseline_hit_pct": null,
+        "challenger_hit_pct": null,
+        "baseline_correct_first_two": 0,
+        "challenger_correct_first_two": 0,
+        "baseline_wilson_95_pct": null,
+        "challenger_wilson_95_pct": null,
+        "paired_delta_pp": null,
+        "misses_by_first_failed_position": {
+          "baseline": {},
+          "challenger": {}
+        },
+        "target_95_hits_on_matched": null,
+        "gap_to_95_hits_on_matched": null,
+        "both_hit": 0,
+        "both_missed": 0
+      },
+      "4": {
+        "changed_registered": 6,
+        "changed_scored": 0,
+        "baseline_hits": 0,
+        "challenger_hits": 0,
+        "gained": 0,
+        "lost": 0,
+        "scored": 0,
+        "tickets_per_arm": 0,
+        "baseline_hit_pct": null,
+        "challenger_hit_pct": null,
+        "baseline_correct_first_two": 0,
+        "challenger_correct_first_two": 0,
+        "baseline_wilson_95_pct": null,
+        "challenger_wilson_95_pct": null,
+        "paired_delta_pp": null,
+        "misses_by_first_failed_position": {
+          "baseline": {},
+          "challenger": {}
+        },
+        "target_95_hits_on_matched": null,
+        "gap_to_95_hits_on_matched": null,
+        "both_hit": 0,
+        "both_missed": 0
+      },
+      "8": {
+        "changed_registered": 22,
+        "changed_scored": 0,
+        "baseline_hits": 0,
+        "challenger_hits": 0,
+        "gained": 0,
+        "lost": 0,
+        "scored": 0,
+        "tickets_per_arm": 0,
+        "baseline_hit_pct": null,
+        "challenger_hit_pct": null,
+        "baseline_correct_first_two": 0,
+        "challenger_correct_first_two": 0,
+        "baseline_wilson_95_pct": null,
+        "challenger_wilson_95_pct": null,
+        "paired_delta_pp": null,
+        "misses_by_first_failed_position": {
+          "baseline": {},
+          "challenger": {}
+        },
+        "target_95_hits_on_matched": null,
+        "gap_to_95_hits_on_matched": null,
+        "both_hit": 0,
+        "both_missed": 0
+      }
+    },
+    "existing_phase_h_unavailable__vs__historical_finish_variation_for_runner_up": {
+      "1": {
+        "changed_registered": 1,
+        "changed_scored": 0,
+        "baseline_hits": 0,
+        "challenger_hits": 0,
+        "gained": 0,
+        "lost": 0,
+        "scored": 0,
+        "tickets_per_arm": 0,
+        "baseline_hit_pct": null,
+        "challenger_hit_pct": null,
+        "baseline_correct_first_two": 0,
+        "challenger_correct_first_two": 0,
+        "baseline_wilson_95_pct": null,
+        "challenger_wilson_95_pct": null,
+        "paired_delta_pp": null,
+        "misses_by_first_failed_position": {
+          "baseline": {},
+          "challenger": {}
+        },
+        "target_95_hits_on_matched": null,
+        "gap_to_95_hits_on_matched": null,
+        "both_hit": 0,
+        "both_missed": 0
+      },
+      "4": {
+        "changed_registered": 8,
+        "changed_scored": 0,
+        "baseline_hits": 0,
+        "challenger_hits": 0,
+        "gained": 0,
+        "lost": 0,
+        "scored": 0,
+        "tickets_per_arm": 0,
+        "baseline_hit_pct": null,
+        "challenger_hit_pct": null,
+        "baseline_correct_first_two": 0,
+        "challenger_correct_first_two": 0,
+        "baseline_wilson_95_pct": null,
+        "challenger_wilson_95_pct": null,
+        "paired_delta_pp": null,
+        "misses_by_first_failed_position": {
+          "baseline": {},
+          "challenger": {}
+        },
+        "target_95_hits_on_matched": null,
+        "gap_to_95_hits_on_matched": null,
+        "both_hit": 0,
+        "both_missed": 0
+      },
+      "8": {
+        "changed_registered": 24,
+        "changed_scored": 0,
+        "baseline_hits": 0,
+        "challenger_hits": 0,
+        "gained": 0,
+        "lost": 0,
+        "scored": 0,
+        "tickets_per_arm": 0,
+        "baseline_hit_pct": null,
+        "challenger_hit_pct": null,
+        "baseline_correct_first_two": 0,
+        "challenger_correct_first_two": 0,
+        "baseline_wilson_95_pct": null,
+        "challenger_wilson_95_pct": null,
+        "paired_delta_pp": null,
+        "misses_by_first_failed_position": {
+          "baseline": {},
+          "challenger": {}
+        },
+        "target_95_hits_on_matched": null,
+        "gap_to_95_hits_on_matched": null,
+        "both_hit": 0,
+        "both_missed": 0
+      }
+    },
+    "fixed_rider_marginal_pair_structure__vs__historical_finish_variation_for_runner_up": {
+      "1": {
+        "changed_registered": 2,
+        "changed_scored": 0,
+        "baseline_hits": 0,
+        "challenger_hits": 0,
+        "gained": 0,
+        "lost": 0,
+        "scored": 0,
+        "tickets_per_arm": 0,
+        "baseline_hit_pct": null,
+        "challenger_hit_pct": null,
+        "baseline_correct_first_two": 0,
+        "challenger_correct_first_two": 0,
+        "baseline_wilson_95_pct": null,
+        "challenger_wilson_95_pct": null,
+        "paired_delta_pp": null,
+        "misses_by_first_failed_position": {
+          "baseline": {},
+          "challenger": {}
+        },
+        "target_95_hits_on_matched": null,
+        "gap_to_95_hits_on_matched": null,
+        "both_hit": 0,
+        "both_missed": 0
+      },
+      "4": {
+        "changed_registered": 5,
+        "changed_scored": 0,
+        "baseline_hits": 0,
+        "challenger_hits": 0,
+        "gained": 0,
+        "lost": 0,
+        "scored": 0,
+        "tickets_per_arm": 0,
+        "baseline_hit_pct": null,
+        "challenger_hit_pct": null,
+        "baseline_correct_first_two": 0,
+        "challenger_correct_first_two": 0,
+        "baseline_wilson_95_pct": null,
+        "challenger_wilson_95_pct": null,
+        "paired_delta_pp": null,
+        "misses_by_first_failed_position": {
+          "baseline": {},
+          "challenger": {}
+        },
+        "target_95_hits_on_matched": null,
+        "gap_to_95_hits_on_matched": null,
+        "both_hit": 0,
+        "both_missed": 0
+      },
+      "8": {
+        "changed_registered": 14,
+        "changed_scored": 0,
+        "baseline_hits": 0,
+        "challenger_hits": 0,
+        "gained": 0,
+        "lost": 0,
+        "scored": 0,
+        "tickets_per_arm": 0,
+        "baseline_hit_pct": null,
+        "challenger_hit_pct": null,
+        "baseline_correct_first_two": 0,
+        "challenger_correct_first_two": 0,
+        "baseline_wilson_95_pct": null,
+        "challenger_wilson_95_pct": null,
+        "paired_delta_pp": null,
+        "misses_by_first_failed_position": {
+          "baseline": {},
+          "challenger": {}
+        },
+        "target_95_hits_on_matched": null,
+        "gap_to_95_hits_on_matched": null,
+        "both_hit": 0,
+        "both_missed": 0
+      }
+    }
+  },
+  "by_source_lock": {
+    "early_72": {
+      "early_existing_static__vs__existing_published_line": {
+        "1": {
+          "changed_registered": 44,
+          "changed_scored": 0,
+          "baseline_hits": 0,
+          "challenger_hits": 0,
+          "gained": 0,
+          "lost": 0,
+          "scored": 0,
+          "tickets_per_arm": 0,
+          "baseline_hit_pct": null,
+          "challenger_hit_pct": null,
+          "baseline_correct_first_two": 0,
+          "challenger_correct_first_two": 0,
+          "baseline_wilson_95_pct": null,
+          "challenger_wilson_95_pct": null,
+          "paired_delta_pp": null,
+          "misses_by_first_failed_position": {
+            "baseline": {},
+            "challenger": {}
+          },
+          "target_95_hits_on_matched": null,
+          "gap_to_95_hits_on_matched": null,
+          "both_hit": 0,
+          "both_missed": 0
+        },
+        "4": {
+          "changed_registered": 66,
+          "changed_scored": 0,
+          "baseline_hits": 0,
+          "challenger_hits": 0,
+          "gained": 0,
+          "lost": 0,
+          "scored": 0,
+          "tickets_per_arm": 0,
+          "baseline_hit_pct": null,
+          "challenger_hit_pct": null,
+          "baseline_correct_first_two": 0,
+          "challenger_correct_first_two": 0,
+          "baseline_wilson_95_pct": null,
+          "challenger_wilson_95_pct": null,
+          "paired_delta_pp": null,
+          "misses_by_first_failed_position": {
+            "baseline": {},
+            "challenger": {}
+          },
+          "target_95_hits_on_matched": null,
+          "gap_to_95_hits_on_matched": null,
+          "both_hit": 0,
+          "both_missed": 0
+        },
+        "8": {
+          "changed_registered": 68,
+          "changed_scored": 0,
+          "baseline_hits": 0,
+          "challenger_hits": 0,
+          "gained": 0,
+          "lost": 0,
+          "scored": 0,
+          "tickets_per_arm": 0,
+          "baseline_hit_pct": null,
+          "challenger_hit_pct": null,
+          "baseline_correct_first_two": 0,
+          "challenger_correct_first_two": 0,
+          "baseline_wilson_95_pct": null,
+          "challenger_wilson_95_pct": null,
+          "paired_delta_pp": null,
+          "misses_by_first_failed_position": {
+            "baseline": {},
+            "challenger": {}
+          },
+          "target_95_hits_on_matched": null,
+          "gap_to_95_hits_on_matched": null,
+          "both_hit": 0,
+          "both_missed": 0
+        }
+      },
+      "early_existing_static__vs__existing_phase_h_unavailable": {
+        "1": {
+          "changed_registered": 54,
+          "changed_scored": 0,
+          "baseline_hits": 0,
+          "challenger_hits": 0,
+          "gained": 0,
+          "lost": 0,
+          "scored": 0,
+          "tickets_per_arm": 0,
+          "baseline_hit_pct": null,
+          "challenger_hit_pct": null,
+          "baseline_correct_first_two": 0,
+          "challenger_correct_first_two": 0,
+          "baseline_wilson_95_pct": null,
+          "challenger_wilson_95_pct": null,
+          "paired_delta_pp": null,
+          "misses_by_first_failed_position": {
+            "baseline": {},
+            "challenger": {}
+          },
+          "target_95_hits_on_matched": null,
+          "gap_to_95_hits_on_matched": null,
+          "both_hit": 0,
+          "both_missed": 0
+        },
+        "4": {
+          "changed_registered": 65,
+          "changed_scored": 0,
+          "baseline_hits": 0,
+          "challenger_hits": 0,
+          "gained": 0,
+          "lost": 0,
+          "scored": 0,
+          "tickets_per_arm": 0,
+          "baseline_hit_pct": null,
+          "challenger_hit_pct": null,
+          "baseline_correct_first_two": 0,
+          "challenger_correct_first_two": 0,
+          "baseline_wilson_95_pct": null,
+          "challenger_wilson_95_pct": null,
+          "paired_delta_pp": null,
+          "misses_by_first_failed_position": {
+            "baseline": {},
+            "challenger": {}
+          },
+          "target_95_hits_on_matched": null,
+          "gap_to_95_hits_on_matched": null,
+          "both_hit": 0,
+          "both_missed": 0
+        },
+        "8": {
+          "changed_registered": 67,
+          "changed_scored": 0,
+          "baseline_hits": 0,
+          "challenger_hits": 0,
+          "gained": 0,
+          "lost": 0,
+          "scored": 0,
+          "tickets_per_arm": 0,
+          "baseline_hit_pct": null,
+          "challenger_hit_pct": null,
+          "baseline_correct_first_two": 0,
+          "challenger_correct_first_two": 0,
+          "baseline_wilson_95_pct": null,
+          "challenger_wilson_95_pct": null,
+          "paired_delta_pp": null,
+          "misses_by_first_failed_position": {
+            "baseline": {},
+            "challenger": {}
+          },
+          "target_95_hits_on_matched": null,
+          "gap_to_95_hits_on_matched": null,
+          "both_hit": 0,
+          "both_missed": 0
+        }
+      },
+      "existing_phase_h_unavailable__vs__fixed_rider_marginal_pair_structure": {
+        "1": {
+          "changed_registered": 3,
+          "changed_scored": 0,
+          "baseline_hits": 0,
+          "challenger_hits": 0,
+          "gained": 0,
+          "lost": 0,
+          "scored": 0,
+          "tickets_per_arm": 0,
+          "baseline_hit_pct": null,
+          "challenger_hit_pct": null,
+          "baseline_correct_first_two": 0,
+          "challenger_correct_first_two": 0,
+          "baseline_wilson_95_pct": null,
+          "challenger_wilson_95_pct": null,
+          "paired_delta_pp": null,
+          "misses_by_first_failed_position": {
+            "baseline": {},
+            "challenger": {}
+          },
+          "target_95_hits_on_matched": null,
+          "gap_to_95_hits_on_matched": null,
+          "both_hit": 0,
+          "both_missed": 0
+        },
+        "4": {
+          "changed_registered": 6,
+          "changed_scored": 0,
+          "baseline_hits": 0,
+          "challenger_hits": 0,
+          "gained": 0,
+          "lost": 0,
+          "scored": 0,
+          "tickets_per_arm": 0,
+          "baseline_hit_pct": null,
+          "challenger_hit_pct": null,
+          "baseline_correct_first_two": 0,
+          "challenger_correct_first_two": 0,
+          "baseline_wilson_95_pct": null,
+          "challenger_wilson_95_pct": null,
+          "paired_delta_pp": null,
+          "misses_by_first_failed_position": {
+            "baseline": {},
+            "challenger": {}
+          },
+          "target_95_hits_on_matched": null,
+          "gap_to_95_hits_on_matched": null,
+          "both_hit": 0,
+          "both_missed": 0
+        },
+        "8": {
+          "changed_registered": 22,
+          "changed_scored": 0,
+          "baseline_hits": 0,
+          "challenger_hits": 0,
+          "gained": 0,
+          "lost": 0,
+          "scored": 0,
+          "tickets_per_arm": 0,
+          "baseline_hit_pct": null,
+          "challenger_hit_pct": null,
+          "baseline_correct_first_two": 0,
+          "challenger_correct_first_two": 0,
+          "baseline_wilson_95_pct": null,
+          "challenger_wilson_95_pct": null,
+          "paired_delta_pp": null,
+          "misses_by_first_failed_position": {
+            "baseline": {},
+            "challenger": {}
+          },
+          "target_95_hits_on_matched": null,
+          "gap_to_95_hits_on_matched": null,
+          "both_hit": 0,
+          "both_missed": 0
+        }
+      },
+      "existing_phase_h_unavailable__vs__historical_finish_variation_for_runner_up": {
+        "1": {
+          "changed_registered": 1,
+          "changed_scored": 0,
+          "baseline_hits": 0,
+          "challenger_hits": 0,
+          "gained": 0,
+          "lost": 0,
+          "scored": 0,
+          "tickets_per_arm": 0,
+          "baseline_hit_pct": null,
+          "challenger_hit_pct": null,
+          "baseline_correct_first_two": 0,
+          "challenger_correct_first_two": 0,
+          "baseline_wilson_95_pct": null,
+          "challenger_wilson_95_pct": null,
+          "paired_delta_pp": null,
+          "misses_by_first_failed_position": {
+            "baseline": {},
+            "challenger": {}
+          },
+          "target_95_hits_on_matched": null,
+          "gap_to_95_hits_on_matched": null,
+          "both_hit": 0,
+          "both_missed": 0
+        },
+        "4": {
+          "changed_registered": 8,
+          "changed_scored": 0,
+          "baseline_hits": 0,
+          "challenger_hits": 0,
+          "gained": 0,
+          "lost": 0,
+          "scored": 0,
+          "tickets_per_arm": 0,
+          "baseline_hit_pct": null,
+          "challenger_hit_pct": null,
+          "baseline_correct_first_two": 0,
+          "challenger_correct_first_two": 0,
+          "baseline_wilson_95_pct": null,
+          "challenger_wilson_95_pct": null,
+          "paired_delta_pp": null,
+          "misses_by_first_failed_position": {
+            "baseline": {},
+            "challenger": {}
+          },
+          "target_95_hits_on_matched": null,
+          "gap_to_95_hits_on_matched": null,
+          "both_hit": 0,
+          "both_missed": 0
+        },
+        "8": {
+          "changed_registered": 24,
+          "changed_scored": 0,
+          "baseline_hits": 0,
+          "challenger_hits": 0,
+          "gained": 0,
+          "lost": 0,
+          "scored": 0,
+          "tickets_per_arm": 0,
+          "baseline_hit_pct": null,
+          "challenger_hit_pct": null,
+          "baseline_correct_first_two": 0,
+          "challenger_correct_first_two": 0,
+          "baseline_wilson_95_pct": null,
+          "challenger_wilson_95_pct": null,
+          "paired_delta_pp": null,
+          "misses_by_first_failed_position": {
+            "baseline": {},
+            "challenger": {}
+          },
+          "target_95_hits_on_matched": null,
+          "gap_to_95_hits_on_matched": null,
+          "both_hit": 0,
+          "both_missed": 0
+        }
+      },
+      "fixed_rider_marginal_pair_structure__vs__historical_finish_variation_for_runner_up": {
+        "1": {
+          "changed_registered": 2,
+          "changed_scored": 0,
+          "baseline_hits": 0,
+          "challenger_hits": 0,
+          "gained": 0,
+          "lost": 0,
+          "scored": 0,
+          "tickets_per_arm": 0,
+          "baseline_hit_pct": null,
+          "challenger_hit_pct": null,
+          "baseline_correct_first_two": 0,
+          "challenger_correct_first_two": 0,
+          "baseline_wilson_95_pct": null,
+          "challenger_wilson_95_pct": null,
+          "paired_delta_pp": null,
+          "misses_by_first_failed_position": {
+            "baseline": {},
+            "challenger": {}
+          },
+          "target_95_hits_on_matched": null,
+          "gap_to_95_hits_on_matched": null,
+          "both_hit": 0,
+          "both_missed": 0
+        },
+        "4": {
+          "changed_registered": 5,
+          "changed_scored": 0,
+          "baseline_hits": 0,
+          "challenger_hits": 0,
+          "gained": 0,
+          "lost": 0,
+          "scored": 0,
+          "tickets_per_arm": 0,
+          "baseline_hit_pct": null,
+          "challenger_hit_pct": null,
+          "baseline_correct_first_two": 0,
+          "challenger_correct_first_two": 0,
+          "baseline_wilson_95_pct": null,
+          "challenger_wilson_95_pct": null,
+          "paired_delta_pp": null,
+          "misses_by_first_failed_position": {
+            "baseline": {},
+            "challenger": {}
+          },
+          "target_95_hits_on_matched": null,
+          "gap_to_95_hits_on_matched": null,
+          "both_hit": 0,
+          "both_missed": 0
+        },
+        "8": {
+          "changed_registered": 14,
+          "changed_scored": 0,
+          "baseline_hits": 0,
+          "challenger_hits": 0,
+          "gained": 0,
+          "lost": 0,
+          "scored": 0,
+          "tickets_per_arm": 0,
+          "baseline_hit_pct": null,
+          "challenger_hit_pct": null,
+          "baseline_correct_first_two": 0,
+          "challenger_correct_first_two": 0,
+          "baseline_wilson_95_pct": null,
+          "challenger_wilson_95_pct": null,
+          "paired_delta_pp": null,
+          "misses_by_first_failed_position": {
+            "baseline": {},
+            "challenger": {}
+          },
+          "target_95_hits_on_matched": null,
+          "gap_to_95_hits_on_matched": null,
+          "both_hit": 0,
+          "both_missed": 0
+        }
+      }
+    },
+    "later_matsuyama_12": {
+      "early_existing_static__vs__existing_published_line": {
+        "1": {
+          "changed_registered": 0,
+          "changed_scored": 0,
+          "baseline_hits": 0,
+          "challenger_hits": 0,
+          "gained": 0,
+          "lost": 0,
+          "scored": 0,
+          "tickets_per_arm": 0,
+          "baseline_hit_pct": null,
+          "challenger_hit_pct": null,
+          "baseline_correct_first_two": 0,
+          "challenger_correct_first_two": 0,
+          "baseline_wilson_95_pct": null,
+          "challenger_wilson_95_pct": null,
+          "paired_delta_pp": null,
+          "misses_by_first_failed_position": {
+            "baseline": {},
+            "challenger": {}
+          },
+          "target_95_hits_on_matched": null,
+          "gap_to_95_hits_on_matched": null,
+          "both_hit": 0,
+          "both_missed": 0
+        },
+        "4": {
+          "changed_registered": 0,
+          "changed_scored": 0,
+          "baseline_hits": 0,
+          "challenger_hits": 0,
+          "gained": 0,
+          "lost": 0,
+          "scored": 0,
+          "tickets_per_arm": 0,
+          "baseline_hit_pct": null,
+          "challenger_hit_pct": null,
+          "baseline_correct_first_two": 0,
+          "challenger_correct_first_two": 0,
+          "baseline_wilson_95_pct": null,
+          "challenger_wilson_95_pct": null,
+          "paired_delta_pp": null,
+          "misses_by_first_failed_position": {
+            "baseline": {},
+            "challenger": {}
+          },
+          "target_95_hits_on_matched": null,
+          "gap_to_95_hits_on_matched": null,
+          "both_hit": 0,
+          "both_missed": 0
+        },
+        "8": {
+          "changed_registered": 0,
+          "changed_scored": 0,
+          "baseline_hits": 0,
+          "challenger_hits": 0,
+          "gained": 0,
+          "lost": 0,
+          "scored": 0,
+          "tickets_per_arm": 0,
+          "baseline_hit_pct": null,
+          "challenger_hit_pct": null,
+          "baseline_correct_first_two": 0,
+          "challenger_correct_first_two": 0,
+          "baseline_wilson_95_pct": null,
+          "challenger_wilson_95_pct": null,
+          "paired_delta_pp": null,
+          "misses_by_first_failed_position": {
+            "baseline": {},
+            "challenger": {}
+          },
+          "target_95_hits_on_matched": null,
+          "gap_to_95_hits_on_matched": null,
+          "both_hit": 0,
+          "both_missed": 0
+        }
+      },
+      "early_existing_static__vs__existing_phase_h_unavailable": {
+        "1": {
+          "changed_registered": 0,
+          "changed_scored": 0,
+          "baseline_hits": 0,
+          "challenger_hits": 0,
+          "gained": 0,
+          "lost": 0,
+          "scored": 0,
+          "tickets_per_arm": 0,
+          "baseline_hit_pct": null,
+          "challenger_hit_pct": null,
+          "baseline_correct_first_two": 0,
+          "challenger_correct_first_two": 0,
+          "baseline_wilson_95_pct": null,
+          "challenger_wilson_95_pct": null,
+          "paired_delta_pp": null,
+          "misses_by_first_failed_position": {
+            "baseline": {},
+            "challenger": {}
+          },
+          "target_95_hits_on_matched": null,
+          "gap_to_95_hits_on_matched": null,
+          "both_hit": 0,
+          "both_missed": 0
+        },
+        "4": {
+          "changed_registered": 0,
+          "changed_scored": 0,
+          "baseline_hits": 0,
+          "challenger_hits": 0,
+          "gained": 0,
+          "lost": 0,
+          "scored": 0,
+          "tickets_per_arm": 0,
+          "baseline_hit_pct": null,
+          "challenger_hit_pct": null,
+          "baseline_correct_first_two": 0,
+          "challenger_correct_first_two": 0,
+          "baseline_wilson_95_pct": null,
+          "challenger_wilson_95_pct": null,
+          "paired_delta_pp": null,
+          "misses_by_first_failed_position": {
+            "baseline": {},
+            "challenger": {}
+          },
+          "target_95_hits_on_matched": null,
+          "gap_to_95_hits_on_matched": null,
+          "both_hit": 0,
+          "both_missed": 0
+        },
+        "8": {
+          "changed_registered": 0,
+          "changed_scored": 0,
+          "baseline_hits": 0,
+          "challenger_hits": 0,
+          "gained": 0,
+          "lost": 0,
+          "scored": 0,
+          "tickets_per_arm": 0,
+          "baseline_hit_pct": null,
+          "challenger_hit_pct": null,
+          "baseline_correct_first_two": 0,
+          "challenger_correct_first_two": 0,
+          "baseline_wilson_95_pct": null,
+          "challenger_wilson_95_pct": null,
+          "paired_delta_pp": null,
+          "misses_by_first_failed_position": {
+            "baseline": {},
+            "challenger": {}
+          },
+          "target_95_hits_on_matched": null,
+          "gap_to_95_hits_on_matched": null,
+          "both_hit": 0,
+          "both_missed": 0
+        }
+      },
+      "existing_phase_h_unavailable__vs__fixed_rider_marginal_pair_structure": {
+        "1": {
+          "changed_registered": 0,
+          "changed_scored": 0,
+          "baseline_hits": 0,
+          "challenger_hits": 0,
+          "gained": 0,
+          "lost": 0,
+          "scored": 0,
+          "tickets_per_arm": 0,
+          "baseline_hit_pct": null,
+          "challenger_hit_pct": null,
+          "baseline_correct_first_two": 0,
+          "challenger_correct_first_two": 0,
+          "baseline_wilson_95_pct": null,
+          "challenger_wilson_95_pct": null,
+          "paired_delta_pp": null,
+          "misses_by_first_failed_position": {
+            "baseline": {},
+            "challenger": {}
+          },
+          "target_95_hits_on_matched": null,
+          "gap_to_95_hits_on_matched": null,
+          "both_hit": 0,
+          "both_missed": 0
+        },
+        "4": {
+          "changed_registered": 0,
+          "changed_scored": 0,
+          "baseline_hits": 0,
+          "challenger_hits": 0,
+          "gained": 0,
+          "lost": 0,
+          "scored": 0,
+          "tickets_per_arm": 0,
+          "baseline_hit_pct": null,
+          "challenger_hit_pct": null,
+          "baseline_correct_first_two": 0,
+          "challenger_correct_first_two": 0,
+          "baseline_wilson_95_pct": null,
+          "challenger_wilson_95_pct": null,
+          "paired_delta_pp": null,
+          "misses_by_first_failed_position": {
+            "baseline": {},
+            "challenger": {}
+          },
+          "target_95_hits_on_matched": null,
+          "gap_to_95_hits_on_matched": null,
+          "both_hit": 0,
+          "both_missed": 0
+        },
+        "8": {
+          "changed_registered": 0,
+          "changed_scored": 0,
+          "baseline_hits": 0,
+          "challenger_hits": 0,
+          "gained": 0,
+          "lost": 0,
+          "scored": 0,
+          "tickets_per_arm": 0,
+          "baseline_hit_pct": null,
+          "challenger_hit_pct": null,
+          "baseline_correct_first_two": 0,
+          "challenger_correct_first_two": 0,
+          "baseline_wilson_95_pct": null,
+          "challenger_wilson_95_pct": null,
+          "paired_delta_pp": null,
+          "misses_by_first_failed_position": {
+            "baseline": {},
+            "challenger": {}
+          },
+          "target_95_hits_on_matched": null,
+          "gap_to_95_hits_on_matched": null,
+          "both_hit": 0,
+          "both_missed": 0
+        }
+      },
+      "existing_phase_h_unavailable__vs__historical_finish_variation_for_runner_up": {
+        "1": {
+          "changed_registered": 0,
+          "changed_scored": 0,
+          "baseline_hits": 0,
+          "challenger_hits": 0,
+          "gained": 0,
+          "lost": 0,
+          "scored": 0,
+          "tickets_per_arm": 0,
+          "baseline_hit_pct": null,
+          "challenger_hit_pct": null,
+          "baseline_correct_first_two": 0,
+          "challenger_correct_first_two": 0,
+          "baseline_wilson_95_pct": null,
+          "challenger_wilson_95_pct": null,
+          "paired_delta_pp": null,
+          "misses_by_first_failed_position": {
+            "baseline": {},
+            "challenger": {}
+          },
+          "target_95_hits_on_matched": null,
+          "gap_to_95_hits_on_matched": null,
+          "both_hit": 0,
+          "both_missed": 0
+        },
+        "4": {
+          "changed_registered": 0,
+          "changed_scored": 0,
+          "baseline_hits": 0,
+          "challenger_hits": 0,
+          "gained": 0,
+          "lost": 0,
+          "scored": 0,
+          "tickets_per_arm": 0,
+          "baseline_hit_pct": null,
+          "challenger_hit_pct": null,
+          "baseline_correct_first_two": 0,
+          "challenger_correct_first_two": 0,
+          "baseline_wilson_95_pct": null,
+          "challenger_wilson_95_pct": null,
+          "paired_delta_pp": null,
+          "misses_by_first_failed_position": {
+            "baseline": {},
+            "challenger": {}
+          },
+          "target_95_hits_on_matched": null,
+          "gap_to_95_hits_on_matched": null,
+          "both_hit": 0,
+          "both_missed": 0
+        },
+        "8": {
+          "changed_registered": 0,
+          "changed_scored": 0,
+          "baseline_hits": 0,
+          "challenger_hits": 0,
+          "gained": 0,
+          "lost": 0,
+          "scored": 0,
+          "tickets_per_arm": 0,
+          "baseline_hit_pct": null,
+          "challenger_hit_pct": null,
+          "baseline_correct_first_two": 0,
+          "challenger_correct_first_two": 0,
+          "baseline_wilson_95_pct": null,
+          "challenger_wilson_95_pct": null,
+          "paired_delta_pp": null,
+          "misses_by_first_failed_position": {
+            "baseline": {},
+            "challenger": {}
+          },
+          "target_95_hits_on_matched": null,
+          "gap_to_95_hits_on_matched": null,
+          "both_hit": 0,
+          "both_missed": 0
+        }
+      },
+      "fixed_rider_marginal_pair_structure__vs__historical_finish_variation_for_runner_up": {
+        "1": {
+          "changed_registered": 0,
+          "changed_scored": 0,
+          "baseline_hits": 0,
+          "challenger_hits": 0,
+          "gained": 0,
+          "lost": 0,
+          "scored": 0,
+          "tickets_per_arm": 0,
+          "baseline_hit_pct": null,
+          "challenger_hit_pct": null,
+          "baseline_correct_first_two": 0,
+          "challenger_correct_first_two": 0,
+          "baseline_wilson_95_pct": null,
+          "challenger_wilson_95_pct": null,
+          "paired_delta_pp": null,
+          "misses_by_first_failed_position": {
+            "baseline": {},
+            "challenger": {}
+          },
+          "target_95_hits_on_matched": null,
+          "gap_to_95_hits_on_matched": null,
+          "both_hit": 0,
+          "both_missed": 0
+        },
+        "4": {
+          "changed_registered": 0,
+          "changed_scored": 0,
+          "baseline_hits": 0,
+          "challenger_hits": 0,
+          "gained": 0,
+          "lost": 0,
+          "scored": 0,
+          "tickets_per_arm": 0,
+          "baseline_hit_pct": null,
+          "challenger_hit_pct": null,
+          "baseline_correct_first_two": 0,
+          "challenger_correct_first_two": 0,
+          "baseline_wilson_95_pct": null,
+          "challenger_wilson_95_pct": null,
+          "paired_delta_pp": null,
+          "misses_by_first_failed_position": {
+            "baseline": {},
+            "challenger": {}
+          },
+          "target_95_hits_on_matched": null,
+          "gap_to_95_hits_on_matched": null,
+          "both_hit": 0,
+          "both_missed": 0
+        },
+        "8": {
+          "changed_registered": 0,
+          "changed_scored": 0,
+          "baseline_hits": 0,
+          "challenger_hits": 0,
+          "gained": 0,
+          "lost": 0,
+          "scored": 0,
+          "tickets_per_arm": 0,
+          "baseline_hit_pct": null,
+          "challenger_hit_pct": null,
+          "baseline_correct_first_two": 0,
+          "challenger_correct_first_two": 0,
+          "baseline_wilson_95_pct": null,
+          "challenger_wilson_95_pct": null,
+          "paired_delta_pp": null,
+          "misses_by_first_failed_position": {
+            "baseline": {},
+            "challenger": {}
+          },
+          "target_95_hits_on_matched": null,
+          "gap_to_95_hits_on_matched": null,
+          "both_hit": 0,
+          "both_missed": 0
+        }
+      }
+    }
+  },
+  "usable_frozen_line": {
+    "registered": 61,
+    "matched": 0
+  },
+  "realized_first_two_line_counts": {
+    "same_listed_line": 0,
+    "different_listed_line": 0,
+    "line_unclassified": 0
+  },
+  "by_realized_first_two_line": {},
+  "near_cutoff_contract": {
+    "current_84_is_entirely_advance": true,
+    "current_84_authenticated_T15_to_T10": 0,
+    "choose_before_outcomes": "Use exactly one separately authorized frozen observation and one predeclared non-market baseline per race.",
+    "clock": "Bind both provider observation and local acquisition to T-15..T-10 relative to contemporaneous verified cutoff, and freeze before earliest official or public cutoff.",
+    "comparison": "Report old and short-lead scores on the same independently matched unchanged-starter subset; preserve unmatched or unregistered counts.",
+    "line": "Use advance listed-line breakdown for early-versus-short-lead contrast. Record late lineup change separately before results.",
+    "change": "Any change in official starter identity requires a new like-for-like arm or exclusion from the old-vs-short-lead comparison. Do not substitute later tickets for earlier locked forecasts."
+  },
+  "synthetic_fixtures": {
+    "source": "synthetic-only, no race outcomes read",
+    "common_eligible": 82,
+    "matched": 2,
+    "excluded": {
+      "eligibility_witness_at_or_after_earliest_cutoff": 1,
+      "public_starter_car_numbers_changed": 1
+    },
+    "holds": {
+      "special_result": 1,
+      "source_disagreement": 1
+    },
+    "realized": {
+      "same_listed_line": 1,
+      "different_listed_line": 1,
+      "line_unclassified": 0
+    },
+    "cap8_phase_pair_gain_loss": [
+      1,
+      1
+    ]
+  },
+  "scorer_sha256": "49726e86826a619c30bb19a732d9d51047085959d0eae5394355ed655b8c76aa"
+}

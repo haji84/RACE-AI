@@ -62,7 +62,9 @@ def profile_episodes(episodes, *, registration, as_of, target_race_id, verify):
 
     The caller verifies the registration-to-starter binding, the source and the
     opportunity semantics defined by ``ABILITIES``. For side-specific finishes
-    the verification includes the independently confirmed result. Episode ids
+    the verification includes the independently confirmed result. Each side's
+    finish distribution counts an observed race once. A rider who occupied
+    both sides in separate contests appears once in each distribution. Episode ids
     identify the same opportunity across source revisions. A verified capture
     establishes when material was available even if no publication time was reported.
     """
@@ -98,16 +100,20 @@ def profile_episodes(episodes, *, registration, as_of, target_race_id, verify):
     counts = {ability: Counter(observed_opportunities=0, conflicts=0) for ability in ABILITIES}
     side_counts = {side: Counter(observed_opportunities=0, conflicts=0) for side in ('inside','outside')}
     finishes = defaultdict(Counter)
-    for (ability, _, _), values in available.items():
+    side_races = defaultdict(set)
+    race_finishes = defaultdict(set)
+    for (ability, race_id, _), values in available.items():
         counts[ability]['observed_opportunities'] += 1
         if ability == 'inside_outside':
+            outcomes = {finish for _, finish in values if finish is not None}
+            race_finishes[race_id].update(outcomes)
             sides = {side for side, _ in values}
             if len(sides) != 1:
                 counts[ability]['conflicts'] += 1
                 continue
             side, = sides
             side_counts[side]['observed_opportunities'] += 1
-            outcomes = {finish for _,finish in values if finish is not None}
+            side_races[side].add(race_id)
             if len(outcomes)>1:
                 side_counts[side]['conflicts'] += 1
                 counts[ability]['conflicts'] += 1
@@ -134,10 +140,18 @@ def profile_episodes(episodes, *, registration, as_of, target_race_id, verify):
             for side, sample in side_counts.items():
                 numbers = finishes[side]
                 known = sum(numbers.values())
+                ranks = [race_finishes[race_id] for race_id in side_races[side]]
+                race_counts = Counter(next(iter(rank)) for rank in ranks if len(rank) == 1)
+                known_races = sum(race_counts.values())
                 sides[side] = dict(sample, known_finishes=known,
                                    unknown_finishes=sample['observed_opportunities']-known,
                                    finish_counts={str(rank):count for rank,count in sorted(numbers.items())},
-                                   observed_win_rate=numbers[1]/known if known else None)
+                                   observed_win_rate=numbers[1]/known if known else None,
+                                   observed_races=len(ranks), races_with_confirmed_finish=known_races,
+                                   races_with_unresolved_finish=len(ranks)-known_races,
+                                   races_with_conflicting_finish=sum(len(rank) > 1 for rank in ranks),
+                                   race_finish_counts={str(rank): count for rank, count in sorted(race_counts.items())},
+                                   observed_race_win_rate=race_counts[1]/known_races if known_races else None)
             abilities[ability] = dict(group, sides=sides)
         else:
             abilities[ability] = _sample(group, group['success'], group['success']+group['failure'])

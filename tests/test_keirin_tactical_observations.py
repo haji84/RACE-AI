@@ -71,6 +71,45 @@ class TacticalObservationsTest(unittest.TestCase):
         self.assertEqual(sides['outside']['known_finishes'],1)
         self.assertEqual(sides['outside']['unknown_finishes'],1)
 
+    def test_multiple_duels_in_one_race_do_not_repeat_its_finish(self):
+        profile = collect(
+            event('a', 'inside_outside', side='outside', finish=1),
+            event('b', 'inside_outside', side='outside', finish=1),
+            event('c', 'inside_outside', side='outside', finish=None),
+            dict(event('d', 'inside_outside', side='outside', finish=3), race_id='202611212611'),
+        )
+        outside = profile['abilities']['inside_outside']['sides']['outside']
+        self.assertEqual(outside['observed_opportunities'], 4)
+        self.assertEqual(outside['observed_races'], 2)
+        self.assertEqual(outside['races_with_confirmed_finish'], 2)
+        self.assertEqual(outside['race_finish_counts'], {'1': 1, '3': 1})
+        self.assertEqual(outside['observed_race_win_rate'], 0.5)
+
+    def test_conflicting_finishes_in_the_same_race_are_not_counted_in_either_side(self):
+        profile = collect(
+            event('a', 'inside_outside', side='inside', finish=1),
+            event('b', 'inside_outside', side='outside', finish=2),
+        )
+        sides = profile['abilities']['inside_outside']['sides']
+        for side in sides.values():
+            self.assertEqual(side['observed_races'], 1)
+            self.assertEqual(side['races_with_confirmed_finish'], 0)
+            self.assertEqual(side['races_with_unresolved_finish'], 1)
+            self.assertEqual(side['races_with_conflicting_finish'], 1)
+            self.assertIsNone(side['observed_race_win_rate'])
+
+    def test_side_disagreement_does_not_hide_conflicting_finish_evidence(self):
+        profile = collect(
+            event('a', 'inside_outside', side='inside', finish=2),
+            event('a', 'inside_outside', side='outside', finish=2),
+            event('b', 'inside_outside', side='outside', finish=1),
+        )
+        sides = profile['abilities']['inside_outside']['sides']
+        self.assertEqual(sides['inside']['observed_races'], 0)
+        self.assertEqual(sides['outside']['observed_races'], 1)
+        self.assertEqual(sides['outside']['races_with_conflicting_finish'], 1)
+        self.assertEqual(sides['outside']['race_finish_counts'], {})
+
     def test_a_verified_capture_is_a_latest_availability_bound_when_publish_time_is_absent(self):
         profile=collect(dict(event('capture','resist_makuri',outcome='failure'),published_at=None))
         self.assertEqual(profile['abilities']['resist_makuri']['observed_opportunities'],1)
