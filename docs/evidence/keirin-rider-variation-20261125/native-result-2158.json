@@ -1,0 +1,47 @@
+{
+  "schema": "KEIRIN_RIDER_STUDY_NATIVE_RESULT_CHECKPOINT_V1",
+  "workflow_url": "https://github.com/haji84/RACE-AI/actions/runs/45618814780",
+  "workflow_result": "success",
+  "result_state_commit": "01c927fc99c8eee1ebe3e003f090628a4610b5db",
+  "checked_at": "2026-11-25T12:58:16.014351+00:00",
+  "result_sha256": "7a18745d577fea1083ecb6fb4d8349317c629935c6115a4a7e9bca51e6572fdc",
+  "day_status": {
+    "roster": 75,
+    "matched": 63,
+    "held": 1,
+    "pending": 1,
+    "pre_cutoff": 10
+  },
+  "combined_published_dated_scores": {
+    "1": {
+      "hit_pct": 8.4507,
+      "hits": 12,
+      "matched": 142,
+      "wilson_95_pct": [
+        4.9001,
+        14.1901
+      ]
+    },
+    "4": {
+      "hit_pct": 26.0563,
+      "hits": 37,
+      "matched": 142,
+      "wilson_95_pct": [
+        19.5353,
+        33.8387
+      ]
+    },
+    "8": {
+      "hit_pct": 40.8451,
+      "hits": 58,
+      "matched": 142,
+      "wilson_95_pct": [
+        33.105,
+        49.0675
+      ]
+    }
+  },
+  "matched_days_count": 2,
+  "combined_eligible": 142,
+  "combined_roster": 156
+}
