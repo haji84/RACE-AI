@@ -108,8 +108,9 @@ class ResearchCohortTests(unittest.TestCase):
         self.assertEqual((before[1]['baseline_hits'],before[1]['challenger_hits'],before[1]['gained'],before[1]['lost']),
                          (1,1,1,1))
         self.assertEqual([before[cap]['tickets_per_arm'] for cap in (1,4,8)],[3,12,24])
-        self.assertEqual(before[1]['gap_to_95_hits'],2)
+        self.assertEqual(before[1]['gap_to_95_hits_on_matched'],2)
         self.assertEqual(value['eligible_matched_pct'],60.0)
+        self.assertEqual(value['public_roster_scored_pct'],50.0)
         self.assertEqual(before[1]['baseline_wilson_95_pct'],[6.1492,79.234])
         self.assertEqual(before[1]['paired_delta_pp'],0)
         for arm in ('baseline', 'challenger'):
@@ -170,6 +171,16 @@ class ResearchCohortTests(unittest.TestCase):
         self.inputs()
         with self.assertRaisesRegex(ValueError,'DISTINCT_RESULT_SOURCES_REQUIRED'):
             self.collect()
+
+    def test_empty_results_report_missing_coverage_without_a_hit_rate(self):
+        self.results['races'].clear()
+        self.inputs()
+        value = self.collect()
+        self.assertEqual(value['eligible_result_states'], {'missing': 5})
+        self.assertEqual(value['public_roster_scored_pct'], 0)
+        eight = value['comparisons']['existing_published_line'][8]
+        self.assertIsNone(eight['challenger_hit_pct'])
+        self.assertIsNone(eight['target_95_hits_on_matched'])
 
 
 if __name__ == '__main__':

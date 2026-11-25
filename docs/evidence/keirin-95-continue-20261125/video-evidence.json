@@ -540,5 +540,53 @@
     "git_commit": "a37b8c968de35834a036f5b8ef7b21d52dd1ce17",
     "original_sha256": "b943e59a8ad70eecac203e530ea1451b0c41c0c83508c8619209522a30b4ecdc",
     "second_changed": 3
+  },
+  "eight_independent_labels": {
+    "aggregate_sha256": "8b70aab8343df2bf2872698100d34a02825e355c588d0f3a8c2754fd16cd3000",
+    "actual_pair_conditional_third_logloss": [
+      1.4782326453701238,
+      1.6094379124341003
+    ],
+    "cases": 8,
+    "counts": {
+      "leader_hit_definite_1": 6,
+      "leader_hit_definite_4": 8,
+      "leader_hit_definite_8": 8,
+      "leader_labels": 8,
+      "pair_hit_definite_1": 3,
+      "pair_hit_definite_4": 3,
+      "pair_hit_definite_8": 4,
+      "pair_labels": 5,
+      "pair_possible_with_ties_1": 3,
+      "pair_possible_with_ties_4": 3,
+      "pair_possible_with_ties_8": 4,
+      "trio_hit_definite_1": 2,
+      "trio_hit_definite_4": 2,
+      "trio_hit_definite_8": 2,
+      "trio_labels": 4,
+      "trio_possible_with_ties_1": 2,
+      "trio_possible_with_ties_4": 2,
+      "trio_possible_with_ties_8": 2
+    },
+    "fixed_forecast_sha256": "ab0dfe49f0a02a8c8ed7dbb3a5aaf5587f1286881e02f68c77f943d9716b9e5d",
+    "how_to_read": "Earlier predictions fixed before review of these new phase labels, for already-raced past dates. A supplemental diagnostic conditions on actual 4C pair only after freezing; it is not a forecast score. Outcome of race is never used to label 4C.",
+    "ordinary_playable": 8,
+    "private_score_sha256": "1e940a8bc5622605ac7e02420ab59950bf742cdf101985d8b305996ce6f8e28d",
+    "replay_labels_sha256": "f4c63870e8b8d19af4da54af31ace1cfacdad1d32ba73c7a405ea4e00c913c44",
+    "scored_at": "2026-11-25T10:59:44.670102+00:00"
+  },
+  "eight_independent_encrypted_recovery": {
+    "aggregate_sha256": "508a56a1737e31523cb6f1a89e1a1768921f749b76f3d79b9fe82f3e7e7fd6b2",
+    "byte_exact_readback": true,
+    "encrypted_sha256": "68db4647454e4d468094a4aef912f7264572d10d4540ffdf265ae573053ecb48",
+    "files": 28,
+    "labels_sealed_at": "2026-11-25T10:59:44.166580+00:00",
+    "plan_sha256": "993e0e384ed90a77e66cd5c60cac6e8de9f6a418556db141c717612220a9c705",
+    "prediction_sealed_at": "2026-11-25T10:54:10.971956+00:00",
+    "predictions_sha256": "ab0dfe49f0a02a8c8ed7dbb3a5aaf5587f1286881e02f68c77f943d9716b9e5d",
+    "restored_at": "2026-11-25T11:00:22.222750+00:00",
+    "result_sha256": "8b70aab8343df2bf2872698100d34a02825e355c588d0f3a8c2754fd16cd3000",
+    "verified_labels_table_sha256": "f4c63870e8b8d19af4da54af31ace1cfacdad1d32ba73c7a405ea4e00c913c44",
+    "video_or_image_files_included": 0
   }
 }

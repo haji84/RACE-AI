@@ -159,7 +159,8 @@ def _compare(registered, settled, baseline, arm, cap):
                 challenger_wilson_95_pct=interval(counts['challenger_hits']),
                 paired_delta_pp=round(100 * (counts['gained'] - counts['lost']) / n, 4) if n else None,
                 misses_by_first_failed_position={name: dict(value) for name, value in misses.items()},
-                target_95_hits=target, gap_to_95_hits=max(0, target - counts['challenger_hits']) if n else None)
+                target_95_hits_on_matched=target,
+                gap_to_95_hits_on_matched=max(0, target - counts['challenger_hits']) if n else None)
 
 
 def collect(manifest, directory, read_commitment):
@@ -206,12 +207,15 @@ def collect(manifest, directory, read_commitment):
         else:
             eligible.add(key)
     settled = {key: winners[key] for key in eligible if key in winners}
+    public_count = len(entries)
     states = Counter(outcomes[key]['state'] if key in outcomes else 'missing' for key in eligible)
     hold_reasons = Counter(outcomes[key].get('reason', 'unspecified') for key in eligible
                            if key in outcomes and outcomes[key]['state'] == 'held')
-    return dict(report, status='PUBLIC_RESULTS_CHECKED', public_roster_races=len(entries),
+    return dict(report, status='PUBLIC_RESULTS_CHECKED', public_roster_races=public_count,
                 public_roster_not_registered=len(entries.keys() - race_ids), public_roster_confirmed=len(winners),
                 public_confirmed_not_in_comparison=len(winners) - len(settled),
+                public_roster_scored_pct=round(100 * len(settled) / public_count, 4),
+                public_roster_completeness='coverage measured against published roster; nationwide count unverified here',
                 eligible_common_races=len(eligible), eligible_result_states=dict(states), eligible_hold_reasons=dict(hold_reasons),
                 eligible_matched_pct=round(100 * len(settled) / len(eligible), 4) if eligible else None,
                 uncertainty='Wilson intervals describe individual race hits on this date',

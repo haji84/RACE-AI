@@ -243,9 +243,83 @@
       "listed": true,
       "observed_at": "2026-11-25T10:52:03.825274+00:00",
       "registry_sha256": "8c13d69e320a393fe1798ec8ee796e281c178cb281061fdf0e19a161b654fb77",
-      "state": "OFFICIAL_SCHEDULE_IDENTITY_MISMATCH"
+      "state": "OFFICIAL_SCHEDULE_IDENTITY_MISMATCH",
+      "published_message": "出走表は、まだ発表されておりません。"
     },
     "target": "2026-11-26",
     "venue": "松山"
+  },
+  "netkeirin_venue_card_recheck": {
+    "aggregate_sha256": "c4b29d48dbd45fe1570cec39825c15a307e02d78d60336a6db7dfe2cef3a7dba",
+    "states": {
+      "31": {
+        "observed_at": "2026-11-25T10:56:39.596446+00:00",
+        "sha256": "294a2ffe17f087581c50d27f3e78faf27502d69e9f36882cd1bdf8a8c7458929",
+        "state": "NETKEIRIN_COMPLETE_SOURCED_ENTRANTS_MISSING"
+      },
+      "38": {
+        "observed_at": "2026-11-25T10:56:40.436792+00:00",
+        "sha256": "84e36ae30283ae8f363ea386acefec7d2b1ad7bf7fc029420e12a6322b210a55",
+        "state": "NETKEIRIN_COMPLETE_SOURCED_ENTRANTS_MISSING"
+      },
+      "46": {
+        "observed_at": "2026-11-25T10:56:40.844966+00:00",
+        "sha256": "a591307a5a7a6995b62c0f4040b2990271798370d959be8729739f50b2d99025",
+        "state": "NETKEIRIN_COMPLETE_SOURCED_ENTRANTS_MISSING"
+      },
+      "47": {
+        "observed_at": "2026-11-25T10:56:41.615275+00:00",
+        "sha256": "917453aee6ab04bd81379d4332a727267c22852742b36ff841cd4ec7f0705e58",
+        "state": "NETKEIRIN_COMPLETE_SOURCED_ENTRANTS_MISSING"
+      },
+      "51": {
+        "observed_at": "2026-11-25T10:56:42.218605+00:00",
+        "sha256": "8e7e15d93051adb80755d20e9e0bd227e2d020dd88e2b0de012d09bbba5dabb5",
+        "state": "NETKEIRIN_COMPLETE_SOURCED_ENTRANTS_MISSING"
+      },
+      "73": {
+        "observed_at": "2026-11-25T10:56:42.651966+00:00",
+        "sha256": "9053dbb437aff29d809c1555c3cfad9c73ee925d55b3b8be78c6a90b2f6d37da",
+        "state": "NETKEIRIN_COMPLETE_SOURCED_ENTRANTS_MISSING"
+      },
+      "83": {
+        "observed_at": "2026-11-25T10:56:43.060238+00:00",
+        "sha256": "633cef08c99f014f578cade0586bb38bd55db4217a9d2b1e9bbbec23d7cacff1",
+        "state": "NETKEIRIN_COMPLETE_SOURCED_ENTRANTS_MISSING"
+      }
+    },
+    "target": "2026-11-26"
+  },
+  "matsuyama_after_previous_meeting_recheck": {
+    "checked_to_utc": "2026-11-25T11:07:56.270037+00:00",
+    "date": "2026-11-26",
+    "kdreams_calendar_lists_matsuyama": false,
+    "kdreams_calendar_meetings_visible": 7,
+    "kdreams_visible_matsuyama_races": 0,
+    "meeting": "松山",
+    "official_calendar_lists_matsuyama": true,
+    "official_entry_state": "OFFICIAL_SCHEDULE_IDENTITY_MISMATCH",
+    "official_exact_unpublished_message_confirmed": true,
+    "official_matsuyama_programme_races": 0,
+    "official_source_projection": {
+      "syusouDispFlag": 0
+    },
+    "operator": "normal source readback once",
+    "same_race_scope_confirmed": false,
+    "source_receipts": {
+      "kdreams-day": {
+        "observed_at": "2026-11-25T11:07:56.126839+00:00",
+        "source_sha256": "02f8c25be5a6b6ef033316c48026cf42db9c1331db03e9ee4fb0134cb5f6628b"
+      },
+      "official-day": {
+        "observed_at": "2026-11-25T11:07:54.104758+00:00",
+        "source_sha256": "8c13d69e320a393fe1798ec8ee796e281c178cb281061fdf0e19a161b654fb77"
+      },
+      "official-matsuyama": {
+        "observed_at": "2026-11-25T11:07:54.444927+00:00",
+        "source_sha256": "f258eab61a287fe2049b1cad347333db8fe99da5c700ba208c3ed2c7297d8a73"
+      }
+    },
+    "venue_code": "75"
   }
 }
