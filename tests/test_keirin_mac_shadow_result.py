@@ -5,6 +5,7 @@ from hashlib import sha256
 from itertools import permutations
 import json
 from pathlib import Path
+import subprocess
 from tempfile import TemporaryDirectory
 import unittest
 from unittest.mock import patch
@@ -184,6 +185,56 @@ class MacShadowResultTest(unittest.TestCase):
               patch.object(capture, 'fetch_once', side_effect=AssertionError('unexpected provider request'))):
             for moment in (at(1, 43), at(3, 12)):
                 self.assertIsNone(site.prepare_record(self.root, self.request, 'a' * 64, clock=lambda: moment))
+
+    def test_site_recovers_an_accepted_append_without_a_second_cipher(self):
+        from race_ai import keirin_note_feed as feed
+        from scripts import keirin_mac_shadow_publication as site
+
+        self.approve_secondary()
+        self.result_calls = []
+        self.assertEqual(self.run_secondary(self.site_page)['state'], 'SHADOW_SECONDARY_PODIUM_SCORED')
+
+        class LocalNoteFeed(feed.NoteFeedGit):
+            def _remote(self):
+                return 'origin'
+
+        repo = self.root / 'display.git'
+        remote = self.root / 'remote.git'
+        for location in (repo, remote):
+            subprocess.run(['git', 'init', '--quiet', '--bare', str(location)], check=True)
+        subprocess.run(['git', '-C', str(repo), 'remote', 'add', 'origin', str(remote)], check=True)
+        store = LocalNoteFeed(repo)
+        recipient = feed.create_recipient(self.root / 'owner')['public']
+        archive = feed.seal_snapshot(dict(schema='RACE_AI_KEIRIN_NOTE_VIEW_V1',
+                                          formal_model_admission=False, production_weight_switch=False,
+                                          dates=[DAY]), recipient, kind='archive', clock=lambda: at(1, 42))
+        feed.publish_snapshot(store, recipient, archive, expected_parent=None)
+        record = site.prepare_record(self.root, self.request, archive['entry']['cipher_sha256'],
+                                     clock=lambda: self.now)
+        args = dict(clock=lambda: self.now, store=store, recipient=recipient, source_commit='f' * 40)
+        push = store.push
+
+        def lose_readback(commit, parent):
+            push(commit, parent)
+            raise ValueError('simulated missing acknowledgement')
+
+        with patch.object(store, 'push', side_effect=lose_readback):
+            with self.assertRaisesRegex(ValueError, 'simulated missing acknowledgement'):
+                site._publish(self.root, record, **args)
+        actual_head = store.head()
+        self.now += timedelta(seconds=10)
+        record['verified_at'] = self.now.isoformat()
+        with patch.object(store, 'push', side_effect=AssertionError('unexpected second append')):
+            status = site._publish(self.root, record, **args)
+        self.assertEqual(status['state'], 'SHADOW_ENCRYPTED_NOTE_READBACK_VERIFIED')
+        self.assertEqual(status['source_commit'], actual_head)
+        entries = feed.load_index(store, recipient, actual_head)['entries']
+        self.assertEqual([entry['kind'] for entry in entries], ['archive', 'shadow-verification'])
+        self.assertEqual(entries[1]['cipher_sha256'], status['cipher_sha256'])
+        record['result']['evidence_sha256'] = 'e' * 64
+        with self.assertRaisesRegex(ValueError, 'SHADOW_PUBLICATION_EVIDENCE_CHANGED'):
+            site._publish(self.root, record, **args)
+        self.assertEqual(store.head(), actual_head)
 
     def test_an_approved_pair_still_waits_for_the_stored_start(self):
         self.approve_secondary()

@@ -111,7 +111,7 @@ def _prepared_snapshot(work, record, recipient, source_commit, *, clock):
     cipher = base64.b64decode(saved['cipher'], validate=True)
     if sha256(cipher).hexdigest() != entry['cipher_sha256'] or entry['kind'] != 'shadow-verification':
         raise ValueError('SHADOW_PUBLICATION_CIPHER_CHANGED')
-    return dict(entry=entry, cipher=cipher)
+    return dict(entry=entry, cipher=cipher), saved['record']
 
 
 def _publish(root, record, *, clock, store, recipient, source_commit):
@@ -136,8 +136,8 @@ def _publish(root, record, *, clock, store, recipient, source_commit):
     archive = next((row for row in prior['entries']
                     if row['cipher_sha256'] == record['original']['archive_cipher_sha256']), None)
     checked_archive_binding(record, archive, clock().isoformat())
-    sealed = _prepared_snapshot(work, record, recipient, source_commit, clock=clock)
-    checked_archive_binding(record, archive, sealed['entry']['created_at'])
+    sealed, prepared_record = _prepared_snapshot(work, record, recipient, source_commit, clock=clock)
+    checked_archive_binding(prepared_record, archive, sealed['entry']['created_at'])
     if sealed['entry'] not in prior['entries']:
         verified = publish_snapshot(store, recipient, sealed, expected_parent=parent)
         parent = verified['source_commit']
