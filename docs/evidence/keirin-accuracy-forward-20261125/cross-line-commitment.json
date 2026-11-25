@@ -1,0 +1,15 @@
+{
+  "races": 42,
+  "adjusted": 21,
+  "coverage": {
+    "eligible_rider_starts": 145,
+    "known_registration_history": 145
+  },
+  "sha256": "92b4bbe60fb0b24dd14bea69ddb53d4f2a4d3e0911e01e09553d75157ef32969",
+  "weights": "99f4e178912e43b1bc65fd58dd89c4ea88e0ccfbc6708c3c55f96e1d358a844f",
+  "frozen_at": "2026-11-25T07:06:38.991122+00:00",
+  "input_sha256": "6675a576ecc53f362cfda3201ea686c7a58a9c740a5f46583c8a9353db618389",
+  "design": "40b4ff41fbf7a0451bee93f243d23e487c61ed055d55e60b33d9e7f4bea38037",
+  "earliest_cutoff": "2026-11-25T16:10:00+09:00",
+  "changed_public_caps": 3
+}
