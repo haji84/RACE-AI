@@ -1,0 +1,54 @@
+{
+  "schema": "KEIRIN_ARCHIVE_STUDY_ADMISSION_V1",
+  "scope": "RETROSPECTIVE_ARCHIVE_NO_PRE_CUTOFF_ATTESTATION",
+  "data_use": "PRIVATE_LOCAL_RESEARCH_NO_REDISTRIBUTION_GRANT",
+  "source_attribution": "Caller-supplied archive bytes; retain upstream attribution and usage terms.",
+  "start_day": "20251001",
+  "end_day": "20261122",
+  "sources": [
+    {
+      "database_sha256": "1bdad22b9744c9c5563f7bb1af31875170a3e6b7f4b0dd73fba8f98d645d8fc4",
+      "bytes": 104706048,
+      "scope": "RETROSPECTIVE_ARCHIVE_NO_PRE_CUTOFF_ATTESTATION",
+      "races_scanned": 27081
+    },
+    {
+      "database_sha256": "d915560877493816b90df8bcd5e7bdef45557f57100b4cd40a3d017cd959334d",
+      "bytes": 45436928,
+      "scope": "RETROSPECTIVE_ARCHIVE_NO_PRE_CUTOFF_ATTESTATION",
+      "races_scanned": 3632
+    }
+  ],
+  "races_scanned": 30713,
+  "in_window_count": 30713,
+  "outside_window_count": 0,
+  "excluded_count": 1,
+  "examples_loaded": 26656,
+  "held_by_reason": {
+    "ABSENT_ENTRY": 345,
+    "CONTESTED_LINE_POSITION": 390,
+    "INCOMPLETE_OR_SPECIAL_RESULT": 1851,
+    "MISSING_PUBLISHED_LINES": 1470
+  },
+  "duplicate_same_count": 0,
+  "duplicate_conflict_count": 0,
+  "girls_singleton_count": 0,
+  "girls_missing_line_policy": "Only actual is_girls=1 with no published line rows uses singleton cars.",
+  "admitted_months": {
+    "202510": 2087,
+    "202511": 1866,
+    "202512": 2085,
+    "202601": 2111,
+    "202602": 1959,
+    "202603": 2014,
+    "202604": 2151,
+    "202605": 2102,
+    "202606": 2071,
+    "202607": 2222,
+    "202608": 1804,
+    "202609": 983,
+    "202610": 1706,
+    "202611": 1495
+  },
+  "elapsed_seconds": 10.662
+}

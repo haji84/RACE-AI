@@ -1,0 +1,52 @@
+{
+  "schema": "KEIRIN_FROZEN_RUNTIME_VERIFICATION_V1",
+  "state": "FROZEN_RUNTIME_VERIFIED",
+  "verified_at": "2026-11-25T13:15:36.112940+00:00",
+  "frozen_model_sha256": "c023c2ff1fac2e4501645992e2b20a476d5e91899fd515a5fb4b07751767a261",
+  "source_files_verified": 6,
+  "runtime_files_verified": 13,
+  "stages_verified": 3,
+  "source_files_sha256": {
+    "race_ai/keirin_archive_study.py": "8752168a3cd2976f697521821e3ebc9738aa25800e3d06f600d2b7b42856f5e5",
+    "race_ai/keirin_joint_finish.py": "1ae8dd3865f8ed5681afe2ddde8a9f0af5ea63991f8f6e5edeb160aa3d4a1aaf",
+    "scripts/keirin_accuracy_study.py": "e4135174de7e6b62f7946871cb1bfdc9fa355151755edf441f64602e2f69b470",
+    "scripts/keirin_boosted_choice_study.py": "63c91a3a04f076534090ff3df49a56c5083d2f3a9ec48c5340d864c9e52a72fd",
+    "scripts/keirin_line_event_study.py": "12cb75f0a6cbf99e5eea3530d4be386f8ab8900e638b6a7ffd34af7e5f786535",
+    "scripts/keirin_ordered_ticket_study.py": "56a14c06bc7f4775c84084ae9c72433177274ed2b23d59f722aeef66d8a91d92"
+  },
+  "runtime_source_files_sha256": {
+    "race_ai/__init__.py": "6d3f14841225bcbaa0618873aaed26ece2fe4bf8583803147b8acc1bb478b773",
+    "race_ai/keirin_nationwide_auto_generator.py": "b30b7940cb054fc3225f109f1f35e70cab034c704e0d701937ded8309b8f5b47",
+    "race_ai/keirin_ranking_adjustment.py": "29d01a9c43a7d2c72175f78f016652ad968cde71e6a3ce1a197524d15a123270",
+    "race_ai/keirin_small_ticket_budget.py": "8b165ce66785861a15400c4cb234d88fdbb87618962acccca1582aa4212735ec",
+    "race_ai/keirin_public_two_source_normalizer.py": "b1f4adab625c9ee7a8547ba70a41a2b1bd613566c0fee1c38473bf55ddcdcd20",
+    "scripts/keirin_fit_ranking_weights.py": "a98f07ed226151524ef5b2950054d2a7371a1c74161871207a4c3bfbff4922d4",
+    "scripts/keirin_line_version_study.py": "a86b1666d5ab0a11d08cc579694aaf63e9ac826bc6453aade4554782be5a31bc",
+    "scripts/keirin_generate_result_unread_analysis.py": "7f362dbbc8e89dae3aae28f8687c14aec3b9d5a7dec442b86cdb5ce5d27f20c9",
+    "scripts/keirin_capture_public_two_sources.py": "4f10bf29a2e2275a638848d7f7cda8d64746bf0c5c00bcb80d67c19936b4645a",
+    "scripts/keirin_line_history_study.py": "eba455664a22739fadf8f4f99f8b4938e399600fc6ddae226704ba81345ce25b",
+    "scripts/keirin_rider_profile_study.py": "34604b7eaa7bca7228d42bb16b645a96a41a09db17ae3fc0de494c8f5230fed8",
+    "scripts/keirin_rider_profile_history.py": "91140b3835cfa67760839774316a3a849580b9bf5a62a9da2183646c44edd4b8",
+    "scripts/keirin_small_ticket_study.py": "3b0327acd1ff593a91593c38a49eedb4b02bb63b34383a109f37062799ef4c0d"
+  },
+  "runtime_source_commit": "fb8773c82da3879a2148d4764dab18252d8bff97",
+  "package_versions": {
+    "numpy": "2.2.6",
+    "scipy": "1.17.0",
+    "lightgbm": "4.6.0"
+  },
+  "base_configuration_sha256": "60e88f53496f934cb968706e38291d8d68fc664429a3356de617cc0e634c9a47",
+  "stage_sha256": [
+    "660f4420daccf3c152016c5a9c6677dca092d1994eeaf0dab3c1dca471adeaff",
+    "b28fa423694ca2f73bd3236bd4ff15b31c340cb410583465ed1d1921a21275e9",
+    "2fd5e2599f1879e7fcb585c9ffb52b05c5d0c9b7bb85c54ee4f8ead9df03db33"
+  ],
+  "selected_arm": "all_96",
+  "fit_end": "20260731",
+  "tune_end": "20260930",
+  "test_end": "20261122",
+  "race_results_read": false,
+  "model_refitted": false,
+  "replay_metrics_match_original": true,
+  "evaluation_races": 3201
+}

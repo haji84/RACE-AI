@@ -1,0 +1,70 @@
+{
+  "schema": "KEIRIN_REAL_DAY_JOINT_DISPLAY_RECEIPT_V1",
+  "generated_at": "2026-11-25T13:31:02.169500+00:00",
+  "registered_public_races": 75,
+  "pre_cutoff_originals_preserved": 10,
+  "retrospective_display_races": 57,
+  "retrospective_rider_rows": 394,
+  "holds": [
+    {
+      "race_id": "202611254802",
+      "reason": "MISSING_PUBLISHED_LINES",
+      "stage": "INPUT_ADMISSION"
+    },
+    {
+      "race_id": "202611253402",
+      "reason": "MISSING_PUBLISHED_LINES",
+      "stage": "INPUT_ADMISSION"
+    },
+    {
+      "race_id": "202611256102",
+      "reason": "MISSING_PUBLISHED_LINES",
+      "stage": "INPUT_ADMISSION"
+    },
+    {
+      "race_id": "202611254803",
+      "reason": "MISSING_PUBLISHED_LINES",
+      "stage": "INPUT_ADMISSION"
+    },
+    {
+      "race_id": "202611253403",
+      "reason": "MISSING_PUBLISHED_LINES",
+      "stage": "INPUT_ADMISSION"
+    },
+    {
+      "race_id": "202611256103",
+      "reason": "MISSING_PUBLISHED_LINES",
+      "stage": "INPUT_ADMISSION"
+    },
+    {
+      "race_id": "202611254804",
+      "reason": "MISSING_PUBLISHED_LINES",
+      "stage": "INPUT_ADMISSION"
+    },
+    {
+      "race_id": "202611253404",
+      "reason": "MISSING_PUBLISHED_LINES",
+      "stage": "INPUT_ADMISSION"
+    }
+  ],
+  "cipher_sha256": "3bae3f2044b80e92bac04cf282914d992cd18dd37011e68bf69bf13294b85829",
+  "source_public_asset_sha256": "51a98f0a048d4831eeb8c85533e28f789b17dc55ca59a7cb0cf0c920d7e4eb9e",
+  "source_public_decoded_sha256": "2a62f3a6cf7f2a12d62b5b49b4d9a620db49309b0522814ed904c11c942e3d35",
+  "publication": {
+    "state": "KEIRIN_NOTE_ENCRYPTED_GIT_READBACK_VERIFIED",
+    "source_commit": "f18f096c34775d0b4b815d6db33a255f0c9fc226",
+    "entries": 152,
+    "provider_denied": false,
+    "covered_races": 403,
+    "priority_window_races": 22,
+    "private_plaintext_uploaded": false,
+    "production_state_key_used": false
+  },
+  "formal_pre_cutoff_performance_increment": 0,
+  "source_missing_fields": [
+    "official_registration",
+    "published_marks",
+    "rider_class"
+  ],
+  "private_plaintext_uploaded": false
+}
