@@ -33,7 +33,7 @@
       <div class="kn-scroll"><section class="kn-import"><div><label class="kn-file">保存データを開く<input id="kn-file" type="file" accept=".json,application/json"></label><button id="kn-clear" type="button" class="kn-secondary">読込データを消す</button></div><p id="kn-status" role="status">本人用リンク、または保存データJSONから開けます。</p></section>
       <section class="kn-history" aria-label="保存履歴を探す"><div class="kn-history-top"><label>日付を指定<input id="kn-date" type="date"></label><button type="button" data-history="all">全期間から探す</button></div><details id="kn-history-filters"><summary>期間・レース番号で絞り込む</summary><div class="kn-history-grid"><label>検索する期間<select id="kn-period"><option value="day">指定した1日</option><option value="range">期間を指定</option><option value="all">すべての保存日</option></select></label><label>レース番号<select id="kn-race-number"><option value="">すべてのレース</option>${Array.from({length:12},(_,i)=>'<option value="'+(i+1)+'">'+(i+1)+'R</option>').join('')}</select></label><label id="kn-from-label" hidden>開始日<input id="kn-from" type="date"></label><label id="kn-to-label" hidden>終了日<input id="kn-to" type="date"></label></div><div class="kn-history-shortcuts"><button type="button" data-history="latest">最新日</button><button type="button" data-history="week">直近7日</button><button type="button" id="kn-reset-search">条件をリセット</button></div></details><p id="kn-period-status" class="kn-small" role="status"></p></section>
       <nav id="kn-days" class="kn-day-tabs" aria-label="予想の日付"></nav><section id="kn-metrics" class="kn-metrics"></section>
-      <details id="kn-growth" class="kn-growth" hidden><summary>成長記録</summary><div id="kn-growth-content" class="kn-growth-content"></div></details>
+      <details id="kn-growth" class="kn-growth" hidden><summary>成長記録</summary><div id="kn-growth-content" class="kn-growth-content"></div><div id="kn-shadow-growth"></div></details>
       <section class="kn-tools"><div id="kn-venues" class="kn-venues" aria-label="会場"></div><div class="kn-prediction-tabs" aria-label="通常予想と転がし予想"><button type="button" data-prediction="flexible">通常予想</button><button type="button" data-prediction="rollover">転がし予想</button><button type="button" data-confidence-filter="high_plus">高以上だけ見る</button></div><div class="kn-controls"><label>券種<select id="kn-market"><option value="3t">3連単</option><option value="2t">2車単</option></select></label><label>表示する予想<select id="kn-variant"><option value="flexible">通常予想・改訂版</option><option value="original">通常予想・原版</option><option value="rollover">転がし予想</option><option value="A">参考A</option><option value="B">参考B・6局面</option><option value="C">参考Cの状況</option></select></label><label>信頼度<select id="kn-confidence"><option value="all">すべて</option><option value="high_plus">高以上（高・激アツ🔥）</option><option value="hot">激アツ🔥のみ</option><option value="high">高のみ</option><option value="medium">中のみ</option><option value="low">低のみ</option><option value="unrated">未評価のみ</option></select></label><label class="kn-search-label">検索<input id="kn-search" type="search" placeholder="会場・選手・レース名"></label></div><div class="kn-small-controls"><label><input id="kn-future" type="checkbox">これからのレース</label><label><input id="kn-selected" type="checkbox">検討リストのみ</label><span id="kn-count"></span></div><p id="kn-confidence-count" class="kn-small" aria-live="polite"></p><p class="kn-small">信頼度は保存された予想の評価です。新方式は展開と買い目の整合を評価し、的中率は未校正です。</p></section>
       <section id="kn-nationwide-summary" class="kn-result kn-nationwide-summary" hidden></section><section id="kn-research-summary" class="kn-result" hidden></section><div id="kn-result-only"></div><div id="kn-races" class="kn-grid"></div>
       <details class="kn-rollover"><summary>転がし・2段階の資金配分を試算する</summary><p>受取額は払戻と返還の合計を手入力します。実購入の記録とは別の試算です。</p><div class="kn-controls"><label>初回の予算<select id="kn-roll-budget"><option>2000</option><option selected>2500</option><option>3000</option></select></label><label>1戦目の受取額<input id="kn-return-one" type="number" min="0" max="100000000" step="100" placeholder="未入力"></label><label>2戦目の受取額<input id="kn-return-two" type="number" min="0" max="100000000" step="100" placeholder="未入力"></label></div><div id="kn-roll-result"></div></details>
@@ -150,11 +150,39 @@
     });
     return `<table aria-labelledby="${heading}"><thead><tr><th scope="col">指標</th><th scope="col">保存B</th><th scope="col">比較B</th><th scope="col">差</th></tr></thead><tbody>${rows.join('')}</tbody></table>`;
   }
+  function renderShadowGrowth(){
+    const target=$('kn-shadow-growth');
+    const checks=data?.feed?data.shadowVerifications:null;
+    if(!checks?.size){target.textContent='';return false;}
+    const hit=value=>value?'的中':'不的中';
+    const markets=[['trifecta','三連単'],['exacta','二車単']];
+    const entries=[...checks.values()].reverse().map(({race_id:id,day_jst:day,original,result,scores})=>{
+      const race=M.rows(data,day).find(row=>row.id===id);
+      const label=race?`${race.venue} ${race.number}R`:id;
+      const evidence=result.scope==='TWO_SOURCE_MATCHED_PODIUM_ONLY'?'2媒体で一致した上位着順':'保存した公式全着順';
+      const rows=markets.map(([market,name])=>{
+        const score=scores[market];
+        return `<tr><th scope="row">${name}</th><td>${score.points}点</td><td>${hit(score.saved_hit)}</td><td>${hit(score.challenger_hit)}</td></tr>`;
+      }).join('');
+      const warning=data.shadowVerificationHolds.has(id)?'<p class="kn-small">先に照合した比較を表示しています。後から届いた照合は保留です。</p>':'';
+      return `<article><h3 id="kn-shadow-${esc(id)}">${esc(day)} · ${esc(label)}</h3>
+        <p class="kn-small">${evidence} · ${stamp(result.observed_at)}</p>
+        <table aria-labelledby="kn-shadow-${esc(id)}"><thead><tr><th scope="col">券種</th><th scope="col">点数</th><th scope="col">保存B</th><th scope="col">比較B</th></tr></thead><tbody>${rows}</tbody></table>
+        <p>追跡・学習は保留</p>${warning}
+        <details class="kn-details"><summary>照合資料</summary>
+          <p>締切前原本 <code>${esc(original.sha256)}</code></p><p>結果根拠 <code>${esc(result.evidence_sha256)}</code></p>
+        </details></article>`;
+    }).join('');
+    const markup=`<div class="kn-growth-content"><section aria-labelledby="kn-growth-shadow"><h2 id="kn-growth-shadow">締切前に保存した研究比較の検証</h2>${entries}</section></div>`;
+    if(target.innerHTML!==markup)target.innerHTML=markup;
+    return true;
+  }
   function renderGrowth(){
     const panel=$('kn-growth'),content=$('kn-growth-content');
-    panel.hidden=!data||!reviewedGrowth;
+    const shadowVisible=renderShadowGrowth();
+    panel.hidden=!data||(!reviewedGrowth&&!shadowVisible);
     if(panel.hidden){panel.open=false;content.textContent='';return;}
-    if(content.hasChildNodes())return;
+    if(!reviewedGrowth||content.hasChildNodes())return;
     const {historical,forward,replay}=reviewedGrowth;
     const interval=key=>historical.intervals[key].map(value=>signedGrowth(value*100,2)).join('〜')+'ポイント';
     content.innerHTML=`<section aria-labelledby="kn-growth-historical"><h2 id="kn-growth-historical">既知期間の再現</h2>

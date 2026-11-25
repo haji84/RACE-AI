@@ -124,6 +124,22 @@ def result_observation(state='SECONDARY_TWO_SOURCES_MATCH_NOT_OFFICIAL',
         previous_observation_sha256=previous)
 
 
+def shadow_packet(archive_cipher_sha256, *, scope='TWO_SOURCE_MATCHED_PODIUM_ONLY'):
+    result=dict(evidence_sha256='b'*64,observed_at=f'{DAY}T00:50:00Z',scope=scope)
+    verification=dict(schema='RACE_AI_KEIRIN_SHADOW_VERIFICATION_V1',day_jst=DAY,race_id=RACE,
+        verified_at=f'{DAY}T01:00:00Z',start_at=f'{DAY}T00:45:00Z',
+        original=dict(sha256='a'*64,archive_cipher_sha256=archive_cipher_sha256,
+                      generated_at=f'{DAY}T00:05:00Z',cutoff_at=f'{DAY}T00:40:00Z'),
+        result=result,scores=dict(trifecta=dict(points=4,saved_hit=False,challenger_hit=True),
+                                  exacta=dict(points=2,saved_hit=True,challenger_hit=False)),
+        tracking_learning='HELD',production_weights_promoted=False)
+    note=dict(schema='RACE_AI_KEIRIN_NOTE_VIEW_V1',scope='OWNER_MAC_SHADOW_VERIFICATION',
+              source_site=None,source_commit='e'*40,imported_at=verification['verified_at'],dates=[DAY],
+              files={f'data/{DAY}/shadow_verification.json':source(verification)},
+              formal_model_admission=False,production_weight_switch=False,wagers_placed=False)
+    return note,verification
+
+
 def with_results(value, observations):
     value['files'][f'data/{DAY}/research_results.json'] = source(dict(
         schema='RACE_AI_KEIRIN_NOTE_RESEARCH_RESULTS_V1', day_jst=DAY,
@@ -570,6 +586,52 @@ class NoteBrowserTests(unittest.TestCase):
         self.assertFalse(any(key in url+json.dumps(headers) for url, headers in fixture_requests))
         self.assertEqual(self.external, [])
         self.assertEqual(self.errors, [])
+
+    def test_shadow_verification_is_private_and_separates_both_equal_budget_markets(self):
+        from datetime import datetime
+        from race_ai import keirin_note_feed as api
+        def seal(value,kind,hhmm):
+            return api.seal_snapshot(value,cap['public'],kind=kind,
+                    clock=lambda:datetime.fromisoformat(f'{DAY}T{hhmm}:00+00:00'))
+        with TemporaryDirectory() as tmp:
+            cap=api.create_recipient(Path(tmp)/'shadow-fixture-owner')
+            key=Path(cap['private_key']).read_text().strip()
+            base_note=seal(packet(),'import','00:00')
+            archive=seal({**packet(),'files':{}},'archive','00:06')
+            verification,_=shadow_packet(archive['entry']['cipher_sha256'])
+            saved=seal(verification,'shadow-verification','01:02')
+            index=None
+            for snapshot in (base_note,archive,saved):
+                index=api.append_index(index,cap['public'],entry=snapshot['entry'])
+        html,mime=self.assets['/']
+        self.assets['/']=(html.replace(b"connect-src 'self';",b"connect-src 'self' https://raw.githubusercontent.com;"),mime)
+        base='https://raw.githubusercontent.com/haji84/RACE-AI/state/keirin-note-view/'
+        responses={base+'index.json':canonical(index)}
+        responses.update({base+'views/'+s['entry']['cipher_sha256']+'.json':s['cipher']
+                          for s in (base_note,saved)})
+        requests=[]
+        def serve(route):
+            url=route.request.url;requests.append(url)
+            route.fulfill(status=200,body=responses[url],headers={
+                'content-type':'application/json','access-control-allow-origin':self.base})
+        self.page.route(base+'**',serve)
+        self.page.goto(self.base+'/#notefeed='+key,wait_until='domcontentloaded')
+        self.loaded()
+        self.page.locator('#kn-growth > summary').click()
+        section=self.page.get_by_role('region',name='締切前に保存した研究比較の検証')
+        self.assertIn('2媒体で一致した上位着順',section.inner_text())
+        self.assertIn('追跡・学習は保留',section.inner_text())
+        self.assertEqual(section.get_by_role('row',name=re.compile('三連単')).get_by_role('cell').all_text_contents(),
+                         ['4点','不的中','的中'])
+        self.assertEqual(section.get_by_role('row',name=re.compile('二車単')).get_by_role('cell').all_text_contents(),
+                         ['2点','的中','不的中'])
+        self.assertNotIn('補正A',section.inner_text())
+        self.assertTrue(all(archive['entry']['cipher_sha256'] not in url for url in requests))
+        self.assertEqual(self.page.locator('.kn-race').count(),1)
+        self.page.locator('#kn-clear').click()
+        self.assertEqual(section.count(),0)
+        self.assertEqual(self.external,[])
+        self.assertEqual(self.errors,[])
 
     def test_open_feed_reflects_order_and_independent_arms_without_resetting_controls(self):
         updated = packet()
