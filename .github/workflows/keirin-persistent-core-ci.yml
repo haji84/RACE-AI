@@ -47,7 +47,7 @@ jobs:
             numpy==2.2.6 scipy==1.17.0 'cryptography>=44,<48'
           "$RUNNER_TEMP/keirin-rider-profile-tests/bin/python" -m unittest \
             tests.test_keirin_line_history_study tests.test_keirin_rider_profile_study \
-            tests.test_keirin_joint_finish tests.test_keirin_tactical_observations \
+            tests.test_keirin_joint_finish tests.test_keirin_tactical_observations tests.test_keirin_pair_structure_study \
             tests.test_keirin_form_fall_blind_pdca -v
       - name: Test historical replay census, evidence and rider learning with offline fixtures
         run: |
