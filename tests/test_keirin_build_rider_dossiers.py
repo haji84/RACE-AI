@@ -74,10 +74,77 @@ class RiderDossierAdapterTests(unittest.TestCase):
                 bytes=p.stat().st_size,url='https://raw.githubusercontent.com/example/data/'+'b'*40+'/data/'+p.name)
                 for p in (self.first,self.second)])
 
-    def build(self):
+    def build(self,**options):
         raw=encode(self.registry)
         return self.module().build_dossiers([self.first,self.second],raw,encode(self.manifest),
-            expected_registry_sha256=sha256(raw).hexdigest(),as_of_day=DAY,clock=lambda:NOW)
+            expected_registry_sha256=sha256(raw).hexdigest(),as_of_day=DAY,clock=lambda:NOW,**options)
+
+    def observation(self):
+        identity=dict(race_id='202611242101',car=1,registration='012345')
+        observed=dict(identity,sha256='c'*64,url='https://keirin.kdreams.jp/race/one',
+            available_at='2026-11-24T09:00:00Z')
+        verified=dict(identity,sha256='d'*64,url='https://keirin.netkeiba.com/race/result/?race_id=202611242101',
+            available_at='2026-11-24T09:30:00Z',finish=1)
+        return dict(identity,event_id='outer-pass',ability='tactical_switch',source='video',
+            outcome='success',measurement='relative_position',reviewed_at='2026-11-24T10:00:00Z',
+            published_at=None,observation_receipt=observed,identity_receipt=verified)
+
+    def tactical_packet(self,episodes):
+        raw=encode(dict(schema='KEIRIN_REVIEWED_TACTICAL_EPISODES_V1',
+            scope='PRIVATE_RETROSPECTIVE_TACTICAL_OBSERVATIONS',prepared_at='2026-11-25T10:00:00Z',episodes=episodes))
+        return dict(tactical_raw=raw,expected_tactical_sha256=sha256(raw).hexdigest())
+
+    def test_pinned_reviewed_observation_is_attached_without_changing_basic_history(self):
+        original,_=self.build()
+        options=self.tactical_packet([self.observation()])
+        private,summary=self.build(**options)
+        person=private['dossiers'][0]
+        profile=person['tactical_observations']
+        self.assertEqual(len(profile['abilities']),6)
+        self.assertEqual(profile['abilities']['tactical_switch']['observed_successes'],1)
+        self.assertEqual(profile['abilities']['follower_acceleration']['state'],'unobserved')
+        self.assertIsNone(profile['predictive_rating'])
+        self.assertEqual(person['finish_history'],original['dossiers'][0]['finish_history'])
+        self.assertNotIn('tactical_observations',private['dossiers'][1])
+        self.assertNotIn('tactical_observations',original)
+        self.assertEqual(summary['tactical_observations']['source_sha256'],options['expected_tactical_sha256'])
+        self.assertEqual(summary['tactical_observations']['admitted_rows'],1)
+        self.assertNotIn('012345',json.dumps(summary))
+
+    def test_missing_or_substituted_tactical_pin_is_rejected(self):
+        options=self.tactical_packet([self.observation()])
+        with self.assertRaisesRegex(ValueError,'TACTICAL_SHA_MISMATCH'):
+            self.build(tactical_raw=options['tactical_raw'])
+        with self.assertRaisesRegex(ValueError,'TACTICAL_SHA_MISMATCH'):
+            self.build(tactical_raw=options['tactical_raw'],expected_tactical_sha256='f'*64)
+        with self.assertRaisesRegex(ValueError,'TACTICAL_SHA_MISMATCH'):
+            self.build(expected_tactical_sha256=options['expected_tactical_sha256'])
+        unscoped=json.loads(options['tactical_raw']);unscoped['scope']='FORECAST_INPUT'
+        raw=encode(unscoped)
+        with self.assertRaisesRegex(ValueError,'TACTICAL_SCHEMA'):
+            self.build(tactical_raw=raw,expected_tactical_sha256=sha256(raw).hexdigest())
+
+    def test_late_or_unbound_reviews_are_held_without_inventing_outcomes(self):
+        valid=self.observation()
+        late=dict(valid,event_id='after-cutoff',reviewed_at='2026-11-24T15:00:00Z')
+        wrong=dict(valid,event_id='mismatch',identity_receipt=dict(valid['identity_receipt'],registration='054321'))
+        same_source=dict(valid,event_id='same-source',identity_receipt=dict(valid['identity_receipt'],sha256=valid['observation_receipt']['sha256']))
+        future=dict(valid,event_id='future',race_id='202611252101')
+        future['observation_receipt']=dict(valid['observation_receipt'],race_id=future['race_id'])
+        future['identity_receipt']=dict(valid['identity_receipt'],race_id=future['race_id'])
+        unresolved=dict(valid,event_id='result-unconfirmed',ability='inside_outside',side='outside',finish=2)
+        del unresolved['outcome'],unresolved['measurement']
+        _,summary=self.build(**self.tactical_packet([valid,late,wrong,same_source,future,unresolved]))
+        tactical=summary['tactical_observations']
+        self.assertEqual(tactical['admitted_rows'],1)
+        self.assertEqual(tactical['held_by_reason'],{'REVIEW_NOT_AVAILABLE':1,'RECEIPT_UNBOUND':3,'RACE_NOT_HISTORICAL':1})
+
+    def test_conflicting_verified_finishes_leave_that_starter_missing(self):
+        valid=self.observation()
+        other=dict(valid,event_id='same-race',identity_receipt=dict(valid['identity_receipt'],finish=2))
+        private,summary=self.build(**self.tactical_packet([valid,other]))
+        self.assertNotIn('tactical_observations',private['dossiers'][0])
+        self.assertEqual(summary['tactical_observations']['held_by_reason'],{'STARTER_CONFLICT':2})
 
     def test_existing_identity_and_history_authorities_keep_cohort_grade_and_current_class_separate(self):
         private,summary=self.build()

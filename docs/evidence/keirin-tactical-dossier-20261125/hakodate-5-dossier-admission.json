@@ -1,0 +1,13 @@
+{
+  "admission_boundary": "2026-11-25T15:00:00+00:00",
+  "admitted_rows": 1,
+  "earlier_holds": {
+    "REVIEW_NOT_AVAILABLE": 1
+  },
+  "predictive_rating": null,
+  "race_id": "202509161105",
+  "registered_population": 2416,
+  "review_witness": "9888784ce38739bb7fa852f5f950db1d878ca7ec",
+  "scope": "private-adapter-retrospective-smoke",
+  "tactical_switch_successes": 1
+}
