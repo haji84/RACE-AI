@@ -6,7 +6,7 @@ No frozen forecast, inference code, model weight or source database is modified.
 """
 import argparse
 from collections import Counter, defaultdict
-from datetime import date, datetime, timezone
+from datetime import date, datetime, time as time_of_day, timezone
 from hashlib import sha256
 from itertools import groupby
 import json
@@ -18,12 +18,17 @@ from urllib.parse import urlsplit
 from zoneinfo import ZoneInfo
 
 from race_ai import keirin_archive_study as archive
+from race_ai import keirin_tactical_observations as tactics
 from race_ai.keirin_note_view import _private_root, _create, canonical
 from scripts.keirin_rider_profile_history import HistoryBook, Ride, grade_family, is_registration
 from scripts.keirin_rider_profile_identity import IdentityIndex, name_key
 
 SCOPE='RETROSPECTIVE_CURRENT_REGISTRY_IDENTITY_RECONCILIATION'
 REGISTRY_SCOPE='NEW_CURRENT_SOURCE_KNOWLEDGE_NOT_BACKDATED_ORIGINAL_INPUT'
+TACTICAL_SCHEMA='KEIRIN_REVIEWED_TACTICAL_EPISODES_V1'
+TACTICAL_SCOPE='PRIVATE_RETROSPECTIVE_TACTICAL_OBSERVATIONS'
+TACTICAL_HOSTS={'keirin.jp','www.keirin.jp','keirin.kdreams.jp','keirin.netkeiba.com'}
+JST=ZoneInfo('Asia/Tokyo')
 TABLES={
     'races':{'race_date','venue_code','rno','is_girls','fetched_at'},
     'entries':{'race_date','venue_code','rno','kumiban','racer_name','kyu','prefecture','racer_class','fetched_at'},
@@ -56,6 +61,86 @@ def _clock(value):
 def _day(value):
     _need(type(value) is str and re.fullmatch(r'\d{4}-\d{2}-\d{2}',value),'DAY_INVALID')
     return date.fromisoformat(value)
+
+
+def _tactical_receipt(receipt,binding,*,identity=False):
+    fields={'race_id','registration','car','url','sha256','available_at'}
+    if identity:fields.add('finish')
+    _need(type(receipt) is dict and set(receipt)==fields and
+          all(type(receipt[key]) is type(value) and receipt[key]==value for key,value in binding.items()),'RECEIPT_UNBOUND')
+    _need(type(receipt['url']) is str and not any(ord(c)<=32 for c in receipt['url']),'RECEIPT_UNBOUND')
+    loc=urlsplit(receipt['url']);digest=receipt['sha256']
+    _need(loc.scheme=='https' and loc.hostname in TACTICAL_HOSTS and loc.path.startswith('/') and
+          not loc.username and not loc.password and loc.port is None and not loc.fragment and
+          type(digest) is str and re.fullmatch(r'[0-9a-f]{64}',digest),'RECEIPT_UNBOUND')
+    if identity:
+        finish=receipt['finish']
+        _need(finish is None or type(finish) is int and 1<=finish<=9,'RECEIPT_UNBOUND')
+    return _clock(receipt['available_at'])
+
+
+def _tactical_rows(raw,expected_sha,registered,as_of_day,now):
+    """Admit a separately pinned packet produced by a source reviewer.
+
+    The caller obtains the expected digest through an independent trusted path.
+    Receipt bindings and clocks are checked here. Their source bytes and the
+    reviewer's interpretation must already have been checked when preparing it.
+    """
+    _need(type(raw) is bytes and sha256(raw).hexdigest()==expected_sha,'TACTICAL_SHA_MISMATCH')
+    packet=_json(raw)
+    _need(type(packet) is dict and set(packet)=={'schema','scope','prepared_at','episodes'} and
+          packet['schema']==TACTICAL_SCHEMA and packet['scope']==TACTICAL_SCOPE and
+          type(packet['episodes']) is list and len(packet['episodes'])<=20000,'TACTICAL_SCHEMA')
+    prepared=_clock(packet['prepared_at'])
+    _need(prepared<=now,'TACTICAL_PREPARED_AFTER_BUILD')
+    cutoff=min(now,datetime.combine(as_of_day,time_of_day.min,tzinfo=JST))
+    fields={'race_id','registration','car','event_id','ability','source','reviewed_at','published_at',
+            'observation_receipt','identity_receipt'}
+    held=Counter();candidates=[];by_slot=defaultdict(set);by_rider=defaultdict(set);finishes=defaultdict(set)
+    for row in packet['episodes']:
+        try:
+            _need(type(row) is dict,'ROW_INVALID')
+            by_side=row.get('ability')=='inside_outside'
+            _need(set(row)==fields|({'side','finish'} if by_side else {'outcome','measurement'}),'ROW_INVALID')
+            rid,car,registration=row['race_id'],row['car'],row['registration']
+            _need(type(rid) is str and re.fullmatch(r'20[0-9]{10}',rid) and 1<=int(rid[8:10])<=99 and
+                  1<=int(rid[10:])<=12 and type(car) is int and 1<=car<=9 and
+                  is_registration(registration) and registration in registered,'RACE_OR_STARTER_INVALID')
+            race_day=date.fromisoformat(rid[:8]);_need(race_day<as_of_day,'RACE_NOT_HISTORICAL')
+            reviewed=_clock(row['reviewed_at'])
+            _need(reviewed<=prepared and reviewed<cutoff,'REVIEW_NOT_AVAILABLE')
+            binding=dict(race_id=rid,car=car,registration=registration)
+            observed,identity=row['observation_receipt'],row['identity_receipt']
+            observed_at=_tactical_receipt(observed,binding)
+            identity_at=_tactical_receipt(identity,binding,identity=True)
+            _need(observed['sha256']!=identity['sha256'] and observed['url']!=identity['url'] and
+                  (not by_side or row['finish'] is None or row['finish']==identity['finish']),'RECEIPT_UNBOUND')
+            race_start=datetime.combine(race_day,time_of_day.min,tzinfo=JST)
+            _need(race_start<=min(observed_at,identity_at) and max(observed_at,identity_at)<=reviewed and
+                  (row['published_at'] is None or race_start<=_clock(row['published_at'])<=observed_at),
+                  'RECEIPT_CLOCK_INVALID')
+            _need(type(row['source']) is str and row['source'] in tactics.SOURCES,'ROW_INVALID')
+            evidence={key:value for key,value in row.items() if key not in
+                      ('car','reviewed_at','observation_receipt','identity_receipt')}
+            evidence['observed_at']=row['reviewed_at']
+            tactics._episode(evidence)
+        except (ValueError,TypeError,KeyError) as error:
+            reason=str(error).removeprefix('KEIRIN_DOSSIER_') if str(error).startswith('KEIRIN_DOSSIER_') else 'ROW_INVALID'
+            held[reason]+=1
+            continue
+        candidates.append((rid,car,registration,evidence))
+        by_slot[rid,car].add(registration)
+        by_rider[rid,registration].add(car)
+        if identity['finish'] is not None:finishes[rid,car].add(identity['finish'])
+    rows=defaultdict(list)
+    for rid,car,registration,evidence in candidates:
+        if len(by_slot[rid,car])>1 or len(by_rider[rid,registration])>1 or len(finishes[rid,car])>1:
+            held['STARTER_CONFLICT']+=1
+        else:rows[registration].append(evidence)
+    meta=dict(scope=TACTICAL_SCOPE,source_sha256=expected_sha,prepared_at=packet['prepared_at'],
+              review_available_before=cutoff.astimezone(timezone.utc).isoformat(),submitted_rows=len(packet['episodes']),
+              admitted_rows=sum(map(len,rows.values())),held_by_reason=dict(held),predictive_model_changed=False)
+    return rows,meta
 
 
 def _registry(registry):
@@ -201,14 +286,21 @@ def load_archive_book(db_paths,registry,cutoff_day,*,archive_manifest=None,regis
     return HistoryBook(ride for values in rides.values() for ride in values),index,summary
 
 
-def build_dossiers(db_paths,registry_raw,manifest_raw,*,expected_registry_sha256,as_of_day,clock=None):
+def build_dossiers(db_paths,registry_raw,manifest_raw,*,expected_registry_sha256,as_of_day,clock=None,
+                   tactical_raw=None,expected_tactical_sha256=None):
     _need(type(registry_raw) is bytes and sha256(registry_raw).hexdigest()==expected_registry_sha256,'REGISTRY_SHA_MISMATCH')
     registry,manifest=_json(registry_raw),_json(manifest_raw)
     now=(clock or (lambda:datetime.now(timezone.utc)))()
     _need(isinstance(now,datetime) and now.utcoffset() is not None,'BUILD_CLOCK_INVALID')
     _need(_clock(registry['retrieval_completed_at'])<=now and _clock(manifest['started_at'])<=_clock(manifest['completed_at'])<=now,'SOURCE_CAPTURE_CLOCK')
+    day=_day(as_of_day)
+    tactical_rows,tactical_meta={},None
+    if tactical_raw is not None or expected_tactical_sha256 is not None:
+        _registry(registry)
+        registered={person['registration'] for person in registry['riders']}
+        tactical_rows,tactical_meta=_tactical_rows(tactical_raw,expected_tactical_sha256,registered,day,now)
     rides,_,summary,counts,classes=_collect(db_paths,registry,as_of_day,manifest)
-    query_id=_day(as_of_day).strftime('%Y%m%d')+'0101'
+    query_id=day.strftime('%Y%m%d')+'0101'
     dossiers=[]
     for person in sorted(registry['riders'],key=lambda row:row['registration']):
         registration=person['registration'];past=rides.get(registration,[])
@@ -224,14 +316,24 @@ def build_dossiers(db_paths,registry_raw,manifest_raw,*,expected_registry_sha256
             published_line_roles_are_not_observed_race_positions=True,
             known_source_row_counts=dict(counts[registration]),
             finish_history=HistoryBook(past).finish_history(registration,race_id=query_id)))
+        if registration in tactical_rows:
+            verified=tactical_rows[registration]
+            verified_rows={id(row) for row in verified}
+            profile=tactics.profile_episodes(verified,registration=registration,
+                as_of=tactical_meta['review_available_before'],target_race_id=query_id,
+                verify=lambda row:id(row) in verified_rows)
+            del profile['target_race_id']  # This day-level dossier has no target race.
+            dossiers[-1]['tactical_observations']=profile
     summary.update(generated_at=now.astimezone(timezone.utc).isoformat(),registry_sha256=expected_registry_sha256,
         registry_capture_completed_at=registry['retrieval_completed_at'],archive_manifest_sha256=sha256(manifest_raw).hexdigest())
     packet=dict(schema='KEIRIN_BASIC_RIDER_DOSSIERS_V1',scope=SCOPE,as_of_exclusive=as_of_day,
         generated_at=summary['generated_at'],identity_knowledge_as_of=registry['retrieval_completed_at'],
-        registry_captured_after_history_cutoff=_clock(registry['retrieval_completed_at']).astimezone(ZoneInfo('Asia/Tokyo')).date()>=_day(as_of_day),
+        registry_captured_after_history_cutoff=_clock(registry['retrieval_completed_at']).astimezone(JST).date()>=day,
         registry_sha256=expected_registry_sha256,archive_manifest_sha256=summary['archive_manifest_sha256'],
         source_download_started_at=manifest['started_at'],source_download_completed_at=manifest['completed_at'],
         archive_sources=summary['archive_sources'],historical_as_of_authenticated=False,dossiers=dossiers)
+    if tactical_meta is not None:
+        packet['tactical_observations']=summary['tactical_observations']=tactical_meta
     return packet,summary
 
 
@@ -249,11 +351,15 @@ def main():
     parser.add_argument('--database',action='append',required=True,type=Path)
     for name in ('registry','archive-manifest','output-dir'):parser.add_argument('--'+name,required=True,type=Path)
     parser.add_argument('--expected-registry-sha256',required=True)
+    parser.add_argument('--tactical-observations',type=Path,help='Private independently reviewed observation packet')
+    parser.add_argument('--expected-tactical-sha256',help='Independently pinned digest for the tactical packet')
     parser.add_argument('--as-of-day',required=True)
     args=parser.parse_args()
     try:
         packet,summary=build_dossiers(args.database,args.registry.read_bytes(),args.archive_manifest.read_bytes(),
-            expected_registry_sha256=args.expected_registry_sha256,as_of_day=args.as_of_day)
+            expected_registry_sha256=args.expected_registry_sha256,as_of_day=args.as_of_day,
+            tactical_raw=args.tactical_observations.read_bytes() if args.tactical_observations else None,
+            expected_tactical_sha256=args.expected_tactical_sha256)
         write_private(args.output_dir,packet,summary)
     except (ValueError,TypeError,KeyError,OSError,sqlite3.Error):
         parser.exit(2,'Dossier build held: source validation or private output failed.\n')

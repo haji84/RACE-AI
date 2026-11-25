@@ -1,0 +1,44 @@
+{
+  "schema": "KEIRIN_OFFICIAL_TACTICAL_DOSSIER_EXAMPLES_V1",
+  "scope": "retrospective_saved_official_reports",
+  "source_manifest_sha256": "a3af9edc1b5f2b571e48981b2c4966421aa12d88633e99ac35b8a9ba27415174",
+  "reviewed_packet_sha256": "e7bfc12b7a4a31eba6367722a425a7f1bc035e2d11ae0fdbbd68dfe8cb559df2",
+  "rows": [
+    {
+      "race_id": "202410292706",
+      "registration": "015799",
+      "car": 1,
+      "finish": 1,
+      "ability": "late_kick_after_effort",
+      "source_report_url": "https://keirin.jp/pc/dfw/portal/guest/report/GIII/27keiokaku/2024/report_4.html",
+      "source_report_sha256": "9c72e5d42ec9e4fc7199ccacf2341c895587278301b138b41e03c5cf4db383d1",
+      "official_result_sha256": "37300f52ad930b530dbab0a3bfbffbb10ec126529688558509b8606aee1949cb",
+      "retrospective_line_card_sha256": null,
+      "review_available_at": "2026-11-25T15:32:59.238222+00:00",
+      "quantified_speed_or_fatigue": false,
+      "admitted_later": true,
+      "held_reason": null
+    },
+    {
+      "race_id": "202509094707",
+      "registration": "013730",
+      "car": 3,
+      "finish": 4,
+      "ability": "follower_acceleration",
+      "source_report_url": "https://keirin.jp/pc/dfw/portal/guest/report/GIII/47matsusaka/2025/report_2.html",
+      "source_report_sha256": "1c960c3e81df92724680fda0cd3f502ea283bdf48c81b904d47029971b8d87b3",
+      "official_result_sha256": "f1300dc5e3c1353a2fa4d6f23132b9beb68b7444489306d6ed73d791f4bde57d",
+      "retrospective_line_card_sha256": "08a5f6867bf21f17bc90c476a499abd129c4b0612b35537f39ba0d762855f7f3",
+      "review_available_at": "2026-11-25T15:32:59.238222+00:00",
+      "quantified_speed_or_fatigue": false,
+      "admitted_later": false,
+      "held_reason": "actual_second_wheel_position_at_leader_fade_unverified"
+    }
+  ],
+  "same_jst_day_as_of": "2026-11-26",
+  "excluded_on_that_day": 1,
+  "later_jst_day_as_of": "2026-11-27",
+  "admitted_for_later_dossier": 1,
+  "predictive_ratings_generated": 0,
+  "external_source_requests": 0
+}
