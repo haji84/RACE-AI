@@ -39,12 +39,18 @@ def diagnostic(stage, error):
     return report
 
 
-def get(url, limit, *, open_request=None, pause=time.sleep):
+def get(url, limit, *, token=None, open_request=None, pause=time.sleep):
     address = urlsplit(url)
     if address.scheme != 'https' or address.netloc not in GITHUB_HOSTS or address.fragment:
         raise ReadbackError('INVALID_GITHUB_URL', 0)
     open_request = open_request or build_opener(_NoRedirect()).open
-    request = Request(url, headers={'User-Agent': 'RACE-AI-joint-origin-readback/1'})
+    headers = {'User-Agent': 'RACE-AI-joint-origin-readback/1'}
+    if address.netloc == 'api.github.com' and token is not None:
+        if (not address.path.startswith('/repos/haji84/RACE-AI/') or type(token) is not str
+                or not 0 < len(token) <= 4096 or '\r' in token or '\n' in token):
+            raise ReadbackError('INVALID_GITHUB_TOKEN_SCOPE', 0)
+        headers['Authorization'] = 'Bearer ' + token
+    request = Request(url, headers=headers)
     for attempt in (1, 2):
         try:
             with open_request(request, timeout=45) as response:

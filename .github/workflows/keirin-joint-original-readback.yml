@@ -58,6 +58,27 @@ jobs:
             tests.test_keirin_joint_recovery_score tests.test_keirin_published_result_validation \
             tests.test_keirin_flow_evaluation tests.test_keirin_form_fall_blind_pdca \
             tests.test_keirin_race_development -v
+      - name: Verify public witness metadata with the existing read token
+        env:
+          RACE_AI_GITHUB_READ_TOKEN: ${{ github.token }}
+        run: |
+          python - <<'PY'
+          import json, os
+          from pathlib import Path
+          from scripts.keirin_joint_readback_http import diagnostic, get
+          try:
+              token = os.environ.pop('RACE_AI_GITHUB_READ_TOKEN', '')
+              assert token
+              receipt = json.loads(Path('docs/evidence/keirin-live-accuracy-closure-20261125/joint-original-rsa-recovery.json').read_bytes())
+              url = 'https://api.github.com/repos/haji84/RACE-AI/actions/runs/' + str(receipt['original_witness_run']) + '/jobs'
+              jobs = json.loads(get(url, 2 * 1024 * 1024, token=token))['jobs']
+              matched = [job for job in jobs if job['id'] == receipt['original_witness_job']]
+              assert len(matched) == 1 and matched[0]['conclusion'] == 'success'
+              print('{"state":"EXISTING_READ_TOKEN_PUBLIC_WITNESS_VERIFIED","http_status":200,"permissions_changed":false}')
+          except Exception as error:
+              print(json.dumps(diagnostic('witness_jobs', error)), flush=True)
+              raise SystemExit(1) from None
+          PY
 
   independent-owner-readback:
     needs: contracts
@@ -81,12 +102,17 @@ jobs:
       - name: Verify the original commitment and public result snapshot before accessing a key
         id: capture
         shell: bash
+        env:
+          RACE_AI_GITHUB_READ_TOKEN: ${{ github.token }}
         run: |
           python - <<'PY'
           import hashlib, json, os, re
           from datetime import datetime, timezone, timedelta
           from pathlib import Path
-          from scripts.keirin_joint_readback_http import diagnostic, get
+          from scripts.keirin_joint_readback_http import diagnostic, get as github_get
+          read_token = os.environ.pop('RACE_AI_GITHUB_READ_TOKEN', '')
+          def get(url, limit):
+              return github_get(url, limit, token=read_token or None)
           stage = 'local_receipts'
           try:
               receipt = json.loads(Path('docs/evidence/keirin-live-accuracy-closure-20261125/joint-original-rsa-recovery.json').read_bytes())
