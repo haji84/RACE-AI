@@ -23,22 +23,23 @@ WRITE = ("workflow", "run", "keirin-nationwide-ab-auto.yml",
          "--repo", "github.com/haji84/RACE-AI", "--ref", "main", "-f", "mode=official-continue")
 
 
-def timestamp(delta):
-    return (NOW - timedelta(minutes=delta)).isoformat()
+def timestamp(delta, now=NOW):
+    return (now - timedelta(minutes=delta)).isoformat()
 
 
-def run(rid, *, age=75, event="schedule", status="completed", conclusion="success"):
+def run(rid, *, age=75, event="schedule", status="completed", conclusion="success", now=NOW):
     return {
         "id": rid, "workflow_id": PRODUCER, "path": PATH, "head_branch": "main",
         "head_sha": "b" * 40, "repository": {"id": REPO_ID},
         "head_repository": {"id": REPO_ID}, "run_attempt": 1, "event": event,
-        "status": status, "conclusion": conclusion, "created_at": timestamp(age + 6),
-        "updated_at": timestamp(age - 1),
+        "status": status, "conclusion": conclusion, "created_at": timestamp(age + 6, now),
+        "updated_at": timestamp(age - 1, now),
     }
 
 
 class Github:
-    def __init__(self, *, age=75):
+    def __init__(self, *, age=75, now=NOW):
+        self.now = now
         self.calls = []
         self.repository = {
             "id": REPO_ID, "full_name": "haji84/RACE-AI", "default_branch": "main",
@@ -47,10 +48,11 @@ class Github:
         self.heads = [MAIN]
         self.workflow_state = "active"
         self.active = {}
-        self.rows = [run(7, age=age)]
+        self.rows = [run(7, age=age, now=now)]
         self.captures = {7: (age, "success")}
         self.receipt = {
             "schema": "RACE_AI_KEIRIN_GITHUB_ONLY_LIVE_AB_DAY_V1",
+            "day_jst": (now - timedelta(minutes=age) + timedelta(hours=9)).date().isoformat(),
             "state": "OFFICIAL_SP_BASELINES_ARCHIVED", "source_requests": 5,
             "provider_denied": False, "source_or_forecast_plaintext_exposed": False,
             "statuses": {}, "safe_diagnostics": [],
@@ -101,7 +103,7 @@ class Github:
                 "steps": [] if conclusion == "skipped" else [{
                     "name": "Register the official day and preserve future original forecasts",
                     "status": "completed", "conclusion": conclusion,
-                    "started_at": timestamp(age + 5), "completed_at": timestamp(age),
+                    "started_at": timestamp(age + 5, self.now), "completed_at": timestamp(age, self.now),
                 }],
             }
             data = {"total_count": 1, "jobs": [job]}
@@ -119,7 +121,7 @@ class Github:
                 artifact = {
                     "id": rid + 500, "name": target, "expired": False,
                     "digest": "sha256:" + sha256(self.archive).hexdigest(),
-                    "size_in_bytes": len(self.archive), "created_at": timestamp(age - 1),
+                    "size_in_bytes": len(self.archive), "created_at": timestamp(age - 1, self.now),
                     "workflow_run": {"id": rid, "head_branch": "main", "head_sha": "b" * 40,
                                      "repository_id": REPO_ID, "head_repository_id": REPO_ID},
                 }
@@ -303,4 +305,99 @@ class WatchdogTests(unittest.TestCase):
         report = self.supervise(gh, dispatch=True)
         self.assertEqual(report["decision"], "HOLD_CAPTURE_STOPPING_STATE")
         self.assertNotIn("must not appear", json.dumps(report))
+        self.assertNotIn(WRITE, gh.calls)
+
+    def test_verified_current_jst_backlog_uses_a_30_minute_recovery_delay(self):
+        for age, decision in ((29, "SKIP_RECENT_OFFICIAL_SP_CAPTURE"),
+                              (30, "SKIP_RECENT_OFFICIAL_SP_CAPTURE"),
+                              (31, "WOULD_DISPATCH_OFFICIAL_CONTINUE")):
+            with self.subTest(age=age):
+                gh = Github(age=age)
+                gh.receipt["statuses"]["SOURCE_CAPTURE_BUDGET_PENDING"] = 45
+                report = self.supervise(gh)
+                self.assertEqual(report["decision"], decision)
+                self.assertEqual(report.get("recovery_delay_minutes"), 30)
+                self.assertNotIn(WRITE, gh.calls)
+
+    def test_missing_day_empty_backlog_and_prior_jst_receipts_keep_45_minutes(self):
+        jst_after_midnight = NOW + timedelta(hours=12, minutes=5)
+        for pending, stamp, decision_at in (
+                (0, "2026-11-26", NOW),
+                (4, None, NOW),
+                (4, "2026-11-26", jst_after_midnight)):
+            with self.subTest(pending=pending, stamp=stamp, at=decision_at):
+                gh = Github(age=35, now=decision_at)
+                gh.receipt["statuses"]["SOURCE_CAPTURE_BUDGET_PENDING"] = pending
+                if stamp is None:
+                    gh.receipt.pop("day_jst")
+                else:
+                    gh.receipt["day_jst"] = stamp
+                report = self.supervise(gh, dispatch=True, now=decision_at)
+                self.assertEqual(report["decision"], "SKIP_RECENT_OFFICIAL_SP_CAPTURE")
+                self.assertEqual(report.get("recovery_delay_minutes"), 45)
+                self.assertNotIn(WRITE, gh.calls)
+
+    def test_invalid_capture_day_or_provider_stop_prevents_backlog_dispatch(self):
+        for field, value, decision in (
+                ("day_jst", "2026-11-27", "HOLD_CAPTURE_OUTCOME_UNVERIFIED"),
+                ("day_jst", "2026-11-25", "HOLD_CAPTURE_OUTCOME_UNVERIFIED"),
+                ("day_jst", "2026-11-40", "HOLD_CAPTURE_OUTCOME_UNVERIFIED"),
+                ("provider_denied", True, "HOLD_CAPTURE_PROVIDER_STOP"),
+                ("source_lease_finish_failed", True, "HOLD_CAPTURE_STOPPING_STATE")):
+            with self.subTest(field=field, value=value):
+                gh = Github(age=35)
+                gh.receipt["statuses"]["SOURCE_CAPTURE_BUDGET_PENDING"] = 1
+                gh.receipt[field] = value
+                self.assertEqual(self.supervise(gh, dispatch=True)["decision"], decision)
+                self.assertNotIn(WRITE, gh.calls)
+
+    def test_shorter_delay_still_requires_capture_newer_than_last_local_attempt(self):
+        self.state.mkdir(mode=0o700)
+        previous = self.state / "last-attempt.json"
+        previous.touch(mode=0o600, exist_ok=False)
+        for status, previous_age, expected in (
+                ("accepted", 33, "HOLD_PRIOR_DISPATCH_OUTCOME_UNVERIFIED"),
+                ("unconfirmed", 33, "HOLD_PRIOR_DISPATCH_UNCONFIRMED"),
+                ("accepted", 41, "DISPATCHED_OFFICIAL_CONTINUE")):
+            with self.subTest(status=status, previous_age=previous_age):
+                previous.write_text(json.dumps({"at": timestamp(previous_age), "status": status}))
+                gh = Github(age=35)
+                gh.receipt["statuses"]["SOURCE_CAPTURE_BUDGET_PENDING"] = 1
+                self.assertEqual(self.supervise(gh, dispatch=True)["decision"], expected)
+                self.assertEqual(gh.calls.count(WRITE), int(expected == "DISPATCHED_OFFICIAL_CONTINUE"))
+
+    def test_crossing_jst_midnight_before_dispatch_holds_the_shorter_decision(self):
+        before_midnight = NOW + timedelta(hours=11, minutes=59)
+        gh = Github(age=35, now=before_midnight)
+        gh.receipt["statuses"]["SOURCE_CAPTURE_BUDGET_PENDING"] = 1
+        report = self.watchdog.supervise(
+            gh, now=before_midnight, state_dir=self.state, dispatch=True,
+            clock=lambda: before_midnight + timedelta(minutes=2),
+        )
+        self.assertEqual(report["decision"], "HOLD_CAPTURE_JST_DAY_CHANGED_NO_DISPATCH")
+        self.assertFalse((self.state / "last-attempt.json").exists())
+        self.assertNotIn(WRITE, gh.calls)
+
+    def test_backlog_count_is_only_used_after_the_receipt_digest_matches(self):
+        gh = Github(age=35)
+        gh.receipt["statuses"]["SOURCE_CAPTURE_BUDGET_PENDING"] = 1
+
+        def wrong_zip(args):
+            raw = gh(args)
+            if args[-1].endswith("/zip"):
+                return bytes([raw[0] ^ 1]) + raw[1:]
+            return raw
+
+        self.assertEqual(self.supervise(wrong_zip, dispatch=True)["decision"], "HOLD_CAPTURE_OUTCOME_UNVERIFIED")
+        self.assertNotIn(WRITE, gh.calls)
+
+    def test_backward_clock_prevents_backlog_dispatch(self):
+        gh = Github(age=35)
+        gh.receipt["statuses"]["SOURCE_CAPTURE_BUDGET_PENDING"] = 1
+        report = self.watchdog.supervise(
+            gh, now=NOW, state_dir=self.state, dispatch=True,
+            clock=lambda: NOW - timedelta(seconds=1),
+        )
+        self.assertEqual(report["decision"], "HOLD_CAPTURE_CLOCK_CHANGED_NO_DISPATCH")
+        self.assertFalse((self.state / "last-attempt.json").exists())
         self.assertNotIn(WRITE, gh.calls)
