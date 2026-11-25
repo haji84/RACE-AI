@@ -189,7 +189,7 @@ def run_capture(*,repo,private_root,owner_public_pem,owner_private_pem,day=None,
     repo,root,day,public,commit=_runtime(repo=repo,private_root=private_root,owner_public_pem=owner_public_pem,
         owner_private_pem=owner_private_pem,day=day,clock=clock,mode='capture')
     need(type(max_races) is int and 1<=max_races<=8,'CAPTURE_RACE_BOUND')
-    report=_summary(day);store=records.RecordStore(repo,day);prior=[];source_attempts={}
+    report=_summary(day);store=records.RecordStore(repo,day);prior=[];source_attempts={};previous=None
     if store.index['registry']:
         previous=store.read(store.index['registry'],owner_private_pem)
         prior=records.replay_registry(previous)['registered_race_ids']
@@ -219,10 +219,12 @@ def run_capture(*,repo,private_root,owner_public_pem,owner_private_pem,day=None,
         for rid in registry['disappeared_race_ids']:states[rid]['state']='RACE_DISAPPEARED_FROM_CURRENT_LIST'
         _save_registry(store,inventory,states,source_attempts,prior,public,clock)
         cohort=records.cohort(registry);attempted=0;earliest_frozen_cutoff=None
-        # Published list rows do not yet establish a cutoff. Keep the existing
-        # order for equal attempts and verify actual cutoff when opening a card.
-        ordered=sorted(registry['races'],key=lambda r:(
-            source_attempts.get(r['race_id'],0),r['race_no'],r['venue_code']))
+        from race_ai.keirin_official_class_evidence import collect_unknown_class_evidence, replay_cutoff_hints, LABEL
+        cutoff_hints=replay_cutoff_hints(previous,inventory,now=clock())
+        unknown_cutoff=datetime.max.replace(tzinfo=timezone.utc)
+        # Preserve the attempt and round order. Every capture still opens the current card.
+        ordered=sorted(registry['races'],key=lambda r:(source_attempts.get(r['race_id'],0),
+            r['race_no'],cutoff_hints.get(r['race_id'],unknown_cutoff),r['venue_code']))
         for race in ordered:
             rid=race['race_id'];row=states[rid]
             if _baseline_already_exists(store,rid):row['state']='FROZEN_ORIGINAL_PRESERVED';continue
@@ -265,7 +267,6 @@ def run_capture(*,repo,private_root,owner_public_pem,owner_private_pem,day=None,
             except (ValueError,KeyError,TypeError,OSError):
                 row.update(state='FROZEN_ARCHIVE_UNVERIFIED',condition_state=condition_state)
             _save_registry(store,inventory,states,source_attempts,prior,public,clock)
-        from race_ai.keirin_official_class_evidence import collect_unknown_class_evidence, LABEL
         if not session.halted and (earliest_frozen_cutoff is None or
                 form._aware(clock())<earliest_frozen_cutoff-timedelta(seconds=240)):
             try:

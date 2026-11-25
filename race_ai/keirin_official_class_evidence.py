@@ -24,6 +24,76 @@ def _need(ok, code):
         raise ValueError('CLASS_EVIDENCE_'+code)
 
 
+def _card_reference(listed, calendar, day, number):
+    calendar = dict(calendar, observed_at=form._aware(calendar['observed_at']))
+    listing = cards.receipt.parse_race_list(listed['raw_bytes'], expected_day=day,
+        expected_venue_code=listed['venue_code'], observed_at=form._aware(listed['observed_at']),
+        expected_sha256=listed['expected_sha256'], calendar_receipt=calendar)
+    ref = next(row for row in listing['race_references'] if row['race_no'] == number)
+    row = next(row for row in cards._current_rows(listed['raw_bytes'], day)
+               if int(cards.receipt._norm(row['strRaceNo'])) == number)
+    _need(ref['link_kind'] == '1' and ref['path'] == '/sp/race', 'PUBLISHED_REFERENCE')
+    return cards.receipt._norm(row['strSyumokuName']), ref
+
+
+def replay_cutoff_hints(previous, inventory, *, now):
+    """Use the replayed official registry only for ordering fresh captures."""
+    day = inventory['registry']['event_day']
+    evidence = previous.get('unadmitted_class_evidence') if previous is not None else None
+    if (type(evidence) is not dict or evidence.get('schema') != SCHEMA or
+            evidence.get('day_jst') != day or previous['day_jst'] != day):
+        return {}
+    records = evidence.get('records')
+    if (type(records) is not list or len(records) > 4 or
+            any(type(row) is not dict or type(row.get('race_id')) is not str for row in records) or
+            len({row['race_id'] for row in records}) != len(records)):
+        return {}
+
+    now, saved_at = form._aware(now), form._aware(previous['observed_at'])
+    old_inventory = previous['inventory']
+    old_lists = {source['venue_code']:source for source in old_inventory['list_sources']}
+    current_lists = {source['venue_code']:source for source in inventory['list_sources']}
+    old_races = {race['race_id'] for race in previous['registry']['races']
+                 if race['source_state'] == 'RACECARD_PUBLISHED'}
+    current_races = {race['race_id']:race for race in inventory['registry']['races']
+                     if race['source_state'] == 'RACECARD_PUBLISHED'}
+
+    cutoff_hints = {}
+    for record in records:
+        race = current_races.get(record['race_id'])
+        if race is None or record['race_id'] not in old_races:
+            continue
+        try:
+            venue, number = race['venue_code'], race['race_no']
+            listed = old_lists[venue]
+            _need(record['prediction_admitted'] is False and record['list_source'] == listed, 'SAVED_LIST')
+            label, reference = _card_reference(listed, old_inventory['calendar_receipt'], day, number)
+            current = _card_reference(current_lists[venue], inventory['calendar_receipt'], day, number)
+            _need(label in extension.OBSERVED_CLASSES and label == record['class_label'] and
+                  current == (label, reference), 'CURRENT_CARD_BINDING')
+            source = record['detail_source']
+            url = 'https://keirin.jp/sp/race'
+            _need(type(source) is dict and source.get('source_url') == source.get('request_url') == url and
+                  source.get('http_status') == 200, 'SAVED_DETAIL')
+            _need(source.get('receipt') == dict(source_url=url, method='POST', http_status=200,
+                form_fields={'encp':reference['opaque_reference'], 'disp':'SJ0315'},
+                captured_at=source['observed_at'], bytes_sha256=source['expected_sha256'], kind='PROGRAM'),
+                'SAVED_REQUEST_BINDING')
+            observed = form._aware(source['observed_at'])
+            _need(form._aware(listed['observed_at']) <= observed <= saved_at <= now, 'REPLAY_SOURCE_CLOCK')
+            calendar = dict(old_inventory['calendar_receipt'],
+                            observed_at=form._aware(old_inventory['calendar_receipt']['observed_at']))
+            detail = cards.receipt.parse_race_detail(source['raw_bytes'], expected_day=day,
+                expected_venue_code=venue, expected_race_number=number, observed_at=observed,
+                expected_sha256=source['expected_sha256'], calendar_receipt=calendar)
+            cutoff = form._aware(detail['official_cutoff_at'])
+            if not detail['race_cancelled'] and now + timedelta(seconds=65) <= cutoff:
+                cutoff_hints[race['race_id']] = cutoff
+        except (ValueError, KeyError, TypeError, StopIteration):
+            continue
+    return cutoff_hints
+
+
 def collect_unknown_class_evidence(*, session, inventory, clock, max_classes=4):
     _need(type(max_classes) is int and 1 <= max_classes <= 4, 'BOUND')
     registry = inventory['registry']
