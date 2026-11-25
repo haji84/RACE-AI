@@ -1,0 +1,188 @@
+{
+  "cases": [
+    {
+      "dated_program": {
+        "archive_created_at": "2026-11-24T01:49:14.886240+00:00",
+        "cutoff_jst": "2026-11-24T11:00:00+09:00",
+        "fetched_at": "2026-11-24T01:49:00.623881+00:00",
+        "planned_lines": [
+          [
+            7,
+            1
+          ],
+          [
+            5,
+            2,
+            4
+          ],
+          [
+            3,
+            6
+          ]
+        ],
+        "source_bytes_sha256": "e8c3537ba211a8664c3ecd77ce603e2de89d561b89c38a8b85d1f3f404184c7d",
+        "url": "https://keirin.kdreams.jp/shizuoka/racedetail/3820261124010001/"
+      },
+      "finish": {
+        "authority": "cross_source_reference",
+        "ordered_podium": [
+          7,
+          4,
+          1
+        ],
+        "sources": [
+          {
+            "checked_at": "2026-11-25T04:48:33.762121+00:00",
+            "source_id": "kdreams",
+            "url": "https://keirin.kdreams.jp/shizuoka/racedetail/3820261124010001/?pageType=result"
+          },
+          {
+            "checked_at": "2026-11-25T04:48:34.832109+00:00",
+            "source_id": "netkeirin",
+            "url": "https://keirin.netkeiba.com/race/result/?race_id=202611243801"
+          }
+        ]
+      },
+      "observation_summary_ja": "Bの先頭は別線の5番。4角では7番が先頭で、最終2着の4番は3番手、最終3着の1番は映像で確定した前3車の外にいた。先頭交代時刻、後続の進路、4角以降の交代順序は未確認。",
+      "race_id": "202611243801",
+      "result_sheet_B": {
+        "basis": "Archived Kdreams per-rider B flag from post-race report. B frame, passage timestamp and next rider were not independently annotated for this race.",
+        "decoded_html_sha256": "8bb0d84e07008046ae84440d46ffe77a6acc194bd06e1b4e5671d3dabf7747f1",
+        "leader_car": 5,
+        "url": "https://keirin.kdreams.jp/shizuoka/racedetail/3820261124010001/?pageType=showResult"
+      },
+      "supplied_strict_visual_B4C_pair": false,
+      "venue_race": "静岡1R",
+      "video_4C": {
+        "frame_sha256": "04cfc29eba69551f13695a4906b5231fd2f02367b1241d9942ec1d8f1257ef00",
+        "method": "ordinary in-browser replay visual review",
+        "operator_receipt": {
+          "sha256": "ac49e7c20f014ac93af50528c919e7554415015c15807f13c1d30f92482b3240"
+        },
+        "ordered_front_cars": [
+          7,
+          5,
+          4
+        ],
+        "public_replay": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/3820261124/38202611240100/1/",
+        "seconds_from_digest_start": 62.4
+      }
+    },
+    {
+      "dated_program": {
+        "archive_created_at": "2026-11-23T22:49:51.346689+00:00",
+        "cutoff_jst": "2026-11-24T11:12:00+09:00",
+        "fetched_at": "2026-11-23T22:47:53.298302+00:00",
+        "planned_lines": [
+          [
+            2,
+            5,
+            4
+          ],
+          [
+            3,
+            1
+          ]
+        ],
+        "source_bytes_sha256": "017509c4ce3ff617a26822e2ff9185e53ece8269d817a7f05f138057c2ab3814",
+        "url": "https://keirin.kdreams.jp/nara/racedetail/5320261122030001/"
+      },
+      "finish": {
+        "authority": "cross_source_reference",
+        "ordered_podium": [
+          5,
+          1,
+          2
+        ],
+        "sources": [
+          {
+            "checked_at": "2026-11-25T04:48:35.399716+00:00",
+            "source_id": "kdreams",
+            "url": "https://keirin.kdreams.jp/nara/racedetail/5320261122030001/?pageType=result"
+          },
+          {
+            "checked_at": "2026-11-25T04:48:35.886435+00:00",
+            "source_id": "netkeirin",
+            "url": "https://keirin.netkeiba.com/race/result/?race_id=202611245301"
+          }
+        ]
+      },
+      "observation_summary_ja": "Bの先頭2番が4角でも先頭。ゴールで同ラインの5番が先着した。4角の2・3番手が判別不能のため、別線の1番が2着に入った区間と進路は未確認。",
+      "race_id": "202611245301",
+      "result_sheet_B": {
+        "basis": "Archived Kdreams per-rider B flag from post-race report. B frame, passage timestamp and next rider were not independently annotated for this race.",
+        "decoded_html_sha256": "e76f59d7824d5a3b4d523ad97497a049d8b7ea58abbf030d02f3888fec834af6",
+        "leader_car": 2,
+        "url": "https://keirin.kdreams.jp/nara/racedetail/5320261122030001/?pageType=showResult"
+      },
+      "supplied_strict_visual_B4C_pair": false,
+      "venue_race": "奈良1R",
+      "video_4C": {
+        "frame_sha256": "9473e9b33f3ee6a8bd2e64e37cadb9cd6e72938514eb299a94aa798966a3b5b9",
+        "method": "ordinary in-browser replay visual review",
+        "operator_receipt": {
+          "sha256": "f850e0e78870dff4b9739405b563e0b63cf6cbf81ed85427bc6f2eaf2f96db98"
+        },
+        "ordered_front_cars": [
+          2,
+          null,
+          null
+        ],
+        "public_replay": "https://keirin.kdreams.jp/yenjoy/keirin-kaisai/race-card/result/5320261122/53202611220300/1/",
+        "seconds_from_digest_start": 59.6
+      }
+    }
+  ],
+  "control": "Saved pages and archived observation digests only. No network, future result, new replay bytes, image, production or Git write. This summary reproduces public race metadata and observation facts for the two positive cases.",
+  "counts": {
+    "any_4C_order": 8,
+    "confirmed_4C_pair": 5,
+    "confirmed_4C_trio": 4,
+    "finish_pattern_verified_positive_cases": 2,
+    "positive_with_confirmed_visual_B4C_ordered_pair": 0,
+    "positive_with_saved_Kdreams_B_leader_flag": 2,
+    "positive_with_saved_result_sheet_B_and_visual_4C_leader": 2,
+    "visual_B_annotated_in_original_cohort": 0
+  },
+  "proofs": {
+    "frozen_4C_predictions": {
+      "sha256": "ab0dfe49f0a02a8c8ed7dbb3a5aaf5587f1286881e02f68c77f943d9716b9e5d"
+    },
+    "frozen_labels": {
+      "sha256": "f4c63870e8b8d19af4da54af31ace1cfacdad1d32ba73c7a405ea4e00c913c44"
+    },
+    "labels_receipt": {
+      "sha256": "95829070a8e363ea2d5b9e8dbcf75ffca454c8d881f0e082e2984d8108c44f4f"
+    },
+    "prior_40_list": {
+      "sha256": "dac0a7c437b941c34d384af4d1a72d8b479be465bd9420ab52e0b52721ebaa5d"
+    },
+    "result_sheet_parse": {
+      "sha256": "9395f5ace74abac8c63fccecf83c5edbd76a6764802e818930ae2374c4d2a1e9"
+    },
+    "roster_packets": {
+      "sha256": "76d108e04827c13c86fd1e18e793bfe34a03d75774e659fa6143c1ebf152c7ac"
+    },
+    "selection": {
+      "sha256": "993e0e384ed90a77e66cd5c60cac6e8de9f6a418556db141c717612220a9c705"
+    },
+    "two_source_outcomes": {
+      "sha256": "4f5c7c3ef5e9827727cdc437cdf3e494b36e1f72ee6be08e30f43a9ad4ff723c"
+    }
+  },
+  "schema": "KEIRIN_ARCHIVED_INDEPENDENT_CROSS_SECOND_CHECKPOINT_SUMMARY_V1",
+  "scope": "Historical reread. Original 4C forecast and race selection frozen before visual labeling. The requested finish-line-pattern endpoint was identified later. No fitting or candidate-performance claim.",
+  "selection": {
+    "candidate_selection_uses_current_race_results": false,
+    "endpoint_discovery_after_labels": true,
+    "label_sealed_at": "2026-11-25T10:59:44.166580+00:00",
+    "ordinary_playable": 8,
+    "outside_original_125": true,
+    "outside_outcome_selected_targeted_and_enriched": true,
+    "outside_prior_40": true,
+    "pre_registered_at": "2026-11-25T10:54:10.971956+00:00",
+    "predeadline_existing_candidates": 249,
+    "rule": "November 21–24, up to two per date; ascending race ID encoding date/venue/number, one race per venue across dates. No riders, results, predicted probabilities, prior phase values or provider success consulted in inclusion. No replacement after this seal.",
+    "selected": 8
+  }
+}

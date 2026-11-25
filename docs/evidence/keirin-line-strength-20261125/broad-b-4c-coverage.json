@@ -1,0 +1,54 @@
+{
+  "archived_date_ceiling": "2026-11-24",
+  "both_ordered_pairs_before_lineup_and_result_join": 43,
+  "canonical_video_rows": 125,
+  "combined_scope_note": "This broad archive shares predecessor training and evaluation samples, and selection provenance varies. It is a coverage check, not a newly independent test. The explicitly calendar-selected alternative study admits 14 races, 13 with both front pairs; it overlaps this catalog. The separate independent eight is disjoint from canonical and evaluated in its own report.",
+  "missing_join_eligible_visual_rows": 29,
+  "paired_predeadline_lineup_and_result_join": 14,
+  "positive_requested_finish_shape": 0,
+  "proof": {
+    "alternate_calendar_selection": {
+      "path": "/workspace/scratch/keirin-video-transitions-20261124-AiLEzURf/selection.json",
+      "sha256": "f9288db3e7a9d1c448bc1656f3d10fac33ae16bb2f7175b3c63979c969d7e31e"
+    },
+    "alternate_recorded_video_study": {
+      "path": "/workspace/scratch/keirin-video-transitions-20261124-AiLEzURf/results.json",
+      "sha256": "62c69c8eedbfe20bdcd752632499f1ec953c5dc8a15bfa5ae9fb64397eddd28a"
+    },
+    "canonical_observations": {
+      "path": "/workspace/RACE-AI-keirin-rider-traits-20261123/docs/evidence/keirin-video-corpus-20261124/public-race-observations.json",
+      "sha256": "5b94663ed835818baf26dd532f1ac92ecef74f1dbbd3e078e3634cc054863f07"
+    },
+    "dated_cards": {
+      "path": "/workspace/scratch/keirin-rolling-three-year-20261124/cards.owner.json.gz",
+      "sha256": "afd1a3814c92b6172d17c5d02ce7a261945372ea945352c933c6e6ebc498db01"
+    },
+    "enriched_selection": {
+      "path": "/workspace/scratch/keirin-95-continue-20261125/video/next/pilot/cross-line/older-enriched/plan.json",
+      "sha256": "7f07384c9d421eaad354be7e1586c1a6a1614dc470d96eba3df29e38ba6ed9aa"
+    },
+    "original_calendar_selection": {
+      "path": "/workspace/scratch/keirin-video-learning-20261124-xQJeWIdl/selection.json",
+      "sha256": "20c7d47f56b199e7463b12f527e652aaba37c2f1136ba74de4c4fdad9b857f0f"
+    },
+    "pinned_rolling_source_audit": {
+      "path": "/workspace/scratch/keirin-rolling-three-year-20261124/source-audit.json",
+      "sha256": "7716588d34879947c2c1d7d7a9a67e3e9eee44f2521dcb844084c0880ff7e6fe"
+    },
+    "prior_40": {
+      "path": "/workspace/scratch/keirin-95-continue-20261125/video/next/pilot/cross-line/extend-tail/bound-four-class.owner.json",
+      "sha256": "dac0a7c437b941c34d384af4d1a72d8b479be465bd9420ab52e0b52721ebaa5d"
+    },
+    "rolling_finish_and_B_observations": {
+      "path": "/workspace/scratch/keirin-rolling-three-year-20261124/observations.owner.json.gz",
+      "sha256": "68d4c89c5630e3254f9265a5abc7d32acd73af29fa8ed76fa9de983014b20449"
+    },
+    "targeted_selection": {
+      "path": "/workspace/scratch/keirin-95-continue-20261125/video/next/pilot/cross-line/targeted/plan.json",
+      "sha256": "f294fb6dec0d8446709344a8aba89c2409788ca97894c600419eeae64f14970e"
+    }
+  },
+  "published_B_agrees_with_visual_B": 14,
+  "rule": "Before checking finishes, exclude the sealed 40, targeted and enriched rows, and all canonical rows explicitly flagged as outcome selected. Require quantized timestamped visually observed and admissible B / 4C ordered pairs. Join only to dated pre-cutoff complete lineup and pinned completed race results.",
+  "schema": "KEIRIN_ARCHIVED_CROSS_SECOND_BROAD_CHECKPOINT_COVERAGE_V1"
+}
