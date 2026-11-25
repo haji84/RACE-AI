@@ -3,8 +3,10 @@ from base64 import b64decode, b64encode
 from hashlib import sha256
 from itertools import permutations
 import json
+import os
 from pathlib import Path
 from tempfile import TemporaryDirectory
+from types import SimpleNamespace
 import unittest
 from unittest.mock import patch
 
@@ -78,8 +80,8 @@ class ResearchCohortTests(unittest.TestCase):
             for key, d in (('roster',self.roster),('results',self.results)):
                 self.save(self.manifest[key],d)
 
-    def collect(self):
-        return cohort.collect(self.manifest,self.path,lambda rev, path: self.git[rev,path])
+    def collect(self, **options):
+        return cohort.collect(self.manifest,self.path,lambda rev, path: self.git[rev,path],**options)
 
     def test_registration_needs_no_tomorrows_results(self):
         self.inputs(True)
@@ -253,6 +255,72 @@ class ResearchCohortTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, 'COHORT_RESULT_SOURCE_MIXED'):
             self.collect()
 
+    def test_optional_sp_replay_only_checks_registered_two_source_matches(self):
+        first,_ = self.use_note_results()
+        self.manifest['official_sp_archive_commit'] = 'f'*40
+        with self.assertRaisesRegex(ValueError, 'OFFICIAL_SP_FROZEN_IDENTITIES_REQUIRED'):
+            self.collect(read_official_sp=lambda *_: ({}, {}))
+        self.add_frozen_identity_manifest()
+        actual = {first: dict(cutoff_at=self.day+'T07:00:00Z', starters={1,2,3,4},
+                              registrations={str(c):f'999{c:03d}' for c in (1,2,3,4)}, winning_triple=[3,1,2])}
+        def read_sp(day, candidates, revision):
+            self.assertEqual((day, set(candidates), revision), (self.day, {first}, 'f'*40))
+            return actual, {'verified':1}
+        value = self.collect(read_official_sp=read_sp)
+        self.assertEqual(value['official_sp_replay'], {'verified':1})
+        self.assertEqual(value['eligible_result_states'], {'matched':1, 'missing':4})
+        self.assertEqual(value['comparisons']['existing_published_line'][8]['scored'], 1)
+
+        def unavailable(*args):
+            return {}, {'state':'owner_key_unavailable', 'verified':0}
+        value = self.collect(read_official_sp=unavailable)
+        self.assertEqual(value['official_sp_replay']['state'], 'owner_key_unavailable')
+        self.assertEqual(value['eligible_hold_reasons'], {'independent_roster_or_cutoff_unverified':1})
+
+    def test_conflicting_verified_official_sources_preserve_a_hold(self):
+        first,_ = self.use_note_results()
+        self.manifest.update(official_sp_archive_commit='f'*40, official_result_records='official.json')
+        self.add_frozen_identity_manifest()
+        self.save('official.json', {'races':[]})
+        actual = dict(cutoff_at=self.day+'T07:00:00Z', starters={1,2,3,4},
+                      registrations={str(c):f'999{c:03d}' for c in (1,2,3,4)}, winning_triple=[3,1,2])
+        with patch.object(cohort, '_official_note_context', return_value={first:actual}):
+            same = self.collect(read_official_sp=lambda *_: ({first:dict(actual, cutoff_at=self.day+'T16:00:00+09:00')}, {}))
+            conflict = self.collect(read_official_sp=lambda *_: ({first:dict(actual, winning_triple=[1,2,3])}, {}))
+        self.assertEqual(same['comparisons']['existing_published_line'][8]['scored'], 1)
+        self.assertEqual(conflict['comparisons']['existing_published_line'][8]['scored'], 0)
+        self.assertEqual(conflict['eligible_hold_reasons'], {'official_source_context_disagreement':1})
+
+    def test_sp_reader_does_not_backfill_a_failed_latest_revision(self):
+        from race_ai import keirin_official_nationwide_records as records
+        from scripts import keirin_official_day_pipeline as pipeline
+
+        first, second = [row['race_id'] for row in self.initial['races'][:2]]
+        store=SimpleNamespace(index=dict(originals={first:'original'}, results={first:['old','latest']}))
+        with patch.object(pipeline, 'check_owner_private_key'), patch.object(records, 'RecordStore', return_value=store), \
+             patch.object(records, 'replay_saved_result_context', side_effect=ValueError('invalid latest')) as replay:
+            actual, coverage = cohort._archived_sp_context(self.path,self.day,{first,second},'f'*40,b'fixture')
+        replay.assert_called_once_with(store,'original','latest',b'fixture')
+        self.assertEqual(actual,{})
+        self.assertEqual((coverage['requested'],coverage['indexed'],coverage['replay_held'],coverage['verified']),(2,1,1,0))
+
+    def test_cli_removes_owner_key_before_git_calls_and_passes_it_only_to_replay(self):
+        self.save('manifest.json', {'schema':cohort.SCHEMA})
+        secret='invented-owner-key'
+        env_name='RACE_AI_KEIRIN_PRIVATE_RSA_PEM'
+        first=self.initial['races'][0]['race_id']
+        def verify_run(_manifest, _directory, read_commitment, *, read_official_sp):
+            self.assertFalse(env_name in os.environ, 'Owner key must be removed before any subprocess.')
+            read_commitment('f'*40,'index.json')
+            read_official_sp(self.day,{first},'f'*40)
+            return {}
+        with patch.dict(os.environ,{env_name:secret}), patch.object(cohort,'collect',side_effect=verify_run), \
+             patch.object(cohort.ledger,'_git_read'), patch.object(cohort,'_archived_sp_context') as replay:
+            cohort.main(['--manifest',str(self.path/'manifest.json'),'--repo',str(self.path),
+                         '--output-new',str(self.path/'report.json')])
+        replay.assert_called_once_with(self.path,self.day,{first},'f'*40,secret.encode())
+        self.assertNotIn(secret, (self.path/'report.json').read_text())
+
     def test_note_receipt_time_cannot_be_edited_without_changing_the_authenticated_packet(self):
         _, readback = self.use_note_results()
         readback['packets'][0]['observations'][0]['provider_receipts'][0]['observed_at'] = self.day+'T07:17:00Z'
@@ -276,8 +344,7 @@ class ResearchCohortTests(unittest.TestCase):
         record['result']['winning_triples'] = [[2,1,3]]
         self.assertEqual(context(), {})
 
-    def test_confirmed_same_car_numbers_do_not_hide_a_rider_replacement(self):
-        first, _ = self.use_note_results()
+    def add_frozen_identity_manifest(self):
         path = 'docs/evidence/cohort/frozen-riders-receipt.json'
         identities = dict(schema='KEIRIN_FROZEN_RIDER_IDENTITIES_V1', date=self.day,
                           races=[dict(race_id=r['race_id'], cutoff_at=r['cutoff_at'],
@@ -288,8 +355,12 @@ class ResearchCohortTests(unittest.TestCase):
                        identity_manifest_sha256=digest, assembled_at=self.day+'T05:04:00Z',
                        registered_races=5, starter_appearances=20)
         self.git['e'*40, path] = (self.day+'T05:05:00Z', json.dumps(receipt).encode())
-        self.manifest.update(frozen_identities=dict(original='identities.owner.json', git_commit='e'*40, git_path=path),
-                             official_result_records='official.json')
+        self.manifest['frozen_identities'] = dict(original='identities.owner.json', git_commit='e'*40, git_path=path)
+
+    def test_confirmed_same_car_numbers_do_not_hide_a_rider_replacement(self):
+        first, _ = self.use_note_results()
+        self.add_frozen_identity_manifest()
+        self.manifest['official_result_records'] = 'official.json'
         self.save('official.json', {'races':[]})
         actual = {first: dict(cutoff_at=self.day+'T07:00:00Z', starters={1,2,3,4}, winning_triple=[3,1,2],
                               registrations={str(c):f'999{c:03d}' for c in (1,2,3,4)})}

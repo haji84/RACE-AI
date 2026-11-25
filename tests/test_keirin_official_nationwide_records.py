@@ -161,6 +161,7 @@ class NationwideRecordTests(unittest.TestCase):
             git(repo,'config','user.name','Fixture');git(repo,'config','user.email','fixture@example.invalid')
             (repo/'README.md').write_text('synthetic existing archive\n');git(repo,'add','README.md')
             git(repo,'commit','-m','fixture');git(repo,'push','origin','HEAD:refs/heads/'+archive.BRANCH)
+            prior=git(repo,'rev-parse','HEAD')
             payload=dict(schema=api.PRE_SCHEMA,day_jst=day,race_id=rid,
                 producer_run_id='123456789',producer_commit='a'*40,
                 baseline={'published_cutoff_at':day+'T15:00:00+09:00'},baseline_cipher_sha256='c'*64,
@@ -169,6 +170,13 @@ class NationwideRecordTests(unittest.TestCase):
             meta=store.append(kind='original',payload=payload,public_pem=self.public,observed_at=at,race_id=rid)
             independent=api.RecordStore(repo,day,synthetic_local=True)
             self.assertEqual(independent.read(meta,self.private),payload)
+            pinned=api.RecordStore(repo,day,synthetic_local=True,index_commit=prior)
+            self.assertEqual((pinned.head,pinned.index['originals']),(prior,{}))
+            with self.assertRaisesRegex(ValueError,'PINNED_INDEX_READ_ONLY'):
+                pinned.append(kind='original',payload=payload,public_pem=self.public,observed_at=at,race_id=rid)
+            orphan=git(repo,'commit-tree',git(repo,'rev-parse','HEAD^{tree}'),'-m','untrusted archive')
+            with self.assertRaisesRegex(ValueError,'INDEX_COMMIT_OUTSIDE_OFFICIAL_ARCHIVE'):
+                api.RecordStore(repo,day,synthetic_local=True,index_commit=orphan)
             before=git(origin,'rev-parse',archive.BRANCH)
             self.assertEqual(store.append(kind='original',payload=payload,public_pem=self.public,
                 observed_at=at,race_id=rid),meta)
@@ -271,9 +279,16 @@ class NationwideRecordTests(unittest.TestCase):
                 replay=self.api().replay_saved_result(Store(),dict(evidence_sha256='d'*64),
                     dict(kind='result',monetary_complete=True),self.private)
                 self.assertEqual(replay,doc)
+                context=self.api().replay_saved_result_context(Store(),dict(evidence_sha256='d'*64),
+                    dict(kind='result',monetary_complete=True),self.private)
+                final=scored['official_result']
+                self.assertEqual(context,dict(cutoff_at=final['official_cutoff_at'],
+                    starters={r['car'] for r in final['starters']},
+                    registrations={str(r['car']):r['registration_id'] for r in final['starters']},
+                    winning_triple=[1,2,3]))
                 saved['scored']['arms']['A']['points']+=1
                 with self.assertRaisesRegex(ValueError,'SAVED_RESULT_NOT_REPRODUCIBLE'):
-                    self.api().replay_saved_result(Store(),dict(evidence_sha256='d'*64),
+                    self.api().replay_saved_result_context(Store(),dict(evidence_sha256='d'*64),
                         dict(kind='result',monetary_complete=True),self.private)
 
 
