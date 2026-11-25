@@ -12,6 +12,7 @@
   const strip=document.createElement('div');strip.className='kn-launch-strip';strip.append(launcher);(document.getElementById('data-banner')||document.querySelector('main'))?.after(strip);
   let data=null,currentDay='',venue='',query='',market='3t',variant='flexible',confidenceFilter='all',futureOnly=false,selectedOnly=false;
   let period='day',rangeFrom='',rangeTo='',raceNumber='',pageNumber=1;
+  let riderDetails=null;
   let loadVersion=0,activeLoadAbort=null,feedWatcher=null,pendingFeed=null;
   const preferences=new Map(),selected=new Set(),expanded=new Set();
   const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -22,9 +23,10 @@
   const num=(v,suffix='')=>typeof v==='number'&&Number.isFinite(v)?esc(v)+suffix:'未確認';
   const car=n=>Number.isInteger(n)&&n>=1&&n<=9?'<span class="kn-car kn-c'+n+'">'+n+'</span>':'';
   const pref=row=>{const key=row.id+':'+market+':'+variant;if(!preferences.has(key))preferences.set(key,{budget:2500,excluded:new Set()});return preferences.get(key);};
+  const riderAbilities=['捲りへの抵抗力','番手からの自力発動','並走時の持続力','戦術の切り替え能力','消耗後の末脚','内外の位置別能力'];
   function sourceLink(url,label){const safe=M.safeUrl(url);return safe?'<a target="_blank" rel="noopener noreferrer" href="'+esc(safe)+'">'+esc(label)+'</a>':'';}
   function note(message,error=false){$('kn-status').textContent=message;$('kn-status').classList.toggle('kn-error',error);}
-  function beginLoad(){loadVersion++;activeLoadAbort?.abort();activeLoadAbort=null;feedWatcher?.stop();feedWatcher=null;pendingFeed=null;return loadVersion;}
+  function beginLoad(){closeRiderDetails(false);loadVersion++;activeLoadAbort?.abort();activeLoadAbort=null;feedWatcher?.stop();feedWatcher=null;pendingFeed=null;return loadVersion;}
   function build(){
     shell.innerHTML=`<header class="kn-head"><div><p class="kn-eyebrow">RACE AI · KEIRIN NOTE</p><h1>競輪の読みどころ</h1><p>保存された分析・参考モデル・買い目を確認する</p></div><button type="button" id="kn-close" class="kn-close">閉じる</button></header>
       <div class="kn-scroll"><section class="kn-import"><div><label class="kn-file">保存データを開く<input id="kn-file" type="file" accept=".json,application/json"></label><button id="kn-clear" type="button" class="kn-secondary">読込データを消す</button></div><p id="kn-status" role="status">本人用リンク、または保存データJSONから開けます。</p></section>
@@ -34,8 +36,17 @@
       <section id="kn-nationwide-summary" class="kn-result kn-nationwide-summary" hidden></section><section id="kn-research-summary" class="kn-result" hidden></section><div id="kn-result-only"></div><div id="kn-races" class="kn-grid"></div>
       <details class="kn-rollover"><summary>転がし・2段階の資金配分を試算する</summary><p>受取額は払戻と返還の合計を手入力します。実購入の記録とは別の試算です。</p><div class="kn-controls"><label>初回の予算<select id="kn-roll-budget"><option>2000</option><option selected>2500</option><option>3000</option></select></label><label>1戦目の受取額<input id="kn-return-one" type="number" min="0" max="100000000" step="100" placeholder="未入力"></label><label>2戦目の受取額<input id="kn-return-two" type="number" min="0" max="100000000" step="100" placeholder="未入力"></label></div><div id="kn-roll-result"></div></details>
       <footer class="kn-footer"><p>個別分析・改訂・参考A/Bはそれぞれの保存原本を保持します。参考Cの未生成も表示します。参考モデルの重みは校正済み確率ではありません。</p><p>画面での選択と配分は購入候補です。投票・決済は行いません。データと本人用リンクの鍵は外部へ送信しません。</p><p id="kn-provenance"></p></footer></div>
-      <div class="kn-selection"><div><strong id="kn-selection-count">検討リスト 0件</strong><small>候補・配分の試算</small></div><button id="kn-copy-selection" type="button">検討リストをコピー</button></div>`;
+      <div class="kn-selection"><div><strong id="kn-selection-count">検討リスト 0件</strong><small>候補・配分の試算</small></div><button id="kn-copy-selection" type="button">検討リストをコピー</button></div>
+      <dialog id="kn-rider-details" class="kn-rider-dialog" aria-labelledby="kn-rider-heading">
+        <header><div><p id="kn-rider-venue" class="kn-small"></p><h2 id="kn-rider-heading"></h2></div><button type="button" data-rider-close autofocus>閉じる</button></header>
+        <label class="kn-rider-switch">選手を切り替える<select id="kn-rider-select"></select></label>
+        <div id="kn-rider-facts"></div>
+      </dialog>`;
     $('kn-close').addEventListener('click',()=>dialog.close());
+    dialog.addEventListener('close',()=>closeRiderDetails(false));
+    $('kn-rider-select').addEventListener('change',event=>renderRiderDetails(Number(event.target.value)));
+    $('kn-rider-details').addEventListener('close',restoreRiderFocus);
+    $('kn-rider-details').addEventListener('cancel',event=>event.stopPropagation());
     $('kn-file').addEventListener('change',async event=>{
       // Shadow-tree event targets are cleared after dispatch. Keep the input
       // itself before awaiting file reads so the completed import can reset it.
@@ -139,6 +150,7 @@
     renderNationwideSummary();
     renderResearchSummary(list);
     selectionSummary();
+    if(riderDetails&&$('kn-rider-details').open)renderRiderDetails(riderDetails.number);
   }
   function displayedPredictions(row){return M.displayedPredictions(row,market,variant);}
   function confidenceBadge(prediction){const value=C.normalize(prediction.confidence);return '<span class="kn-confidence kn-confidence-'+value.rank+'" data-confidence-rank="'+value.rank+'">信頼度 '+esc(C.displayLabel(prediction.confidence))+'</span>';}
@@ -162,7 +174,7 @@
     const outcome=row.settlement;
     const result=liveResult(row)+(outcome?'<section class="kn-result"><b>提供サイトの保存分析の照合</b><p>'+esc(outcome.winning_combo||'結果未確認')+' · '+(outcome.sources_agree===false?'出典間の相違で保留':outcome.hit?'的中':outcome.status==='MISS'?'不的中':esc(outcome.status||'照合未確認'))+'</p><p>各100円の想定：'+money(outcome.net_yen)+'（実購入ではありません）</p></section>':'');
     const budget=prediction.allocatable?'<div class="kn-budget"><label>候補予算<select data-budget="'+row.id+'">'+[2000,2500,3000].map(n=>'<option value="'+n+'" '+(n===p.budget?'selected':'')+'>'+money(n)+'</option>').join('')+'</select></label><span>配分 '+allocation.chosen.length+'点 / 合計 '+money(allocation.total)+'</span></div>':'';
-    return '<article class="kn-race" data-note-race="'+row.id+'"><div class="kn-race-top"><div><p class="kn-race-date">'+esc(row.date)+'</p><h2>'+esc(row.venue)+' '+row.number+'R</h2><p>'+esc(row.title)+'</p></div><div class="kn-time"><small>掲載締切</small><b>'+time(row.cutoff)+'</b><small>発走 '+time(row.start)+'</small></div></div><div class="kn-badges"><span>'+esc(prediction.label)+'</span>'+(late?'<span class="kn-past">掲載締切後</span>':'')+confidenceBadge(prediction)+'</div><h3>'+esc(prediction.headline)+'</h3><p class="kn-reason">'+esc(prediction.reason)+'</p>'+confidenceEvidence(prediction)+'<div class="kn-lines">'+lineHtml(row)+'</div><p class="kn-small">媒体の並び予想・位置取りの参考です。</p>'+budget+
+    return '<article class="kn-race" data-note-race="'+row.id+'"><div class="kn-race-top"><div><p class="kn-race-date">'+esc(row.date)+'</p><h2>'+esc(row.venue)+' '+row.number+'R</h2><p>'+esc(row.title)+'</p></div><div class="kn-time"><small>掲載締切</small><b>'+time(row.cutoff)+'</b><small>発走 '+time(row.start)+'</small></div></div><div class="kn-badges"><span>'+esc(prediction.label)+'</span>'+(late?'<span class="kn-past">掲載締切後</span>':'')+confidenceBadge(prediction)+'</div><h3>'+esc(prediction.headline)+'</h3><p class="kn-reason">'+esc(prediction.reason)+'</p>'+confidenceEvidence(prediction)+'<div class="kn-lines">'+lineHtml(row)+'</div><p class="kn-small">媒体の並び予想・位置取りの参考です。</p>'+riderButtons(row)+budget+
       '<div class="kn-point-heading"><b>予想 '+prediction.tickets.length+'点'+(prediction.allocatable?' · 配分 '+allocation.chosen.length+'点':'')+'</b></div><div class="kn-tickets">'+(items||'<p class="kn-empty">'+esc(prediction.reason||'この券種の保存予想はありません。')+'</p>')+'</div>'+(prediction.tickets.length>3?'<button type="button" class="kn-more" data-expand="'+row.id+'">'+(open?'上位3点に戻す':'全'+prediction.tickets.length+'点を表示')+'</button>':'')+
       (prediction.allocatable&&!allocation.available?'<p class="kn-warning">配分対象がないか、全点への100円単位の配分に予算が足りません。点数を選び直してください。</p>':'')+
       '<div class="kn-race-actions"><button type="button" data-select="'+row.id+'" aria-pressed="'+selected.has(row.id)+'">'+(selected.has(row.id)?'検討リストから外す':'検討リストに追加')+'</button><button type="button" data-copy="'+row.id+'" '+(prediction.allocatable&&!allocation.available?'disabled':'')+'>買い目をコピー</button></div>'+nationalStatus(row)+result+researchResult(row)+
@@ -182,7 +194,7 @@
     return '<section class="kn-nationwide-status" data-nationwide-state="'+esc(status.state)+'"><p><b>'+nationalStateLabel(status.state)+'</b></p><p>'+conditionLabel(status.condition_state)+'</p>'+(status.original_identity&&!row.frozenForecast?'<p class="kn-warning">以前に保存した買い目は未読込です。未作成や不的中には数えていません。</p>':'')+'</section>';
   }
   function renderNationwideRace(row){
-    return '<article class="kn-race kn-national-race" data-note-race="'+row.id+'"><div class="kn-race-top"><div><p class="kn-race-date">'+esc(row.date)+'</p><h2>'+esc(row.venue)+' '+row.number+'R</h2><p>各予想の買い目・根拠・採点を確認できます。</p></div><div class="kn-time"><small>掲載締切</small><b>'+time(row.cutoff)+'</b></div></div>'+nationalStatus(row)+liveResult(row)+researchResult(row)+'</article>';
+    return '<article class="kn-race kn-national-race" data-note-race="'+row.id+'"><div class="kn-race-top"><div><p class="kn-race-date">'+esc(row.date)+'</p><h2>'+esc(row.venue)+' '+row.number+'R</h2><p>各予想の買い目・根拠・採点を確認できます。</p></div><div class="kn-time"><small>掲載締切</small><b>'+time(row.cutoff)+'</b></div></div>'+riderButtons(row)+nationalStatus(row)+liveResult(row)+researchResult(row)+roster(row)+'</article>';
   }
   function renderNationwideSummary(){
     const panel=$('kn-nationwide-summary'),doc=period==='day'?data?.nationwide?.get(currentDay):null;
@@ -281,7 +293,82 @@
     }).join('')+'</details>';
   }
   function roster(row){
-    return '<details class="kn-details"><summary>選手の数字・コメント・近況</summary><div class="kn-table-scroll"><table><thead><tr><th>車</th><th>選手</th><th>得点</th><th>S/H/B</th><th>逃/捲/差/マ</th><th>勝率</th><th>3連対</th></tr></thead><tbody>'+row.riders.map(p=>'<tr><td>'+car(p.number)+'</td><td>'+esc(p.name)+'</td><td>'+num(p.score)+'</td><td>'+[p.S,p.H,p.B].map(v=>num(v)).join('/')+'</td><td>'+[p.nige??p.escape,p.makuri,p.sashi,p.mark].map(v=>num(v)).join('/')+'</td><td>'+num(p.win_rate??p.win,'%')+'</td><td>'+num(p.top3_rate,'%')+'</td></tr>').join('')+'</tbody></table></div>'+row.riders.map(p=>'<p class="kn-rider-note"><b>'+p.number+' '+esc(p.name)+'</b><span>コメント：'+esc(p.comment||'未取得')+'</span><span>近況：'+esc((Array.isArray(p.recent_meets)?p.recent_meets:Array.isArray(p.recent_meetings)?p.recent_meetings:Object.values(p.recent_meetings||{})).filter(Boolean).join(' / ')||'未取得')+'</span></p>'+fieldProvenance(p)).join('')+'<p class="kn-small">主表示の統計は掲載元の値を保持します。参考A/Bのnetkeirin統計と平均しません。H/Bは過去の先頭回数で、今日の隊列ではありません。</p></details>';
+    return '<details class="kn-details"><summary>選手の数字・コメント・近況</summary><div class="kn-table-scroll"><table><thead><tr><th>車</th><th>選手</th><th>得点</th><th>S/H/B</th><th>逃/捲/差/マ</th><th>勝率</th><th>3連対</th></tr></thead><tbody>'+row.riders.map(p=>'<tr><td>'+car(p.number)+'</td><td>'+riderButton(row,p)+'</td><td>'+num(p.score)+'</td><td>'+[p.S,p.H,p.B].map(v=>num(v)).join('/')+'</td><td>'+[p.nige??p.escape,p.makuri,p.sashi,p.mark].map(v=>num(v)).join('/')+'</td><td>'+num(p.win_rate??p.win,'%')+'</td><td>'+num(p.top3_rate,'%')+'</td></tr>').join('')+'</tbody></table></div>'+row.riders.map(p=>'<p class="kn-rider-note"><b>'+p.number+' '+esc(p.name)+'</b><span>コメント：'+esc(p.comment||'未取得')+'</span><span>近況：'+esc((Array.isArray(p.recent_meets)?p.recent_meets:Array.isArray(p.recent_meetings)?p.recent_meetings:Object.values(p.recent_meetings||{})).filter(Boolean).join(' / ')||'未取得')+'</span></p>'+fieldProvenance(p)).join('')+'<p class="kn-small">主表示の統計は掲載元の値を保持します。参考A/Bのnetkeirin統計と平均しません。H/Bは過去の先頭回数で、今日の隊列ではありません。</p></details>';
+  }
+  function riderButton(row,rider){return '<button type="button" class="kn-rider-open" data-rider-open="'+esc(row.id)+'" data-rider-car="'+rider.number+'" aria-haspopup="dialog">'+car(rider.number)+'<span>'+esc(rider.name)+'</span></button>';}
+  function riderButtons(row){return row.riders.length?'<ul class="kn-rider-list" aria-label="出走選手">'+row.riders.map(rider=>'<li>'+riderButton(row,rider)+'</li>').join('')+'</ul>':'';}
+  function riderRow(id){return M.historyRows(data,{period:'all'}).find(row=>row.id===id);}
+  function clearRiderContents(){for(const id of ['kn-rider-heading','kn-rider-venue'])$(id).textContent='';$('kn-rider-select').innerHTML='';$('kn-rider-facts').innerHTML='';}
+  function closeRiderDetails(restore=true){
+    const modal=$('kn-rider-details');if(!modal)return;
+    if(!restore){riderDetails=null;clearRiderContents();}
+    if(modal.open)modal.close();
+  }
+  function restoreRiderFocus(){
+    const saved=riderDetails;riderDetails=null;clearRiderContents();if(!saved)return;
+    const opener=saved.opener.isConnected?saved.opener:root.querySelector('[data-rider-open="'+saved.raceId+'"][data-rider-car="'+saved.openerCar+'"]');
+    (opener||$('kn-races')).focus({preventScroll:true});
+  }
+  function jointRiderForecast(row,number){
+    const forecast=row.jointForecast,binding=row.jointForecastBindings,J=window.RaceKeirinJointForecast;
+    if(!forecast)return {admitted:false,html:'<p class="kn-rider-probability-state" data-joint-state="unavailable">比較Bの着順確率は未取得です。</p>'};
+    try{
+      const cars=row.riders.map(rider=>rider.number);
+      if(!J||forecast.schema!=='RACE_AI_KEIRIN_JOINT_PROJECTION_V1'||!binding||binding.race_id!==row.id||!Array.isArray(binding.cars)||binding.cars.length!==cars.length||!cars.every(car=>binding.cars.includes(car))||row.cutoff&&!sameRiderClock(row.cutoff,binding.cutoff_at))throw Error();
+      if(!Array.isArray(forecast.riders)||!forecast.riders.every(p=>row.riders.some(person=>person.number===p.car&&person.name.replace(/\s/g,'')===p.name.replace(/\s/g,''))))throw Error();
+      const known=value=>typeof value==='string'&&/^[0-9]{6}$/.test(value);
+      if(forecast.riders.some(p=>row.riders.some(person=>person.number===p.car&&known(person.registration)&&known(p.registration)&&person.registration!==p.registration)))throw Error();
+      J.validateForecast(forecast,binding);
+      return {admitted:true,html:J.renderForecast(forecast,number)};
+    }catch{return {admitted:false,html:'<p class="kn-rider-probability-state" data-joint-state="held">比較Bの着順確率は出典・対象選手・予想時点を照合できないため、表示を保留しています。</p>'};}
+  }
+  function sameRiderClock(left,right){
+    const identity=value=>{const parsed=Date.parse(value),fraction=typeof value==='string'?/\.(\d{1,6})(?:Z|[+-]\d\d:\d\d)$/.exec(value)?.[1]||'':'';return Number.isFinite(parsed)?parsed+':'+fraction.padEnd(6,'0').slice(3):null;};
+    const expected=identity(left);return expected!==null&&expected===identity(right);
+  }
+  function riderRole(row,number){
+    if(row.raw.line_type==='individual_positions'||row.frozenForecast?.facts.competition==='GIRLS')return '個人戦の位置取り参考';
+    const line=row.lines.find(group=>Array.isArray(group)&&group.some(value=>value===number||value?.contest?.includes(number)));
+    if(!line)return '掲載の並び未取得';
+    const position=line.indexOf(number);if(position<0)return '競り（掲載の並び）';
+    return line.length===1?'単騎':['先頭','番手'][position]||String(position+1)+'番手';
+  }
+  function comparisonRiderFacts(row,rider){
+    const fresh=Array.isArray(row.comparisonRiders)&&row.comparisonRiders.find(person=>person.car===rider.number&&typeof person.name==='string'&&person.name.replace(/\s/g,'')===rider.name.replace(/\s/g,''));
+    if(!fresh)return '';
+    const styles={NIGE:'逃げ',MAKURI:'捲り',SASHI:'差し',MARK:'追込',ALLROUND:'自在',UNKNOWN:'未取得'};
+    const rate=value=>typeof value==='number'&&Number.isFinite(value)&&value>=0&&value<=100?num(Number(value.toFixed(2)),'%'):'未取得';
+    const win=fresh.win_rate??(typeof fresh.recent_form_score==='number'&&fresh.recent_form_score>=0&&fresh.recent_form_score<=1?fresh.recent_form_score*100:null);
+    const values=[['級班',esc(fresh.class??fresh.racer_class??fresh.rider_class??'未取得')],['脚質',esc(styles[fresh.style]||fresh.style||'未取得')],
+      ['競走得点',num(fresh.competition_points)],['4か月勝率',rate(win)],['4か月2連対率',rate(fresh.top2_rate)],['4か月3連対率',rate(fresh.top3_rate)],
+      ['H',num(fresh.h_count)],['B',num(fresh.b_count)]];
+    const asOf=row.jointForecastBindings.source_as_of;
+    return '<section class="kn-comparison-input"><h3>比較Bの入力資料</h3><p class="kn-small">資料の基準 <time datetime="'+esc(asOf)+'">'+stamp(asOf)+'</time>。今回の比較Bに使用した掲載値です。</p><dl class="kn-rider-stats">'+values.map(([label,value])=>'<div><dt>'+label+'</dt><dd>'+value+'</dd></div>').join('')+'</dl></section>';
+  }
+  function renderRiderDetails(number){
+    const row=riderDetails&&riderRow(riderDetails.raceId),rider=row?.riders.find(person=>person.number===number);
+    if(!rider){closeRiderDetails(false);return;}
+    riderDetails.number=number;
+    $('kn-rider-venue').textContent=row.date+' '+row.venue+' '+row.number+'R';
+    $('kn-rider-heading').textContent=number+'番 '+rider.name;
+    $('kn-rider-select').innerHTML=row.riders.map(person=>'<option value="'+person.number+'">'+person.number+'番 '+esc(person.name)+'</option>').join('');
+    $('kn-rider-select').value=String(number);
+    const stats=[['競走得点',num(rider.score)],['脚質',esc(rider.style||'未取得')],['掲載の並びでの役割',esc(riderRole(row,number))],
+      ['勝率（掲載値）',num(rider.win_rate??rider.win,'%')],['2連対率（掲載値）',num(rider.top2_rate,'%')],['3連対率（掲載値）',num(rider.top3_rate,'%')],
+      ['S',num(rider.S)],['H',num(rider.H)],['B',num(rider.B)]];
+    const recent=Array.isArray(rider.recent_meets)?rider.recent_meets:Array.isArray(rider.recent_meetings)?rider.recent_meetings:Object.values(rider.recent_meetings||{});
+    const forecast=jointRiderForecast(row,number);
+    $('kn-rider-facts').innerHTML=forecast.html+(forecast.admitted?comparisonRiderFacts(row,rider):'')+'<h3>保存した出走表の掲載値</h3><dl class="kn-rider-stats kn-rider-source-stats">'+stats.map(([label,value])=>'<div><dt>'+label+'</dt><dd>'+value+'</dd></div>').join('')+'</dl>'+
+      '<p class="kn-small">成績の集計期間：'+esc(row.raw.source_data_period||'掲載資料の期間未確認')+'。掲載率と今回の予測確率は別の値です。</p>'+
+      '<details class="kn-details"><summary>コメント・近況・出典</summary><p>コメント：'+esc(rider.comment||'未取得')+'</p><p>近況：'+esc(recent.filter(value=>typeof value==='string'&&value).join(' / ')||'未取得')+'</p>'+fieldProvenance(rider)+
+      '<p class="kn-small">出走表の取得 '+stamp(row.raw.source_as_of||row.raw.fetched_at)+'<br>'+sourceLink(row.sourceUrl,'掲載した出走表')+'</p></details>'+
+      '<details class="kn-details"><summary>戦術・能力の資料</summary><dl class="kn-rider-stats">'+riderAbilities.map(label=>'<div data-rider-ability><dt>'+label+'</dt><dd>観測資料未取得</dd></div>').join('')+'</dl><p class="kn-small">確認できた観測機会・期間・出典がそろうまで、能力値や成功率は表示しません。</p></details>';
+  }
+  function openRiderDetails(opener){
+    const row=riderRow(opener.dataset.riderOpen),number=Number(opener.dataset.riderCar);
+    if(!row?.riders.some(rider=>rider.number===number))return;
+    riderDetails={raceId:row.id,number,openerCar:number,opener};
+    renderRiderDetails(number);$('kn-rider-details').showModal();
   }
   function providerName(url){const host=new URL(url).hostname;return host==='keirin.netkeiba.com'?'netkeirin':host==='keirin.kdreams.jp'?'Kドリームス':host;}
   function referenceProvenance(row){const pages=row.referenceEnvelope?.input?.source_pages;if(!Array.isArray(pages))return '';const seen=new Set(),links=pages.flatMap(page=>{const url=M.safeUrl(page?.url);if(!url||seen.has(url))return [];seen.add(url);return [sourceLink(url,'参考A/Bの入力・'+providerName(url))];});return links.length?'<p class="kn-small kn-reference-provenance">'+links.join(' / ')+'</p>':'';}
@@ -291,6 +378,8 @@
   async function copy(value){if(!value)return;try{await navigator.clipboard.writeText(value);note('買い目候補をコピーしました。');}catch{const area=document.createElement('textarea');area.value=value;root.append(area);area.select();const ok=document.execCommand('copy');area.remove();note(ok?'買い目候補をコピーしました。':'このブラウザーではコピーできませんでした。',!ok);}}
   function click(button){
     if(!button)return;
+    if(button.dataset.riderOpen){openRiderDetails(button);return;}
+    if(Object.hasOwn(button.dataset,'riderClose')){closeRiderDetails();return;}
     if(button.id==='kn-page-next'||button.id==='kn-page-prev'){
       pageNumber+=button.id==='kn-page-next'?1:-1;renderCards();$('kn-races').focus({preventScroll:true});$('kn-races').scrollIntoView({block:'start'});return;
     }
