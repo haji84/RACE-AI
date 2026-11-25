@@ -304,6 +304,7 @@ class NoteBrowserTests(unittest.TestCase):
         self.assertEqual(growth.count(), 1)
         self.assertFalse(growth.is_visible())
         self.assertNotIn('3,201', growth.text_content())
+        self.assertNotIn('武雄1R', growth.text_content())
 
         self.page.goto('about:blank')
         self.open()
@@ -315,6 +316,7 @@ class NoteBrowserTests(unittest.TestCase):
         self.assertTrue(growth.evaluate('(panel) => panel.open'))
         historical = growth.get_by_role('region', name='既知期間の再現')
         forward = growth.get_by_role('region', name='掲載締切前の保存原本')
+        replay = growth.get_by_role('region', name='映像検証')
         self.assertIn('3,201件', historical.inner_text())
         top4 = historical.get_by_role('row', name=re.compile('三連単4点')).inner_text()
         for value in ('928件', '28.99%', '947件', '29.58%'):
@@ -323,6 +325,13 @@ class NoteBrowserTests(unittest.TestCase):
         self.assertRegex(forward.get_by_role('row', name=re.compile('三連単4点')).inner_text(),
                          r'3件[\s\S]*4件[\s\S]*\+1件')
         self.assertIn('主催者による締切・公式結果の認証は未確認', forward.inner_text())
+        self.assertIn('2026-11-25 · 武雄1R · 12フレーム・6車', replay.inner_text())
+        self.assertIn('判読が一致した65件を照合', replay.inner_text())
+        self.assertIn('一致46件、誤り7件、判定保留12件', replay.inner_text())
+        self.assertIn('判読できなかった7件', replay.inner_text())
+        self.assertIn('公式着順は6車分', replay.inner_text())
+        self.assertIn('映像で確認した動き2件を試験学習', replay.inner_text())
+        self.assertIn('本番採用は保留', replay.inner_text())
         self.assertIn('採用は保留', growth.inner_text())
         for width in (320, 390, 1440):
             self.page.set_viewport_size(dict(width=width, height=844))
@@ -340,6 +349,7 @@ class NoteBrowserTests(unittest.TestCase):
         self.assertFalse(growth.is_visible())
         self.assertFalse(growth.evaluate('(panel) => panel.open'))
         self.assertNotIn('3,201', growth.text_content())
+        self.assertNotIn('武雄1R', growth.text_content())
         self.assertEqual(self.errors, [])
         self.assertEqual(self.external, [])
 
