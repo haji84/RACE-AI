@@ -250,7 +250,7 @@ class NationwideExtensionTests(unittest.TestCase):
             ext.build_baseline_candidate(**args)
 
     def test_unobserved_a_class_remains_held(self):
-        args=self.labelled_arguments('A級特予選','A1_A2',('A1','A2'))
+        args=self.labelled_arguments('A級選抜','A1_A2',('A1','A2'))
         with self.assertRaisesRegex(ValueError,'CLASS_OR_ROUND_NOT_YET_OBSERVED'):
             ext.build_baseline_candidate(**args)
 
@@ -258,6 +258,9 @@ class NationwideExtensionTests(unittest.TestCase):
         cases=(('A級チャレンジ予選','CHALLENGE',('A3',)),
                ('A級予選','A1_A2',('A1','A2')),
                ('A級一般','A1_A2',('A1','A2')),
+               ('A級特予選','A1_A2',('A1','A2')),
+               ('A級準決勝','A1_A2',('A1','A2')),
+               ('A級初日特選','A1_A2',('A1',)),
                ('A級チャレンジ一般','CHALLENGE',('A3',)),
                ('A級チャレンジ選抜','CHALLENGE',('A3',)),
                ('A級チャレンジ決勝','CHALLENGE',('A3',)),
@@ -281,6 +284,9 @@ class NationwideExtensionTests(unittest.TestCase):
                 ('A級予選','A1_A2',('A1','A3')),
                 ('A級チャレンジ予選','CHALLENGE',('A3','A2')),
                 ('A級一般','A1_A2',('A1','A3')),
+                ('A級特予選','A1_A2',('A1','A3')),
+                ('A級準決勝','A1_A2',('A1','A3')),
+                ('A級初日特選','A1_A2',('A1','S2')),
                 ('A級特選','A1_A2',('A1','A3')),
                 ('A級チャレンジ選抜','CHALLENGE',('A3','A2'))):
             with self.subTest(label=label):
