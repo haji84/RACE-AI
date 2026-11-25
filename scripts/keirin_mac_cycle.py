@@ -6,7 +6,7 @@ Output profiles remain candidates and the report contains only aggregate data.
 """
 from argparse import ArgumentParser
 from contextlib import closing, contextmanager
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 import fcntl
 from hashlib import file_digest, sha256
 import json
@@ -32,6 +32,8 @@ JST = ZoneInfo('Asia/Tokyo')
 GIB = 1024**3
 CHROME = '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome'
 INPUT_ERRORS = (ImportError, OSError, ValueError, KeyError, TypeError, sqlite3.Error, subprocess.SubprocessError)
+REPLAY_RETRY_INTERVAL = timedelta(minutes=30)
+REPLAY_MAX_ATTEMPTS = 3
 
 
 @contextmanager
@@ -58,21 +60,26 @@ def _private_file(path):
         os.close(fd)
 
 
+def _capture_history(digests):
+    if digests.exists() or digests.is_symlink():
+        _private_root(digests)
+    attempts = digests/'attempts.jsonl'
+    if attempts.exists() or attempts.is_symlink():
+        _private_file(attempts)
+        yield from corpus.input_rows(attempts)
+
+
 def _capture(db, root, approval, browser, before):
     if approval is None:
         return 'NO_RECORDING_APPROVAL_CONFIGURED', 0
     if shutil.disk_usage(root).free < 50 * GIB:
         return 'HOLD_CAPTURE_STORAGE', 0
     digests = root/'digests'
-    if digests.exists() or digests.is_symlink():
-        _private_root(digests)
-    attempts = digests/'attempts.jsonl'
-    if attempts.exists() or attempts.is_symlink():
-        _private_file(attempts)
-        if any(_provider_refused(row['status']) for row in corpus.input_rows(attempts)):
-            return 'HOLD_PROVIDER_REFUSAL', 0
+    if any(_provider_refused(row['status']) for row in _capture_history(digests)):
+        return 'HOLD_PROVIDER_REFUSAL', 0
     dates = {row[0] for row in db.execute('SELECT id FROM race WHERE event_status=? AND day<=?',
                                          ('finish_verified', before))}
+    dates.discard(sources.KOMATSUSHIMA_REPLAY_RACE)
     rows = sorted((row for row in corpus.pending(db, stage='continuous') if row['race_id'] in dates),
                   key=lambda row: row['race_id'], reverse=True)
     if not rows:
@@ -86,6 +93,125 @@ def _capture(db, root, approval, browser, before):
     if any(_provider_refused(status) for status in counts):
         return 'HOLD_PROVIDER_REFUSAL', 0
     return ('RECORDED' if counts['captured'] else 'NO_NEW_RECORDING'), counts['captured']
+
+
+def _register_replay_roster(root, row, race, full_finish):
+    ledger = root/'corpus.sqlite'
+    _private_file(ledger)
+    with closing(sqlite3.connect(ledger, timeout=30)) as db:
+        corpus.setup(db)
+        with db:
+            corpus.load_race(db, dict(race_id=row['race_id'], race_date=row['race_date'],
+                roster_complete=True, event_status='finish_verified' if full_finish else 'unknown',
+                riders=[dict(car=starter['car'], rider_id=starter['registration_id']) for starter in race['starters']]))
+
+
+def _replay_media_state(root, folder, key, url, approval, pinned_at, now):
+    sources.check_clip(_private_root(folder), key, url)
+    proof = json.loads(_read_regular(folder/'source-approval.json', 4096))
+    expected = dict(race_id=sources.KOMATSUSHIMA_REPLAY_RACE, source_ref=url,
+                    decision_sha256=approval.decision_sha256, rights_sha256=approval.rights_sha256,
+                    permission_basis=approval.permission_basis)
+    clip = json.loads(_read_regular(folder/'clip.json', 16 * 1024))
+    observed = datetime.fromisoformat(clip['observed_at_utc'])
+    if proof != expected or clip.get('browser_player_ended') is not True or not pinned_at <= observed <= now:
+        raise ValueError('recording does not match the settled replay permission')
+    ledger = root/'media.sqlite'
+    if ledger.is_file():
+        _private_file(ledger)
+        with closing(sqlite3.connect(ledger.as_uri()+'?mode=ro', uri=True)) as db:
+            if any(row.get('sha256') == clip['sha256'] and row['source_ref'] == clip['source_ref']
+                   for row in media.verified_rows(db, race_id=sources.KOMATSUSHIMA_REPLAY_RACE)):
+                return 'REPLAY_MEDIA_VERIFIED'
+    return 'REPLAY_RECORDED_AWAITING_MEDIA_VERIFICATION'
+
+
+def _capture_settled_replay(root, request, approval_path, settled, video, browser, clock):
+    from scripts import keirin_mac_shadow_result as shadow
+
+    receipt_paths = {
+        'SHADOW_RESULT_SCORED': 'official-result.json',
+        'SHADOW_PUBLIC_PODIUM_SCORED': 'github-public/published-result.json',
+        'SHADOW_SECONDARY_PODIUM_SCORED': 'site-two-source/result.json',
+    }
+    receipt_name = receipt_paths.get(settled['state'])
+    if receipt_name is None:
+        return 'WAITING_FOR_SHADOW_SETTLEMENT'
+    now = clock()
+    schedule, race, start, _, _, _, pin, _ = shadow._inputs(request, now)
+    key = sources.KOMATSUSHIMA_REPLAY_KEY
+    if race['race_id'] != key or race['venue'] != '小松島' or now < start:
+        raise ValueError('the settled replay requires the frozen Komatsushima race')
+    shadow_state = root/'keirin-mac-shadow-results'/key
+    if shadow._read(shadow_state/'request-pins.json', 4096) != pin:
+        raise ValueError('settled replay prediction is no longer pinned')
+    receipt_path = shadow_state/receipt_name
+    shadow._read(receipt_path, shadow.MAX_RECEIPT_BYTES)
+    settled_sha = sha256(_read_regular(receipt_path, shadow.MAX_RECEIPT_BYTES)).hexdigest()
+    try:
+        shadow._read(approval_path, 16 * 1024)
+        approval = sources.load_source_approval(approval_path, continuous=True)
+        url = approval.settled_replay_url
+        sources.require_capture_scope(approval, key, url, continuous=True)
+    except INPUT_ERRORS:
+        return 'HOLD_REPLAY_PERMISSION_INVALID'
+
+    digests = root/'digests'
+    history = list(_capture_history(digests))
+    if any(_provider_refused(row['status']) for row in history):
+        return 'HOLD_PROVIDER_REFUSAL'
+    race_id = sources.KOMATSUSHIMA_REPLAY_RACE
+    row = dict(race_id=race_id, race_date=schedule['day_jst'], race_detail_url=url)
+    previous = [entry for entry in history if entry.get('race_id') == race_id]
+    if any(entry.get('source_ref') != url for entry in previous):
+        raise ValueError('the recorded replay source has changed')
+
+    work = _private_root(root/'komatsushima-replay')
+    actor = work/'actor-pin.json'
+    folder = digests/key
+    binding = dict(race_id=race_id, replay_url=url, settlement_sha256=settled_sha,
+                   decision_sha256=approval.decision_sha256, **pin)
+    if actor.exists() or actor.is_symlink():
+        previous_pin = shadow._read(actor, 4096)
+        pinned_at = datetime.fromisoformat(previous_pin.pop('admitted_at'))
+        if previous_pin != binding or not start <= pinned_at <= now:
+            raise ValueError('previous replay authorization does not match')
+    else:
+        if previous or folder.exists() or folder.is_symlink() or any(work.glob('poll-*.json')):
+            raise ValueError('prior replay work requires its original actor pin')
+        pinned_at = now
+        shadow._preserve(actor, dict(binding, admitted_at=now.isoformat()))
+
+    if folder.exists() or folder.is_symlink():
+        return _replay_media_state(root, folder, key, url, approval, pinned_at, now)
+    if video.get('capture_state') == 'RECORDED':
+        return 'REPLAY_DEFERRED_EXISTING_CAPTURE'
+    if shutil.disk_usage(root).free < 50 * GIB:
+        return 'HOLD_CAPTURE_STORAGE'
+    retryable = {sources.RESULT_PAGE_UNPUBLISHED, sources.DIGEST_BUTTON_UNAVAILABLE}
+    if previous and previous[-1]['status'] not in retryable:
+        return 'HOLD_REPLAY_SOURCE_UNVERIFIED'
+    if sum(1 for _ in work.glob('poll-*.json')) != len(previous):
+        return 'HOLD_REPLAY_ATTEMPT_UNVERIFIED'
+    hold, _ = shadow._claim_poll(work, now, REPLAY_MAX_ATTEMPTS, REPLAY_RETRY_INTERVAL)
+    if hold:
+        return ('WAITING_FOR_REPLAY_RETRY_INTERVAL' if hold == 'WAITING_FOR_OFFICIAL_POLL_INTERVAL'
+                else 'HOLD_REPLAY_ATTEMPT_LIMIT')
+    _register_replay_roster(root, row, race, settled['state'] == 'SHADOW_RESULT_SCORED')
+    with TemporaryDirectory(dir=root) as folder:
+        queue = Path(folder)/'scoped-replay.jsonl'
+        media.atomic_jsonl(queue, [row])
+        counts = sources.run(queue, digests, interval=3, pause=2, limit=1, executable=browser,
+                             continuous=True, source_approval=approval_path, chromium_sandbox=True,
+                             headless=False, stop_after_refusal=True, retry_failed=bool(previous),
+                             settled_replay_url=url, settled_replay_decision_sha256=approval.decision_sha256)
+    if any(_provider_refused(status) for status in counts):
+        return 'HOLD_PROVIDER_REFUSAL'
+    if counts['captured'] or counts['reused']:
+        return 'REPLAY_RECORDED_AWAITING_MEDIA_VERIFICATION'
+    if retryable.intersection(counts):
+        return 'WAITING_FOR_REPLAY_PUBLICATION'
+    return 'HOLD_REPLAY_SOURCE_UNVERIFIED'
 
 
 def _has_verified_media(row, active):
@@ -152,6 +278,8 @@ def _track(db, root, request, clips):
     if type(row) is not dict or set(row) != {'race_id', 'media_sha256'}:
         raise ValueError('Tracking requires a race and its reviewed footage SHA.')
     rid, digest = row['race_id'], row['media_sha256']
+    if rid == sources.KOMATSUSHIMA_REPLAY_RACE:
+        return {'state': 'HOLD_REPLAY_LAYOUT_CALIBRATION'}
     tracking._validate_race(rid)
     if not tracking._hex(digest):
         raise ValueError('Invalid tracking media SHA.')
@@ -351,6 +479,15 @@ def run_cycle(root, *, census=None, manifest=None, bounds=None, reviewed=None, s
                 result['shadow_result'] = keirin_mac_shadow_result.run(root, shadow_request, clock=clock)
             except INPUT_ERRORS:
                 result['shadow_result'] = {'state': 'HOLD_SHADOW_RESULT_INPUT_OR_RUNTIME'}
+            replay_approval = Path(shadow_request).with_name('komatsushima-replay-approval.json')
+            if replay_approval.exists() or replay_approval.is_symlink():
+                try:
+                    replay_state = _capture_settled_replay(root, shadow_request, replay_approval,
+                        result['shadow_result'], video, browser, clock)
+                except INPUT_ERRORS + (sources.PlayerUnavailable,):
+                    replay_state = 'HOLD_REPLAY_EVIDENCE_OR_RUNTIME'
+                result['shadow_replay'] = dict(state=replay_state,
+                    tracking_state='HOLD_REPLAY_LAYOUT_CALIBRATION')
         result['duration_ms'] = round(1000*(monotonic()-start))
         _save_tick(root, now, result)
         with corpus.output_file(root/'cycle-report.json') as report:

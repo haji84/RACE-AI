@@ -17,6 +17,9 @@ TITLE = 'いわき平競輪 レース詳細 | 日本選手権競輪 1R | 2024年
 WINTICKET = {'race_id': '20240503-84-01', 'race_date': '2024-05-03',
              'race_detail_url': 'https://www.winticket.jp/keirin/takeo/raceresult/2024050184/3/1'}
 WINTICKET_TITLE = '武雄競輪 開催名（2024年5月3日)1レース 結果【ウィンチケット競輪】'
+KOMATSUSHIMA = {'race_id': '20261126-73-01', 'race_date': '2026-11-26',
+                'race_detail_url': 'https://www.winticket.jp/keirin/komatsushima/raceresult/2026112673/1/1'}
+KOMATSUSHIMA_TITLE = '小松島競輪 開催名（2026年11月26日)1レース 結果【ウィンチケット競輪】'
 
 
 class CaptureTests(unittest.TestCase):
@@ -119,6 +122,56 @@ class CaptureTests(unittest.TestCase):
                         WINTICKET_TITLE.replace('1レース', '11レース')):
             with self.subTest(changed=changed), self.assertRaises(source.PlayerUnavailable):
                 source.check_title(key, changed, url=url)
+
+    def test_only_the_exact_komatsushima_winticket_route_is_recognized(self):
+        key, url = '202611267301', KOMATSUSHIMA['race_detail_url']
+        self.assertEqual(source.target(KOMATSUSHIMA), (key, url))
+        source.check_title(key, KOMATSUSHIMA_TITLE, url=url)
+        for row in (dict(KOMATSUSHIMA, race_id='20261126-73-02', race_detail_url=url[:-1]+'2'),
+                    dict(KOMATSUSHIMA, race_detail_url=url.replace('/komatsushima/', '/takeo/')),
+                    dict(KOMATSUSHIMA, race_detail_url=url + '?other=1')):
+            with self.assertRaises(ValueError):
+                source.target(row)
+        with self.assertRaises(source.PlayerUnavailable):
+            source.check_title(key, KOMATSUSHIMA_TITLE.replace('小松島', '武雄'), url=url)
+
+    def test_generic_queue_cannot_open_komatsushima_player_even_with_the_exact_permission(self):
+        with TemporaryDirectory() as temp, patch.dict('sys.modules', {'playwright.sync_api': None}):
+            root = Path(temp)
+            queue = root / 'queue.jsonl'
+            queue.write_text(json.dumps(KOMATSUSHIMA) + '\n')
+            rights = root / 'fictional-rights'
+            rights.write_bytes(b'fictional operator attestation')
+            approval = root / 'approval.json'
+            approval.write_text(json.dumps({'source_host': source.WINTICKET_HOST, 'rights_ref': rights.name,
+                'rights_sha256': sha256(rights.read_bytes()).hexdigest(), 'reviewer': 'fixture reviewer',
+                'permission_basis': 'owner_attestation', 'race_ids': [KOMATSUSHIMA['race_id']],
+                'race_detail_url': KOMATSUSHIMA['race_detail_url'],
+                'allowed_uses': ['automated_fetch', 'private_retention', 'history_analysis', 'video_recording']}))
+            out = root / 'captures'
+            result = source.run(queue, out, continuous=True, source_approval=approval,
+                                interval=3, pause=0, limit=1, executable='unused', retry_failed=True)
+            self.assertEqual(result, {'outside_settled_replay_scope': 1})
+            self.assertFalse(out.exists())
+
+    def test_komatsushima_media_denial_takes_priority_over_the_player_timeout(self):
+        key, url = '202611267301', KOMATSUSHIMA['race_detail_url']
+        page = Mock(url=url)
+        page.goto.return_value.status = 200
+        page.title.return_value = KOMATSUSHIMA_TITLE
+        control = page.get_by_role.return_value
+        control.count.return_value = 1
+        control.is_visible.return_value = True
+
+        def unavailable(*_, **__):
+            for event, callback in (call.args for call in page.on.call_args_list):
+                if event == 'response':
+                    callback(Mock(status=403, request=Mock(resource_type='media')))
+            raise TimeoutError('fixture replay not loading')
+
+        page.wait_for_function.side_effect = unavailable
+        with self.assertRaisesRegex(source.AccessDenied, 'source HTTP 403'):
+            source.open_player(page, key, url)
 
     def test_winticket_single_host_approval_cannot_authorize_a_kdreams_queue(self):
         with TemporaryDirectory() as temp, patch.dict('sys.modules', {'playwright.sync_api': None}):

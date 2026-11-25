@@ -34,6 +34,10 @@ HOST = 'keirin.kdreams.jp'
 WINTICKET_HOST = 'www.winticket.jp'
 WINTICKET_VENUES = {'84': ('takeo', '武雄')}
 WINTICKET_PERMISSION_BASES = ('owner_attestation', 'provider_document')
+KOMATSUSHIMA_REPLAY_RACE = '20261126-73-01'
+KOMATSUSHIMA_REPLAY_KEY = KOMATSUSHIMA_REPLAY_RACE.replace('-', '')
+RESULT_PAGE_UNPUBLISHED = 'replay result page not yet published'
+DIGEST_BUTTON_UNAVAILABLE = 'race digest button unavailable'
 RACE = re.compile(r'([0-9]{8})-([0-9]{2})-(0[1-9]|1[0-2])')
 DETAIL = re.compile(r'/[a-z0-9-]+/racedetail/([0-9]{2})([0-9]{8})[0-9]{4}([0-9]{2})/')
 WINTICKET_DETAIL = re.compile(r'/keirin/([a-z0-9-]+)/raceresult/([0-9]{8})([0-9]{2})/([1-7])/(1[0-2]|[1-9])')
@@ -83,6 +87,12 @@ class AccessDenied(PlayerUnavailable):
     """Stop this invocation when the source rejects access or rate-limits it."""
 
 
+def _winticket_venue(key):
+    if key == KOMATSUSHIMA_REPLAY_KEY:
+        return 'komatsushima', '小松島'
+    return WINTICKET_VENUES.get(key[8:10])
+
+
 def target(row):
     match = RACE.fullmatch(row['race_id'])
     if not match or date.fromisoformat(match[1]).isoformat() != row['race_date']:
@@ -92,7 +102,7 @@ def target(row):
     key = match[1] + match[2] + match[3]
     if parsed.netloc == WINTICKET_HOST:
         page = WINTICKET_DETAIL.fullmatch(parsed.path)
-        venue = WINTICKET_VENUES.get(match[2])
+        venue = _winticket_venue(key)
         if not (parsed.scheme == 'https' and page and venue and not parsed.query and not parsed.fragment
                 and (page[1], page[3], int(page[5])) == (venue[0], match[2], int(match[3]))
                 and date.fromisoformat(page[2]) + timedelta(days=int(page[4]) - 1) == date.fromisoformat(match[1])):
@@ -115,7 +125,7 @@ def check_title(key, title, *, url=''):
     if not re.search(pattern, title) or not re.search(rf'(?<![0-9]){race}(?:R|レース)(?![0-9])', title):
         raise PlayerUnavailable('race title did not match the requested date and number')
     if urlsplit(url).netloc == WINTICKET_HOST:
-        venue = WINTICKET_VENUES.get(key[8:10])
+        venue = _winticket_venue(key)
         if not venue or not title.startswith(venue[1] + '競輪 '):
             raise PlayerUnavailable('race title did not match the requested venue')
 
@@ -148,12 +158,16 @@ def open_player(page, key, url):
     response = page.goto(url, wait_until='domcontentloaded', timeout=25000)
     if not response:
         raise PlayerUnavailable('no source response')
-    if response.status in (401, 403, 429):
+    winticket = expected.netloc == WINTICKET_HOST
+    exact = winticket and key == KOMATSUSHIMA_REPLAY_KEY
+    denials = (401, 403, 407, 429) if exact else (401, 403, 429)
+    if response.status in denials:
         raise AccessDenied(f'source HTTP {response.status}')
     actual = urlsplit(page.url)
+    if exact and response.status == 404 and actual == expected:
+        raise PlayerUnavailable(RESULT_PAGE_UNPUBLISHED)
     if response.status != 200 or actual.scheme != 'https' or actual.netloc != expected.netloc:
         raise PlayerUnavailable(f'source status/redirect {response.status}')
-    winticket = expected.netloc == WINTICKET_HOST
     if actual.path != expected.path or (winticket and actual != expected):
         raise PlayerUnavailable('source redirected to a different race page')
     title = page.title()
@@ -163,17 +177,18 @@ def open_player(page, key, url):
     else:
         control = page.locator('[name="digestControl"]').get_by_alt_text('ダイジェスト映像を見る', exact=True)
     if control.count() != 1 or not control.is_visible():
-        raise PlayerUnavailable('race digest button unavailable')
+        raise PlayerUnavailable(DIGEST_BUTTON_UNAVAILABLE)
     refused_media = []
 
     def watch_media(result):
-        if result.request.resource_type == 'media' and result.status in (401, 403, 429):
+        resource = result.request.resource_type
+        if (resource == 'media' or exact and resource in ('fetch', 'xhr')) and result.status in denials:
             refused_media.append(result.status)
 
-    if not winticket:
+    if not winticket or exact:
         page.on('response', watch_media)
-    control.click(timeout=12000)
     try:
+        control.click(timeout=12000)
         page.wait_for_function("""() => [...document.querySelectorAll('video')].some(
             v => v.readyState >= 2 && v.videoWidth && Number.isFinite(v.duration))""", timeout=18000)
     finally:
@@ -250,6 +265,8 @@ def record_digest(browser, key, url, directory, *, approval=None):
         if isolate and not page.evaluate('() => !!window.__raceMask?.isConnected'):
             raise PlayerUnavailable('player viewport mask unavailable')
         duration, width, height = video.evaluate('v => [v.duration, v.videoWidth, v.videoHeight]')
+        if isolate and key == KOMATSUSHIMA_REPLAY_KEY and not 1 < duration <= 360:
+            raise PlayerUnavailable('visible replay exceeds the supported recording duration')
         if video.evaluate(SEEK, 0) is None:
             raise PlayerUnavailable('could not seek visible player to start')
         video.evaluate("""(v, isolate) => {
@@ -287,8 +304,12 @@ def record_digest(browser, key, url, directory, *, approval=None):
         }""", isolate)
         video.evaluate('v => v.play()')
         player = video.element_handle()
-        page.wait_for_function("v => v.ended || v.error || v.mediaKeys || window.__raceEncrypted",
-                               arg=player, timeout=round((duration + 35) * 1000))
+        try:
+            page.wait_for_function("v => v.ended || v.error || v.mediaKeys || window.__raceEncrypted",
+                                   arg=player, timeout=round((duration + 35) * 1000))
+        finally:
+            if isolate and key == KOMATSUSHIMA_REPLAY_KEY and refused_media:
+                raise AccessDenied(f'source HTTP {refused_media[0]}')
         finished, failed, protected = player.evaluate(
             'v => [v.ended, !!v.error, !!(v.mediaKeys || window.__raceEncrypted)]')
         if protected:
@@ -388,6 +409,7 @@ class SourceApproval:
     continuous: bool
     source_host: str = HOST
     permission_basis: str | None = None
+    settled_replay_url: str | None = None
 
     def covers(self, row):
         if self.valid_until and datetime.now(timezone.utc) >= self.valid_until:
@@ -447,7 +469,7 @@ def load_source_approval(path, continuous):
         if expiry.tzinfo is None or expiry <= datetime.now(timezone.utc):
             raise ValueError('source approval expiry is invalid or past')
     return SourceApproval(actual, sha256(raw).hexdigest(), first, last, races, expiry, continuous,
-                          host, basis)
+                          host, basis, doc.get('race_detail_url'))
 
 
 def require_capture_scope(approval, key, url, *, continuous):
@@ -455,13 +477,22 @@ def require_capture_scope(approval, key, url, *, continuous):
         raise ValueError('source approval for this capture mode is required')
     row = {'race_id': f'{key[:8]}-{key[8:10]}-{key[10:]}', 'race_date': date.fromisoformat(key[:8]).isoformat(),
            'race_detail_url': url}
+    if key == KOMATSUSHIMA_REPLAY_KEY and not (
+            approval.source_host == WINTICKET_HOST and approval.race_ids == {KOMATSUSHIMA_REPLAY_RACE}
+            and approval.settled_replay_url == url):
+        raise ValueError('separate permission for the exact WINTICKET replay is required')
     if target(row)[0] != key or not approval.covers(row):
         raise ValueError('race outside approved capture scope')
 
 
 def run(queue, output, *, interval, pause, limit, executable, retry_failed=False, continuous=False,
-        source_approval=None, chromium_sandbox=None, headless=None, stop_after_refusal=False):
+        source_approval=None, chromium_sandbox=None, headless=None, stop_after_refusal=False,
+        settled_replay_url=None, settled_replay_decision_sha256=None):
     approval = load_source_approval(source_approval, continuous)
+    if settled_replay_url is not None and not (continuous and limit == 1 and stop_after_refusal):
+        raise ValueError('settled replay requires a bounded single recording and refusal stop')
+    if settled_replay_url is not None and settled_replay_decision_sha256 != approval.decision_sha256:
+        raise ValueError('settled replay permission has changed since admission')
     if headless is None:
         headless = approval.source_host != WINTICKET_HOST
     chromium_sandbox = sys.platform == 'darwin' or chromium_sandbox is True
@@ -475,6 +506,11 @@ def run(queue, output, *, interval, pause, limit, executable, retry_failed=False
                 tally['no_listed_url'] += 1
                 continue
             key, url = target(row)
+            if key == KOMATSUSHIMA_REPLAY_KEY or settled_replay_url is not None:
+                if key != KOMATSUSHIMA_REPLAY_KEY or settled_replay_url != url:
+                    tally['outside_settled_replay_scope'] += 1
+                    continue
+                require_capture_scope(approval, key, url, continuous=continuous)
             if approval.covers(row):
                 yield row, key, url
             else:
@@ -525,7 +561,7 @@ def run(queue, output, *, interval, pause, limit, executable, retry_failed=False
                     try:
                         with TemporaryDirectory(prefix='.capture-', dir=output) as stage:
                             tmp = Path(stage) / key
-                            tmp.mkdir()
+                            tmp.mkdir(mode=0o700)
                             if continuous:
                                 record_digest(browser, key, url, tmp, approval=approval)
                                 check_clip(tmp, key, url)
