@@ -1,0 +1,103 @@
+{
+  "begin": "2026-11-24T18:59:34+00:00",
+  "end": "2026-11-25T18:59:34+00:00",
+  "evidence": "actual_run_started_at_for_completed_scheduled_workflows_in_main",
+  "nationally_completed_automation_verified": false,
+  "schema": "KEIRIN_PRIOR_24H_GITHUB_SCHEDULE_OBSERVATION_V1",
+  "workflows": {
+    "official_a_or_b": {
+      "known_completed_scheduled_starts": 3,
+      "maximum_interval_between_recorded_starts_seconds": 38821,
+      "runs": [
+        {
+          "conclusion": "success",
+          "run": 45514352903,
+          "started_at": "2026-11-25T08:58:27+09:00"
+        },
+        {
+          "conclusion": "success",
+          "run": 45565894837,
+          "started_at": "2026-11-25T16:09:05+09:00"
+        },
+        {
+          "conclusion": "success",
+          "run": 45669922501,
+          "started_at": "2026-11-26T02:56:06+09:00"
+        }
+      ]
+    },
+    "pr71_forecast": {
+      "known_completed_scheduled_starts": 5,
+      "maximum_interval_between_recorded_starts_seconds": 23102,
+      "runs": [
+        {
+          "conclusion": "success",
+          "run": 45503200724,
+          "started_at": "2026-11-25T07:40:58+09:00"
+        },
+        {
+          "conclusion": "success",
+          "run": 45533889452,
+          "started_at": "2026-11-25T11:34:11+09:00"
+        },
+        {
+          "conclusion": "success",
+          "run": 45552317289,
+          "started_at": "2026-11-25T14:15:34+09:00"
+        },
+        {
+          "conclusion": "success",
+          "run": 45606639155,
+          "started_at": "2026-11-25T20:40:36+09:00"
+        },
+        {
+          "conclusion": "success",
+          "run": 45649740425,
+          "started_at": "2026-11-26T00:55:37+09:00"
+        }
+      ]
+    },
+    "results": {
+      "known_completed_scheduled_starts": 3,
+      "maximum_interval_between_recorded_starts_seconds": 37946,
+      "runs": [
+        {
+          "conclusion": "success",
+          "run": 45488264265,
+          "started_at": "2026-11-25T06:09:51+09:00"
+        },
+        {
+          "conclusion": "success",
+          "run": 45553107842,
+          "started_at": "2026-11-25T14:22:19+09:00"
+        },
+        {
+          "conclusion": "success",
+          "run": 45649631810,
+          "started_at": "2026-11-26T00:54:45+09:00"
+        }
+      ]
+    },
+    "site_two_source_results": {
+      "known_completed_scheduled_starts": 3,
+      "maximum_interval_between_recorded_starts_seconds": 38245,
+      "runs": [
+        {
+          "conclusion": "success",
+          "run": 45506019552,
+          "started_at": "2026-11-25T07:59:49+09:00"
+        },
+        {
+          "conclusion": "success",
+          "run": 45553444785,
+          "started_at": "2026-11-25T14:25:13+09:00"
+        },
+        {
+          "conclusion": "success",
+          "run": 45650599350,
+          "started_at": "2026-11-26T01:02:38+09:00"
+        }
+      ]
+    }
+  }
+}
