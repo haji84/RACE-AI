@@ -4,6 +4,8 @@
 
 ## 正本と再開場所
 
+停止保存時刻は2026-11-25 16:12 UTC（11月26日01:12 JST）。コード保存 commit は `c04c3f358cd4771703e59fc24b4a5ae59a4a505a`、分離 main 起点 branch は `c96293e6f8fbfe68821aa68d8ab9a5f013355e22`。この後、既存PR #327の並行更新 `ee97fe30b1cf18c4e34fe16d65db4997eb70a7a1` まで通常mergeで取り込み、[Mac側への統合移管指示](KEIRIN_AUTONOMOUS_MAC_INTEGRATED_MASTER_20261126.md)も保存した。移管指示の新規実装には着手していない。全担当agentとローカル検証は停止し、未完了の処理・実データexport・モデル学習を裏で継続していない。既存の本番GitHub Actionsは停止・変更していない。
+
 - 正本は haji84/RACE-AI。既存研究・引継ぎは [Draft PR #327](https://github.com/haji84/RACE-AI/pull/327)。今回の追加もそこへ保存する。
 - 確認済み main は `b7dd5e3bcabb1cda4fab18753551563d5d8bd839`（PR #338）。PR #330〜#338 は前工程でマージ済み。今回の変更は未マージで、本番へ反映しない。
 - 公式結果からの履歴更新だけを分離した保存ブランチは `codex/official-rider-history-live-20261125`。main 起点のレビュー用変更で、既存 Draft #327 全体をマージするためのものではない。
