@@ -44,7 +44,7 @@ class ComparisonSnapshotTests(unittest.TestCase):
         self.guard = importlib.import_module('race_ai.keirin_comparison_snapshot')
         self.temp = tempfile.TemporaryDirectory()
         self.addCleanup(self.temp.cleanup)
-        self.top = Path(self.temp.name)
+        self.top = Path(self.temp.name).resolve()
         self.root, self.source = self.top / 'private', self.top / 'source'
         self.root.mkdir(mode=0o700)
         self.source.mkdir()

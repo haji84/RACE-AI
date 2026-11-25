@@ -17,9 +17,11 @@ import sqlite3
 import stat
 import subprocess
 from tempfile import TemporaryDirectory
+from time import monotonic
 from zoneinfo import ZoneInfo
 
-from race_ai.keirin_note_view import _private_root
+from race_ai.keirin_comparison_snapshot import _read_regular
+from race_ai.keirin_note_view import _create, _private_root
 from scripts import keirin_market_third_evaluation as market
 from scripts import keirin_video_corpus as corpus
 from scripts import keirin_video_media as media
@@ -139,7 +141,58 @@ def _fit(db, root, before, active):
     return 'TRIAL_PROFILE_FITTED', expected[profiles_path.name]
 
 
-def _video(root, before, census, manifest, bounds, reviewed, source_approval, browser):
+def _track(db, root, request, clips):
+    if request is None:
+        return {'state': 'NO_TRACKING_REQUEST'}
+    from scripts import keirin_video_tracking as tracking
+
+    if shutil.disk_usage(root).free < 50 * GIB:
+        return {'state': 'HOLD_TRACKING_STORAGE'}
+    row = json.loads(_read_regular(request, 2048))
+    if type(row) is not dict or set(row) != {'race_id', 'media_sha256'}:
+        raise ValueError('Tracking requires a race and its reviewed footage SHA.')
+    rid, digest = row['race_id'], row['media_sha256']
+    tracking._validate_race(rid)
+    if not tracking._hex(digest):
+        raise ValueError('Invalid tracking media SHA.')
+    media_path = clips.get((rid, digest))
+    if media_path is None:
+        return {'state': 'WAITING_FOR_VERIFIED_TRACKING_MEDIA'}
+    roster = db.execute('SELECT complete_roster, event_status FROM race WHERE id=?', (rid,)).fetchone()
+    if roster is None or tuple(roster) != (1, 'finish_verified'):
+        return {'state': 'WAITING_FOR_VERIFIED_TRACKING_ROSTER'}
+    cars = [car for car, in db.execute(
+        'SELECT car FROM starter WHERE race=? ORDER BY car', (rid,))]
+    engine = sha256(Path(tracking.__file__).read_bytes()).hexdigest()
+    key = sha256(corpus.pack([rid, digest, cars, engine]).encode()).hexdigest()
+    target = root/f'tracks-{key}'
+    if target.exists() or target.is_symlink():
+        _private_root(target)
+        track_bytes = _read_regular(target/'tracks.json', 2 * 1024 * 1024)
+        receipt = json.loads(_read_regular(target/'receipt.json', 2048))
+        if (type(receipt) is not dict or set(receipt) != {
+                'tracks_sha256', 'engine_sha256', 'sampled_frames', 'analysis_ms'}
+                or receipt['tracks_sha256'] != sha256(track_bytes).hexdigest()
+                or receipt['engine_sha256'] != engine
+                or type(receipt['sampled_frames']) is not int or not 0 < receipt['sampled_frames'] <= tracking.MAX_SECONDS*tracking.FPS
+                or type(receipt['analysis_ms']) is not int or receipt['analysis_ms'] < 0):
+            raise ValueError('The stored tracking output changed.')
+        return dict(receipt, state='TRACKS_REUSED')
+    start = monotonic()
+    tracks = tracking._track_clip(media_path, digest, rid, cars)
+    track_bytes = tracking._json(tracks)
+    receipt = dict(tracks_sha256=sha256(track_bytes).hexdigest(), engine_sha256=engine,
+                   sampled_frames=len(tracks['tracks']), analysis_ms=round(1000 * (monotonic()-start)))
+    with TemporaryDirectory(dir=root) as temp:
+        staging = Path(temp)/'tracks'
+        staging.mkdir(mode=0o700)
+        _create(staging/'tracks.json', track_bytes)
+        _create(staging/'receipt.json', tracking._json(receipt))
+        staging.rename(target)
+    return dict(receipt, state='TRACKS_GENERATED')
+
+
+def _video(root, before, census, manifest, bounds, reviewed, source_approval, track_request, browser):
     ledger = root/'corpus.sqlite'
     if census is None and not ledger.is_file():
         return {'state': 'WAITING_FOR_CENSUS'}
@@ -161,6 +214,7 @@ def _video(root, before, census, manifest, bounds, reviewed, source_approval, br
         roots = [_private_root(digests)] if digests.exists() or digests.is_symlink() else []
         inventory = {}
         active, active_races, continuous = set(), set(), set()
+        clips = {}
         held_review_inputs = 0
         with db:
             if manifests or roots:
@@ -178,6 +232,8 @@ def _video(root, before, census, manifest, bounds, reviewed, source_approval, br
                         else:
                             active.add((*key, row['sha256']))
                             continuous.add(row['race_id'])
+                            if track_request is not None and row['start_ms'] == 0:
+                                clips[row['race_id'], row['sha256']] = Path(row['path'])
             for path, loader in ((bounds, corpus.load_bounds), (reviewed, corpus.load_review)):
                 if path is not None:
                     for row in corpus.input_rows(path):
@@ -185,6 +241,10 @@ def _video(root, before, census, manifest, bounds, reviewed, source_approval, br
                             loader(db, row)
                         else:
                             held_review_inputs += 1
+        try:
+            tracking = _track(db, root, track_request, clips)
+        except INPUT_ERRORS:
+            tracking = {'state': 'HOLD_TRACKING_INPUT_OR_RUNTIME'}
         with db:
             db.execute('BEGIN')
             status = corpus.report(db)
@@ -194,7 +254,7 @@ def _video(root, before, census, manifest, bounds, reviewed, source_approval, br
                           census_races=status['races'], media_races=len(active_races), continuous_media_races=len(continuous),
                           retained_media_races=status['races_with_verified_visual_evidence'], observation_count=eligible,
                           unverified_review_inputs=held_review_inputs,
-                          inventory=inventory, model_state='WAITING_FOR_REVIEWED_OBSERVATIONS')
+                          inventory=inventory, tracking=tracking, model_state='WAITING_FOR_REVIEWED_OBSERVATIONS')
             if eligible:
                 if shutil.disk_usage(root).free < 50 * GIB:
                     result['model_state'] = 'HOLD_TRAINING_STORAGE'
@@ -203,24 +263,79 @@ def _video(root, before, census, manifest, bounds, reviewed, source_approval, br
         return result
 
 
+def _now():
+    return datetime.now(timezone.utc)
+
+
+def _save_tick(root, now, report):
+    directory = _private_root(root/'ticks')
+    body = corpus.pack(report)
+    stamp = now.astimezone(timezone.utc).strftime('%Y%m%dT%H%M%S%f')
+    target = directory/f'{stamp}-{sha256(body.encode()).hexdigest()}.json'
+    with corpus.output_file(target) as dest:
+        dest.write(body)
+
+
+def audit_window(root, since, *, clock=_now):
+    """Measure completed ticks and gaps in the local worker's observed window."""
+    now = clock()
+    if since.utcoffset() is None or now.utcoffset() is None or since > now:
+        raise ValueError('The audit needs an aware start time in the past.')
+    directory = _private_root(_private_root(root)/'ticks')
+    start = since.astimezone(timezone.utc).strftime('%Y%m%dT%H%M%S%f')
+    ticks, counts = set(), {'new_recordings': 0, 'new_tracks': 0, 'new_candidate_fits': 0}
+    for path in sorted(directory.glob('*.json')):
+        if path.name < start:
+            continue
+        body = _read_regular(path, 1024 * 1024)
+        report = json.loads(body)
+        at = datetime.fromisoformat(report['checked_at']).astimezone(timezone.utc)
+        stamp = at.strftime('%Y%m%dT%H%M%S%f')
+        if (path.name != f'{stamp}-{sha256(body).hexdigest()}.json'
+                or report['schema'] != 'KEIRIN_MAC_CYCLE_V1' or not since <= at <= now):
+            raise ValueError('The cycle audit receipt does not match its recorded timestamp and hash.')
+        ticks.add(at)
+        video = report['video']
+        counts['new_recordings'] += video.get('recorded', 0)
+        counts['new_tracks'] += video.get('tracking', {}).get('state') == 'TRACKS_GENERATED'
+        counts['new_candidate_fits'] += video.get('model_state') == 'TRIAL_PROFILE_FITTED'
+    ordered = sorted(ticks)
+    intervals = [(end-begin).total_seconds() for begin, end in zip(ordered, ordered[1:])]
+    span = (ordered[-1]-ordered[0]).total_seconds() if ordered else 0
+    last_age = (now-ordered[-1]).total_seconds() if ordered else None
+    longest = max(intervals, default=0)
+    return dict(schema='KEIRIN_MAC_CYCLE_TIMING_V1', scope='LOCAL_VIDEO_AND_MARKET_RESEARCH',
+                since=since.isoformat(), checked_at=now.isoformat(), completed_ticks=len(ordered),
+                first_tick=ordered[0].isoformat() if ordered else None,
+                last_tick=ordered[-1].isoformat() if ordered else None,
+                seconds_observed=span, longest_interval_seconds=longest,
+                intervals_over_16_minutes=sum(gap > 960 for gap in intervals),
+                seconds_since_last_tick=last_age,
+                full_24h_local_cadence=span >= 86400 and longest <= 960 and last_age <= 960, **counts)
+
+
 def run_cycle(root, *, census=None, manifest=None, bounds=None, reviewed=None, source_approval=None,
-              browser=CHROME, clock=lambda: datetime.now(timezone.utc)):
+              track_request=None,
+              browser=CHROME, clock=_now):
     root = _private_root(root)
     with _lock(root/'mac-cycle.lock', wait=False):
         now = clock()
         if now.utcoffset() is None:
             raise ValueError('A timezone-aware cycle clock is required.')
+        start = monotonic()
         try:
             market_third = market.evaluate_retained()
         except INPUT_ERRORS:
             market_third = {'candidate_disposition': 'HOLD_RETAINED_EVIDENCE_UNAVAILABLE'}
         try:
             video = _video(root, now.astimezone(JST).date().isoformat(), census, manifest, bounds,
-                           reviewed, source_approval, browser)
+                           reviewed, source_approval, track_request, browser)
         except INPUT_ERRORS:
             video = {'state': 'HOLD_VIDEO_INPUT_OR_RUNTIME'}
         result = dict(schema='KEIRIN_MAC_CYCLE_V1', checked_at=now.isoformat(), video=video,
-                      market_third=market_third, production_weights_promoted=False)
+                      market_third=market_third, production_weights_promoted=False,
+                      duration_ms=round(1000*(monotonic()-start)))
+        _save_tick(root, now, result)
         with corpus.output_file(root/'cycle-report.json') as report:
             json.dump(result, report, ensure_ascii=False, allow_nan=False, sort_keys=True)
         return result
@@ -230,24 +345,27 @@ def main(argv=None):
     parser = ArgumentParser(description=__doc__, allow_abbrev=False)
     parser.add_argument('--state-dir', required=True, type=Path)
     parser.add_argument('--input-dir', type=Path, help='Optional private directory with the documented local inputs.')
-    for name in ('census', 'manifest', 'bounds', 'reviewed', 'source-approval'):
+    for name in ('census', 'manifest', 'bounds', 'reviewed', 'source-approval', 'track-request'):
         parser.add_argument('--'+name, type=Path)
+    parser.add_argument('--audit-since', type=datetime.fromisoformat, help='Read completed cycles from this timestamp.')
     parser.add_argument('--browser', default=CHROME)
     args = parser.parse_args(argv)
     os.umask(0o077)
     options = vars(args)
     root = options.pop('state_dir')
     try:
+        since = options.pop('audit_since')
         inputs = options.pop('input_dir')
         if inputs is not None:
             inputs = _private_root(inputs)
             for key, name in (('census', 'census.jsonl'), ('manifest', 'owner-films.jsonl'),
                               ('bounds', 'crossings.jsonl'), ('reviewed', 'reviewed.jsonl'),
-                              ('source_approval', 'reviewed-source-approval.json')):
+                              ('source_approval', 'reviewed-source-approval.json'),
+                              ('track_request', 'track-clip.json')):
                 path = inputs/name
                 if options[key] is None and path.is_file():
                     options[key] = path
-        result = run_cycle(root, **options)
+        result = audit_window(root, since) if since is not None else run_cycle(root, **options)
     except BlockingIOError:
         print(json.dumps({'state': 'KEIRIN_MAC_CYCLE_ALREADY_RUNNING'}))
         return 0

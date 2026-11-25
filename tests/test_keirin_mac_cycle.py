@@ -1,5 +1,5 @@
 """Exercise scheduled video intake, evaluation and safe holds without provider access."""
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from hashlib import sha256
 import json
 from pathlib import Path
@@ -40,6 +40,56 @@ class MacCycleTests(unittest.TestCase):
         self.assertEqual(result['market_third']['candidate_disposition'], 'HOLD_INDEPENDENT_MARKET_EVALUATION')
         self.assertFalse((self.root/'corpus.sqlite').exists())
         self.assertEqual(json.loads((self.root/'cycle-report.json').read_bytes()), result)
+
+    def test_cycle_history_retains_multiple_ticks_and_reports_gaps(self):
+        from scripts import keirin_mac_cycle as cycle
+
+        with patch.object(cycle.market, 'evaluate_retained', return_value={}):
+            for offset in (0, 15, 46):
+                cycle.run_cycle(self.root, clock=lambda: NOW + timedelta(minutes=offset))
+        audit = cycle.audit_window(self.root, NOW, clock=lambda: NOW + timedelta(minutes=47))
+        self.assertEqual(audit['completed_ticks'], 3)
+        self.assertEqual(audit['longest_interval_seconds'], 31*60)
+        self.assertEqual(audit['intervals_over_16_minutes'], 1)
+        self.assertFalse(audit['full_24h_local_cadence'])
+        self.assertEqual(audit['scope'], 'LOCAL_VIDEO_AND_MARKET_RESEARCH')
+
+    def test_tracking_requires_the_exact_verified_race_and_media(self):
+        from scripts import keirin_mac_cycle as cycle
+        from scripts import keirin_video_tracking as tracking
+
+        digest = 'a'*64
+        race = '20261125-84-01'
+        roster = self.write('census.jsonl', dict(race_id=race, race_date='2026-11-25', roster_complete=True,
+            event_status='finish_verified', riders=[dict(car=1, rider_id='015001'), dict(car=2, rider_id='015002')]))
+        request = self.root/'track-clip.json'
+        request.write_text(json.dumps(dict(race_id=race, media_sha256=digest)))
+        request.chmod(0o600)
+        options = dict(census=roster, track_request=request)
+        with patch.object(tracking, '_track_clip', return_value=dict(tracks=[{}])) as track:
+            missing = self.run_cycle(**options)
+            self.assertEqual(missing['video']['tracking']['state'], 'WAITING_FOR_VERIFIED_TRACKING_MEDIA')
+            track.assert_not_called()
+            clip = self.root/'movie.mp4'
+            clip.touch()
+            manifest = self.write('owner-films.jsonl', dict(race_id=race, race_date='2026-11-25',
+                kind='clip', source_ref='fixture', path=clip.name, sha256=digest))
+            options['manifest'] = manifest
+            with patch.object(cycle.media, 'inspect', return_value=('verified', dict(duration_ms=2000))):
+                first = self.run_cycle(**options)
+                again = self.run_cycle(**options)
+                saved_receipt, = self.root.glob('tracks-*/receipt.json')
+                cached = json.loads(saved_receipt.read_bytes())
+                cached['unexpected_private_value'] = 'not an aggregate field'
+                saved_receipt.write_text(json.dumps(cached))
+                tampered = self.run_cycle(**options)
+        track.assert_called_once_with(clip, digest, race, [1, 2])
+        self.assertEqual(first['video']['tracking']['state'], 'TRACKS_GENERATED')
+        self.assertEqual(again['video']['tracking']['state'], 'TRACKS_REUSED')
+        self.assertEqual(first['video']['tracking']['tracks_sha256'], again['video']['tracking']['tracks_sha256'])
+        self.assertEqual(first['video']['observation_count'], 0)
+        self.assertEqual(tampered['video']['tracking']['state'], 'HOLD_TRACKING_INPUT_OR_RUNTIME')
+        self.assertNotIn('unexpected_private_value', json.dumps(tampered))
 
     def test_verified_frames_and_registered_reviews_fit_once(self):
         from scripts import keirin_mac_cycle as cycle
