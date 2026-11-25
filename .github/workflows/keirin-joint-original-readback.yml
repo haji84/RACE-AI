@@ -125,7 +125,7 @@ jobs:
             --cipher "$RUNNER_TEMP/keirin-joint-independent/recovery.sealed.json" \
             --receipt docs/evidence/keirin-live-accuracy-closure-20261125/joint-original-rsa-recovery.json \
             > "$RUNNER_TEMP/keirin-joint-independent/safe-report.json"
-          cat "$RUNNER_TEMP/keirin-joint-independent/safe-report.json" >> "$GITHUB_STEP_SUMMARY"
+          cat "$RUNNER_TEMP/keirin-joint-independent/safe-report.json" | tee -a "$GITHUB_STEP_SUMMARY"
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         if: always()
         with:
