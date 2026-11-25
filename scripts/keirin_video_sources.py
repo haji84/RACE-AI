@@ -1,4 +1,4 @@
-"""Capture review frames from the ordinary visible KDreams race-detail player.
+"""Capture review media from approved ordinary, visible KEIRIN replay players.
 
 The JSONL queue uses race_id (YYYYMMDD-VV-RR), race_date (ISO) and
 race_detail_url from the dated calendar. Network capture requires a private
@@ -13,7 +13,7 @@ import argparse
 from collections import Counter
 from contextlib import ExitStack
 from dataclasses import dataclass
-from datetime import date, datetime, timezone
+from datetime import date, datetime, timedelta, timezone
 import fcntl
 from hashlib import file_digest, sha256
 from itertools import chain
@@ -22,15 +22,39 @@ import math
 import os
 from pathlib import Path
 import re
+import stat
 import subprocess
+import sys
 from tempfile import TemporaryDirectory
 from time import sleep
 from urllib.parse import urlsplit
 
 
 HOST = 'keirin.kdreams.jp'
+WINTICKET_HOST = 'www.winticket.jp'
+WINTICKET_VENUES = {'84': ('takeo', '武雄')}
+WINTICKET_PERMISSION_BASES = ('owner_attestation', 'provider_document')
 RACE = re.compile(r'([0-9]{8})-([0-9]{2})-(0[1-9]|1[0-2])')
 DETAIL = re.compile(r'/[a-z0-9-]+/racedetail/([0-9]{2})([0-9]{8})[0-9]{4}([0-9]{2})/')
+WINTICKET_DETAIL = re.compile(r'/keirin/([a-z0-9-]+)/raceresult/([0-9]{8})([0-9]{2})/([1-7])/(1[0-2]|[1-9])')
+BROWSER_REFUSAL = re.compile(r'\bERR_(?:BLOCKED_BY_(?:ADMINISTRATOR|CLIENT|RESPONSE)|(?:NETWORK_)?ACCESS_DENIED)\b')
+MASK_SOURCE = """(() => {
+    if (window !== top) return;
+    document.addEventListener('encrypted', () => { window.__raceEncrypted = true; }, true);
+    const mask = document.createElement('div');
+    Object.assign(mask.style, {position:'fixed',inset:0,margin:0,background:'black',
+                              zIndex:2147483647,pointerEvents:'none'});
+    function mount() {
+        if (!document.documentElement) return false;
+        document.documentElement.append(mask);
+        window.__raceMask = mask;
+        return true;
+    }
+    if (!mount()) {
+        const observer = new MutationObserver(() => { if (mount()) observer.disconnect(); });
+        observer.observe(document, {childList:true});
+    }
+})()"""
 SEEK = """async (video, target) => {
     video.pause();
     if (Math.abs(video.currentTime-target) > 0.001) {
@@ -65,22 +89,35 @@ def target(row):
         raise ValueError('invalid or mismatched race date')
     url = row['race_detail_url']
     parsed = urlsplit(url)
+    key = match[1] + match[2] + match[3]
+    if parsed.netloc == WINTICKET_HOST:
+        page = WINTICKET_DETAIL.fullmatch(parsed.path)
+        venue = WINTICKET_VENUES.get(match[2])
+        if not (parsed.scheme == 'https' and page and venue and not parsed.query and not parsed.fragment
+                and (page[1], page[3], int(page[5])) == (venue[0], match[2], int(match[3]))
+                and date.fromisoformat(page[2]) + timedelta(days=int(page[4]) - 1) == date.fromisoformat(match[1])):
+            raise ValueError('invalid or mismatched WINTICKET race page')
+        return key, url
     page = DETAIL.fullmatch(parsed.path)
     if not (parsed.scheme == 'https' and parsed.netloc == HOST and page
             and not parsed.fragment and parsed.query in ('', 'pageType=showResult')
             and (match[2], match[3]) == (page[1], page[3])):
         raise ValueError('invalid or mismatched KDreams race page')
     result_url = parsed._replace(query='pageType=showResult').geturl()
-    return match[1] + match[2] + match[3], result_url
+    return key, result_url
 
 
-def check_title(key, title):
+def check_title(key, title, *, url=''):
     day = date.fromisoformat(key[:8])
     pattern = (rf'(?<![0-9]){day.year}年0?{day.month}月0?{day.day}日'
                rf'(?![0-9])')
     race = int(key[-2:])
     if not re.search(pattern, title) or not re.search(rf'(?<![0-9]){race}(?:R|レース)(?![0-9])', title):
         raise PlayerUnavailable('race title did not match the requested date and number')
+    if urlsplit(url).netloc == WINTICKET_HOST:
+        venue = WINTICKET_VENUES.get(key[8:10])
+        if not venue or not title.startswith(venue[1] + '競輪 '):
+            raise PlayerUnavailable('race title did not match the requested venue')
 
 
 def timeline(duration, interval):
@@ -105,18 +142,26 @@ def validate_receipt(folder, key, url):
 
 
 def open_player(page, key, url):
+    expected = urlsplit(url)
+    if expected.scheme != 'https' or expected.netloc not in (HOST, WINTICKET_HOST):
+        raise ValueError('unsupported replay source')
     response = page.goto(url, wait_until='domcontentloaded', timeout=25000)
     if not response:
         raise PlayerUnavailable('no source response')
     if response.status in (401, 403, 429):
         raise AccessDenied(f'source HTTP {response.status}')
-    if response.status != 200 or urlsplit(page.url).netloc != HOST:
+    actual = urlsplit(page.url)
+    if response.status != 200 or actual.scheme != 'https' or actual.netloc != expected.netloc:
         raise PlayerUnavailable(f'source status/redirect {response.status}')
-    if urlsplit(page.url).path != urlsplit(url).path:
+    winticket = expected.netloc == WINTICKET_HOST
+    if actual.path != expected.path or (winticket and actual != expected):
         raise PlayerUnavailable('source redirected to a different race page')
     title = page.title()
-    check_title(key, title)
-    control = page.locator('[name="digestControl"]').get_by_alt_text('ダイジェスト映像を見る', exact=True)
+    check_title(key, title, url=url)
+    if winticket:
+        control = page.get_by_role('button', name='映像を観る', exact=True)
+    else:
+        control = page.locator('[name="digestControl"]').get_by_alt_text('ダイジェスト映像を見る', exact=True)
     if control.count() != 1 or not control.is_visible():
         raise PlayerUnavailable('race digest button unavailable')
     refused_media = []
@@ -125,7 +170,8 @@ def open_player(page, key, url):
         if result.request.resource_type == 'media' and result.status in (401, 403, 429):
             refused_media.append(result.status)
 
-    page.on('response', watch_media)
+    if not winticket:
+        page.on('response', watch_media)
     control.click(timeout=12000)
     try:
         page.wait_for_function("""() => [...document.querySelectorAll('video')].some(
@@ -136,7 +182,7 @@ def open_player(page, key, url):
     video = page.locator('video:visible')
     if video.count() != 1:
         raise PlayerUnavailable('visible player is ambiguous')
-    if video.evaluate('v => !!v.mediaKeys'):
+    if video.evaluate('v => !!(v.mediaKeys || window.__raceEncrypted)'):
         raise AccessDenied('protected player')
     return video, title, refused_media
 
@@ -195,13 +241,18 @@ def record_digest(browser, key, url, directory, *, approval=None):
                                   viewport={'width': 1280, 'height': 720},
                                   record_video_dir=str(directory),
                                   record_video_size={'width': 1280, 'height': 720})
-    page = context.new_page()
+    isolate = urlsplit(url).netloc == WINTICKET_HOST
     try:
+        if isolate:
+            context.add_init_script(MASK_SOURCE)
+        page = context.new_page()
         video, title, refused_media = open_player(page, key, url)
-        duration = video.evaluate('v => v.duration')
+        if isolate and not page.evaluate('() => !!window.__raceMask?.isConnected'):
+            raise PlayerUnavailable('player viewport mask unavailable')
+        duration, width, height = video.evaluate('v => [v.duration, v.videoWidth, v.videoHeight]')
         if video.evaluate(SEEK, 0) is None:
             raise PlayerUnavailable('could not seek visible player to start')
-        video.evaluate("""v => {
+        video.evaluate("""(v, isolate) => {
             v.pause(); v.controls = false; v.muted = true;
             Object.assign(v.style,{position:'fixed',left:0,top:0,width:'1280px',height:'696px',
                 margin:0,background:'black',objectFit:'contain',zIndex:2147483646});
@@ -213,7 +264,11 @@ def record_digest(browser, key, url, directory, *, approval=None):
             Object.assign(mark.style,{position:'absolute',left:0,top:0,width:'16px',height:'20px'});
             const label = document.createElement('span');
             clock.append(mark,label);
-            document.body.append(clock);
+            if (isolate) {
+                window.__raceMask.append(v, clock);
+            } else {
+                document.body.append(clock);
+            }
             window.__raceReadback = {error:null, first:null, last:null, count:0, maxGap:0};
             const state = window.__raceReadback;
             function sample(now, frame) {
@@ -229,10 +284,17 @@ def record_digest(browser, key, url, directory, *, approval=None):
             }
             v.requestVideoFrameCallback(sample);
             v.addEventListener('ended', () => { mark.style.background = 'black'; });
-        }""")
+        }""", isolate)
         video.evaluate('v => v.play()')
-        page.wait_for_function("() => document.querySelector('video').ended",
-                               timeout=round((duration + 35) * 1000))
+        player = video.element_handle()
+        page.wait_for_function("v => v.ended || v.error || v.mediaKeys || window.__raceEncrypted",
+                               arg=player, timeout=round((duration + 35) * 1000))
+        finished, failed, protected = player.evaluate(
+            'v => [v.ended, !!v.error, !!(v.mediaKeys || window.__raceEncrypted)]')
+        if protected:
+            raise AccessDenied('protected player')
+        if failed or not finished:
+            raise PlayerUnavailable('ordinary player did not finish')
         facts = page.evaluate('window.__raceReadback')
         if refused_media:
             raise AccessDenied(f'source HTTP {refused_media[0]}')
@@ -262,6 +324,7 @@ def record_digest(browser, key, url, directory, *, approval=None):
                'kind': 'clip', 'start_ms': 0, 'path': movie.name, 'sha256': digest,
                'clock_basis': 'local_clip_zero_player_time_visible_in_footer',
                'page_title': title, 'browser_player_seconds': duration, 'screen_duration_seconds': end-start,
+               'browser_player_ended': finished, 'browser_player_resolution': [width, height],
                'player_progress': facts,
                'observed_at_utc': datetime.now(timezone.utc).isoformat()}
     (directory / 'clip.json').write_text(json.dumps(receipt, ensure_ascii=False) + '\n')
@@ -269,7 +332,7 @@ def record_digest(browser, key, url, directory, *, approval=None):
 
 def check_clip(folder, key, url):
     proof = json.loads((folder / 'clip.json').read_bytes())
-    check_title(key, proof['page_title'])
+    check_title(key, proof['page_title'], url=url)
     if (proof['public_result_page'] != url or proof['kind'] != 'clip'
             or proof['path'] != 'digest.mp4'):
         raise ValueError('stored digest is for a different source')
@@ -278,13 +341,40 @@ def check_clip(folder, key, url):
             raise ValueError('stored digest changed')
 
 
-def failed_attempts(log):
+def private_log_fd(path, flags):
+    fd = os.open(path, flags | os.O_NOFOLLOW | os.O_NONBLOCK, 0o600)
+    try:
+        if not stat.S_ISREG(os.fstat(fd).st_mode):
+            raise ValueError('capture lock or log is not a regular file')
+    except BaseException:
+        os.close(fd)
+        raise
+    return fd
+
+
+def source_refused(status):
+    return status.startswith('source HTTP ') or status in ('protected player', 'browser access refused')
+
+
+def read_attempt_history(lines):
     latest = {}
-    if log.exists():
-        for line in log.read_text().splitlines():
-            entry = json.loads(line)
-            latest[(entry['race_id'], entry['source_ref'])] = entry['status']
-    return {pair for pair, value in latest.items() if value != 'captured'}
+    refusal = None
+    for line in lines:
+        entry = json.loads(line)
+        status = entry['status']
+        latest[(entry['race_id'], entry['source_ref'])] = status
+        if refusal is None and source_refused(status):
+            refusal = status
+    return {pair for pair, value in latest.items() if value != 'captured'}, refusal
+
+
+def failed_attempts(log):
+    try:
+        with open(log, encoding='utf8', opener=private_log_fd) as history:
+            failed, _ = read_attempt_history(history)
+            return failed
+    except FileNotFoundError:
+        return set()
 
 
 @dataclass(frozen=True)
@@ -296,6 +386,8 @@ class SourceApproval:
     race_ids: frozenset[str] | None
     valid_until: datetime | None
     continuous: bool
+    source_host: str = HOST
+    permission_basis: str | None = None
 
     def covers(self, row):
         if self.valid_until and datetime.now(timezone.utc) >= self.valid_until:
@@ -303,7 +395,8 @@ class SourceApproval:
         day = date.fromisoformat(row['race_date'])
         if self.first is not None and not self.first <= day <= self.last:
             return False
-        return self.race_ids is None or row['race_id'] in self.race_ids
+        return (urlsplit(row['race_detail_url']).netloc == self.source_host
+                and (self.race_ids is None or row['race_id'] in self.race_ids))
 
 
 def load_source_approval(path, continuous):
@@ -313,8 +406,12 @@ def load_source_approval(path, continuous):
     path = Path(path)
     raw = path.read_bytes()
     doc = json.loads(raw)
-    if not isinstance(doc, dict) or doc.get('source_host') != HOST:
-        raise ValueError('source approval does not cover the KDreams replay host')
+    if not isinstance(doc, dict) or doc.get('source_host') not in (HOST, WINTICKET_HOST):
+        raise ValueError('source approval does not cover a supported replay host')
+    host = doc['source_host']
+    basis = doc.get('permission_basis')
+    if host == WINTICKET_HOST and (not continuous or basis not in WINTICKET_PERMISSION_BASES):
+        raise ValueError('WINTICKET requires a continuous recording approval with permission provenance')
     for field in ('reviewer', 'rights_ref', 'rights_sha256'):
         if not isinstance(doc.get(field), str) or not doc[field].strip():
             raise ValueError('source approval missing reviewer or permission evidence')
@@ -349,7 +446,8 @@ def load_source_approval(path, continuous):
         expiry = datetime.fromisoformat(expiry)
         if expiry.tzinfo is None or expiry <= datetime.now(timezone.utc):
             raise ValueError('source approval expiry is invalid or past')
-    return SourceApproval(actual, sha256(raw).hexdigest(), first, last, races, expiry, continuous)
+    return SourceApproval(actual, sha256(raw).hexdigest(), first, last, races, expiry, continuous,
+                          host, basis)
 
 
 def require_capture_scope(approval, key, url, *, continuous):
@@ -362,8 +460,11 @@ def require_capture_scope(approval, key, url, *, continuous):
 
 
 def run(queue, output, *, interval, pause, limit, executable, retry_failed=False, continuous=False,
-        source_approval=None):
+        source_approval=None, chromium_sandbox=None, headless=None, stop_after_refusal=False):
     approval = load_source_approval(source_approval, continuous)
+    if headless is None:
+        headless = approval.source_host != WINTICKET_HOST
+    chromium_sandbox = sys.platform == 'darwin' or chromium_sandbox is True
     tally = Counter()
     attempted = 0
 
@@ -384,17 +485,25 @@ def run(queue, output, *, interval, pause, limit, executable, retry_failed=False
         first = next(rows, None)
         if first is None:
             return tally
+        if output.is_symlink():
+            raise ValueError('capture output is a symbolic link')
         output.mkdir(parents=True, exist_ok=True, mode=0o700)
         os.chmod(output, 0o700)
-        lock = stack.enter_context((output / '.capture.lock').open('a'))
+        lock = stack.enter_context(open(output / '.capture.lock', 'a', encoding='utf8', opener=private_log_fd))
         fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
         attempt_log = output / 'attempts.jsonl'
-        failed = failed_attempts(attempt_log)
         browser = None
         try:
-            with attempt_log.open('a') as attempts:
+            with open(attempt_log, 'a+', encoding='utf8', opener=private_log_fd) as attempts:
+                attempts.seek(0)
+                failed, refusal = read_attempt_history(attempts)
+                if stop_after_refusal and refusal is not None:
+                    tally[refusal] += 1
+                    return tally
                 for row, key, url in chain((first,), rows):
                     folder = output / key
+                    if folder.is_symlink():
+                        raise ValueError('race capture folder is a symbolic link')
                     if folder.exists():
                         (check_clip if continuous else validate_receipt)(folder, key, url)
                         tally['reused'] += 1
@@ -409,7 +518,8 @@ def run(queue, output, *, interval, pause, limit, executable, retry_failed=False
                         from playwright.sync_api import Error, TimeoutError as PlaywrightTimeout, sync_playwright
 
                         engine = stack.enter_context(sync_playwright())
-                        browser = engine.chromium.launch(executable_path=executable)
+                        browser = engine.chromium.launch(executable_path=executable, headless=headless,
+                                                         chromium_sandbox=chromium_sandbox)
                     attempted += 1
                     status = 'captured'
                     try:
@@ -427,10 +537,13 @@ def run(queue, output, *, interval, pause, limit, executable, retry_failed=False
                                     validate_receipt(tmp, key, url)
                                 finally:
                                     page.close()
+                            proof = {'decision_sha256': approval.decision_sha256,
+                                     'rights_sha256': approval.rights_sha256,
+                                     'race_id': row['race_id'], 'source_ref': url}
+                            if approval.permission_basis:
+                                proof['permission_basis'] = approval.permission_basis
                             with (tmp / 'source-approval.json').open('x') as receipt:
-                                json.dump({'decision_sha256': approval.decision_sha256,
-                                           'rights_sha256': approval.rights_sha256,
-                                           'race_id': row['race_id'], 'source_ref': url}, receipt)
+                                json.dump(proof, receipt)
                             tmp.rename(folder)
                     except AccessDenied as exc:
                         status = str(exc)
@@ -438,8 +551,9 @@ def run(queue, output, *, interval, pause, limit, executable, retry_failed=False
                         status = str(exc)
                     except PlaywrightTimeout:
                         status = 'ordinary player timeout'
-                    except Error:
-                        status = 'ordinary browser error'
+                    except Error as exc:
+                        status = ('browser access refused' if BROWSER_REFUSAL.search(str(exc))
+                                  else 'ordinary browser error')
                     tally[status] += 1
                     if status != 'captured':
                         failed.add(pair)
@@ -447,7 +561,7 @@ def run(queue, output, *, interval, pause, limit, executable, retry_failed=False
                                                'status': status,
                                                'at_utc': datetime.now(timezone.utc).isoformat()}) + '\n')
                     attempts.flush()
-                    if status.startswith('source HTTP ') or status == 'protected player':
+                    if source_refused(status):
                         break
                     sleep(pause)
         finally:
@@ -461,14 +575,15 @@ def main():
     cli.add_argument('--continuous', action='store_true',
                      help='save rendered digest movies, using a separate output directory')
     cli.add_argument('--source-approval', type=Path, required=True,
-                     help='private operator-reviewed KDreams capture and research permission record')
+                     help='private operator-reviewed capture and research permission record')
     cli.add_argument('--queue', type=Path, required=True)
     cli.add_argument('--out', type=Path, required=True)
     cli.add_argument('--interval', type=float, default=3, help='seconds between visible digest frames')
     cli.add_argument('--pause', type=float, default=2, help='pause between race pages')
     cli.add_argument('--limit', type=int, help='new race attempts this invocation')
     cli.add_argument('--retry-failed', action='store_true', help='retry previously unavailable pages')
-    cli.add_argument('--chromium', default='/usr/bin/chromium')
+    cli.add_argument('--chromium', default='/Applications/Google Chrome.app/Contents/MacOS/Google Chrome'
+                     if sys.platform == 'darwin' else '/usr/bin/chromium')
     args = cli.parse_args()
     if (not math.isfinite(args.pause) or args.pause < 0 or not math.isfinite(args.interval)
             or args.interval < 0.1 or (args.limit is not None and args.limit < 1)):

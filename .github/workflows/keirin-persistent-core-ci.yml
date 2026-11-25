@@ -56,7 +56,8 @@ jobs:
           "$runner_python" -m unittest \
             tests.test_keirin_video_census tests.test_keirin_video_archive_index tests.test_keirin_video_sources \
             tests.test_keirin_video_media tests.test_keirin_video_review \
-            tests.test_keirin_video_corpus tests.test_keirin_video_rider_learning -v
+            tests.test_keirin_video_corpus tests.test_keirin_video_rider_learning \
+            tests.test_keirin_mac_cycle -v
           "$runner_python" -m unittest \
             tests.test_keirin_flow_evaluation tests.test_keirin_race_development \
             tests.test_keirin_forward_score tests.test_keirin_research_ledger \
@@ -65,10 +66,12 @@ jobs:
           "$runner_python" -m unittest \
             tests.test_keirin_archive_study tests.test_keirin_accuracy_study \
             tests.test_keirin_joint_forecast tests.test_keirin_comparison_snapshot tests.test_keirin_market_third_study \
+            tests.test_keirin_market_third_evaluation \
             tests.test_keirin_joint_original_readback tests.test_keirin_joint_forward_score \
             tests.test_keirin_joint_recovery_score tests.test_keirin_published_result_validation -v
           "$runner_python" -m unittest \
-            tests.test_keirin_build_rider_dossiers tests.test_keirin_rider_history_supplement -v
+            tests.test_keirin_build_rider_dossiers tests.test_keirin_rider_history_supplement \
+            tests.test_keirin_rider_history_ledger tests.test_keirin_tactical_context -v
 
   comparison-cipher-independent-readback:
     runs-on: ubuntu-24.04

@@ -52,3 +52,16 @@
 .kn-joint-ranks meter{width:100%;min-width:0;height:18px}.kn-joint-ranks li>span:last-child{text-align:right}.kn-joint-source{font-size:13px;border-top:1px solid var(--kn-line);padding-top:10px}.kn-joint-source summary{min-height:40px;font-weight:700}
 .kn-rider-probability-state{padding:12px;background:#fff4e9;border-radius:8px;overflow-wrap:anywhere}
 @media(max-width:400px){.kn-rider-dialog{padding:13px}.kn-rider-dialog h2{font-size:20px}.kn-joint-ranks li{grid-template-columns:2.6em minmax(0,1fr) 4.2em;gap:.35em}}
+
+.kn-growth{margin:0 0 16px;border:1px solid var(--kn-line);border-radius:12px;background:#fff}
+.kn-growth>summary{min-height:44px;padding:10px 14px;font-weight:700}
+.kn-growth[open]>summary{border-bottom:1px solid var(--kn-line)}
+.kn-growth-content{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,25rem),1fr));gap:16px;padding:14px;font-size:14px}
+.kn-growth-content section{min-width:0}
+.kn-growth-content h2{font-size:16px}
+.kn-growth-content section p+p{margin-top:6px}
+.kn-shell .kn-growth table{min-width:0;table-layout:fixed;margin:10px 0;font-size:13px}
+.kn-shell .kn-growth th,.kn-shell .kn-growth td{padding:6px 4px;white-space:normal;overflow-wrap:anywhere}
+.kn-growth tbody th{background:transparent}
+.kn-growth td small{display:block;color:var(--kn-muted);font-size:12px}
+.kn-growth .kn-growth-decision{grid-column:1/-1;border-top:1px solid var(--kn-line);padding-top:11px;font-weight:700}

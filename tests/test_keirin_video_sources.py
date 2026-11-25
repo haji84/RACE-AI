@@ -1,5 +1,6 @@
 from hashlib import sha256
 import json
+import os
 import shutil
 import subprocess
 from pathlib import Path
@@ -13,6 +14,9 @@ from scripts import keirin_video_sources as source
 RACE = {'race_id': '20240504-13-01', 'race_date': '2024-05-04',
         'race_detail_url': 'https://keirin.kdreams.jp/iwakitaira/racedetail/1320240430050001/?pageType=showResult'}
 TITLE = 'いわき平競輪 レース詳細 | 日本選手権競輪 1R | 2024年05月04日【楽天Kドリームス】'
+WINTICKET = {'race_id': '20240503-84-01', 'race_date': '2024-05-03',
+             'race_detail_url': 'https://www.winticket.jp/keirin/takeo/raceresult/2024050184/3/1'}
+WINTICKET_TITLE = '武雄競輪 開催名（2024年5月3日)1レース 結果【ウィンチケット競輪】'
 
 
 class CaptureTests(unittest.TestCase):
@@ -98,6 +102,64 @@ class CaptureTests(unittest.TestCase):
             with self.assertRaises(source.PlayerUnavailable):
                 source.check_title(key, title)
 
+    def test_winticket_result_url_binds_meeting_day_venue_and_race(self):
+        url = WINTICKET['race_detail_url']
+        self.assertEqual(source.target(WINTICKET), ('202405038401', url))
+        for changed in (url.replace('takeo', 'kokura'), url.replace('0184', '0181'),
+                        url.replace('/3/1', '/2/1'), url.replace('/3/1', '/3/11'),
+                        url + '?extra=1', url + '#login', url.replace('https:', 'http:')):
+            with self.subTest(changed=changed), self.assertRaises(ValueError):
+                source.target(dict(WINTICKET, race_detail_url=changed))
+
+    def test_winticket_title_also_confirms_venue(self):
+        key, url = '202405038401', WINTICKET['race_detail_url']
+        source.check_title(key, WINTICKET_TITLE, url=url)
+        for changed in (WINTICKET_TITLE.replace('武雄', '小倉'),
+                        WINTICKET_TITLE.replace('5月3日', '5月2日'),
+                        WINTICKET_TITLE.replace('1レース', '11レース')):
+            with self.subTest(changed=changed), self.assertRaises(source.PlayerUnavailable):
+                source.check_title(key, changed, url=url)
+
+    def test_winticket_single_host_approval_cannot_authorize_a_kdreams_queue(self):
+        with TemporaryDirectory() as temp, patch.dict('sys.modules', {'playwright.sync_api': None}):
+            root = Path(temp)
+            queue = root / 'queue.jsonl'
+            queue.write_text(json.dumps(RACE) + '\n')
+            evidence = root / 'operator-attestation.json'
+            evidence.write_bytes(b'fictional operator attestation')
+            approval = root / 'approval.json'
+            approval.write_text(json.dumps({
+                'source_host': 'www.winticket.jp', 'rights_ref': evidence.name,
+                'rights_sha256': sha256(evidence.read_bytes()).hexdigest(),
+                'reviewer': 'test reviewer', 'permission_basis': 'owner_attestation',
+                'allowed_uses': ['automated_fetch', 'private_retention', 'history_analysis',
+                                 'video_recording', 'frame_capture'],
+                'first_race_date': '2024-05-01', 'last_race_date': '2024-05-31'}))
+            out = root / 'captures'
+            options = dict(source_approval=approval, interval=3, pause=0, limit=1, executable='unused')
+            self.assertEqual(source.run(queue, out, continuous=True, **options),
+                             {'outside_approved_scope': 1})
+            with self.assertRaises(ValueError):
+                source.run(queue, out, continuous=False, **options)
+            self.assertFalse(out.exists())
+
+    def test_winticket_recorder_rejects_protected_or_redirected_page(self):
+        key, url = '202405038401', WINTICKET['race_detail_url']
+        page = Mock(url=url)
+        page.goto.return_value.status = 200
+        page.title.return_value = WINTICKET_TITLE
+        control = page.get_by_role.return_value
+        control.count.return_value = 1
+        control.is_visible.return_value = True
+        video = page.locator.return_value
+        video.count.return_value = 1
+        video.evaluate.return_value = True
+        with self.assertRaises(source.AccessDenied):
+            source.open_player(page, key, url)
+        page.url = url.replace('/3/1', '/3/2')
+        with self.assertRaises(source.PlayerUnavailable):
+            source.open_player(page, key, url)
+
     def test_decoded_images_required_for_resume(self):
         key, url = source.target(RACE)
         with TemporaryDirectory() as temp:
@@ -120,6 +182,43 @@ class CaptureTests(unittest.TestCase):
             with self.assertRaises(source.AccessDenied):
                 source.open_player(page, key, url)
             page.locator.assert_not_called()
+
+    def test_browser_access_policy_denial_ends_capture_batch(self):
+        class BrowserError(Exception):
+            pass
+
+        for code in ('ERR_BLOCKED_BY_ADMINISTRATOR', 'ERR_ACCESS_DENIED', 'ERR_NETWORK_ACCESS_DENIED'):
+            with self.subTest(code=code), TemporaryDirectory() as temp:
+                root = Path(temp)
+                queue = root / 'queue.jsonl'
+                second = dict(RACE, race_id='20240504-13-02',
+                              race_detail_url=RACE['race_detail_url'].replace('0001/', '0002/'))
+                queue.write_text(json.dumps(RACE) + '\n' + json.dumps(second) + '\n')
+                rights = root / 'fixture-rights'
+                rights.write_bytes(b'fictional provider permission')
+                approval = root / 'approval.json'
+                approval.write_text(json.dumps({
+                    'source_host': source.HOST, 'rights_ref': rights.name,
+                    'rights_sha256': sha256(rights.read_bytes()).hexdigest(), 'reviewer': 'test reviewer',
+                    'allowed_uses': ['automated_fetch', 'private_retention', 'history_analysis', 'video_recording'],
+                    'race_ids': [RACE['race_id'], second['race_id']]}))
+                api = MagicMock(Error=BrowserError, TimeoutError=TimeoutError)
+                out = root / 'captures'
+                with patch.dict('sys.modules', {'playwright.sync_api': api}), \
+                     patch.object(source, 'record_digest',
+                                  side_effect=BrowserError(f'Page.goto: net::{code} at a replay')):
+                    tally = source.run(queue, out, continuous=True, source_approval=approval,
+                                       interval=3, pause=0, limit=2, executable='unused')
+                self.assertEqual(tally, {'browser access refused': 1})
+                attempt = json.loads((out / 'attempts.jsonl').read_text())
+                self.assertEqual(attempt['race_id'], RACE['race_id'])
+                self.assertEqual(attempt['status'], 'browser access refused')
+                with patch.dict('sys.modules', {'playwright.sync_api': None}):
+                    tally = source.run(queue, out, continuous=True, source_approval=approval,
+                                       interval=3, pause=0, limit=2, executable='unused',
+                                       stop_after_refusal=True)
+                self.assertEqual(tally, {'browser access refused': 1})
+                self.assertEqual(len((out / 'attempts.jsonl').read_text().splitlines()), 1)
 
     def test_direct_recorder_helpers_refuse_before_starting_without_approval(self):
         key, url = source.target(RACE)
@@ -171,6 +270,38 @@ class CaptureTests(unittest.TestCase):
             log.write_text('\n'.join([row('old', 'ordinary player timeout'), row('old', 'captured'),
                                       row('missing', 'digest button unavailable')]))
             self.assertEqual(source.failed_attempts(log), {('missing', 'public page')})
+
+    def test_capture_log_opener_does_not_follow_a_symbolic_link(self):
+        with TemporaryDirectory() as temp:
+            target = Path(temp) / 'unused-target'
+            alias = Path(temp) / 'attempt-log'
+            alias.symlink_to(target)
+            with self.assertRaises(OSError):
+                source.private_log_fd(alias, os.O_CREAT | os.O_WRONLY)
+            self.assertFalse(target.exists())
+
+    def test_capture_refuses_a_linked_race_folder_before_reuse(self):
+        with TemporaryDirectory() as temp:
+            root = Path(temp)
+            queue = root / 'queue.jsonl'
+            queue.write_text(json.dumps(RACE) + '\n')
+            rights = root / 'fixture-rights'
+            rights.write_bytes(b'fictional provider permission')
+            approval = root / 'approval.json'
+            approval.write_text(json.dumps({
+                'source_host': source.HOST, 'rights_ref': rights.name,
+                'rights_sha256': sha256(rights.read_bytes()).hexdigest(), 'reviewer': 'test reviewer',
+                'allowed_uses': ['automated_fetch', 'private_retention', 'history_analysis', 'video_recording'],
+                'race_ids': [RACE['race_id']]}))
+            out = root / 'captures'
+            out.mkdir()
+            other = root / 'unrelated-fixture'
+            other.mkdir()
+            (out / '202405041301').symlink_to(other, target_is_directory=True)
+            with patch.object(source, 'check_clip') as read_capture, self.assertRaises(ValueError):
+                source.run(queue, out, continuous=True, source_approval=approval,
+                           interval=3, pause=0, limit=1, executable='unused')
+            read_capture.assert_not_called()
 
 
 if __name__ == '__main__':

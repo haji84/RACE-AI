@@ -2,12 +2,14 @@ import hashlib
 import json
 from pathlib import Path
 import shutil
+import sqlite3
 import struct
 import subprocess
 from tempfile import TemporaryDirectory
 import unittest
 import zlib
 
+from scripts import keirin_video_corpus as corpus
 from scripts import keirin_video_media as media
 
 
@@ -108,9 +110,37 @@ class TestLocalMedia(unittest.TestCase):
         path.write_text(json.dumps(receipt))
         row, = media.captured_rows([self.root])
         self.assertEqual((row['kind'], row['source_ref'], Path(row['path']).parent),
-                         ('clip', receipt['source_ref'], folder))
+                         ('clip', receipt['source_ref'], folder.resolve()))
         path.write_text(json.dumps(dict(receipt, kind='full')))
         with self.assertRaisesRegex(ValueError, 'clip identity'):
+            list(media.captured_rows([self.root]))
+
+    def test_winticket_capture_root_requires_bound_identity_approval_and_player_end(self):
+        folder = self.root / '202405038401'
+        folder.mkdir()
+        url = 'https://www.winticket.jp/keirin/takeo/raceresult/2024050184/3/1'
+        race = '20240503-84-01'
+        receipt = dict(race_id=race, race_date='2024-05-03', kind='clip',
+                       public_result_page=url, source_ref=url + '#ordinary-screen-digest',
+                       path='digest.mp4', start_ms=0, sha256=self.digest, browser_player_ended=True,
+                       page_title='武雄競輪 開催名（2024年5月3日)1レース 結果')
+        proof = dict(race_id=race, source_ref=url, permission_basis='owner_attestation',
+                     decision_sha256='a' * 64, rights_sha256='b' * 64)
+        path = folder / 'clip.json'
+        approval = folder / 'source-approval.json'
+        path.write_text(json.dumps(receipt))
+        approval.write_text(json.dumps(proof))
+        row, = media.captured_rows([self.root])
+        self.assertEqual((row['race_id'], row['kind'], row['source_ref']),
+                         (race, 'clip', receipt['source_ref']))
+        for changed in ({'browser_player_ended': False}, {'page_title': '小倉競輪 2024年5月3日 1レース'},
+                        {'public_result_page': url.replace('/3/1', '/2/1')}):
+            path.write_text(json.dumps({**receipt, **changed}))
+            with self.subTest(changed=changed), self.assertRaises(ValueError):
+                list(media.captured_rows([self.root]))
+        path.write_text(json.dumps(receipt))
+        approval.write_text(json.dumps(dict(proof, source_ref=url.replace('/3/1', '/3/2'))))
+        with self.assertRaises(ValueError):
             list(media.captured_rows([self.root]))
 
     @unittest.skipUnless(shutil.which('ffmpeg') and shutil.which('ffprobe'), 'local movie decoder unavailable')
@@ -126,3 +156,73 @@ class TestLocalMedia(unittest.TestCase):
         self.assertEqual((row['coverage'], row['start_ms'], row['duration_ms'], row['decoded_frames']),
                          ('owner_declared_clip', 12500, 1000, 4))
         self.assertNotIn('frames', row)
+
+    @unittest.skipUnless(shutil.which('ffmpeg') and shutil.which('ffprobe'), 'local movie decoder unavailable')
+    def test_quality_rejects_black_and_frozen_movies_before_corpus_ingest(self):
+        capture = self.root / 'capture' / '202611232602'
+        capture.mkdir(parents=True)
+        blank = capture / 'digest.mp4'
+        # A clock changing in the footer can mask a black race image.
+        make_movie(blank, 'color=black:s=1280x720:r=8:d=4',
+                   "drawbox=x=0:y=696:w=iw:h=24:color=white:t=fill:enable='lt(mod(t,1),0.5)'")
+        url = 'https://keirin.kdreams.jp/seibuen/racedetail/2620261123010002/'
+        (capture / 'clip.json').write_text(json.dumps(dict(
+            self.base, kind='clip', source_ref=url + '#ordinary-screen-digest',
+            public_result_page=url, page_title='2R | 2026年11月23日', start_ms=0,
+            path=blank.name, sha256=hashlib.sha256(blank.read_bytes()).hexdigest())))
+
+        frozen = self.root / 'frozen.mp4'
+        make_movie(frozen, 'color=red:s=160x96:r=8:d=4')
+        usable = self.root / 'moving.mp4'
+        make_movie(usable, 'testsrc2=s=160x96:r=8:d=4',
+                   "drawbox=color=black:t=fill:enable='lt(t,0.5)'")
+        media.atomic_jsonl(self.manifest, [dict(
+            self.base, race_id=f'20261123-26-{number:02}', kind='full', path=movie.name,
+            sha256=hashlib.sha256(movie.read_bytes()).hexdigest())
+            for number, movie in ((3, frozen), (4, usable))])
+
+        results = media.verify_assets(self.db, media.input_assets([self.manifest], [capture.parent]))
+        self.assertEqual(results, dict(processed=3, black_video=1, frozen_video=1, verified=1))
+        row, = media.verified_rows(self.db)
+        self.assertEqual(row['race_id'], '20261123-26-04')
+        self.assertEqual((row['width'], row['height'], row['size_bytes']),
+                         (160, 96, usable.stat().st_size))
+        self.assertEqual((row['longest_black_ms'], row['longest_frozen_ms']), (500, 0))
+        with sqlite3.connect(':memory:') as review:
+            corpus.setup(review)
+            for number in (2, 3, 4):
+                corpus.load_race(review, dict(race_id=f'20261123-26-{number:02}',
+                                               race_date='2026-11-23', riders=[]))
+            corpus.load_media(review, row)
+            self.assertEqual([race['race_id'] for race in corpus.pending(review, stage='continuous')],
+                             ['20261123-26-02', '20261123-26-03'])
+
+    @unittest.skipUnless(shutil.which('ffmpeg') and shutil.which('ffprobe'), 'local movie decoder unavailable')
+    def test_prior_decode_only_movie_receipt_is_preserved_but_needs_quality_check(self):
+        path = self.root / 'black.mp4'
+        make_movie(path, 'color=black:s=64x36:r=4:d=1')
+        row = dict(self.base, kind='clip', path=path.name,
+                   sha256=hashlib.sha256(path.read_bytes()).hexdigest())
+        media.atomic_jsonl(self.manifest, [row])
+        spec = dict(self.base, kind='clip', path=str(path), at_ms=0, sha256=row['sha256'])
+        old_id = hashlib.sha256(media.canonical(spec).encode()).hexdigest()
+        with self.db:
+            self.db.execute('INSERT INTO assets VALUES(?,?,?,?,?)', (
+                old_id, media.canonical(spec), media.fingerprint(path), 'verified',
+                '{"decoded_frames":4,"duration_ms":1000}'))
+            self.db.execute('INSERT INTO active VALUES(?,?,?,?,?,?)', (
+                row['race_id'], row['source_ref'], 'clip', 0, str(path), old_id))
+
+        with self.assertRaisesRegex(ValueError, 'quality check'):
+            list(media.verified_rows(self.db))
+        self.assertEqual(media.verify(self.db, self.manifest), dict(processed=1, black_video=1))
+        self.assertEqual(list(media.verified_rows(self.db)), [])
+        self.assertEqual(self.db.execute('SELECT status FROM assets WHERE id=?', (old_id,)).fetchone(),
+                         ('verified',))
+
+
+def make_movie(path, source, video_filter=None):
+    args = ['ffmpeg', '-nostdin', '-v', 'error', '-f', 'lavfi', '-i', source]
+    if video_filter:
+        args.extend(('-vf', video_filter))
+    subprocess.run([*args, '-c:v', 'mpeg4', '-threads', '1', str(path)], check=True)

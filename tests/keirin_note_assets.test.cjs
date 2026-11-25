@@ -10,3 +10,23 @@ test('the combined guide preserves the existing BOAT source-free reader',()=>{
   assert.equal(holder.exports.DAY,'2026-11-12');
   assert.ok(holder.exports.EVIDENCE.endsWith('/43339230921'));
 });
+
+test('the note bundle contains only the reviewed growth aggregates',()=>{
+  const app=fs.readFileSync(require.resolve('../web/app.js'),'utf8');
+  const match=app.match(/^  const reviewedGrowth = (\{[^\n]+\});$/m);
+  assert.ok(match,'private note view is missing its reviewed growth aggregates');
+  const growth=JSON.parse(match[1]);
+  const evidence='../docs/evidence/keirin-live-accuracy-closure-20261125/';
+  const historical=require(evidence+'retrospective-score.json');
+  const paired=historical.paired_day_bootstrap_95;
+  const hitPairs=(a,b)=>Object.fromEntries(Object.keys(a).map(k=>[k,{baseline:a[k],challenger:b[k]}]));
+  assert.deepEqual(growth,{
+    historical:{from:'2026-10-01',to:'2026-11-22',races:3201,days:48,
+      hits:hitPairs({top1_3t:401,top4_3t:928,top8_3t:1298,top2_2t:1237},
+        {top1_3t:428,top4_3t:947,top8_3t:1323,top2_2t:1240}),
+      intervals:{top4_3t:paired.top4_3t,top2_2t:paired.top2_2t}},
+    forward:{day:'2026-11-25',registered:10,matched:10,
+      hits:hitPairs({top1_3t:2,top4_3t:3,top8_3t:4,top2_2t:3},
+        {top1_3t:2,top4_3t:4,top8_3t:4,top2_2t:3})}
+  });
+});
