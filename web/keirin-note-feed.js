@@ -44,12 +44,12 @@
     const jwk=await c.subtle.exportKey('jwk',privateKey),raw=new Uint8Array(65);raw[0]=4;raw.set(decode(jwk.x),1);raw.set(decode(jwk.y),33);
     return {privateKey,recipient:await M.digest(raw)};
   }
-  async function openEntry(bytes,e,cap){
+  async function openEntry(bytes,e,cap,{onSource}={}){
     const c=cryptoApi(),ephemeral=await c.subtle.importKey('raw',decode(e.ephemeral_public_key),{name:'ECDH',namedCurve:'P-256'},false,[]);
     const shared=await c.subtle.deriveBits({name:'ECDH',public:ephemeral},cap.privateKey,256),material=await c.subtle.importKey('raw',shared,'HKDF',false,['deriveBits']);
     const key=await c.subtle.deriveBits({name:'HKDF',hash:'SHA-256',salt:decode(e.salt),info:encoder.encode(INFO+cap.recipient)},material,256);
     need(await M.digest(bytes)===e.cipher_sha256);const h=JSON.parse(new TextDecoder('utf-8',{fatal:true}).decode(bytes)).header;need(h?.source_content_sha256===e.source_content_sha256);
-    const data=await M.openCipher(bytes,{cipherSha:e.cipher_sha256,key:encode(key)});
+    const data=await M.openCipher(bytes,{cipherSha:e.cipher_sha256,key:encode(key),onSource});
     need(data.dates.slice().sort().join(',')===e.days.slice().sort().join(','));
     if(e.kind==='results')need(e.captured_race_ids.length===0&&e.priority_window_race_ids.length===0&&[...data.files.keys()].every(path=>/^data\/\d{4}-\d{2}-\d{2}\/research_results\.json$/.test(path))&&data.dates.every(date=>M.rows(data,date).length===0));
     if(e.kind==='result'){

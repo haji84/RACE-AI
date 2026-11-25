@@ -1,0 +1,27 @@
+{
+  "date": "2026-11-26",
+  "exclusions": {},
+  "frozen_identity_sha256": "d7f1965c0133b5e55defdc193bad27c17ff9843d11e6ef19d02492c6be931782",
+  "identity_witness": "de4611e04b15b44c1519c1cb9679b7ed300275fe",
+  "models": 7,
+  "note_index": "54f713d386b936f2c0f8a494fa12fc68d67d2a05",
+  "original_and_comparison_races": 84,
+  "readback": {
+    "checked_at": "2026-11-25T13:21:59.529Z",
+    "eligible_common_races": 84,
+    "eligible_hold_reasons": {},
+    "eligible_matched_pct": 0.0,
+    "eligible_result_states": {
+      "missing": 84
+    },
+    "note_index_sha256": "774ec0f739b30e1f6078dd85077c491328c392c9cc7f1a0f51af3b2ab32fdbb5",
+    "note_matched_races": 0,
+    "note_readback_sha256": "764fb9fd4ad2170876f871ee71e3b74cdd5a23b165119891383c03708c9cd411",
+    "official_result_records_sha256": null,
+    "official_roster_verified_races": 0
+  },
+  "recent_winner_receipt_sha256": "9ff66a537d8fed8a1c96c36cf0c0192882cc015f9a00001288496ef7987d8de1",
+  "schema": "KEIRIN_REGISTERED_84_THROUGH_PRIVATE_NOTE_V1",
+  "fixed_budget_head_to_head_comparisons": 7,
+  "comparisons_scores_present": 0
+}

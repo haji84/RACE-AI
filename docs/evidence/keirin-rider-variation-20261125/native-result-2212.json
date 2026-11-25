@@ -1,0 +1,16 @@
+{
+  "schema": "KEIRIN_PUBLIC_RESULT_CHECKPOINT_V1",
+  "run": "https://github.com/haji84/RACE-AI/actions/runs/45621206972",
+  "event": "workflow_dispatch",
+  "publish_public_site_results": "success",
+  "checked_at": "2026-11-25T13:12:40.531359+00:00",
+  "state_commit": "282e2c878ec49b8041c80aa6f9af5e36740ce66f",
+  "results_sha256": "6a23b14141d441c4f6ece6afc2cbf4b76e849b8d80f808e8450d85ca9c1f26c1",
+  "roster_sha256": "c96f35a0c0a9e26c34a491d162674f40a47a2e5fd0ae19f4583c86653d6aeb31",
+  "status": {
+    "matched": 64,
+    "held": 1,
+    "pending": 1,
+    "pre_cutoff": 9
+  }
+}

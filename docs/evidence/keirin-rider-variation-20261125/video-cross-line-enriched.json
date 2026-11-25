@@ -1,0 +1,41 @@
+{
+  "counts": {
+    "B_C_leaders_readable": 5,
+    "B_C_observed_cross_line_change": 1,
+    "B_C_ordered_cross_line_change": 1,
+    "accepted_case_for_observation": 5,
+    "complete_B_C_ordered_pair": 4,
+    "official_and_archived_B_agree": 5,
+    "official_and_net_result_match": 5,
+    "ordinary_played": 5,
+    "time_bounded_cross_line_in_video": 5,
+    "visual_B_conflict": 0,
+    "visual_B_matches_independent_mark": 5,
+    "visual_B_unknown": 0
+  },
+  "do_not_infer_prevalence": true,
+  "frozen_predeclared_corpus": {
+    "n": 40,
+    "ordered_cross_line": 3,
+    "readiness_gate_unchanged": true,
+    "sha256": "3e2d0e38d0b40eec13a6cc0e326962d27d2fd99bed7fde82eed70565459143aa"
+  },
+  "hashes": {
+    "official_corroboration": "18fe62e70c142fd9498f0d8b6c64aa6fc9bb5e6ac82d933440f625c161347818",
+    "private_timed_sequences": "e54ed04188a3fc3521b030a182340ee461a4ce933606ec64c2df8677160274ce",
+    "selection": "7f07384c9d421eaad354be7e1586c1a6a1614dc470d96eba3df29e38ba6ed9aa",
+    "visual_labels": "956fefa5f9586e6fcd70b50627a7ce8314d1b1b761b3a353df380df10aea7be6"
+  },
+  "independent_eval": false,
+  "intended_only_for_training_example_discovery": true,
+  "method": "Usual public Kdreams replay in browser. Official B and rider registration from KEIRIN.JP alongside historical B records. Fresh KEIRIN.JP and netkeirin matched the final podium.",
+  "selection_uses_finish": true,
+  "verified_at": "2026-11-25T13:07:57.368862+00:00",
+  "visual_timestamp_definition": "Window endpoints are the sampled last original-line lead and earliest other-line lead. An official finish endpoint has no assigned video timestamp. This provides visible positions and their bounds, without inferring any unobserved pass or starting instant.",
+  "visually_sampled_cross_line_change_windows": {
+    "C→L1": 1,
+    "C→L2": 1,
+    "L1→L2": 2,
+    "M1→M2": 1
+  }
+}

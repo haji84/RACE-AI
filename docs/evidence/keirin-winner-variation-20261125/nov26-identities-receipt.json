@@ -1,0 +1,40 @@
+{
+  "schema": "KEIRIN_FROZEN_RIDER_IDENTITIES_RECEIPT_V1",
+  "date": "2026-11-26",
+  "identity_manifest_sha256": "d7f1965c0133b5e55defdc193bad27c17ff9843d11e6ef19d02492c6be931782",
+  "assembled_at": "2026-11-25T13:34:17.880462+00:00",
+  "registered_races": 84,
+  "starter_appearances": 580,
+  "prior_forecast_proofs": {
+    "early72": {
+      "archived_bundle_sha256": "67a58c242fd179e0fa7ba55dfadad604d27c65042a29bf47eb7efc7a4ef2f501",
+      "earliest_conservative_cutoff": "2026-11-25T23:45:00+00:00",
+      "forecast_frozen_at": "2026-11-25T10:33:57.303985+00:00",
+      "forecast_sha256": "4dfd19466281f226481e7232190bdf4b0a3aa816c5946c665eea7c8ee0658f9b",
+      "git_committed_at": "2026-11-25T10:34:51+00:00",
+      "minimum_witness_before_cutoff_seconds": 47409.0,
+      "official_programme_or_registry_receipt_sha256": "9795932d5ea51c43955d7c299c2fb05e86a9ec62e59a342ee8a18f3f47cb0ed5",
+      "official_registry_raw_sha256": "8c13d69e320a393fe1798ec8ee796e281c178cb281061fdf0e19a161b654fb77",
+      "races": 72,
+      "starter_appearances": 501,
+      "witness_commit": "293d048b0eacff16eae937c764120babb9811a9c",
+      "witness_git_path": "docs/evidence/keirin-95-continue-20261125/nov26-initial-commitment.json"
+    },
+    "matsuyama12": {
+      "archived_bundle_sha256": "a0fb3d3e43399c3ef57b8518611c15e08371316051c7f91b296e7dd1aabe562e",
+      "earliest_conservative_cutoff": "2026-11-26T06:57:00+00:00",
+      "forecast_frozen_at": "2026-11-25T12:25:17.671023+00:00",
+      "forecast_sha256": "91061a80a9cebf968b41c9b049eee244b324ff1549488491c02fd821ea0c3f17",
+      "git_committed_at": "2026-11-25T12:38:46+00:00",
+      "minimum_witness_before_cutoff_seconds": 65894.0,
+      "official_programme_or_registry_receipt_sha256": "c7e69aefabda03b39188fefbc347f13860ceb557d31c4b88af39aad2af1c5a68",
+      "official_registry_raw_sha256": "d68cf51d1b0f112e266731afb791db1004fb347cb7d42db6d8cea3c6adad5e79",
+      "races": 12,
+      "starter_appearances": 79,
+      "witness_commit": "0da79e6ee41ea92a54d2c3d1213e77af60cb7580",
+      "witness_git_path": "docs/evidence/keirin-pair-structure-20261125/nov26-combined-84-eligibility-v2.json"
+    }
+  },
+  "time_semantics": "Identity envelope recomposed and read back at the reported current time. Original forecast, programme and archive commitments are separate and all precede the original conservative cutoff. No change to originals.",
+  "target_day_final_result_rows_checked": 0
+}

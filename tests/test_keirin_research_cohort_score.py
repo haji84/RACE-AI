@@ -1,12 +1,15 @@
 from copy import deepcopy
+from base64 import b64decode, b64encode
 from hashlib import sha256
 from itertools import permutations
 import json
 from pathlib import Path
 from tempfile import TemporaryDirectory
 import unittest
+from unittest.mock import patch
 
 from scripts import keirin_research_cohort_score as cohort
+from scripts import keirin_note_collect_results as note
 from tests.test_keirin_forward_score import fixtures
 
 
@@ -181,6 +184,123 @@ class ResearchCohortTests(unittest.TestCase):
         eight = value['comparisons']['existing_published_line'][8]
         self.assertIsNone(eight['challenger_hit_pct'])
         self.assertIsNone(eight['target_95_hits_on_matched'])
+
+    def use_note_results(self):
+        self.inputs(True)
+        at = self.day+'T07:18:00Z'
+        published = self.results['races'][0]['comparison']
+        first = self.initial['races'][0]['race_id']
+        receipts = [dict(provider='Kdreams' if row['source_id']=='kdreams' else 'netkeirin',
+                         source_bytes_sha256='1'*64, observed_at=at, source_url=row['url'])
+                    for row in published['sources']]
+        matched = note._held(first, note.MATCHED, receipts)
+        matched.update(winning_triple=[3,1,2], payout_per_100yen=250)
+        matched.update(captured_at=at, previous_observation_sha256=None,
+                       observation_sha256=note.fact_digest(matched))
+        checks = {first: dict(checked_at=at, digest=matched['observation_sha256'], status='MATCHED')}
+        packet = dict(schema=note.SCHEMA, day_jst=self.day, observations=[matched])
+        wire = json.dumps(packet, sort_keys=True)
+        bound = {f'data/{self.day}/research_results.json':
+                 dict(sha256=sha256(wire.encode()).hexdigest(), bytes=len(wire.encode()), text=wire)}
+        source = b64encode(json.dumps({'files':bound}).encode()).decode()
+        date_readback = dict(schema='KEIRIN_NOTE_COHORT_RESULT_READBACK_V1', date=self.day,
+                             checked_at=at, result_checks=checks, packets=[packet], source_packets=[source])
+        self.manifest.update(note_results='owner-note.json', note_index_commit='d'*40)
+        self.save('owner-note.json', date_readback)
+        self.add_note_index(date_readback)
+        return first, date_readback
+
+    def add_note_index(self, readback):
+        native_index = dict(schema='RACE_AI_KEIRIN_NOTE_FEED_V1',repository='haji84/RACE-AI',
+                            entries=[dict(kind='results', days=[self.day],
+                                          source_content_sha256=sha256(b64decode(readback['source_packets'][0])).hexdigest())],
+                            result_checks=readback['result_checks'])
+        self.git['d'*40,'index.json'] = (self.day+'T07:18:00Z', json.dumps(native_index).encode())
+
+    def test_note_results_without_verified_actual_roster_show_coverage_only(self):
+        self.use_note_results()
+        value = self.collect()
+        self.assertEqual(value['status'], 'OWNER_NOTE_TRIFECTA_CHECKED')
+        self.assertEqual(value['eligible_result_states'], {'held':1, 'missing':4})
+        self.assertEqual(value['eligible_hold_reasons'], {'independent_roster_or_cutoff_unverified':1})
+        self.assertEqual(value['note_matched_races'], 1)
+        self.assertEqual(value['comparisons']['existing_published_line'][8]['scored'], 0)
+
+    def test_note_results_use_existing_equal_budget_comparison_with_official_agreement(self):
+        first, _ = self.use_note_results()
+        self.manifest['official_result_records'] = 'official.json'
+        self.save('official.json', {'races':[]})
+        actual = {first: dict(cutoff_at=self.day+'T07:00:00Z', starters={1,2,3,4}, winning_triple=[3,1,2])}
+        with patch.object(cohort, '_official_note_context', return_value=actual):
+            value = self.collect()
+        arm = value['comparisons']['existing_published_line']
+        self.assertEqual([arm[cap]['tickets_per_arm'] for cap in (1,4,8)], [1,4,8])
+        self.assertEqual((arm[1]['baseline_hits'],arm[1]['challenger_hits']), (0,1))
+        self.assertNotIn('winning_triple', json.dumps(value))
+
+        actual[first]['winning_triple'] = [1,2,3]
+        with patch.object(cohort, '_official_note_context', return_value=actual):
+            value = self.collect()
+        self.assertEqual(value['eligible_hold_reasons'], {'official_note_order_disagreement':1})
+        self.assertEqual(value['comparisons']['existing_published_line'][8]['scored'], 0)
+
+    def test_old_note_index_or_mixed_published_result_files_fail(self):
+        _, readback = self.use_note_results()
+        self.add_note_index(dict(readback, result_checks={}))
+        with self.assertRaisesRegex(ValueError, 'NOTE_COHORT_INDEX_READBACK_MISMATCH'):
+            self.collect()
+        self.manifest['results'] = 'public-results.json'
+        with self.assertRaisesRegex(ValueError, 'COHORT_RESULT_SOURCE_MIXED'):
+            self.collect()
+
+    def test_note_receipt_time_cannot_be_edited_without_changing_the_authenticated_packet(self):
+        _, readback = self.use_note_results()
+        readback['packets'][0]['observations'][0]['provider_receipts'][0]['observed_at'] = self.day+'T07:17:00Z'
+        self.save('owner-note.json', readback)
+        with self.assertRaisesRegex(ValueError, 'NOTE_COHORT_DECODED_PACKET_MISMATCH'):
+            self.collect()
+
+    def test_official_note_context_reparses_saved_response_bytes(self):
+        from race_ai import keirin_official_public_source as official
+        from scripts.keirin_official_day_pipeline import private_snapshot_json
+        from tests.test_keirin_official_public_source import DAY, NOW, RACE, fixtures as official_fixtures, transport
+
+        record = official.fetch_race_result(RACE, fetcher=transport(official_fixtures()), clock=lambda: NOW)
+
+        def context():
+            return cohort._official_note_context(json.dumps(private_snapshot_json({'races':[record]})), DAY)
+
+        self.assertEqual(context(), {RACE: dict(cutoff_at=DAY+'T10:47:00+09:00', starters=set(range(1,8)),
+                                               registrations={str(car):f'999{car:03d}' for car in range(1,8)},
+                                               winning_triple=[1,2,3])})
+        record['result']['winning_triples'] = [[2,1,3]]
+        self.assertEqual(context(), {})
+
+    def test_confirmed_same_car_numbers_do_not_hide_a_rider_replacement(self):
+        first, _ = self.use_note_results()
+        path = 'docs/evidence/cohort/frozen-riders-receipt.json'
+        identities = dict(schema='KEIRIN_FROZEN_RIDER_IDENTITIES_V1', date=self.day,
+                          races=[dict(race_id=r['race_id'], cutoff_at=r['cutoff_at'],
+                                      starter_registrations={str(c):f'999{c:03d}' for c in r['starter_cars']})
+                                 for r in self.initial['races']])
+        digest = self.save('identities.owner.json', identities)
+        receipt = dict(schema='KEIRIN_FROZEN_RIDER_IDENTITIES_RECEIPT_V1', date=self.day,
+                       identity_manifest_sha256=digest, assembled_at=self.day+'T05:04:00Z',
+                       registered_races=5, starter_appearances=20)
+        self.git['e'*40, path] = (self.day+'T05:05:00Z', json.dumps(receipt).encode())
+        self.manifest.update(frozen_identities=dict(original='identities.owner.json', git_commit='e'*40, git_path=path),
+                             official_result_records='official.json')
+        self.save('official.json', {'races':[]})
+        actual = {first: dict(cutoff_at=self.day+'T07:00:00Z', starters={1,2,3,4}, winning_triple=[3,1,2],
+                              registrations={str(c):f'999{c:03d}' for c in (1,2,3,4)})}
+        with patch.object(cohort, '_official_note_context', return_value=actual):
+            self.assertEqual(self.collect()['official_roster_verified_races'], 1)
+        actual[first]['registrations']['4'] = '888008'
+        with patch.object(cohort, '_official_note_context', return_value=actual):
+            report = self.collect()
+        self.assertEqual(report['exclusions'], {'official_rider_registrations_changed':1})
+        self.assertEqual(report['official_roster_verified_races'], 0)
+        self.assertEqual(report['comparisons']['existing_published_line'][8]['scored'], 0)
 
 
 if __name__ == '__main__':
