@@ -5,6 +5,10 @@ on:
     # 08:10–00:55 JST. Offset from the private observer's scheduled minutes.
     - cron: '10,25,40,55 0-15,23 * * *'
   workflow_dispatch:
+  workflow_run:
+    workflows: ['KEIRIN PR71 GitHub-only forecast and PDCA']
+    branches: [main]
+    types: [completed]
   pull_request:
     branches: [main]
     paths:
@@ -12,6 +16,8 @@ on:
       - 'scripts/keirin_publish_public_site_results.sh'
       - 'scripts/keirin_capture_public_two_sources.py'
       - 'scripts/keirin_public_site_results.py'
+      - 'scripts/keirin_public_site_rosters.py'
+      - 'tests/test_keirin_public_site_rosters.py'
       - 'tests/test_keirin_public_site_results.py'
 
 permissions:
@@ -19,7 +25,9 @@ permissions:
 
 jobs:
   verify-public-result-publisher:
-    if: github.event_name == 'pull_request'
+    if: >-
+      github.event_name == 'pull_request' ||
+      (github.event_name == 'workflow_dispatch' && github.ref != 'refs/heads/main')
     runs-on: ubuntu-24.04
     timeout-minutes: 5
     steps:
@@ -33,14 +41,27 @@ jobs:
         shell: bash
         run: |
           python -m pip install --disable-pip-version-check 'beautifulsoup4>=4.12,<5' 'cryptography>=44,<48'
-          python -m unittest tests.test_keirin_public_site_results tests.test_keirin_capture_public_two_sources
+          python -m unittest tests.test_keirin_public_site_results tests.test_keirin_public_site_rosters tests.test_keirin_capture_public_two_sources
           bash -n scripts/keirin_publish_public_site_results.sh
+
+      - name: Verify discovery against the original public Site without writing to GitHub
+        if: github.event_name == 'workflow_dispatch'
+        shell: bash
+        run: |
+          set -euo pipefail
+          state="$RUNNER_TEMP/keirin-public-discovery-check"
+          python -m scripts.keirin_public_site_rosters --state-directory "$state"
+          python -m scripts.keirin_public_site_rosters --state-directory "$state"
 
   publish-public-site-results:
     if: >-
       github.repository == 'haji84/RACE-AI' && github.repository_id == '1416489937' &&
       github.ref == 'refs/heads/main' &&
-      (github.event_name == 'schedule' || github.event_name == 'workflow_dispatch')
+      (github.event_name == 'schedule' || github.event_name == 'workflow_dispatch' ||
+       (github.event_name == 'workflow_run' &&
+        github.event.workflow_run.conclusion == 'success' &&
+        github.event.workflow_run.head_repository.full_name == github.repository &&
+        (github.event.workflow_run.event == 'schedule' || github.event.workflow_run.event == 'workflow_dispatch')))
     concurrency:
       group: keirin-public-site-results-state
       cancel-in-progress: false
@@ -55,10 +76,10 @@ jobs:
       - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
         with:
           python-version: '3.11'
-      - name: Check and publish both payout markets for the public Site
+      - name: Register published forecasts and update both payout markets
         shell: bash
         run: |
           set -euo pipefail
-          python -m pip install --disable-pip-version-check 'beautifulsoup4>=4.12,<5'
+          python -m pip install --disable-pip-version-check 'beautifulsoup4>=4.12,<5' 'cryptography>=44,<48'
           python -m unittest tests.test_keirin_public_site_results
-          bash scripts/keirin_publish_public_site_results.sh
+          bash scripts/keirin_publish_public_site_results.sh --discover
