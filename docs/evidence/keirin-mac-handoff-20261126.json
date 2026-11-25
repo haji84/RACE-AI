@@ -153,5 +153,17 @@
       "state": "VIDEO_LEDGER_CHECKED",
       "unverified_review_inputs": 0
     }
+  },
+  "launch_agent": {
+    "label": "com.race-ai.keirin-mac",
+    "interval_seconds": 900,
+    "runtime_commit": "ba52fcdd9a3969a560b48c9e76b6320ac49cda27",
+    "successful_process_runs_checked": 2,
+    "last_cycle_at": "2026-11-25T18:03:13.416074+00:00",
+    "last_cycle_report_sha256": "755c9d15469ba7dc2cb6db2230fe36da2e16bf4699c44a6dd656d65611e33eb8",
+    "last_cycle_verified_races": 1,
+    "last_cycle_assets_reprocessed": 0,
+    "last_cycle_reviewed_observations": 0,
+    "reboot_and_24_hour_acceptance": false
   }
 }

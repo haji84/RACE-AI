@@ -49,6 +49,13 @@ jobs:
             tests.test_keirin_line_history_study tests.test_keirin_rider_profile_study \
             tests.test_keirin_joint_finish tests.test_keirin_tactical_observations tests.test_keirin_pair_structure_study \
             tests.test_keirin_form_fall_blind_pdca tests.test_keirin_rider_variation_study -v
+      - name: Fetch the immutable commits used by the retained market evaluation
+        run: |
+          git fetch --no-tags --depth=1 origin \
+            08213ae6bea3558f8b18559d6574ad8f0acb187b \
+            466343d9933844d834b2b5a0ff972b849b5554a0 \
+            6fc5cce0162f3fffdd42147bd88852573bb181e8 \
+            de4611e04b15b44c1519c1cb9679b7ed300275fe
       - name: Test historical replay census, evidence and rider learning with offline fixtures
         run: |
           runner_python="$RUNNER_TEMP/keirin-rider-profile-tests/bin/python"
