@@ -232,12 +232,20 @@ def checked_index(doc, day):
 
 class RecordStore:
     """Select bounded encrypted records without scanning all historical bytes."""
-    def __init__(self, repo, day, *, synthetic_local=False):
+    def __init__(self, repo, day, *, synthetic_local=False, index_commit=None):
         self.repo=archive._remote(repo,synthetic_local=synthetic_local)
+        need(index_commit is None or (type(index_commit) is str and archive.COMMIT.fullmatch(index_commit)),
+             'INDEX_COMMIT_INVALID')
+        self.index_commit=index_commit
         self.day=history._day(day);self.path=ROOT+'/'+day+'/index.json';self.refresh()
 
     def refresh(self):
-        self.head=archive._refresh(self.repo)
+        head=archive._refresh(self.repo)
+        if self.index_commit is not None and self.index_commit != head:
+            status,_=archive._cmd(self.repo,'--no-replace-objects','merge-base','--is-ancestor',
+                                  self.index_commit,head,okay=True)
+            need(status==0,'INDEX_COMMIT_OUTSIDE_OFFICIAL_ARCHIVE')
+        self.head=self.index_commit or head
         raw=archive.read_blob_bytes(self.repo,self.head,self.path,max_bytes=MAX_INDEX_BYTES)
         self.index=checked_index(history._json(raw),self.day) if raw is not None else _empty(self.day)
         return self.index
@@ -263,6 +271,7 @@ class RecordStore:
         return payload
 
     def append(self, *, kind, payload, public_pem, observed_at, race_id=None, monetary_complete=False):
+        need(self.index_commit is None,'PINNED_INDEX_READ_ONLY')
         need(kind in ('registry','original','result') and payload.get('day_jst')==self.day and
              payload.get('producer_run_id')==os.environ['GITHUB_RUN_ID'] and
              payload.get('producer_commit')==os.environ['GITHUB_SHA'],'APPEND_SCOPE')
@@ -470,8 +479,7 @@ def result_updates(original,scored,final_capture):
     return updates.checked_updates(dict(schema=updates.SCHEMA,observed_at=at.isoformat(),races=[updates._finish(row)]))
 
 
-def replay_saved_result(store,original_meta,result_meta,owner_private_pem):
-    """Source-free reconstruction from archived original and source witnesses."""
+def _replay_saved_result(store,original_meta,result_meta,owner_private_pem):
     original_payload=store.read(original_meta,owner_private_pem);saved=store.read(result_meta,owner_private_pem)
     need(saved['schema']==RESULT_SCHEMA and saved['race_id']==original_payload['race_id'] and
          saved['original_evidence_sha256']==original_meta['evidence_sha256'],'RESULT_ORIGINAL_BINDING')
@@ -490,4 +498,9 @@ def replay_saved_result(store,original_meta,result_meta,owner_private_pem):
         packets=saved['origin_packets'],final_capture=saved['final_capture'])
     need(replay==saved['scored'] and replay['monetary_comparison_eligible'] is result_meta['monetary_complete'],
          'SAVED_RESULT_NOT_REPRODUCIBLE')
-    return result_updates(original,replay,saved['final_capture'])
+    return original,replay,saved['final_capture']
+
+
+def replay_saved_result(store,original_meta,result_meta,owner_private_pem):
+    """Source-free reconstruction from archived original and source witnesses."""
+    return result_updates(*_replay_saved_result(store,original_meta,result_meta,owner_private_pem))
