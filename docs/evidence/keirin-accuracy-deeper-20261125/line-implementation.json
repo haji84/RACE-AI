@@ -1,0 +1,31 @@
+{
+  "statuses": {
+    "public_payloads_equal": {
+      "payload/keirin_20261125_ranked_public.json.gz": "51a98f0a048d4831eeb8c85533e28f789b17dc55ca59a7cb0cf0c920d7e4eb9e",
+      "payload/keirin_20261125_ranked_v3_public.json.gz": "51a98f0a048d4831eeb8c85533e28f789b17dc55ca59a7cb0cf0c920d7e4eb9e",
+      "data/keirin_20261125_ranked_v3_public.json.gz": "51a98f0a048d4831eeb8c85533e28f789b17dc55ca59a7cb0cf0c920d7e4eb9e"
+    },
+    "verified_on_real_release": 15,
+    "identical_frozen_ordered_rankings": 15,
+    "unknown_or_misplaced_argvs_rejected": 3,
+    "mismatched_registration_held_per_race": true,
+    "post_write_boundary_prunes_and_rechecks_remainder": true
+  },
+  "readback_receipt": {
+    "comparators": {
+      "published": "site",
+      "trial": "revised_pre_cutoff_line"
+    },
+    "expired": 0,
+    "frozen_at": "2026-11-25T09:01:43.121501+00:00",
+    "prediction_sha256": "43b3f932f20cfdd6d1d727f57cf0930ae7149393bfc27754175aa70bccfdc5dd",
+    "registered": 15,
+    "schema": "KEIRIN_FORWARD_RECEIPT_V1"
+  },
+  "source_only_runner_bundle_sha256": "1482c7af98ee3cd8eb272673a7e6a423a1f5df6f506c1aab0a2079f5d1289d90",
+  "repo_selector_sha256": "a86b1666d5ab0a11d08cc579694aaf63e9ac826bc6453aade4554782be5a31bc",
+  "repo_regression_sha256": "a28ae53a0f9923120413a65775ba55a21538bc0f6c55eecad262d006fe4982ad",
+  "private_runner_sha256": "d2cb71321a2ab8e746ed23b3dc9b37270229d05091f6191f3a90c540d5443229",
+  "private_entry_sha256": "a6237d766e444275a937436a412e5b0cb44968bb017a88a8d7dc481befe6dda7",
+  "private_audit_sha256": "67f37360c8fc8957cfa95fbaffa4197982ffb0ed01adbbfbe974120aad996c8d"
+}

@@ -1,0 +1,870 @@
+{
+  "source": {
+    "date": "2026-11-25",
+    "result_checked_at_utc": "2026-11-25T09:00:36.835804+00:00",
+    "source": "kdreams + netkeirin",
+    "actions_run": 45581289895,
+    "publisher_job": "publish-public-site-results",
+    "result_branch": "state/keirin-public-results",
+    "result_commit": "77f49efcbde7f9686ab4daece8264ac2bafdc452",
+    "results_sha256": "8596b95f132489545aa1eaec67a5ff717a2749d69306a9259aa7b0b63a9770bd",
+    "roster_sha256": "c96f35a0c0a9e26c34a491d162674f40a47a2e5fd0ae19f4583c86653d6aeb31",
+    "public_forecast_sha256": "2a62f3a6cf7f2a12d62b5b49b4d9a620db49309b0522814ed904c11c942e3d35",
+    "roster_generated_at": "2026-11-24T23:40:41.322480+00:00",
+    "site_forecast_published_at": "2026-11-24T23:43:19.442812+00:00",
+    "prediction_commitments": {
+      "third_rider_only": {
+        "sha256": "4c475aed916a562b749809e994a541728b01d0624051085ae3b3aa0c947d8041",
+        "frozen_utc": "2026-11-25T00:07:16.450622+00:00",
+        "commit": "218fed394289bc78749426ed60b5c0f4f516c225"
+      },
+      "width": {
+        "sha256": "ef4cfc39a777ee317a8ff921ba3e684f4c12b5d3dc2ccde7799e2016dc277afa",
+        "frozen_utc": "2026-11-25T00:09:17.515419+00:00",
+        "commit": "218fed394289bc78749426ed60b5c0f4f516c225"
+      },
+      "recent_relative_last_half_lap": {
+        "sha256": "72f3929fe26a371fb733406f8cf090bbb64c1095ea0ec58800fe5c4019acf089",
+        "frozen_utc": "2026-11-25T00:20:39.516598+00:00",
+        "commit": "218fed394289bc78749426ed60b5c0f4f516c225"
+      },
+      "forward-20261125": {
+        "sha256": "b614eada3180278c6bd659da4ef96b08874f9d7ff8d6b37bbd56a4bc793191ad",
+        "frozen_utc": "2026-11-24T22:30:29.540081+00:00",
+        "commit": "1251791652ea07eb9f127b96dafdfe4b0a994537"
+      },
+      "fallback": {
+        "sha256": "20848d53fef54f254f6bfe8773fd127aed82a334775a90d685646097189120de",
+        "frozen_utc": "2026-11-24T22:37:08.788204+00:00",
+        "commit": "2bc29758fcfc18cb3beda4ebba9a7c5453e6356a"
+      },
+      "video_and_AB": {
+        "sha256": "a9226f6e6ccb5189665f4c3b16802400b9eb60b5b2506b9d1d6cde8fdf4998bb",
+        "frozen_utc": "2026-11-24T22:25:45.736228+00:00",
+        "commit": "1251791652ea07eb9f127b96dafdfe4b0a994537"
+      }
+    }
+  },
+  "published": {
+    "3t": {
+      "registered": 75,
+      "matched": 41,
+      "published_hits": 14,
+      "trial_hits": 14,
+      "published_tickets": 204,
+      "trial_tickets": 204,
+      "both_hits": 14,
+      "changed_sets": 0,
+      "published_first_two": 18,
+      "trial_first_two": 18,
+      "gained": [],
+      "lost": []
+    },
+    "2t": {
+      "registered": 75,
+      "matched": 41,
+      "published_hits": 17,
+      "trial_hits": 17,
+      "published_tickets": 106,
+      "trial_tickets": 106,
+      "both_hits": 17,
+      "changed_sets": 0,
+      "published_first_two": 17,
+      "trial_first_two": 17,
+      "gained": [],
+      "lost": []
+    }
+  },
+  "by_cap": {
+    "4": {
+      "registered": 60,
+      "matched": 31,
+      "published_hits": 7,
+      "trial_hits": 7,
+      "published_tickets": 124,
+      "trial_tickets": 124,
+      "both_hits": 7,
+      "changed_sets": 0,
+      "published_first_two": 11,
+      "trial_first_two": 11,
+      "gained": [],
+      "lost": []
+    },
+    "8": {
+      "registered": 15,
+      "matched": 10,
+      "published_hits": 7,
+      "trial_hits": 7,
+      "published_tickets": 80,
+      "trial_tickets": 80,
+      "both_hits": 7,
+      "changed_sets": 0,
+      "published_first_two": 7,
+      "trial_first_two": 7,
+      "gained": [],
+      "lost": []
+    }
+  },
+  "source_A": {
+    "registered": 60,
+    "matched": 41,
+    "published_hits": 14,
+    "trial_hits": 9,
+    "published_tickets": 204,
+    "trial_tickets": 204,
+    "both_hits": 9,
+    "changed_sets": 40,
+    "published_first_two": 18,
+    "trial_first_two": 16,
+    "gained": [],
+    "lost": [
+      "202611253807",
+      "202611253808",
+      "202611255104",
+      "202611257501",
+      "202611257502"
+    ]
+  },
+  "source_B": {
+    "registered": 60,
+    "matched": 41,
+    "published_hits": 14,
+    "trial_hits": 7,
+    "published_tickets": 204,
+    "trial_tickets": 204,
+    "both_hits": 6,
+    "changed_sets": 41,
+    "published_first_two": 18,
+    "trial_first_two": 20,
+    "gained": [
+      "202611255109"
+    ],
+    "lost": [
+      "202611252601",
+      "202611253804",
+      "202611253807",
+      "202611255104",
+      "202611257501",
+      "202611257502",
+      "202611257505",
+      "202611258402"
+    ]
+  },
+  "diagnosis": {
+    "result_checked_at": "2026-11-25T09:00:36.835804+00:00",
+    "labels": "Retrospective: realized top two interpreted using the published pre-race line grouping. Not an observed attack point or a prerace classification.",
+    "groups": {
+      "all": {
+        "races": 41,
+        "hit": 14,
+        "ordered_top_two": 18,
+        "winner_in_first": 27,
+        "actual_three_on_one_ticket_any_order": 19,
+        "winner_absent": 14,
+        "winner_without_second": 9,
+        "absent_winner_used_in_lower_positions": 9,
+        "absent_winner_absent_in_all_positions": 5,
+        "absent_winner_in_first_in_full_eight": 2,
+        "winner_and_second_in_any_ordered_first_pair": 21,
+        "exact_top_two_without_third": 4
+      },
+      "top_two_line_relation/same_group_listed_order_immediate": {
+        "races": 16,
+        "hit": 8,
+        "ordered_top_two": 9,
+        "winner_in_first": 11,
+        "actual_three_on_one_ticket_any_order": 11,
+        "winner_absent": 5,
+        "winner_without_second": 2,
+        "absent_winner_used_in_lower_positions": 4,
+        "absent_winner_absent_in_all_positions": 1,
+        "absent_winner_in_first_in_full_eight": 1,
+        "winner_and_second_in_any_ordered_first_pair": 10,
+        "exact_top_two_without_third": 1
+      },
+      "realized_payout/below_10000": {
+        "races": 34,
+        "hit": 14,
+        "ordered_top_two": 18,
+        "winner_in_first": 25,
+        "actual_three_on_one_ticket_any_order": 19,
+        "winner_absent": 9,
+        "winner_without_second": 7,
+        "absent_winner_used_in_lower_positions": 7,
+        "absent_winner_absent_in_all_positions": 2,
+        "absent_winner_in_first_in_full_eight": 2,
+        "winner_and_second_in_any_ordered_first_pair": 21,
+        "exact_top_two_without_third": 4
+      },
+      "published_ticket_count/8": {
+        "races": 10,
+        "hit": 7,
+        "ordered_top_two": 7,
+        "winner_in_first": 8,
+        "actual_three_on_one_ticket_any_order": 7,
+        "winner_absent": 2,
+        "winner_without_second": 1,
+        "absent_winner_used_in_lower_positions": 2,
+        "absent_winner_absent_in_all_positions": 0,
+        "absent_winner_in_first_in_full_eight": 0,
+        "winner_and_second_in_any_ordered_first_pair": 7,
+        "exact_top_two_without_third": 0
+      },
+      "published_ticket_count/4": {
+        "races": 31,
+        "hit": 7,
+        "ordered_top_two": 11,
+        "winner_in_first": 19,
+        "actual_three_on_one_ticket_any_order": 12,
+        "winner_absent": 12,
+        "winner_without_second": 8,
+        "absent_winner_used_in_lower_positions": 7,
+        "absent_winner_absent_in_all_positions": 5,
+        "absent_winner_in_first_in_full_eight": 2,
+        "winner_and_second_in_any_ordered_first_pair": 14,
+        "exact_top_two_without_third": 4
+      },
+      "top_two_line_relation/same_group_reversed_immediate": {
+        "races": 8,
+        "hit": 3,
+        "ordered_top_two": 4,
+        "winner_in_first": 4,
+        "actual_three_on_one_ticket_any_order": 4,
+        "winner_absent": 4,
+        "winner_without_second": 0,
+        "absent_winner_used_in_lower_positions": 3,
+        "absent_winner_absent_in_all_positions": 1,
+        "absent_winner_in_first_in_full_eight": 1,
+        "winner_and_second_in_any_ordered_first_pair": 6,
+        "exact_top_two_without_third": 1
+      },
+      "realized_payout/10000_or_above": {
+        "races": 7,
+        "hit": 0,
+        "ordered_top_two": 0,
+        "winner_in_first": 2,
+        "actual_three_on_one_ticket_any_order": 0,
+        "winner_absent": 5,
+        "winner_without_second": 2,
+        "absent_winner_used_in_lower_positions": 2,
+        "absent_winner_absent_in_all_positions": 3,
+        "absent_winner_in_first_in_full_eight": 0,
+        "winner_and_second_in_any_ordered_first_pair": 0,
+        "exact_top_two_without_third": 0
+      },
+      "top_two_line_relation/different_groups": {
+        "races": 13,
+        "hit": 3,
+        "ordered_top_two": 3,
+        "winner_in_first": 8,
+        "actual_three_on_one_ticket_any_order": 3,
+        "winner_absent": 5,
+        "winner_without_second": 5,
+        "absent_winner_used_in_lower_positions": 2,
+        "absent_winner_absent_in_all_positions": 3,
+        "absent_winner_in_first_in_full_eight": 0,
+        "winner_and_second_in_any_ordered_first_pair": 3,
+        "exact_top_two_without_third": 0
+      },
+      "top_two_line_relation/all_individual": {
+        "races": 2,
+        "hit": 0,
+        "ordered_top_two": 2,
+        "winner_in_first": 2,
+        "actual_three_on_one_ticket_any_order": 1,
+        "winner_absent": 0,
+        "winner_without_second": 0,
+        "absent_winner_used_in_lower_positions": 0,
+        "absent_winner_absent_in_all_positions": 0,
+        "absent_winner_in_first_in_full_eight": 0,
+        "winner_and_second_in_any_ordered_first_pair": 2,
+        "exact_top_two_without_third": 2
+      },
+      "top_two_line_relation/same_group_nonadjacent": {
+        "races": 2,
+        "hit": 0,
+        "ordered_top_two": 0,
+        "winner_in_first": 2,
+        "actual_three_on_one_ticket_any_order": 0,
+        "winner_absent": 0,
+        "winner_without_second": 2,
+        "absent_winner_used_in_lower_positions": 0,
+        "absent_winner_absent_in_all_positions": 0,
+        "absent_winner_in_first_in_full_eight": 0,
+        "winner_and_second_in_any_ordered_first_pair": 0,
+        "exact_top_two_without_third": 0
+      }
+    }
+  },
+  "earlier_frozen_challengers": {
+    "at_least_one_arm_gained": 1,
+    "at_least_one_arm_lost": 0,
+    "changed_registered_union": 30,
+    "checked_at": "2026-11-25T09:00:36.835804+00:00",
+    "methods": {
+      "cross-rider": {
+        "base_contains_first": 7,
+        "base_contains_ordered_pair": 2,
+        "base_hit": 2,
+        "candidate_contains_first": 7,
+        "candidate_contains_ordered_pair": 2,
+        "candidate_hit": 2,
+        "changed_sets_registered": 3,
+        "changed_sets_scored": 1,
+        "gained": [],
+        "lost": [],
+        "matched": 9,
+        "published_hits": 2,
+        "tickets_per_arm": 40,
+        "trial_hits": 2
+      },
+      "individual": {
+        "changed_sets_registered": 3,
+        "changed_sets_scored": 0,
+        "gained": [],
+        "lost": [],
+        "matched": 0,
+        "published_hits": 0,
+        "tickets_per_arm": 0,
+        "trial_hits": 0
+      },
+      "joint-wheel": {
+        "base_contains_first": 6,
+        "base_contains_ordered_pair": 2,
+        "base_hit": 2,
+        "candidate_contains_first": 6,
+        "candidate_contains_ordered_pair": 2,
+        "candidate_hit": 2,
+        "changed_sets_registered": 1,
+        "changed_sets_scored": 1,
+        "gained": [],
+        "lost": [],
+        "matched": 7,
+        "published_hits": 2,
+        "tickets_per_arm": 32,
+        "trial_hits": 2
+      },
+      "joint-wheel-plus-winner": {
+        "base_contains_first": 6,
+        "base_contains_ordered_pair": 2,
+        "base_hit": 2,
+        "candidate_contains_first": 6,
+        "candidate_contains_ordered_pair": 2,
+        "candidate_hit": 2,
+        "changed_sets_registered": 4,
+        "changed_sets_scored": 2,
+        "gained": [],
+        "lost": [],
+        "matched": 7,
+        "published_hits": 2,
+        "tickets_per_arm": 32,
+        "trial_hits": 2
+      },
+      "market": {
+        "base_contains_first": 4,
+        "base_contains_ordered_pair": 1,
+        "base_hit": 1,
+        "candidate_contains_first": 5,
+        "candidate_contains_ordered_pair": 2,
+        "candidate_hit": 1,
+        "changed_sets_registered": 14,
+        "changed_sets_scored": 3,
+        "gained": [],
+        "lost": [],
+        "matched": 6,
+        "published_hits": 1,
+        "tickets_per_arm": 28,
+        "trial_hits": 1
+      },
+      "marks": {
+        "base_contains_first": 7,
+        "base_contains_ordered_pair": 2,
+        "base_hit": 2,
+        "candidate_contains_first": 6,
+        "candidate_contains_ordered_pair": 3,
+        "candidate_hit": 3,
+        "changed_sets_registered": 8,
+        "changed_sets_scored": 3,
+        "gained": [
+          "202611252604"
+        ],
+        "lost": [],
+        "matched": 8,
+        "published_hits": 2,
+        "tickets_per_arm": 36,
+        "trial_hits": 3
+      },
+      "tactical-label": {
+        "base_contains_first": 6,
+        "base_contains_ordered_pair": 2,
+        "base_hit": 2,
+        "candidate_contains_first": 6,
+        "candidate_contains_ordered_pair": 2,
+        "candidate_hit": 2,
+        "changed_sets_registered": 19,
+        "changed_sets_scored": 0,
+        "gained": [],
+        "lost": [],
+        "matched": 7,
+        "published_hits": 2,
+        "tickets_per_arm": 32,
+        "trial_hits": 2
+      },
+      "winner": {
+        "base_contains_first": 7,
+        "base_contains_ordered_pair": 2,
+        "base_hit": 2,
+        "candidate_contains_first": 7,
+        "candidate_contains_ordered_pair": 2,
+        "candidate_hit": 2,
+        "changed_sets_registered": 1,
+        "changed_sets_scored": 0,
+        "gained": [],
+        "lost": [],
+        "matched": 8,
+        "published_hits": 2,
+        "tickets_per_arm": 36,
+        "trial_hits": 2
+      }
+    },
+    "registered_methods": 8,
+    "registered_union": 42,
+    "settled_coverage": {
+      "202611252602": {
+        "changed": [],
+        "gain": [],
+        "loss": [],
+        "methods": [
+          "market",
+          "cross-rider",
+          "winner",
+          "marks"
+        ],
+        "public_hit": false,
+        "trial_hits": []
+      },
+      "202611252603": {
+        "changed": [],
+        "gain": [],
+        "loss": [],
+        "methods": [
+          "market",
+          "cross-rider",
+          "winner",
+          "marks",
+          "joint-wheel",
+          "joint-wheel-plus-winner",
+          "tactical-label"
+        ],
+        "public_hit": false,
+        "trial_hits": []
+      },
+      "202611252604": {
+        "changed": [
+          "marks"
+        ],
+        "gain": [
+          "marks"
+        ],
+        "loss": [],
+        "methods": [
+          "cross-rider",
+          "winner",
+          "marks",
+          "joint-wheel",
+          "joint-wheel-plus-winner",
+          "tactical-label"
+        ],
+        "public_hit": false,
+        "trial_hits": [
+          "marks"
+        ]
+      },
+      "202611252605": {
+        "changed": [
+          "joint-wheel-plus-winner"
+        ],
+        "gain": [],
+        "loss": [],
+        "methods": [
+          "cross-rider",
+          "winner",
+          "marks",
+          "joint-wheel",
+          "joint-wheel-plus-winner",
+          "tactical-label"
+        ],
+        "public_hit": true,
+        "trial_hits": [
+          "cross-rider",
+          "winner",
+          "marks",
+          "joint-wheel",
+          "joint-wheel-plus-winner",
+          "tactical-label"
+        ]
+      },
+      "202611253812": {
+        "changed": [
+          "market"
+        ],
+        "gain": [],
+        "loss": [],
+        "methods": [
+          "market",
+          "cross-rider"
+        ],
+        "public_hit": false,
+        "trial_hits": []
+      },
+      "202611257503": {
+        "changed": [
+          "market"
+        ],
+        "gain": [],
+        "loss": [],
+        "methods": [
+          "market",
+          "cross-rider",
+          "winner",
+          "marks",
+          "joint-wheel",
+          "joint-wheel-plus-winner",
+          "tactical-label"
+        ],
+        "public_hit": false,
+        "trial_hits": []
+      },
+      "202611257504": {
+        "changed": [
+          "market",
+          "cross-rider",
+          "marks",
+          "joint-wheel",
+          "joint-wheel-plus-winner"
+        ],
+        "gain": [],
+        "loss": [],
+        "methods": [
+          "market",
+          "cross-rider",
+          "winner",
+          "marks",
+          "joint-wheel",
+          "joint-wheel-plus-winner",
+          "tactical-label"
+        ],
+        "public_hit": false,
+        "trial_hits": []
+      },
+      "202611257505": {
+        "changed": [],
+        "gain": [],
+        "loss": [],
+        "methods": [
+          "market",
+          "cross-rider",
+          "winner",
+          "marks",
+          "joint-wheel",
+          "joint-wheel-plus-winner",
+          "tactical-label"
+        ],
+        "public_hit": true,
+        "trial_hits": [
+          "market",
+          "cross-rider",
+          "winner",
+          "marks",
+          "joint-wheel",
+          "joint-wheel-plus-winner",
+          "tactical-label"
+        ]
+      },
+      "202611257506": {
+        "changed": [
+          "marks"
+        ],
+        "gain": [],
+        "loss": [],
+        "methods": [
+          "cross-rider",
+          "winner",
+          "marks",
+          "joint-wheel",
+          "joint-wheel-plus-winner",
+          "tactical-label"
+        ],
+        "public_hit": false,
+        "trial_hits": []
+      }
+    },
+    "state_commit": "77f49efcbde7f9686ab4daece8264ac2bafdc452",
+    "union_changed_scored": 6,
+    "union_scored": 9
+  },
+  "this_round": {
+    "registered_distinct": 34,
+    "confirmed_distinct": 1,
+    "changed_confirmed_distinct": 0,
+    "confirmed_methods": {
+      "202611257506": [
+        "pair-market",
+        "pressure",
+        "tactics",
+        "third"
+      ]
+    },
+    "changed_confirmed_methods": {},
+    "reports": {
+      "back-third": {
+        "comparators": {
+          "published": "site",
+          "trial": "back-third"
+        },
+        "registered": 33,
+        "matched": 0,
+        "tickets_per_arm": 0,
+        "published_hits": 0,
+        "trial_hits": 0,
+        "gained": [],
+        "lost": [],
+        "result_states": {
+          "pending": 1,
+          "missing": 32
+        },
+        "checked_at": "2026-11-25T09:00:36.835804+00:00",
+        "changed_scored": 0
+      },
+      "draw": {
+        "comparators": {
+          "published": "site",
+          "trial": "draw"
+        },
+        "registered": 33,
+        "matched": 0,
+        "tickets_per_arm": 0,
+        "published_hits": 0,
+        "trial_hits": 0,
+        "gained": [],
+        "lost": [],
+        "result_states": {
+          "pending": 1,
+          "missing": 32
+        },
+        "checked_at": "2026-11-25T09:00:36.835804+00:00",
+        "changed_scored": 0
+      },
+      "home-field": {
+        "comparators": {
+          "published": "site",
+          "trial": "home-field"
+        },
+        "registered": 33,
+        "matched": 0,
+        "tickets_per_arm": 0,
+        "published_hits": 0,
+        "trial_hits": 0,
+        "gained": [],
+        "lost": [],
+        "result_states": {
+          "pending": 1,
+          "missing": 32
+        },
+        "checked_at": "2026-11-25T09:00:36.835804+00:00",
+        "changed_scored": 0
+      },
+      "home-first": {
+        "comparators": {
+          "published": "first_ticket_of_site_rankings_in_a_one_point_research_test",
+          "trial": "first_only_within_existing_first_four"
+        },
+        "registered": 33,
+        "matched": 0,
+        "tickets_per_arm": 0,
+        "published_hits": 0,
+        "trial_hits": 0,
+        "gained": [],
+        "lost": [],
+        "result_states": {
+          "pending": 1,
+          "missing": 32
+        },
+        "checked_at": "2026-11-25T09:00:36.835804+00:00",
+        "changed_scored": 0
+      },
+      "home-full": {
+        "comparators": {
+          "published": "site",
+          "trial": "home-full"
+        },
+        "registered": 33,
+        "matched": 0,
+        "tickets_per_arm": 0,
+        "published_hits": 0,
+        "trial_hits": 0,
+        "gained": [],
+        "lost": [],
+        "result_states": {
+          "pending": 1,
+          "missing": 32
+        },
+        "checked_at": "2026-11-25T09:00:36.835804+00:00",
+        "changed_scored": 0
+      },
+      "late-line": {
+        "comparators": {
+          "published": "site_static",
+          "trial": "same_model_with_newly_published_pre_cutoff_lines"
+        },
+        "registered": 15,
+        "matched": 0,
+        "tickets_per_arm": 0,
+        "published_hits": 0,
+        "trial_hits": 0,
+        "gained": [],
+        "lost": [],
+        "result_states": {
+          "missing": 15
+        },
+        "checked_at": "2026-11-25T09:00:36.835804+00:00",
+        "changed_scored": 0
+      },
+      "pair-market": {
+        "comparators": {
+          "published": "site",
+          "trial": "pair-market"
+        },
+        "registered": 14,
+        "matched": 1,
+        "tickets_per_arm": 4,
+        "published_hits": 0,
+        "trial_hits": 0,
+        "gained": [],
+        "lost": [],
+        "result_states": {
+          "pending": 1,
+          "missing": 12,
+          "matched": 1
+        },
+        "checked_at": "2026-11-25T09:00:36.835804+00:00",
+        "changed_scored": 0
+      },
+      "partial-exacta": {
+        "comparators": {
+          "published": "site",
+          "trial": "partial-exacta"
+        },
+        "registered": 20,
+        "matched": 0,
+        "tickets_per_arm": 0,
+        "published_hits": 0,
+        "trial_hits": 0,
+        "gained": [],
+        "lost": [],
+        "result_states": {
+          "missing": 20
+        },
+        "checked_at": "2026-11-25T09:00:36.835804+00:00",
+        "changed_scored": 0
+      },
+      "pressure": {
+        "comparators": {
+          "published": "site",
+          "trial": "pressure"
+        },
+        "registered": 34,
+        "matched": 1,
+        "tickets_per_arm": 4,
+        "published_hits": 0,
+        "trial_hits": 0,
+        "gained": [],
+        "lost": [],
+        "result_states": {
+          "pending": 1,
+          "missing": 32,
+          "matched": 1
+        },
+        "checked_at": "2026-11-25T09:00:36.835804+00:00",
+        "changed_scored": 0
+      },
+      "pressure-calibration": {
+        "comparators": {
+          "published": "site",
+          "trial": "pressure-calibration"
+        },
+        "registered": 33,
+        "matched": 0,
+        "tickets_per_arm": 0,
+        "published_hits": 0,
+        "trial_hits": 0,
+        "gained": [],
+        "lost": [],
+        "result_states": {
+          "pending": 1,
+          "missing": 32
+        },
+        "checked_at": "2026-11-25T09:00:36.835804+00:00",
+        "changed_scored": 0
+      },
+      "tactics": {
+        "comparators": {
+          "published": "site",
+          "trial": "tactics"
+        },
+        "registered": 34,
+        "matched": 1,
+        "tickets_per_arm": 4,
+        "published_hits": 0,
+        "trial_hits": 0,
+        "gained": [],
+        "lost": [],
+        "result_states": {
+          "pending": 1,
+          "missing": 32,
+          "matched": 1
+        },
+        "checked_at": "2026-11-25T09:00:36.835804+00:00",
+        "changed_scored": 0
+      },
+      "third": {
+        "comparators": {
+          "published": "site",
+          "trial": "third"
+        },
+        "registered": 34,
+        "matched": 1,
+        "tickets_per_arm": 4,
+        "published_hits": 0,
+        "trial_hits": 0,
+        "gained": [],
+        "lost": [],
+        "result_states": {
+          "pending": 1,
+          "missing": 32,
+          "matched": 1
+        },
+        "checked_at": "2026-11-25T09:00:36.835804+00:00",
+        "changed_scored": 0
+      },
+      "timed-odds": {
+        "comparators": {
+          "published": "earlier_full_trifecta_odds_50pct_model_50pct",
+          "trial": "later_full_trifecta_odds_50pct_model_50pct"
+        },
+        "registered": 13,
+        "matched": 0,
+        "tickets_per_arm": 0,
+        "published_hits": 0,
+        "trial_hits": 0,
+        "gained": [],
+        "lost": [],
+        "result_states": {
+          "missing": 13
+        },
+        "checked_at": "2026-11-25T09:00:36.835804+00:00",
+        "changed_scored": 0
+      }
+    }
+  }
+}

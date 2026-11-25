@@ -1,0 +1,1198 @@
+{
+  "genuine_late_Nov24": {
+    "actual": 15,
+    "normal_scored": 14,
+    "excluded": [
+      "202611244804"
+    ],
+    "vs": {
+      "static": {
+        "1": {
+          "n": 14,
+          "base": 0,
+          "line": 2,
+          "gains": 2,
+          "losses": 0,
+          "changed": 14,
+          "budget": 14
+        },
+        "4": {
+          "n": 14,
+          "base": 4,
+          "line": 6,
+          "gains": 2,
+          "losses": 0,
+          "changed": 14,
+          "budget": 56
+        },
+        "8": {
+          "n": 14,
+          "base": 7,
+          "line": 7,
+          "gains": 2,
+          "losses": 2,
+          "changed": 14,
+          "budget": 112
+        },
+        "listed": {
+          "n": 14,
+          "base": 4,
+          "line": 6,
+          "gains": 2,
+          "losses": 0,
+          "changed": 14,
+          "budget": 60
+        }
+      },
+      "published": {
+        "1": {
+          "n": 14,
+          "base": 0,
+          "line": 2,
+          "gains": 2,
+          "losses": 0,
+          "changed": 14,
+          "budget": 14
+        },
+        "4": {
+          "n": 14,
+          "base": 4,
+          "line": 6,
+          "gains": 2,
+          "losses": 0,
+          "changed": 14,
+          "budget": 56
+        },
+        "8": {
+          "n": 14,
+          "base": 7,
+          "line": 7,
+          "gains": 2,
+          "losses": 2,
+          "changed": 14,
+          "budget": 112
+        },
+        "listed": {
+          "n": 14,
+          "base": 4,
+          "line": 6,
+          "gains": 2,
+          "losses": 0,
+          "changed": 14,
+          "budget": 60
+        }
+      }
+    },
+    "by_grade": {
+      "A3": {
+        "n": 9,
+        "static": 4,
+        "line": 5
+      },
+      "A1 A2": {
+        "n": 5,
+        "static": 0,
+        "line": 1
+      }
+    },
+    "case_count_by_venue": {
+      "34": 5,
+      "48": 4,
+      "61": 5
+    },
+    "ids_source_checks": {
+      "field_all_match": 15,
+      "controls": 66
+    },
+    "excluded_evidence": {
+      "202611244804": "K-Dreams returned no paid trifecta; netkeirin records a trifecta refund. Treat as held; never as model loss."
+    }
+  },
+  "hypothetical_static_when_lines_already_listed": {
+    "all": {
+      "races": 84,
+      "days": 2,
+      "metrics": {
+        "1": {
+          "exact": [
+            5,
+            5
+          ],
+          "gain": 5,
+          "loss": 5,
+          "ci95pp_by_day": null,
+          "changed": 78,
+          "ordered_pair_covered": [
+            11,
+            17
+          ],
+          "winner_covered": [
+            26,
+            30
+          ],
+          "winner_was_only_second_or_third": 38,
+          "winner_reinstated": 9
+        },
+        "4": {
+          "exact": [
+            14,
+            22
+          ],
+          "gain": 12,
+          "loss": 4,
+          "ci95pp_by_day": null,
+          "changed": 82,
+          "ordered_pair_covered": [
+            26,
+            29
+          ],
+          "winner_covered": [
+            47,
+            52
+          ],
+          "winner_was_only_second_or_third": 22,
+          "winner_reinstated": 11
+        },
+        "8": {
+          "exact": [
+            23,
+            32
+          ],
+          "gain": 14,
+          "loss": 5,
+          "ci95pp_by_day": null,
+          "changed": 83,
+          "ordered_pair_covered": [
+            38,
+            38
+          ],
+          "winner_covered": [
+            58,
+            61
+          ],
+          "winner_was_only_second_or_third": 18,
+          "winner_reinstated": 9
+        },
+        "displayed": {
+          "exact": [
+            16,
+            23
+          ],
+          "gain": 12,
+          "loss": 5,
+          "ci95pp_by_day": null,
+          "changed": 82,
+          "ordered_pair_covered": [
+            28,
+            30
+          ],
+          "winner_covered": [
+            49,
+            54
+          ],
+          "winner_was_only_second_or_third": 20,
+          "winner_reinstated": 9
+        }
+      }
+    },
+    "days": {
+      "20261124": {
+        "races": 51,
+        "days": 1,
+        "metrics": {
+          "1": {
+            "exact": [
+              2,
+              3
+            ],
+            "gain": 3,
+            "loss": 2,
+            "ci95pp_by_day": null,
+            "changed": 48,
+            "ordered_pair_covered": [
+              5,
+              8
+            ],
+            "winner_covered": [
+              15,
+              15
+            ],
+            "winner_was_only_second_or_third": 22,
+            "winner_reinstated": 2
+          },
+          "4": {
+            "exact": [
+              6,
+              10
+            ],
+            "gain": 6,
+            "loss": 2,
+            "ci95pp_by_day": null,
+            "changed": 51,
+            "ordered_pair_covered": [
+              13,
+              13
+            ],
+            "winner_covered": [
+              26,
+              29
+            ],
+            "winner_was_only_second_or_third": 16,
+            "winner_reinstated": 7
+          },
+          "8": {
+            "exact": [
+              12,
+              17
+            ],
+            "gain": 9,
+            "loss": 4,
+            "ci95pp_by_day": null,
+            "changed": 50,
+            "ordered_pair_covered": [
+              21,
+              20
+            ],
+            "winner_covered": [
+              33,
+              35
+            ],
+            "winner_was_only_second_or_third": 14,
+            "winner_reinstated": 5
+          },
+          "displayed": {
+            "exact": [
+              8,
+              11
+            ],
+            "gain": 6,
+            "loss": 3,
+            "ci95pp_by_day": null,
+            "changed": 51,
+            "ordered_pair_covered": [
+              15,
+              14
+            ],
+            "winner_covered": [
+              28,
+              31
+            ],
+            "winner_was_only_second_or_third": 14,
+            "winner_reinstated": 5
+          }
+        }
+      },
+      "20261121": {
+        "races": 33,
+        "days": 1,
+        "metrics": {
+          "1": {
+            "exact": [
+              3,
+              2
+            ],
+            "gain": 2,
+            "loss": 3,
+            "ci95pp_by_day": null,
+            "changed": 30,
+            "ordered_pair_covered": [
+              6,
+              9
+            ],
+            "winner_covered": [
+              11,
+              15
+            ],
+            "winner_was_only_second_or_third": 16,
+            "winner_reinstated": 7
+          },
+          "4": {
+            "exact": [
+              8,
+              12
+            ],
+            "gain": 6,
+            "loss": 2,
+            "ci95pp_by_day": null,
+            "changed": 31,
+            "ordered_pair_covered": [
+              13,
+              16
+            ],
+            "winner_covered": [
+              21,
+              23
+            ],
+            "winner_was_only_second_or_third": 6,
+            "winner_reinstated": 4
+          },
+          "8": {
+            "exact": [
+              11,
+              15
+            ],
+            "gain": 5,
+            "loss": 1,
+            "ci95pp_by_day": null,
+            "changed": 33,
+            "ordered_pair_covered": [
+              17,
+              18
+            ],
+            "winner_covered": [
+              25,
+              26
+            ],
+            "winner_was_only_second_or_third": 4,
+            "winner_reinstated": 4
+          },
+          "displayed": {
+            "exact": [
+              8,
+              12
+            ],
+            "gain": 6,
+            "loss": 2,
+            "ci95pp_by_day": null,
+            "changed": 31,
+            "ordered_pair_covered": [
+              13,
+              16
+            ],
+            "winner_covered": [
+              21,
+              23
+            ],
+            "winner_was_only_second_or_third": 6,
+            "winner_reinstated": 4
+          }
+        }
+      }
+    },
+    "classes": {
+      "S1/S2/SS": {
+        "races": 1,
+        "days": 1,
+        "metrics": {
+          "1": {
+            "exact": [
+              0,
+              0
+            ],
+            "gain": 0,
+            "loss": 0,
+            "ci95pp_by_day": null,
+            "changed": 1,
+            "ordered_pair_covered": [
+              0,
+              1
+            ],
+            "winner_covered": [
+              0,
+              1
+            ],
+            "winner_was_only_second_or_third": 1,
+            "winner_reinstated": 1
+          },
+          "4": {
+            "exact": [
+              1,
+              1
+            ],
+            "gain": 0,
+            "loss": 0,
+            "ci95pp_by_day": null,
+            "changed": 1,
+            "ordered_pair_covered": [
+              1,
+              1
+            ],
+            "winner_covered": [
+              1,
+              1
+            ],
+            "winner_was_only_second_or_third": 0,
+            "winner_reinstated": 0
+          },
+          "8": {
+            "exact": [
+              1,
+              1
+            ],
+            "gain": 0,
+            "loss": 0,
+            "ci95pp_by_day": null,
+            "changed": 1,
+            "ordered_pair_covered": [
+              1,
+              1
+            ],
+            "winner_covered": [
+              1,
+              1
+            ],
+            "winner_was_only_second_or_third": 0,
+            "winner_reinstated": 0
+          },
+          "displayed": {
+            "exact": [
+              1,
+              1
+            ],
+            "gain": 0,
+            "loss": 0,
+            "ci95pp_by_day": null,
+            "changed": 1,
+            "ordered_pair_covered": [
+              1,
+              1
+            ],
+            "winner_covered": [
+              1,
+              1
+            ],
+            "winner_was_only_second_or_third": 0,
+            "winner_reinstated": 0
+          }
+        }
+      },
+      "A2": {
+        "races": 2,
+        "days": 1,
+        "metrics": {
+          "1": {
+            "exact": [
+              0,
+              1
+            ],
+            "gain": 1,
+            "loss": 0,
+            "ci95pp_by_day": null,
+            "changed": 2,
+            "ordered_pair_covered": [
+              0,
+              1
+            ],
+            "winner_covered": [
+              0,
+              1
+            ],
+            "winner_was_only_second_or_third": 0,
+            "winner_reinstated": 0
+          },
+          "4": {
+            "exact": [
+              0,
+              2
+            ],
+            "gain": 2,
+            "loss": 0,
+            "ci95pp_by_day": null,
+            "changed": 2,
+            "ordered_pair_covered": [
+              0,
+              2
+            ],
+            "winner_covered": [
+              0,
+              2
+            ],
+            "winner_was_only_second_or_third": 1,
+            "winner_reinstated": 1
+          },
+          "8": {
+            "exact": [
+              0,
+              2
+            ],
+            "gain": 2,
+            "loss": 0,
+            "ci95pp_by_day": null,
+            "changed": 2,
+            "ordered_pair_covered": [
+              0,
+              2
+            ],
+            "winner_covered": [
+              0,
+              2
+            ],
+            "winner_was_only_second_or_third": 2,
+            "winner_reinstated": 2
+          },
+          "displayed": {
+            "exact": [
+              0,
+              2
+            ],
+            "gain": 2,
+            "loss": 0,
+            "ci95pp_by_day": null,
+            "changed": 2,
+            "ordered_pair_covered": [
+              0,
+              2
+            ],
+            "winner_covered": [
+              0,
+              2
+            ],
+            "winner_was_only_second_or_third": 1,
+            "winner_reinstated": 1
+          }
+        }
+      },
+      "S1": {
+        "races": 4,
+        "days": 2,
+        "metrics": {
+          "1": {
+            "exact": [
+              0,
+              0
+            ],
+            "gain": 0,
+            "loss": 0,
+            "ci95pp_by_day": null,
+            "changed": 4,
+            "ordered_pair_covered": [
+              0,
+              0
+            ],
+            "winner_covered": [
+              0,
+              0
+            ],
+            "winner_was_only_second_or_third": 1,
+            "winner_reinstated": 0
+          },
+          "4": {
+            "exact": [
+              0,
+              0
+            ],
+            "gain": 0,
+            "loss": 0,
+            "ci95pp_by_day": null,
+            "changed": 4,
+            "ordered_pair_covered": [
+              0,
+              0
+            ],
+            "winner_covered": [
+              0,
+              0
+            ],
+            "winner_was_only_second_or_third": 2,
+            "winner_reinstated": 0
+          },
+          "8": {
+            "exact": [
+              0,
+              1
+            ],
+            "gain": 1,
+            "loss": 0,
+            "ci95pp_by_day": null,
+            "changed": 4,
+            "ordered_pair_covered": [
+              0,
+              1
+            ],
+            "winner_covered": [
+              1,
+              1
+            ],
+            "winner_was_only_second_or_third": 2,
+            "winner_reinstated": 1
+          },
+          "displayed": {
+            "exact": [
+              0,
+              0
+            ],
+            "gain": 0,
+            "loss": 0,
+            "ci95pp_by_day": null,
+            "changed": 4,
+            "ordered_pair_covered": [
+              0,
+              0
+            ],
+            "winner_covered": [
+              0,
+              0
+            ],
+            "winner_was_only_second_or_third": 2,
+            "winner_reinstated": 0
+          }
+        }
+      },
+      "A3": {
+        "races": 14,
+        "days": 2,
+        "metrics": {
+          "1": {
+            "exact": [
+              0,
+              2
+            ],
+            "gain": 2,
+            "loss": 0,
+            "ci95pp_by_day": null,
+            "changed": 13,
+            "ordered_pair_covered": [
+              0,
+              4
+            ],
+            "winner_covered": [
+              5,
+              6
+            ],
+            "winner_was_only_second_or_third": 9,
+            "winner_reinstated": 2
+          },
+          "4": {
+            "exact": [
+              2,
+              5
+            ],
+            "gain": 3,
+            "loss": 0,
+            "ci95pp_by_day": null,
+            "changed": 14,
+            "ordered_pair_covered": [
+              4,
+              6
+            ],
+            "winner_covered": [
+              11,
+              11
+            ],
+            "winner_was_only_second_or_third": 3,
+            "winner_reinstated": 3
+          },
+          "8": {
+            "exact": [
+              3,
+              6
+            ],
+            "gain": 4,
+            "loss": 1,
+            "ci95pp_by_day": null,
+            "changed": 13,
+            "ordered_pair_covered": [
+              8,
+              7
+            ],
+            "winner_covered": [
+              14,
+              11
+            ],
+            "winner_was_only_second_or_third": 0,
+            "winner_reinstated": 0
+          },
+          "displayed": {
+            "exact": [
+              2,
+              6
+            ],
+            "gain": 4,
+            "loss": 0,
+            "ci95pp_by_day": null,
+            "changed": 14,
+            "ordered_pair_covered": [
+              4,
+              7
+            ],
+            "winner_covered": [
+              12,
+              11
+            ],
+            "winner_was_only_second_or_third": 2,
+            "winner_reinstated": 2
+          }
+        }
+      },
+      "S2": {
+        "races": 13,
+        "days": 2,
+        "metrics": {
+          "1": {
+            "exact": [
+              2,
+              1
+            ],
+            "gain": 1,
+            "loss": 2,
+            "ci95pp_by_day": null,
+            "changed": 12,
+            "ordered_pair_covered": [
+              3,
+              2
+            ],
+            "winner_covered": [
+              4,
+              4
+            ],
+            "winner_was_only_second_or_third": 6,
+            "winner_reinstated": 2
+          },
+          "4": {
+            "exact": [
+              2,
+              3
+            ],
+            "gain": 2,
+            "loss": 1,
+            "ci95pp_by_day": null,
+            "changed": 13,
+            "ordered_pair_covered": [
+              5,
+              4
+            ],
+            "winner_covered": [
+              5,
+              9
+            ],
+            "winner_was_only_second_or_third": 5,
+            "winner_reinstated": 3
+          },
+          "8": {
+            "exact": [
+              4,
+              4
+            ],
+            "gain": 2,
+            "loss": 2,
+            "ci95pp_by_day": null,
+            "changed": 13,
+            "ordered_pair_covered": [
+              5,
+              6
+            ],
+            "winner_covered": [
+              6,
+              10
+            ],
+            "winner_was_only_second_or_third": 6,
+            "winner_reinstated": 4
+          },
+          "displayed": {
+            "exact": [
+              3,
+              3
+            ],
+            "gain": 1,
+            "loss": 1,
+            "ci95pp_by_day": null,
+            "changed": 13,
+            "ordered_pair_covered": [
+              5,
+              4
+            ],
+            "winner_covered": [
+              5,
+              9
+            ],
+            "winner_was_only_second_or_third": 5,
+            "winner_reinstated": 3
+          }
+        }
+      },
+      "A1": {
+        "races": 5,
+        "days": 2,
+        "metrics": {
+          "1": {
+            "exact": [
+              0,
+              0
+            ],
+            "gain": 0,
+            "loss": 0,
+            "ci95pp_by_day": null,
+            "changed": 4,
+            "ordered_pair_covered": [
+              0,
+              1
+            ],
+            "winner_covered": [
+              2,
+              2
+            ],
+            "winner_was_only_second_or_third": 0,
+            "winner_reinstated": 0
+          },
+          "4": {
+            "exact": [
+              0,
+              0
+            ],
+            "gain": 0,
+            "loss": 0,
+            "ci95pp_by_day": null,
+            "changed": 5,
+            "ordered_pair_covered": [
+              0,
+              1
+            ],
+            "winner_covered": [
+              2,
+              2
+            ],
+            "winner_was_only_second_or_third": 1,
+            "winner_reinstated": 0
+          },
+          "8": {
+            "exact": [
+              0,
+              1
+            ],
+            "gain": 1,
+            "loss": 0,
+            "ci95pp_by_day": null,
+            "changed": 5,
+            "ordered_pair_covered": [
+              0,
+              1
+            ],
+            "winner_covered": [
+              2,
+              2
+            ],
+            "winner_was_only_second_or_third": 1,
+            "winner_reinstated": 0
+          },
+          "displayed": {
+            "exact": [
+              0,
+              0
+            ],
+            "gain": 0,
+            "loss": 0,
+            "ci95pp_by_day": null,
+            "changed": 5,
+            "ordered_pair_covered": [
+              0,
+              1
+            ],
+            "winner_covered": [
+              2,
+              2
+            ],
+            "winner_was_only_second_or_third": 1,
+            "winner_reinstated": 0
+          }
+        }
+      },
+      "S1/SS": {
+        "races": 3,
+        "days": 1,
+        "metrics": {
+          "1": {
+            "exact": [
+              0,
+              0
+            ],
+            "gain": 0,
+            "loss": 0,
+            "ci95pp_by_day": null,
+            "changed": 3,
+            "ordered_pair_covered": [
+              0,
+              0
+            ],
+            "winner_covered": [
+              0,
+              1
+            ],
+            "winner_was_only_second_or_third": 3,
+            "winner_reinstated": 1
+          },
+          "4": {
+            "exact": [
+              0,
+              0
+            ],
+            "gain": 0,
+            "loss": 0,
+            "ci95pp_by_day": null,
+            "changed": 3,
+            "ordered_pair_covered": [
+              0,
+              0
+            ],
+            "winner_covered": [
+              2,
+              2
+            ],
+            "winner_was_only_second_or_third": 1,
+            "winner_reinstated": 1
+          },
+          "8": {
+            "exact": [
+              0,
+              0
+            ],
+            "gain": 0,
+            "loss": 0,
+            "ci95pp_by_day": null,
+            "changed": 3,
+            "ordered_pair_covered": [
+              0,
+              0
+            ],
+            "winner_covered": [
+              3,
+              2
+            ],
+            "winner_was_only_second_or_third": 0,
+            "winner_reinstated": 0
+          },
+          "displayed": {
+            "exact": [
+              0,
+              0
+            ],
+            "gain": 0,
+            "loss": 0,
+            "ci95pp_by_day": null,
+            "changed": 3,
+            "ordered_pair_covered": [
+              0,
+              0
+            ],
+            "winner_covered": [
+              2,
+              2
+            ],
+            "winner_was_only_second_or_third": 1,
+            "winner_reinstated": 1
+          }
+        }
+      },
+      "A1/A2": {
+        "races": 29,
+        "days": 2,
+        "metrics": {
+          "1": {
+            "exact": [
+              1,
+              1
+            ],
+            "gain": 1,
+            "loss": 1,
+            "ci95pp_by_day": null,
+            "changed": 27,
+            "ordered_pair_covered": [
+              3,
+              5
+            ],
+            "winner_covered": [
+              9,
+              10
+            ],
+            "winner_was_only_second_or_third": 13,
+            "winner_reinstated": 2
+          },
+          "4": {
+            "exact": [
+              5,
+              7
+            ],
+            "gain": 4,
+            "loss": 2,
+            "ci95pp_by_day": null,
+            "changed": 28,
+            "ordered_pair_covered": [
+              9,
+              10
+            ],
+            "winner_covered": [
+              17,
+              16
+            ],
+            "winner_was_only_second_or_third": 7,
+            "winner_reinstated": 3
+          },
+          "8": {
+            "exact": [
+              10,
+              12
+            ],
+            "gain": 4,
+            "loss": 2,
+            "ci95pp_by_day": null,
+            "changed": 29,
+            "ordered_pair_covered": [
+              16,
+              14
+            ],
+            "winner_covered": [
+              21,
+              21
+            ],
+            "winner_was_only_second_or_third": 6,
+            "winner_reinstated": 1
+          },
+          "displayed": {
+            "exact": [
+              6,
+              7
+            ],
+            "gain": 4,
+            "loss": 3,
+            "ci95pp_by_day": null,
+            "changed": 28,
+            "ordered_pair_covered": [
+              11,
+              10
+            ],
+            "winner_covered": [
+              18,
+              18
+            ],
+            "winner_was_only_second_or_third": 6,
+            "winner_reinstated": 2
+          }
+        }
+      },
+      "S1/S2": {
+        "races": 13,
+        "days": 2,
+        "metrics": {
+          "1": {
+            "exact": [
+              2,
+              0
+            ],
+            "gain": 0,
+            "loss": 2,
+            "ci95pp_by_day": null,
+            "changed": 12,
+            "ordered_pair_covered": [
+              5,
+              3
+            ],
+            "winner_covered": [
+              6,
+              5
+            ],
+            "winner_was_only_second_or_third": 5,
+            "winner_reinstated": 1
+          },
+          "4": {
+            "exact": [
+              4,
+              4
+            ],
+            "gain": 1,
+            "loss": 1,
+            "ci95pp_by_day": null,
+            "changed": 12,
+            "ordered_pair_covered": [
+              7,
+              5
+            ],
+            "winner_covered": [
+              9,
+              9
+            ],
+            "winner_was_only_second_or_third": 2,
+            "winner_reinstated": 0
+          },
+          "8": {
+            "exact": [
+              5,
+              5
+            ],
+            "gain": 0,
+            "loss": 0,
+            "ci95pp_by_day": null,
+            "changed": 13,
+            "ordered_pair_covered": [
+              8,
+              6
+            ],
+            "winner_covered": [
+              10,
+              11
+            ],
+            "winner_was_only_second_or_third": 1,
+            "winner_reinstated": 1
+          },
+          "displayed": {
+            "exact": [
+              4,
+              4
+            ],
+            "gain": 1,
+            "loss": 1,
+            "ci95pp_by_day": null,
+            "changed": 12,
+            "ordered_pair_covered": [
+              7,
+              5
+            ],
+            "winner_covered": [
+              9,
+              9
+            ],
+            "winner_was_only_second_or_third": 2,
+            "winner_reinstated": 0
+          }
+        }
+      }
+    }
+  },
+  "known_line_packet_availability": {
+    "n": 84,
+    "published_model": "existing both_updates ranking",
+    "public_panel": 287,
+    "panel_with_complete_lines": 249,
+    "with_matched_timed_line": 249,
+    "admitted_by_date": {
+      "20261121": 33,
+      "20261124": 51
+    },
+    "excluded": {
+      "missing_net_raw": 159,
+      "missing_fallback_input": 1,
+      "SOURCE_CANONICAL_URL_RACE_MISMATCH": 5
+    },
+    "hashes": {
+      "paired_rows": "a77c5a4b6cca27b624dec6b0de14f7fea91da4f9401e7af877722b813aca0a64",
+      "panel": "2694aba006671653466d9376f659f60f4e9658757e0f3a034c8e11e8be5bbaac",
+      "fallback": "3cfe92cc9b48c1c6d59db3a57cf748f9f76bd77db3d9ab0200d7db0658e02b4d",
+      "weights": "421747a5e8cf38158e98005dfd127626d57465bd1aadf16acbddb674de4d5ecd",
+      "packets": "76d108e04827c13c86fd1e18e793bfe34a03d75774e659fa6143c1ebf152c7ac"
+    },
+    "no_line_archive_controls": 18,
+    "method": "Hold initially complete, genuinely timed lines out of the actual incumbent static projection; comparison ranks from current model with lines. The case does not establish a newly released line. Both providers have timing receipts, exact car and standardized name, official netkeirin registration verified for each entrant; identical code and field priority to Nov25 static path, including absent prefetched tips."
+  },
+  "earlier_publications_check": {
+    "22": {
+      "source_sha256": "661f119a2cd1986ea6ecdf9ca2a24f0454d97f073755f33651c75b767ae87baf",
+      "n": 68,
+      "empty_lines": [
+        "202611222202"
+      ],
+      "resolved_card_evidence": {
+        "fetched_at": "2026-11-22T06:12:44.284796+00:00",
+        "created_at": "2026-11-22T06:12:59.096417+00:00",
+        "packet_sha256": "20d1e975b5cc3dfd01b8d2eee096120e5dd5425e932826e442dc5421e3b31b09",
+        "source_sha256": "2f0ddfeaf4f8caf1ce86067b3d73c19a7c5912365b64566d86cd84737ae76077"
+      },
+      "public_generated_at": "2026-11-22T08:36:34.828193+00:00",
+      "cutoff": "2026-11-22T21:05:00+09:00",
+      "ordered_event": "line_was_already_observed_before_old_publication"
+    },
+    "23": {
+      "source_sha256": "26a1562752eb641d1b35db71e6440d004af3051402188f6fd4db1e8786fc28bc",
+      "n": 89,
+      "empty_lines": []
+    }
+  },
+  "interpretation": "New line model rerun after racing, card/line actually captured beforehand. Genuine later-availability and simulated initial unavailability are separate; the historical 14 and 84 are mutually exclusive. No metric here is a forward forecast. Hidden static comparison is restricted to timing/identity completeness and is not a random sample."
+}
