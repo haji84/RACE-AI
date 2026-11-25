@@ -1,0 +1,14 @@
+{
+  "frozen_utc": "2026-11-25T08:50:19.368694+00:00",
+  "first_cutoff": "2026-11-25T17:58:00+09:00",
+  "races": 33,
+  "coverage": {
+    "with_home": 8,
+    "no_home": 10,
+    "unknown_line": 15
+  },
+  "changed": 3,
+  "sha256": "a4bc2d40333a4410c9500e656eca729ab20feed2a71004e005a10be9b890a7e6",
+  "coefs": "bd95e2a97357d7ab1d386ec92b50d147fe7f4abedee09afa7648f24fc1ab89a8",
+  "method_sha256": "95d4c7badb7a3498016ec15d5449f92f47e99f211a86031a98788598790bf543"
+}
