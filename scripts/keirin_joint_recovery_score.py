@@ -21,7 +21,7 @@ MAX_NOTE = 8 * 1024 * 1024
 SOURCE_SHA256 = {
     'scripts/keirin_joint_original_readback.py': '0c3aced968a1ade54dc5085b306435433f3c033944674c584c7e1a1535f5603c',
     'race_ai/keirin_official_run_history.py': '6ca4ffe0211186d4b08cd8d897c79c5e1dbcb4ba460f0aa73410ca317adf1266',
-    'scripts/keirin_joint_forward_score.py': '67182d37f9cc019670a6a06c07e24ac60ae1187853d3826056c8fede4e2c8f10',
+    'scripts/keirin_joint_forward_score.py': '9b5aa458ca5e3ed7fa86946d6cd5a049f8790afc7315df01d4ead72c70cb1b1b',
 }
 
 
@@ -138,8 +138,9 @@ def _readback(report, receipt, publication, now):
           _time(receipt['expected_original_git_readback_at']) <= _time(report.get('readback_at')) <= now, 'READBACK_CLOCK_MISMATCH')
 
 
-def score_recovery(raw_cipher, private_pem, receipt_raw, publication_raw, witness_raw, roster_raw, results_raw, clock=None):
-    """Verify exact recovered originals before returning existing score aggregates."""
+def score_recovery(raw_cipher, private_pem, receipt_raw, publication_raw, witness_raw, roster_raw, results_raw, clock=None,
+                   *, include_probability_metrics=False):
+    """Verify exact originals before scoring. Probability metrics are for private callers."""
     try:
         receipt, publication, witness = (_json(raw, 128 * 1024) for raw in
                                         (receipt_raw, publication_raw, witness_raw))
@@ -181,7 +182,8 @@ def score_recovery(raw_cipher, private_pem, receipt_raw, publication_raw, witnes
         scorer = _module('scripts.keirin_joint_forward_score', 'scripts/keirin_joint_forward_score.py')
         try:
             report = scorer.score_joint(note, publication_raw, witness_raw, roster_raw, results_raw,
-                expected_note_sha256=receipt['original_note_sha256'], clock=lambda: now)
+                expected_note_sha256=receipt['original_note_sha256'], clock=lambda: now,
+                include_probability_metrics=include_probability_metrics)
         except Exception:
             raise RecoveryScoreHold('JOINT_RECOVERY_SCORE_SCORING_FAILED') from None
         report.update(original_plaintext_authentication='INDEPENDENT_RSA_READBACK_VERIFIED',
