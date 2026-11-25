@@ -1,0 +1,11 @@
+{
+  "forecast_sha256": "7a851cee91da3a55fe5315b8544fd50f775d6dd6cd8aedca198758d80d0b9dda",
+  "coefficients_sha256": "83a60af5ae8c99e3b3171afbaefcfd67142c70e8caf1365ad413ffc9388091a0",
+  "predeadline_tip_snapshot_sha256": "479414f243fa9700359523498f216675a2ba48e8f5121d8e9259f7cb7d9f3d49",
+  "sealed_at": "2026-11-25T07:13:04.925752+00:00",
+  "earliest_cutoff": "2026-11-25T16:17:00+09:00",
+  "latest_cutoff": "2026-11-25T23:25:00+09:00",
+  "open": 41,
+  "tip_eligible": 20,
+  "changed_at_displayed_cap": 8
+}
