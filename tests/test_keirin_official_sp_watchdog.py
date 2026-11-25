@@ -133,6 +133,85 @@ class Github:
         return json.dumps(data).encode()
 
 
+class PublicationFailureGithub(Github):
+    def __init__(self, *, age=35, event="workflow_dispatch"):
+        super().__init__(age=age)
+        self.rows[0].update(event=event, conclusion="failure", updated_at=timestamp(age - 6))
+        self.age = age
+        self.originals = [{"race_id": "202611260101", "cipher_sha256": "d" * 64},
+                          {"race_id": "202611260202", "cipher_sha256": "e" * 64}]
+        self.receipt.update(new_A_B_sealed=2, new_A_B_git_archived=2, new_encrypted_originals=self.originals)
+        self.receipt["statuses"]["SOURCE_CAPTURE_BUDGET_PENDING"] = 59
+        self.readback = {
+            "day_jst": "2026-11-26", "schema": "RACE_AI_KEIRIN_GITHUB_ONLY_AB_SECOND_RUNNER_V1",
+            "new_archived": 2, "independently_verified": 2,
+            "records": [dict(original, state="SECOND_RUNNER_GITHUB_SHA_CONFIRMED")
+                        for original in self.originals],
+        }
+        self.settlement = {
+            "day_jst": "2026-11-26", "state": "OFFICIAL_SP_SAVED_RESULT_UPDATES_PUBLISHED",
+            "source_requests": 0, "provider_denied": False, "source_unavailable": False,
+            "no_provider_tick": True,
+        }
+        self.job_changes = {}
+        self.artifact_changes = {}
+        self.additional_archive = {}
+        self.corrupt_zip = set()
+
+    def __call__(self, args):
+        path = args[-1]
+        if path.endswith("/zip"):
+            artifact_id = int(path.split("/")[-2])
+            if artifact_id in self.additional_archive:
+                self.calls.append(tuple(args))
+                raw = self.additional_archive[artifact_id]
+                return bytes([raw[0] ^ 1]) + raw[1:] if artifact_id in self.corrupt_zip else raw
+        if "/artifacts?" in path:
+            artifacts = {
+                "keirin-official-sp-readback-7": (601, self.readback, self.age - 3,
+                                                 "keirin-git-independent.json"),
+                "keirin-official-sp-settlement-7": (602, self.settlement, self.age + 3, "summary.json"),
+            }
+            name = path.partition("name=")[2].split("&")[0]
+            if name in artifacts:
+                self.calls.append(tuple(args))
+                artifact_id, summary, age, member = artifacts[name]
+                if summary is None:
+                    return b'{"total_count":0,"artifacts":[]}'
+                buffer = io.BytesIO()
+                with zipfile.ZipFile(buffer, "w") as zipped:
+                    zipped.writestr(member, json.dumps(summary))
+                raw = self.additional_archive[artifact_id] = buffer.getvalue()
+                artifact = {
+                    "name": name, "id": artifact_id, "size_in_bytes": len(raw), "expired": False,
+                    "created_at": timestamp(age), "digest": "sha256:" + sha256(raw).hexdigest(),
+                    "workflow_run": {"id": 7, "head_branch": "main", "head_sha": "b" * 40,
+                                     "repository_id": REPO_ID, "head_repository_id": REPO_ID},
+                }
+                artifact.update(self.artifact_changes.get(name, {}))
+                return json.dumps({"total_count": 1, "artifacts": [artifact]}).encode()
+        raw = super().__call__(args)
+        if "/jobs?" not in path:
+            return raw
+        jobs = json.loads(raw)["jobs"]
+        age = self.age
+        jobs[0].update(id=101, started_at=timestamp(age + 6), completed_at=timestamp(age - 1))
+        supplemental = (
+            ("official-sp-settle", 102, "skipped" if self.rows[0]["event"] == "schedule" else "success",
+             age + 6, age + 2),
+            ("official-sp-independent-readback", 103, "success", age - 2, age - 3),
+            ("official-sp-publish", 104, "failure", age - 4, age - 5),
+            ("source-free-tests", 105, "success", age + 6, age + 5),
+        )
+        for name, job_id, conclusion, started, finished in supplemental:
+            jobs.append(dict(id=job_id, name=name, status="completed", conclusion=conclusion, run_id=7,
+                             run_attempt=1, head_sha="b"*40, started_at=timestamp(started),
+                             completed_at=timestamp(finished)))
+        for job in jobs:
+            job.update(self.job_changes.get(job["name"], {}))
+        return json.dumps({"jobs": jobs, "total_count": len(jobs)}).encode()
+
+
 class WatchdogTests(unittest.TestCase):
     def setUp(self):
         # The first cycle intentionally fails here, before the CLI exists.
@@ -401,3 +480,105 @@ class WatchdogTests(unittest.TestCase):
         self.assertEqual(report["decision"], "HOLD_CAPTURE_CLOCK_CHANGED_NO_DISPATCH")
         self.assertFalse((self.state / "last-attempt.json").exists())
         self.assertNotIn(WRITE, gh.calls)
+
+    def test_capture_continues_after_uniquely_failed_publication_with_independent_proof(self):
+        for event, provider_work in (("workflow_dispatch", False), ("workflow_dispatch", True),
+                                     ("schedule", False)):
+            with self.subTest(event=event, provider_work=provider_work):
+                gh = PublicationFailureGithub(event=event)
+                if event == "schedule":
+                    gh.settlement = None
+                elif provider_work:
+                    gh.settlement.update(source_requests=6, no_provider_tick=False, source_lease_finish_failed=False)
+                report = self.supervise(gh)
+                self.assertEqual(report["decision"], "WOULD_DISPATCH_OFFICIAL_CONTINUE")
+                self.assertTrue(report.get("publication_only_failure_verified"))
+                self.assertEqual(report.get("recovery_delay_minutes"), 30)
+                self.assertNotIn(WRITE, gh.calls)
+
+    def test_publication_failure_never_causes_an_extra_recent_capture(self):
+        gh = PublicationFailureGithub(age=20)
+        report = self.supervise(gh, dispatch=True)
+        self.assertEqual(report["decision"], "SKIP_RECENT_OFFICIAL_SP_CAPTURE")
+        self.assertTrue(report.get("publication_only_failure_verified"))
+        self.assertFalse(self.state.exists())
+        self.assertNotIn(WRITE, gh.calls)
+
+    def test_verified_publication_failure_uses_the_existing_durable_attempt_guard(self):
+        gh = PublicationFailureGithub()
+        self.assertEqual(self.supervise(gh, dispatch=True)["decision"], "DISPATCHED_OFFICIAL_CONTINUE")
+        self.assertTrue((self.state / "last-attempt.json").is_file())
+        self.assertEqual(self.supervise(gh, dispatch=True)["decision"], "HOLD_LOCAL_ATTEMPT_RECENT")
+        self.assertEqual(gh.calls.count(WRITE), 1)
+
+    def test_any_other_failure_or_wrong_attempt_keeps_the_existing_stop(self):
+        for job, changes in (
+                ("official-sp-capture", {"conclusion": "failure"}),
+                ("official-sp-independent-readback", {"conclusion": "failure"}),
+                ("official-sp-settle", {"conclusion": "failure"}),
+                ("source-free-tests", {"conclusion": "cancelled"}),
+                ("official-sp-independent-readback", {"run_attempt": 2}),
+                ("official-sp-publish", {"run_id": 99}),
+                ("official-sp-settle", {"conclusion": "skipped"}),
+        ):
+            with self.subTest(job=job, changes=changes):
+                gh = PublicationFailureGithub()
+                gh.job_changes[job] = changes
+                self.assertEqual(self.supervise(gh, dispatch=True)["decision"], "HOLD_CAPTURE_JOB_FAILED")
+                self.assertNotIn(WRITE, gh.calls)
+
+    def test_missing_forged_and_mismatched_independent_artifacts_hold(self):
+        for issue in ("missing", "zip", "count", "lineage", "race"):
+            with self.subTest(issue=issue):
+                gh = PublicationFailureGithub()
+                if issue == "missing":
+                    gh.readback = None
+                elif issue == "zip":
+                    gh.corrupt_zip.add(601)
+                elif issue == "count":
+                    gh.readback["independently_verified"] = 1
+                elif issue == "lineage":
+                    gh.artifact_changes["keirin-official-sp-readback-7"] = {"created_at": timestamp(80)}
+                elif issue == "race":
+                    gh.readback["records"][0]["cipher_sha256"] = "5"*64
+                report = self.supervise(gh, dispatch=True)
+                self.assertEqual(report["decision"], "HOLD_CAPTURE_OUTCOME_UNVERIFIED")
+                self.assertNotIn(WRITE, gh.calls)
+
+    def test_publication_failure_exception_requires_new_source_clean_originals(self):
+        for field, value, expected in (
+                ("new_A_B_git_archived", 0, "HOLD_CAPTURE_OUTCOME_UNVERIFIED"),
+                ("provider_denied", True, "HOLD_CAPTURE_PROVIDER_STOP"),
+                ("source_lease_finish_failed", True, "HOLD_CAPTURE_STOPPING_STATE")):
+            with self.subTest(field=field):
+                gh = PublicationFailureGithub()
+                gh.receipt[field] = value
+                self.assertEqual(self.supervise(gh, dispatch=True)["decision"], expected)
+                self.assertNotIn(WRITE, gh.calls)
+
+    def test_manual_settlement_artifact_must_bind_a_clean_result(self):
+        for issue, expected in (("missing", "HOLD_CAPTURE_OUTCOME_UNVERIFIED"),
+                                ("zip", "HOLD_CAPTURE_OUTCOME_UNVERIFIED"),
+                                ("denied", "HOLD_CAPTURE_PROVIDER_STOP"),
+                                ("stop", "HOLD_CAPTURE_PROVIDER_STOP"),
+                                ("unavailable", "HOLD_CAPTURE_STOPPING_STATE"),
+                                ("failed_lease", "HOLD_CAPTURE_STOPPING_STATE"),
+                                ("unknown_lease", "HOLD_CAPTURE_STOPPING_STATE")):
+            with self.subTest(issue=issue):
+                gh = PublicationFailureGithub()
+                if issue == "missing":
+                    gh.settlement = None
+                elif issue == "zip":
+                    gh.corrupt_zip.add(602)
+                elif issue == "denied":
+                    gh.settlement["provider_denied"] = True
+                elif issue == "stop":
+                    gh.settlement["state"] = "HOLD_OFFICIAL_SP_PROVIDER_STOP"
+                elif issue == "unavailable":
+                    gh.settlement["source_unavailable"] = True
+                elif issue == "failed_lease":
+                    gh.settlement["source_lease_finish_failed"] = True
+                elif issue == "unknown_lease":
+                    gh.settlement.update(no_provider_tick=False, source_requests=4)
+                self.assertEqual(self.supervise(gh, dispatch=True)["decision"], expected)
+                self.assertNotIn(WRITE, gh.calls)
