@@ -1,0 +1,31 @@
+{
+  "site_http_status": 200,
+  "site_sha256": "348a69fbfa29646ebe04e4ac33ba57bffae03131a378a87327bdd452a5256d07",
+  "forecast_paths": {
+    "2026-11-25": [
+      "/data/keirin_20261125_ranked_v3_public.json"
+    ],
+    "2026-11-24": [
+      "/data/keirin_20261124_ranked_v2_public.json"
+    ],
+    "2026-11-23": [
+      "/data/keirin_20261123_reference_public.json"
+    ],
+    "2026-11-22": [
+      "/data/keirin_20261122_blind_public.json"
+    ]
+  },
+  "invalid_paths": false,
+  "checked_at": "2026-11-25T12:04:04.154993+00:00",
+  "published_asset_sha256": "51a98f0a048d4831eeb8c85533e28f789b17dc55ca59a7cb0cf0c920d7e4eb9e",
+  "matches_inherited_publication_hash": true,
+  "race_count": 75,
+  "race_id": "202611252611",
+  "forecast_generated_at": "2026-11-24T22:30:29.540081+00:00",
+  "cutoff_at": "2026-11-25T20:10:00+09:00",
+  "saved_non_goal_flow_present": false,
+  "public_top1_equals_conversation_top1": false,
+  "reported_result_in_public_top4": true,
+  "same_as_conversation_original_not_established": true,
+  "private_originals_exposed": false
+}

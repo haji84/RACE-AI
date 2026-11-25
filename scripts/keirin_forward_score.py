@@ -44,7 +44,7 @@ def confirmed_order(row, cutoff, starters, checked_at):
     return winners['3t']
 
 
-def score(predictions_raw, receipt_raw, roster_raw, results_raw):
+def score(predictions_raw, receipt_raw, roster_raw, results_raw, *, flow_observations_raw=None):
     """Return aggregates and gain/loss IDs for settled races, without disclosing lists."""
     receipt = json.loads(receipt_raw)
     need(receipt['schema'] == 'KEIRIN_FORWARD_RECEIPT_V1', 'INVALID_RECEIPT_SCHEMA')
@@ -68,12 +68,15 @@ def score(predictions_raw, receipt_raw, roster_raw, results_raw):
     states = Counter()
     published_hits = trial_hits = points = 0
     gained, lost = [], []
+    result_hits, starters_by_race = {}, {}
     for key, forecast in sorted(forecasts.items()):
         entry = entries[key]
         cutoff = entry['published_cutoff_at']
         need(instant(forecast['cutoff_at']) == instant(cutoff), 'PUBLISHED_CUTOFF_MISMATCH')
         need(frozen < instant(cutoff), 'FORECAST_AT_OR_AFTER_CUTOFF')
         starters = {rider['number'] for rider in entry['observed_riders']}
+        starters_by_race[key] = starters
+        result_hits[key] = {'published': None, 'trial': None}
         budget = forecast['points']
         need(type(budget) is int and 1 <= budget <= 8, 'INVALID_TICKET_BUDGET')
         for side in ('published', 'trial'):
@@ -92,6 +95,7 @@ def score(predictions_raw, receipt_raw, roster_raw, results_raw):
         winner = confirmed_order(outcome, cutoff, starters, checked_at)
         published_hit = winner in forecast['published'][:budget]
         trial_hit = winner in forecast['trial'][:budget]
+        result_hits[key] = {'published': published_hit, 'trial': trial_hit}
         published_hits += published_hit
         trial_hits += trial_hit
         points += budget
@@ -99,7 +103,7 @@ def score(predictions_raw, receipt_raw, roster_raw, results_raw):
             gained.append(key)
         if published_hit and not trial_hit:
             lost.append(key)
-    return dict(date=roster['date'], comparators=names, receipt_frozen_at=receipt['frozen_at'],
+    report = dict(date=roster['date'], comparators=names, receipt_frozen_at=receipt['frozen_at'],
                 receipt_normalized_at=receipt.get('normalized_at'),
                 receipt_timestamp_semantics=receipt.get('timestamp_semantics'), checked_at=results['checked_at'],
                 prediction_sha256=forecast_sha, receipt_sha256=sha256(receipt_raw).hexdigest(),
@@ -107,15 +111,24 @@ def score(predictions_raw, receipt_raw, roster_raw, results_raw):
                 registered=len(forecasts), matched=states['matched'], result_states=dict(states),
                 tickets_per_arm=points, published_hits=published_hits, trial_hits=trial_hits,
                 gained=gained, lost=lost)
+    if flow_observations_raw is not None:
+        from race_ai.keirin_flow_evaluation import summarize_flow
+        report['flow_evaluation'] = summarize_flow(
+            predictions, json.loads(flow_observations_raw), forecast_sha256=forecast_sha,
+            result_hits=result_hits, starters_by_race=starters_by_race)
+    return report
 
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     for name in ('predictions', 'receipt', 'roster', 'results'):
         parser.add_argument('--' + name, type=Path, required=True)
+    parser.add_argument('--flow-observations', type=Path,
+                        help='Separately stored observations bound to the original prediction SHA.')
     args = parser.parse_args()
     try:
-        report = score(*(path.read_bytes() for path in (args.predictions, args.receipt, args.roster, args.results)))
+        report = score(*(path.read_bytes() for path in (args.predictions, args.receipt, args.roster, args.results)),
+                       flow_observations_raw=args.flow_observations.read_bytes() if args.flow_observations else None)
     except (ValueError, KeyError, TypeError, OSError) as error:
         parser.exit(1, f'Forward score failed: {error}\n')
     print(json.dumps(report, ensure_ascii=False, indent=2))

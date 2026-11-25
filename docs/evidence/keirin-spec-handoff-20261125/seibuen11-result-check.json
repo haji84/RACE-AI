@@ -1,0 +1,29 @@
+{
+  "schema": "RACE_AI_KEIRIN_INDEPENDENT_SECONDARY_RESULT_MATCH_V1",
+  "race_id": "202611252611",
+  "state": "SECONDARY_TWO_SOURCES_MATCH_NOT_OFFICIAL",
+  "winning_triple": [
+    5,
+    3,
+    1
+  ],
+  "payout_per_100yen": 840,
+  "provider_receipts": [
+    {
+      "provider": "Kdreams",
+      "source_bytes_sha256": "f78c7cf274fe111d64e7e590554e3dc2bddc0613c8f5eaaf26c5e54f15de1f11",
+      "observed_at": "2026-11-25T12:01:16.663385+00:00",
+      "source_url": "https://keirin.kdreams.jp/seibuen/racedetail/2620261123030011/"
+    },
+    {
+      "provider": "netkeirin",
+      "source_bytes_sha256": "9872f0cf300099aa68342c0aee364169c1d9a3852ab0e61a028d3b93ab196d27",
+      "observed_at": "2026-11-25T11:56:13.859584+00:00",
+      "source_url": "https://keirin.netkeiba.com/race/result/?race_id=202611252611"
+    }
+  ],
+  "official_primary_result_authenticated": false,
+  "actual_organizer_cutoff_authenticated": false,
+  "qualifies_for_formal_settlement": false,
+  "checked_at": "2026-11-25T12:01:16.663385+00:00"
+}

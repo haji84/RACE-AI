@@ -1,0 +1,95 @@
+{
+  "scope": "RETROSPECTIVE_CONVERSATION_REFERENCE_NOT_FROZEN_FORECAST",
+  "race_id": "202611252611",
+  "evaluated_at": "2026-11-25T12:04:04.154993+00:00",
+  "official_primary_result_authenticated": false,
+  "eligible_for_pre_cutoff_performance": false,
+  "formal_performance_races_added": 0,
+  "case_sha256": "c9705de6ac78e48579d0d8e8b076b3ff6bc94909db60287d52fa4b7b4ce153e7",
+  "result_check_sha256": "74414f5e4336fef1d891c6ff318832ed1d50bf2bb84ca51c910c4f5f675cf10d",
+  "comparison": {
+    "classification": "E",
+    "provisional_classification": "B",
+    "result_hit": true,
+    "confirmed_flow_complete": false,
+    "provisional_flow_complete": false,
+    "confirmed_metrics": {
+      "phase_order": {
+        "compared": 0,
+        "matched": 0,
+        "conflicting": 0,
+        "missing_prediction": 0,
+        "partial": 0
+      },
+      "front_runner": {
+        "compared": 0,
+        "matched": 0,
+        "conflicting": 0,
+        "missing_prediction": 0,
+        "partial": 0
+      },
+      "initiative": {
+        "compared": 0,
+        "matched": 0,
+        "conflicting": 0,
+        "missing_prediction": 0,
+        "partial": 0
+      },
+      "leader": {
+        "compared": 0,
+        "matched": 0,
+        "conflicting": 0,
+        "missing_prediction": 0,
+        "partial": 0
+      },
+      "attack_order": {
+        "compared": 0,
+        "matched": 0,
+        "conflicting": 0,
+        "missing_prediction": 0,
+        "partial": 0
+      }
+    },
+    "provisional_metrics": {
+      "phase_order": {
+        "compared": 0,
+        "matched": 0,
+        "conflicting": 0,
+        "missing_prediction": 1,
+        "partial": 0
+      },
+      "front_runner": {
+        "compared": 1,
+        "matched": 0,
+        "conflicting": 0,
+        "missing_prediction": 0,
+        "partial": 0
+      },
+      "initiative": {
+        "compared": 1,
+        "matched": 0,
+        "conflicting": 0,
+        "missing_prediction": 0,
+        "partial": 0
+      },
+      "leader": {
+        "compared": 0,
+        "matched": 0,
+        "conflicting": 0,
+        "missing_prediction": 0,
+        "partial": 0
+      },
+      "attack_order": {
+        "compared": 0,
+        "matched": 0,
+        "conflicting": 0,
+        "missing_prediction": 1,
+        "partial": 0
+      }
+    },
+    "source_fact_counts": {
+      "USER_OBSERVATION": 4
+    },
+    "original_flow_present": true
+  }
+}

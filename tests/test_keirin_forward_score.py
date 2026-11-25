@@ -66,6 +66,46 @@ class ForwardScoreTests(unittest.TestCase):
         report = self.run_score()
         self.assertEqual((report['published_hits'], report['trial_hits'], report['tickets_per_arm']), (1, 1, 3))
 
+    def test_optional_flow_is_bound_to_frozen_original_and_does_not_change_finish_scores(self):
+        for row in self.frame['races']:
+            row['flow'] = {side: dict(phase_orders={'INITIAL':[1,2,3]}, leaders={'BELL':1})
+                           for side in ('published', 'trial')}
+        raw = encode(self.frame)
+        receipt = encode(dict(prediction_sha256=sha256(raw).hexdigest(), **self.receipt))
+        facts = dict(schema='KEIRIN_FLOW_OBSERVATIONS_V1', forecast_sha256=sha256(raw).hexdigest(),
+                     recorded_at='2026-11-25T20:00:00+09:00', races=[dict(
+                         race_id=self.frame['races'][0]['race_id'], facts=[dict(
+                             metric='leader', phase='BELL', value=2, complete=True,
+                             source=dict(kind='USER_OBSERVATION', reference='synthetic:report',
+                                         recorded_at='2026-11-25T19:00:00+09:00', sha256=None))])])
+        args = (raw, receipt, encode(self.roster), encode(self.results))
+        legacy = score(*args)
+        report = score(*args, flow_observations_raw=encode(facts))
+        self.assertEqual({k:v for k,v in report.items() if k != 'flow_evaluation'}, legacy)
+        evaluation = report['flow_evaluation']
+        self.assertEqual(evaluation['published']['categories']['E'], 3)
+        self.assertEqual(evaluation['published']['provisional_categories']['D'], 1)
+        self.assertEqual(evaluation['trial']['provisional_categories']['B'], 1)
+        self.assertEqual(evaluation['registered'], 6)
+        self.assertEqual(evaluation['result_unavailable'], 3)
+        self.assertNotIn('phase_orders', json.dumps(evaluation))
+        facts['forecast_sha256'] = 'b' * 64
+        with self.assertRaisesRegex(ValueError, 'FLOW_FORECAST_SHA'):
+            score(*args, flow_observations_raw=encode(facts))
+
+    def test_flow_not_saved_before_cutoff_cannot_be_added_by_observations(self):
+        raw = encode(self.frame)
+        receipt = encode(dict(prediction_sha256=sha256(raw).hexdigest(), **self.receipt))
+        facts = dict(schema='KEIRIN_FLOW_OBSERVATIONS_V1', forecast_sha256=sha256(raw).hexdigest(),
+                     recorded_at='2026-11-25T20:00:00+09:00', races=[dict(
+                         race_id=self.frame['races'][0]['race_id'], facts=[dict(
+                             metric='leader', phase='BELL', value=2, complete=True,
+                             source=dict(kind='VIDEO_OBSERVATION', reference='synthetic:frame',
+                                         recorded_at='2026-11-25T19:00:00+09:00', sha256='a'*64))])])
+        report = score(raw, receipt, encode(self.roster), encode(self.results), flow_observations_raw=encode(facts))
+        for side in ('published', 'trial'):
+            self.assertEqual(report['flow_evaluation'][side]['categories'], {'A':0, 'B':0, 'C':0, 'D':0, 'E':3})
+
     def test_wrong_forecast_bytes_or_unbound_cutoff_cannot_score(self):
         receipt = dict(prediction_sha256='f'*64, **self.receipt)
         with self.assertRaisesRegex(ValueError, 'DIGEST_MISMATCH'):
