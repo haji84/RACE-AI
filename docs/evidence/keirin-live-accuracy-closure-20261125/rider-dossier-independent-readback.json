@@ -1,0 +1,31 @@
+{
+  "accuracy_improvement_proven": false,
+  "day_jst": "2026-11-25",
+  "files": {
+    "national-dossiers.json": {
+      "bytes": 12567046,
+      "sha256": "7b996d5d022514167b89d8ee820c512167cca317ef2d4550a68e2febfb21e75e"
+    },
+    "official-current-registry.json": {
+      "bytes": 1578871,
+      "sha256": "5a64db31e466f4f9aac0c47811fa3dc791b45cf7c8d5f07b3742372a7285d8ba"
+    }
+  },
+  "files_restored": true,
+  "files_verified": 2,
+  "forecast_original_authenticated": false,
+  "historical_as_of_authenticated": false,
+  "history_end_day": "2026-11-22",
+  "history_start_day": "2025-10-01",
+  "numeric_finish_records": 211212,
+  "official_results_verified": false,
+  "recovery_cipher_sha256": "0082205b9e88caefc5f1e6d68843a6f600214056844f4913501f73c816fb16fb",
+  "registered_riders": 2416,
+  "riders_with_numeric_history": 2393,
+  "schema": "KEIRIN_RIDER_DOSSIER_READBACK_V1",
+  "state": "RIDER_DOSSIER_READBACK_VERIFIED",
+  "action_run": 45641179956,
+  "job_id": 139300050709,
+  "trusted_main": "61202a68f0c91f2ce4cebe012de030376e4cba76",
+  "workflow_event": "push"
+}

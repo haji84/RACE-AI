@@ -1,0 +1,23 @@
+{
+  "status": "REVIEWED_MAIN_UI_PUBLISHED_EXISTING_GITHUB_PAGES",
+  "assets": 14,
+  "original_forecast_rewrites": 0,
+  "official_provider_gets": 0,
+  "source_state_mutations": 0,
+  "original_forecast_identity_unchanged": true,
+  "legacy_reader_unchanged": true,
+  "parent_commit": "e1c57d2dff17eca55f5cd42205d1dd7b0b74a8ee",
+  "page_commit": "681edf78d15b6c33033bee6b9d129553ccc6f4fd",
+  "trusted_ui_source": "ebc22ed82a03edad6eec1f90e31b4c31906bcb76",
+  "changed_paths": [
+    "app.js",
+    "index.html",
+    "site-build.json"
+  ],
+  "existing_view_blobs_unchanged": true,
+  "original_identity_unchanged": true,
+  "additional_live_asset_paths": 0,
+  "private_plaintext_uploaded": false,
+  "model_weights_promoted": false,
+  "live_http_readback_pending": true
+}
