@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import argparse
 from contextlib import contextmanager
-from datetime import datetime, timedelta, timezone
+from datetime import date, datetime, timedelta, timezone
 import fcntl
 from hashlib import sha256
 import io
@@ -34,6 +34,8 @@ CAPTURE_SCHEMA = "RACE_AI_KEIRIN_GITHUB_ONLY_LIVE_AB_DAY_V1"
 SAFE_CAPTURE_STATES = ("OFFICIAL_SP_BASELINES_ARCHIVED", "OFFICIAL_SP_DAY_REGISTERED_WITH_EXPLICIT_HOLDS")
 SCHEMA = "RACE_AI_KEIRIN_OFFICIAL_SP_WATCHDOG_V1"
 RECENT = timedelta(minutes=45)
+BACKLOG_RECENT = timedelta(minutes=30)
+JST = timezone(timedelta(hours=9))
 CLOCK_SKEW = timedelta(minutes=3)
 METADATA_HOLD = "HOLD_INVALID_GITHUB_METADATA"
 OUTCOME_HOLD = "HOLD_CAPTURE_OUTCOME_UNVERIFIED"
@@ -203,7 +205,8 @@ def latest_capture(gh, workflow_id, now):
     return latest
 
 
-def require_safe_capture(gh, run, finished, now):
+def require_safe_capture(gh, capture, now):
+    run, started, finished = capture
     receipt_name = f"keirin-official-sp-receipt-{run['id']}"
     path = f"{REPO_API}/actions/runs/{run['id']}/artifacts?name={receipt_name}&per_page=1"
     receipts, total = listing(metadata(gh, path), "artifacts", 1, OUTCOME_HOLD)
@@ -239,6 +242,20 @@ def require_safe_capture(gh, run, finished, now):
             and summary.get("source_lease_finish_failed", False) is False, "HOLD_CAPTURE_STOPPING_STATE")
     requests = summary.get("source_requests")
     require(type(requests) is int and 0 < requests <= 300, OUTCOME_HOLD)
+    day_text = summary.get("day_jst")
+    if day_text is None:
+        return RECENT
+    try:
+        day = date.fromisoformat(day_text)
+    except (TypeError, ValueError):
+        raise Hold(OUTCOME_HOLD) from None
+    # The capture runner takes this date from its JST clock inside the job step.
+    today = now.astimezone(JST).date()
+    require(day.isoformat() == day_text and started.astimezone(JST).date() <= day
+            <= min(finished.astimezone(JST).date(), today), OUTCOME_HOLD)
+    if day == today and statuses.get("SOURCE_CAPTURE_BUDGET_PENDING", 0) > 0:
+        return BACKLOG_RECENT
+    return RECENT
 
 
 def require_private(info, mode, directory=False):
@@ -268,7 +285,7 @@ def attempt_lock(folder):
         os.close(directory)
 
 
-def require_local_clear(directory, now, last_capture_started):
+def require_local_clear(directory, now, last_capture_started, delay):
     try:
         descriptor = os.open("last-attempt.json", os.O_RDONLY | os.O_NOFOLLOW | os.O_NONBLOCK,
                              dir_fd=directory)
@@ -281,7 +298,7 @@ def require_local_clear(directory, now, last_capture_started):
     attempted = utc(attempt["at"], now, LOCAL_HOLD)
     require(attempt["status"] != "unconfirmed" or last_capture_started > attempted,
             "HOLD_PRIOR_DISPATCH_UNCONFIRMED")
-    require(now - attempted > RECENT, "HOLD_LOCAL_ATTEMPT_RECENT")
+    require(now - attempted > delay, "HOLD_LOCAL_ATTEMPT_RECENT")
     require(last_capture_started > attempted, "HOLD_PRIOR_DISPATCH_OUTCOME_UNVERIFIED")
 
 
@@ -299,20 +316,25 @@ def save_attempt(folder, directory, now, status):
         Path(temporary.name).unlink(missing_ok=True)
 
 
-def supervised_dispatch(gh, report, state_dir, now, capture, workflow_id, head):
+def supervised_dispatch(gh, report, state_dir, now, capture, workflow_id, head, *, delay, clock):
     try:
         with attempt_lock(state_dir) as directory:
-            require_local_clear(directory, now, capture[1])
+            require_local_clear(directory, now, capture[1], delay)
             require(active_workflow(gh) == workflow_id, "HOLD_WORKFLOW_METADATA")
             require(latest_capture(gh, workflow_id, now) == capture, "HOLD_CAPTURE_HISTORY_MOVED_NO_DISPATCH")
             require_idle(gh, workflow_id)
             require(main_head(gh) == head, "HOLD_MAIN_MOVED_NO_DISPATCH")
-            save_attempt(state_dir, directory, now, "unconfirmed")
+            attempted = clock() if clock is not None else now
+            require(isinstance(attempted, datetime) and attempted.utcoffset() is not None
+                    and attempted >= now, "HOLD_CAPTURE_CLOCK_CHANGED_NO_DISPATCH")
+            require(delay == RECENT or attempted.astimezone(JST).date() == now.astimezone(JST).date(),
+                    "HOLD_CAPTURE_JST_DAY_CHANGED_NO_DISPATCH")
+            save_attempt(state_dir, directory, attempted, "unconfirmed")
             report["dispatch_attempted"] = True
             try:
                 gh(("workflow", "run", WORKFLOW, "--repo", f"github.com/{REPO}", "--ref", "main",
                     "-f", "mode=official-continue"))
-                save_attempt(state_dir, directory, now, "accepted")
+                save_attempt(state_dir, directory, attempted, "accepted")
             except (OSError, subprocess.SubprocessError, Hold):
                 raise Hold("HOLD_DISPATCH_UNCONFIRMED") from None
     except OSError:
@@ -320,7 +342,7 @@ def supervised_dispatch(gh, report, state_dir, now, capture, workflow_id, head):
     return "DISPATCHED_OFFICIAL_CONTINUE"
 
 
-def supervise(gh, *, now, dispatch=False, state_dir=None):
+def supervise(gh, *, now, dispatch=False, state_dir=None, clock=None):
     report = {"schema": SCHEMA, "dispatch_attempted": False}
     try:
         repo = metadata(gh, REPO_API)
@@ -334,15 +356,17 @@ def supervise(gh, *, now, dispatch=False, state_dir=None):
         capture = latest_capture(gh, workflow_id, now)
         run, _, finished = capture
         report.update(last_actual_capture_run_id=run["id"], last_actual_capture_at=finished.isoformat())
-        require_safe_capture(gh, run, finished, now)
-        if now - finished <= RECENT:
+        delay = require_safe_capture(gh, capture, now)
+        report["recovery_delay_minutes"] = delay // timedelta(minutes=1)
+        if now - finished <= delay:
             decision = "SKIP_RECENT_OFFICIAL_SP_CAPTURE"
         elif not dispatch:
             decision = "WOULD_DISPATCH_OFFICIAL_CONTINUE"
         else:
             if state_dir is None:
                 state_dir = Path.home() / "Library/Application Support/RACE-AI/keirin-production-watch/state"
-            decision = supervised_dispatch(gh, report, state_dir, now, capture, workflow_id, head)
+            decision = supervised_dispatch(gh, report, state_dir, now, capture, workflow_id, head,
+                                           delay=delay, clock=clock)
     except Hold as exc:
         decision = str(exc)
     except (OSError, subprocess.SubprocessError):
@@ -356,7 +380,11 @@ def main(argv=None):
     parser.add_argument("--dispatch", action="store_true",
                         help="Allow the existing official-continue dispatch when all checks pass")
     args = parser.parse_args(argv)
-    report = supervise(call_gh, now=datetime.now(timezone.utc), dispatch=args.dispatch)
+
+    def clock():
+        return datetime.now(timezone.utc)
+
+    report = supervise(call_gh, now=clock(), dispatch=args.dispatch, clock=clock)
     print(json.dumps(report, sort_keys=True))
     return 0
 
