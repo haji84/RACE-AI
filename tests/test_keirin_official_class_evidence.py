@@ -99,15 +99,21 @@ class ClassEvidenceTests(unittest.TestCase):
             self.assertEqual(session.calls, [])
 
     def test_official_girls_round_forms_can_be_safely_reported_without_admission(self):
-        labels = ('ガールズ予選1', 'ガ予2', 'ガールズ予選1 架空選手')
-        inventory, details = self.fixture(labels)
-        out = self.api().collect_unknown_class_evidence(session=SourceSession(details),
-                                                       inventory=inventory, clock=lambda: AT)
-        self.assertEqual([row['class_label'] for row in out['safe_summary']],
-                         ['ガールズ予選1', 'ガ予2', 'UNRECOGNIZED_CLASS_LABEL'])
-        self.assertTrue(all(row['grades'] == ['L1'] for row in out['safe_summary']))
-        self.assertTrue(all(row['prediction_admitted'] is False for row in out['safe_summary']))
-        self.assertEqual(out['model_generation'], 0)
+        cases = (
+            (('ガールズ予選1', 'ガ予2', 'ガールズ予選1 架空選手'),
+             ['ガールズ予選1', 'ガ予2', 'UNRECOGNIZED_CLASS_LABEL']),
+            (('ガールズ予選（第１走）', 'ガールズ予選（第２走）', 'ガールズ予選（第９走）'),
+             ['ガールズ予選(第1走)', 'ガールズ予選(第2走)', 'UNRECOGNIZED_CLASS_LABEL']),
+        )
+        for labels, expected in cases:
+            with self.subTest(labels=labels):
+                inventory, details = self.fixture(labels)
+                out = self.api().collect_unknown_class_evidence(session=SourceSession(details),
+                                                               inventory=inventory, clock=lambda: AT)
+                self.assertEqual([row['class_label'] for row in out['safe_summary']], expected)
+                self.assertTrue(all(row['grades'] == ['L1'] for row in out['safe_summary']))
+                self.assertTrue(all(row['prediction_admitted'] is False for row in out['safe_summary']))
+                self.assertEqual(out['model_generation'], 0)
 
     def test_denial_stops_remaining_class_evidence_and_never_exposes_exception(self):
         inventory, details = self.fixture()

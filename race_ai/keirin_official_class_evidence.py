@@ -15,9 +15,11 @@ from . import keirin_official_form_history as form
 
 
 SCHEMA = 'RACE_AI_KEIRIN_UNADMITTED_CLASS_EVIDENCE_V1'
-# Official program documents use both compressed and full Girls qualifier names.
-# These forms can be reported as source evidence; admission uses OBSERVED_CLASSES.
-LABEL = re.compile(r'(?:[ASL]級[一-鿿ぁ-ゟ゠-ヿーA-C0-9 ]{1,32}|(?:ガールズ予選|ガ予)[12])')
+# Official program documents also use "ガールズ予選（第1走）" and "ガールズ予選（第2走）".
+# These normalized forms are limited to evidence reporting; admission uses OBSERVED_CLASSES.
+LABEL = re.compile(
+    r'(?:[ASL]級[一-鿿ぁ-ゟ゠-ヿーA-C0-9 ]{1,32}|(?:ガールズ予選|ガ予)[12]|(?:L級)?ガールズ予選\(第[12]走\))'
+)
 GRADE = re.compile(r'A[123]|S[12S]|L1|[ASL]級[123S]班')
 
 
