@@ -57,7 +57,7 @@ A級3班・L級・9車等は改善していない。区分を見て今回のモ�
 
 [PR #333](https://github.com/haji84/RACE-AI/pull/333)をmainへ統合。既存の公開結果更新workflowが完了すると、同じ暗号原本を既存鍵で再検証し、同じGit commitの出走表・結果へ照合する。取得側が一部失敗しても保存済み確認部分を使い、未取得は保留する。新しい源泉取得や権限変更、重みの採用はない。自動対象は今回の固定10件で、全国全レースの新B自動生成まで完了したという意味ではない。自動実行は最終掲載締切から6時間までに限定し、後日の手動監査は維持する。
 
-[main統合後run 45633700634](https://github.com/haji84/RACE-AI/actions/runs/45633700634)で復号から採点まで成功。さらに[結果更新による自動実行45634329984](https://github.com/haji84/RACE-AI/actions/runs/45634329984)でも完走した（`workflow_run`）。10件中9件の2媒体一致結果では、三連単Top4は両モデル3件、二車単Top2は両モデル2件で改善差は未確認。残り1件は結果待ち。[実行結果](evidence/keirin-live-accuracy-closure-20261125/automatic-forward-score.json)・[自動起動の証拠](evidence/keirin-live-accuracy-closure-20261125/automatic-trigger-proof.json)は件数・SHA・取得元commitだけを保存し、原本・氏名・買い目・確率・鍵を公開しない。展開原本不足、実主催者締切未認証、公式結果未認証を独立して明示する。
+[main統合後run 45633700634](https://github.com/haji84/RACE-AI/actions/runs/45633700634)で復号から採点まで成功。さらに[結果更新による自動実行45634329984](https://github.com/haji84/RACE-AI/actions/runs/45634329984)でも完走した（`workflow_run`）。最終の[run 45636908765](https://github.com/haji84/RACE-AI/actions/runs/45636908765)では10件すべてを2媒体一致結果に照合し、三連単Top4は保存B3件→比較B4件、二車単Top2は両モデル3件だった。10件の1件増加は統計的な改善の証明としない。最初の取得確認は復号前に停止したが、同じ不変資料・同じ結果commitでの再読取りと再実行は成功。最初のHTTP応答と停止対象は当時のエラーに含まれず原因不明であり、推測で確定しない。[実行結果](evidence/keirin-live-accuracy-closure-20261125/automatic-forward-score.json)・[自動起動の証拠](evidence/keirin-live-accuracy-closure-20261125/automatic-trigger-proof.json)は件数・SHA・取得元commitだけを保存し、原本・氏名・買い目・確率・鍵を公開しない。展開原本不足、実主催者締切未認証、公式結果未認証を独立して明示する。
 
 ## 当日画面と採点
 
@@ -68,6 +68,10 @@ A級3班・L級・9車等は改善していない。区分を見て今回のモ�
 13:43 UTC取得の2媒体一致結果では、10件中4件を照合し、三連単4点・二車単2点はどちらのモデルも2件。他は結果待ち。保存済みの展開原本がないため展開の一致を加算しない。[途中の採点](evidence/keirin-live-accuracy-closure-20261125/forward-score-1350.json)・[同一原本の復号との接続](evidence/keirin-live-accuracy-closure-20261125/live-chain-progress.json)。少数の的中・不的中で重みを変更しない。
 
 ## 次の継続作業と未達
+
+全国の現在登録名簿246ページ・10区分を通常取得し、2,416の公式登録番号を確認した。既存 `IdentityIndex` と `HistoryBook` を使い、2,416人の基礎カルテを生成・私用領域で読戻し。2,393人に211,212件の数値着順があり、23人は観測着順なし。取得範囲は約14か月で、完全な3年分ではない。4,421件の名寄せ不足、2,718件の事故等・非数値着順、178件の結果不足を分けて保持する。今回取得した登録級班と過去走の級班を分離し、登録名簿を過去時点の入力として認証しない。[名簿の検証](evidence/keirin-live-accuracy-closure-20261125/official-registry-verification.json)・[カルテの実集計](evidence/keirin-live-accuracy-closure-20261125/basic-dossiers.json)
+
+当日75レース516人も、保存した出走表と新しい掲載資料の氏名・車番・期別・府県を照合して公式番号へ結んだ。元の出走表の実バイトSHAへ結ぶ別の履歴資料を作り、全期間・3年・1年・6/4/3/1か月と直近30/20/10/5走を既存集計から表示できる。516人・46,028着順で画面モデルと保存予想不変を検査した。すべて締切後の資料であり、締切前予想の入力や実績へ追加しない。観測走数と欠損・取得時点を示し、実績率を今回の予測確率や能力値として扱わない。[生成と欠損](evidence/keirin-live-accuracy-closure-20261125/rider-history-build.json)・[実データの表示検査](evidence/keirin-live-accuracy-closure-20261125/rider-history-display-readback.json)
 
 1. 固定した未来10件と、先行作業で固定された11月26日の比較群を、同一入力と点数で継続採点する。新しい情報で元の予想を書き換えず、公開旧Bと今回の順位比較を混同しない。
 2. 締切後に補った8件を次回は締切前に収集し、独立取得できない登録番号・履歴・コメントを項目別に補う。長期能力と直近の調子、全戦術の試行分母、映像の連続イベント、バンク・気象・連係への接続は全条件で完成していない。

@@ -1,8 +1,8 @@
 /* Owner-provided Site view adapter. Original/revised/research records stay separate. */
 (function(root,factory){
-  if(typeof module==='object'&&module.exports)module.exports=factory(require('./keirin-note-source/staking_flexible.js'),require('./confidence.js'),require('./keirin-joint-forecast.js'));
-  else root.RaceKeirinNote=factory(root.KeirinStaking,root.RaceKeirinConfidence,root.RaceKeirinJointForecast);
-})(typeof window==='object'?window:globalThis,function(staking,confidence,joint){
+  if(typeof module==='object'&&module.exports)module.exports=factory(require('./keirin-note-source/staking_flexible.js'),require('./confidence.js'),require('./keirin-joint-forecast.js'),require('./keirin-rider-history.js'));
+  else root.RaceKeirinNote=factory(root.KeirinStaking,root.RaceKeirinConfidence,root.RaceKeirinJointForecast,root.RaceKeirinRiderHistory);
+})(typeof window==='object'?window:globalThis,function(staking,confidence,joint,history){
   'use strict';
   const SCHEMA='RACE_AI_KEIRIN_NOTE_VIEW_V1',OUTER='RACE_AI_SAVED_WEB_VIEW_V1';
   const LIMIT=64*1024*1024,encoder=new TextEncoder();
@@ -368,7 +368,15 @@
       const value=JSON.parse(entry.text);parsed.set(path,value);fileShas.set(path,entry.sha256);
     }
     const results=await resultRecords(parsed,fileShas,cipherSha,packet.dates),days=new Map(packet.dates.slice().sort().map(date=>[date,normalize(date,parsed,fileShas,cipherSha,results)]));
-    for(const [date,rows] of days)await jointSupplements(date,parsed,fileShas,rows,packet.files);
+    for(const [date,rows] of days){
+      await jointSupplements(date,parsed,fileShas,rows,packet.files);
+      const path='data/'+date+'/', sidecar=path+'rider_histories.json';
+      if(parsed.has(sidecar)){
+        need(history);
+        const roster=parsed.has(path+'races.json')?path+'races.json':'data/races.json';
+        history.attach(parsed.get(sidecar),rows,date,fileShas.get(roster),{utc,instantMicros,day});
+      }
+    }
     const updates=new Map([...days.keys()].map(date=>[date,resultUpdates(date,parsed)]));
     const frozen=new Map([...days.keys()].map(date=>[date,frozenForecasts(date,parsed)]));
     const nationwide=new Map([...days.keys()].flatMap(date=>{const doc=nationwideDay(date,parsed);return doc?[[date,doc]]:[];}));
