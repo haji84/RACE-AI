@@ -1,8 +1,8 @@
 # 選手詳細分析指示書との照合・引継ぎ（2026-11-25）
 
-**引継ぎ済み。全体完成は未達。** [開発基準](https://github.com/haji84/RACE-AI/blob/6b30e6368216519cb55232f417462caffc6c57f6/docs/KEIRIN_DETAILED_DEVELOPMENT_SPEC_20261125.md)を今後の要求として採用する。下表はコードの存在と実データ・本番受入を分けたものであり、既存の研究結果を再実施済みとするものではない。
+**引継ぎ済み。全体完成は未達。** [開発基準](KEIRIN_DETAILED_DEVELOPMENT_SPEC_20261125.md)を今後の要求として採用する。下表はコードの存在と実データ・本番受入を分けたものであり、既存の研究結果を再実施済みとするものではない。
 
-**実装継続の最新記録：** [着順確率・比較・独立復号](https://github.com/haji84/RACE-AI/blob/6b30e6368216519cb55232f417462caffc6c57f6/docs/KEIRIN_JOINT_FORECAST_CONTINUATION_20261125.md)。PR #330/#331をmainへ統合し、既存GitHub Pagesに選手詳細を反映。確認対象75レース516出走の確率を配信し、締切前10件と事後参考65件を分離。別ランナーで実原本10組を既存鍵から独立に復号した。既知期間3,201件の再現では三連単Top4が28.99%→29.58%だが、A3・L・9車等は改善せず、独立した未来での精度向上や全国完成とは判定しない。
+**実装継続の最新記録：** [着順確率・比較・独立復号](KEIRIN_JOINT_FORECAST_CONTINUATION_20261125.md)。PR #330/#331をmainへ統合し、既存GitHub Pagesに選手詳細を反映。確認対象75レース516出走の確率を配信し、締切前10件と事後参考65件を分離。別ランナーで実原本10組を既存鍵から独立に復号した。既知期間3,201件の再現では三連単Top4が28.99%→29.58%だが、A3・L・9車等は改善せず、独立した未来での精度向上や全国完成とは判定しない。
 
 **11月26日00時04分 JSTの追加実装：** PR #333/#334もmainへ統合。公開結果更新から固定原本の採点を起動し、10件すべてで三連単Top4は保存3→比較4、二車単Top2は両方3。少数例のため改善実証とはしない。現在登録2,416人の基礎カルテを生成し、2,393人・211,212着順を読戻した。11月25日の75件516人には46,028着順の期間別・直近履歴を、出走表SHAと公式番号を照合する別の締切後資料として追加。GitHub Pagesの14資産と暗号化配信を確認した。約14か月の確認範囲であり、全能力・全国自動更新の完成とは区別する。[実集計](https://github.com/haji84/RACE-AI/blob/6b30e6368216519cb55232f417462caffc6c57f6/docs/evidence/keirin-live-accuracy-closure-20261125/basic-dossiers.json)・[履歴配信](https://github.com/haji84/RACE-AI/blob/6b30e6368216519cb55232f417462caffc6c57f6/docs/evidence/keirin-live-accuracy-closure-20261125/rider-history-publication.json)・[実HTTP](https://github.com/haji84/RACE-AI/blob/6b30e6368216519cb55232f417462caffc6c57f6/docs/evidence/keirin-live-accuracy-closure-20261125/rider-history-pages-live-readback.json)
 
@@ -51,7 +51,7 @@ PR #335のmain実行で、既存の所有者鍵を使う全国カルテ・名簿
 | 26 完成判定 | コード・研究・本番証拠を本表で分離 | 全国完成・前向き精度改善は未証明。CI合格を代用しない |
 | 27 引継ぎ | 本書・要求整理・コード・テスト・実事例・出典SHAをGitHubへ保存 | 後続も実装／採点／採否／未達を更新する |
 
-追加6能力（捲り抵抗、番手自力、並走持続、戦術切替、消耗後末脚、内外位置別）は[要求の第3節](https://github.com/haji84/RACE-AI/blob/6b30e6368216519cb55232f417462caffc6c57f6/docs/KEIRIN_DETAILED_DEVELOPMENT_SPEC_20261125.md#追加必須能力)へ保存した。先行更新の`keirin_tactical_observations.py`は機会分母と未確認・矛盾を扱うが、全能力が全国で測定済みという意味ではない。UIに表示する未観測項目を架空のスコアで埋めない。
+追加6能力（捲り抵抗、番手自力、並走持続、戦術切替、消耗後末脚、内外位置別）は[要求の第3節](KEIRIN_DETAILED_DEVELOPMENT_SPEC_20261125.md#追加必須能力)へ保存した。先行更新の`keirin_tactical_observations.py`は機会分母と未確認・矛盾を扱うが、全能力が全国で測定済みという意味ではない。UIに表示する未観測項目を架空のスコアで埋めない。
 
 ## 11月25日夜の再照合
 
