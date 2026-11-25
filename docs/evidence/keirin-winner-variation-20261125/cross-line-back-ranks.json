@@ -1,0 +1,23 @@
+{
+  "cases_without_single_exact_B_line_passage_rank": 2,
+  "direct_rank_witnesses": 3,
+  "limitations": "Ranks are at the original video witness times. The exact physical B line crossing is not separately calibrated. Adjacent timestamps verify identities and gaps when visible. The Fukui case changes rank between its two B witnesses and must remain one race with two timestamps. The original study pair/threshold stays fixed. These retrospectively selected examples can support phase-supervised training labels, without supplying observed current-race positions at prediction time.",
+  "model_fit": false,
+  "observations_sha256": "b5a11ed132a50ec721c19fcb355af8f6052c4f5ef90ae1f0dc6ebbc7780b62f3",
+  "observed_at": "2026-11-25T13:32:52.549070+00:00",
+  "ordinary_players_available": 2,
+  "outcome_fetched_or_used": false,
+  "rank_observations_per_venue": {
+    "川崎": {
+      "52.100s": 3
+    },
+    "福井": {
+      "45.658s": 5,
+      "49.658s": 4
+    }
+  },
+  "selected_races": 2,
+  "source_corpus_sha256": "3e2d0e38d0b40eec13a6cc0e326962d27d2fd99bed7fde82eed70565459143aa",
+  "source_review_plan_sha256": "308834d32a8fdcd50f75aaed576343942f11121ebcd97dd3bdd0b5ea30856c0f",
+  "source_rows_sha256": "dac0a7c437b941c34d384af4d1a72d8b479be465bd9420ab52e0b52721ebaa5d"
+}

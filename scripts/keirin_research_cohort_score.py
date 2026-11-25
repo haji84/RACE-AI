@@ -132,8 +132,34 @@ def _official_note_context(raw, day):
         race, _ = official._evidence_race(row['provenance']['schedule_evidence'], key)
         result[key] = dict(cutoff_at=final['official_cutoff_at'],
                            starters={rider['car'] for rider in race['starters']},
+                           registrations={str(rider['car']): rider['registration_id'] for rider in race['starters']},
                            winning_triple=final['winning_triples'][0])
     return result
+
+
+def _read_frozen_identities(directory, entry, read_commitment, day):
+    raw = (directory / entry['original']).read_bytes()
+    digest = ledger._digest(raw)
+    recorded_at, receipt_raw = ledger._lookup(entry['git_commit'], entry['git_path'], digest, read_commitment)
+    doc, receipt = json.loads(raw), json.loads(receipt_raw)
+    need(doc['schema'] == 'KEIRIN_FROZEN_RIDER_IDENTITIES_V1' and
+         receipt['schema'] == 'KEIRIN_FROZEN_RIDER_IDENTITIES_RECEIPT_V1' and
+         day == doc['date'] == receipt['date'] and receipt['identity_manifest_sha256'] == digest,
+         'FROZEN_RIDER_IDENTITY_RECEIPT_MISMATCH')
+    witness = instant(recorded_at)
+    rows = keirin_forward_score.unique_races(doc)
+    need(len(rows) == receipt['registered_races'] and
+         sum(len(row['starter_registrations']) for row in rows.values()) == receipt['starter_appearances'] and
+         instant(receipt['assembled_at']) <= witness, 'FROZEN_RIDER_IDENTITY_COHORT_MISMATCH')
+    for key, row in rows.items():
+        mapping = row['starter_registrations']
+        need(re.fullmatch(day.replace('-', '') + r'\d{4}', key) and
+             type(mapping) is dict and 4 <= len(mapping) <= 9 and
+             all(re.fullmatch(r'[1-9]', car) and type(registration) is str and
+                 re.fullmatch(r'\d{6}', registration) for car, registration in mapping.items()) and
+             len(set(mapping.values())) == len(mapping) and witness < instant(row['cutoff_at']),
+             'FROZEN_RIDER_IDENTITY_ROW_MISMATCH')
+    return rows, witness, digest
 
 
 def _note_result_scope(rows, witnesses, day, raw, index_raw, index_time, official_raw=None):
@@ -167,6 +193,8 @@ def _note_result_scope(rows, witnesses, day, raw, index_raw, index_time, officia
         proof = official.get(key)
         if proof and proof['starters'] != set(row['starter_cars']):
             exclusions['official_starter_numbers_changed'] += 1
+        elif proof and 'starter_registrations' in row and proof['registrations'] != row['starter_registrations']:
+            exclusions['official_rider_registrations_changed'] += 1
         elif proof and witnesses[key] >= instant(proof['cutoff_at']):
             exclusions['witness_at_or_after_official_cutoff'] += 1
         else:
@@ -196,9 +224,22 @@ def _note_comparison(manifest, directory, read_commitment, baseline, challengers
     official_raw = ((directory / manifest['official_result_records']).read_bytes()
                     if 'official_result_records' in manifest else None)
     witness = max(arm['witness'] for arm in [baseline, *challengers])
+    rows = {key:baseline['rows'][key] for key in registered}
+    if 'frozen_identities' in manifest:
+        entry = manifest['frozen_identities']
+        identities, identity_witness, digest = _read_frozen_identities(directory, entry, read_commitment, baseline['day'])
+        need(rows.keys() <= identities.keys(), 'FROZEN_RIDER_IDENTITY_COHORT_MISMATCH')
+        for key, row in rows.items():
+            bound = identities[key]
+            mapping = bound['starter_registrations']
+            need(instant(bound['cutoff_at']) == instant(row['cutoff_at']) and
+                 set(map(int, mapping)) == set(row['starter_cars']), 'FROZEN_RIDER_ORIGINAL_MISMATCH')
+            rows[key] = dict(row, starter_registrations=mapping)
+        witness = max(witness, identity_witness)
+        report = dict(report, starter_evidence='official_registration_ids_and_car_numbers',
+                      frozen_identity_sha256=digest, frozen_identity_witness=entry['git_commit'])
     cohort, winners, excluded, proof = _note_result_scope(
-        {key:baseline['rows'][key] for key in registered}, dict.fromkeys(registered, witness), baseline['day'],
-        raw, index_raw, index_time, official_raw,
+        rows, dict.fromkeys(registered, witness), baseline['day'], raw, index_raw, index_time, official_raw,
     )
     return dict(report, status='OWNER_NOTE_TRIFECTA_CHECKED', note_index_commit=revision, **proof,
                 result_scope='owner-only archived 3T consensus requires a reparsed official result for scoring',
@@ -288,7 +329,7 @@ def collect(manifest, directory, read_commitment):
     if 'note_results' in manifest:
         need('roster' not in manifest and 'results' not in manifest, 'COHORT_RESULT_SOURCE_MIXED')
         return _note_comparison(manifest, directory, read_commitment, baseline, challengers, registered, exclusions, report)
-    need('note_index_commit' not in manifest and 'official_result_records' not in manifest,
+    need(not {'note_index_commit', 'official_result_records', 'frozen_identities'}.intersection(manifest),
          'COHORT_REQUIRES_NOTE_READBACK')
     need(('roster' in manifest) == ('results' in manifest), 'COHORT_REQUIRES_BOTH_PUBLIC_FILES')
     if 'roster' not in manifest:

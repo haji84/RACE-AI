@@ -270,10 +270,37 @@ class ResearchCohortTests(unittest.TestCase):
         def context():
             return cohort._official_note_context(json.dumps(private_snapshot_json({'races':[record]})), DAY)
 
-        self.assertEqual(context(), {RACE: dict(cutoff_at=DAY+'T10:47:00+09:00',
-                                               starters=set(range(1,8)), winning_triple=[1,2,3])})
+        self.assertEqual(context(), {RACE: dict(cutoff_at=DAY+'T10:47:00+09:00', starters=set(range(1,8)),
+                                               registrations={str(car):f'999{car:03d}' for car in range(1,8)},
+                                               winning_triple=[1,2,3])})
         record['result']['winning_triples'] = [[2,1,3]]
         self.assertEqual(context(), {})
+
+    def test_confirmed_same_car_numbers_do_not_hide_a_rider_replacement(self):
+        first, _ = self.use_note_results()
+        path = 'docs/evidence/cohort/frozen-riders-receipt.json'
+        identities = dict(schema='KEIRIN_FROZEN_RIDER_IDENTITIES_V1', date=self.day,
+                          races=[dict(race_id=r['race_id'], cutoff_at=r['cutoff_at'],
+                                      starter_registrations={str(c):f'999{c:03d}' for c in r['starter_cars']})
+                                 for r in self.initial['races']])
+        digest = self.save('identities.owner.json', identities)
+        receipt = dict(schema='KEIRIN_FROZEN_RIDER_IDENTITIES_RECEIPT_V1', date=self.day,
+                       identity_manifest_sha256=digest, assembled_at=self.day+'T05:04:00Z',
+                       registered_races=5, starter_appearances=20)
+        self.git['e'*40, path] = (self.day+'T05:05:00Z', json.dumps(receipt).encode())
+        self.manifest.update(frozen_identities=dict(original='identities.owner.json', git_commit='e'*40, git_path=path),
+                             official_result_records='official.json')
+        self.save('official.json', {'races':[]})
+        actual = {first: dict(cutoff_at=self.day+'T07:00:00Z', starters={1,2,3,4}, winning_triple=[3,1,2],
+                              registrations={str(c):f'999{c:03d}' for c in (1,2,3,4)})}
+        with patch.object(cohort, '_official_note_context', return_value=actual):
+            self.assertEqual(self.collect()['official_roster_verified_races'], 1)
+        actual[first]['registrations']['4'] = '888008'
+        with patch.object(cohort, '_official_note_context', return_value=actual):
+            report = self.collect()
+        self.assertEqual(report['exclusions'], {'official_rider_registrations_changed':1})
+        self.assertEqual(report['official_roster_verified_races'], 0)
+        self.assertEqual(report['comparisons']['existing_published_line'][8]['scored'], 0)
 
 
 if __name__ == '__main__':
