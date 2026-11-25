@@ -1,0 +1,10 @@
+{
+  "frozen_utc": "2026-11-25T08:46:47.560733+00:00",
+  "first_cutoff": "2026-11-25T17:58:00+09:00",
+  "races": 33,
+  "changed": 0,
+  "sha256": "5d4ba48b7405d29a1b230d2867e2cdf0ceac61daf9fcd29f4929a54d8226254e",
+  "coefs": "bd95e2a97357d7ab1d386ec92b50d147fe7f4abedee09afa7648f24fc1ab89a8",
+  "method_sha256": "95d4c7badb7a3498016ec15d5449f92f47e99f211a86031a98788598790bf543",
+  "original_receipt_sha256": "9e47d0077834f4ea89e623aa039e8108856683eb33caec9857ce0936a47f19d1"
+}
