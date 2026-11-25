@@ -50,6 +50,8 @@ def _source(raw, expected):
 # first-day special selection cards in the same A1/A2 scoring group.
 # Run 45700002485 observed seven-rider future cards for the S preliminary
 # (S2) and first-day special selection (S1).
+# Run 45718096969 verified the exact Girls first-heat label and a seven-rider
+# L1 card for Matsudo 1R.
 # A label never supplies a qualification rule or any missing card input.
 OBSERVED_CLASSES = {
     'A級チャレンジ予選': 'CHALLENGE',
@@ -78,6 +80,7 @@ OBSERVED_CLASSES = {
     'S級特別優秀': 'S',
     'S級決勝': 'S',
     'L級ガールズ予選': 'GIRLS',
+    'L級ガールズ予選(第1走)': 'GIRLS',
     'L級ガールズ準決勝': 'GIRLS',
     'L級ガールズ選抜': 'GIRLS',
     'L級ガールズ特選': 'GIRLS',

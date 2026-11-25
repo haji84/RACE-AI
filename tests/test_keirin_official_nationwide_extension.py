@@ -278,6 +278,28 @@ class NationwideExtensionTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, 'CLASS_OR_ROUND_NOT_YET_OBSERVED'):
             ext.build_baseline_candidate(**self.labelled_arguments('UNRECOGNIZED_CLASS_LABEL', 'GIRLS'))
 
+    def test_observed_girls_first_heat_uses_the_existing_girls_baseline(self):
+        args = self.labelled_arguments('Ｌ級ガールズ予選（第１走）', 'GIRLS')
+        snapshot = ext.build_baseline_candidate(**args)['snapshot']
+        self.assertEqual(snapshot['competition'], 'GIRLS')
+        self.assertEqual(snapshot['round_stage'], 'L級ガールズ予選(第1走)')
+        self.assertIsNone(snapshot['round_rule'])
+        self.assertEqual(snapshot['line_groups'], [[car] for car in range(1, 8)])
+        forecast = ext.core.generate_A_B(snapshot, generated_at=args['now'].isoformat())
+        self.assertTrue(forecast['A']['ranked_tickets'])
+        self.assertTrue(forecast['B']['ranked_tickets'])
+
+        card = args['card_arguments']
+        card['detail_raw'] = card['detail_raw'].replace(b'"kyuhan": "L1"', b'"kyuhan": "A2"', 1)
+        card['detail_sha256'] = sha256(card['detail_raw']).hexdigest()
+        with self.assertRaisesRegex(ValueError, 'CARD_CLASS_DISAGREEMENT'):
+            ext.build_baseline_candidate(**args)
+
+    def test_girls_second_heat_stays_held_until_observed(self):
+        args = self.labelled_arguments('L級ガールズ予選(第2走)', 'GIRLS')
+        with self.assertRaisesRegex(ValueError, 'CLASS_OR_ROUND_NOT_YET_OBSERVED'):
+            ext.build_baseline_candidate(**args)
+
     def test_observed_a_rounds_feed_the_existing_baseline_a_and_b(self):
         cases=(('A級チャレンジ予選','CHALLENGE',('A3',)),
                ('A級予選','A1_A2',('A1','A2')),
