@@ -1,4 +1,5 @@
 from io import BytesIO
+from email.message import Message
 import unittest
 from urllib.error import HTTPError, URLError
 
@@ -20,18 +21,41 @@ class Response(BytesIO):
 
 
 class JointReadbackHttpTests(unittest.TestCase):
-    def read(self, responses, *, url=URL, limit=10):
-        self.requests, self.delays = [], []
+    def read(self, responses, *, url=URL, limit=10, token=None):
+        self.requests, self.delays, self.auth_headers = [], [], []
         remaining = iter(responses)
 
         def open_request(request, *, timeout):
             self.requests.append((request.full_url, timeout))
+            self.auth_headers.append(request.get_header('Authorization'))
             result = next(remaining)
             if isinstance(result, Exception):
                 raise result
             return result
 
-        return readback.get(url, limit, open_request=open_request, pause=self.delays.append)
+        return readback.get(url, limit, token=token, open_request=open_request, pause=self.delays.append)
+
+    def test_existing_read_token_is_used_only_for_canonical_api_requests(self):
+        api = 'https://api.github.com/repos/haji84/RACE-AI/actions/runs/123/jobs'
+        self.assertEqual(self.read([Response(url=api)], url=api, token='PRIVATE_TOKEN_CANARY'), b'{}')
+        self.assertEqual(self.auth_headers, ['Bearer PRIVATE_TOKEN_CANARY'])
+        self.assertEqual(self.read([Response()], token='PRIVATE_TOKEN_CANARY'), b'{}')
+        self.assertEqual(self.auth_headers, [None])
+
+    def test_authentication_never_falls_back_or_retries_a_denial(self):
+        api = 'https://api.github.com/repos/haji84/RACE-AI/actions/runs/123/jobs'
+        with self.assertRaises(readback.ReadbackError) as caught:
+            self.read([HTTPError(api, 403, 'PRIVATE_TOKEN_CANARY', {}, None), Response(url=api)],
+                      url=api, token='PRIVATE_TOKEN_CANARY')
+        self.assertEqual(len(self.requests), 1)
+        self.assertEqual(self.delays, [])
+        self.assertNotIn('PRIVATE_TOKEN_CANARY', str(readback.diagnostic('witness_jobs', caught.exception)))
+
+    def test_the_existing_read_token_cannot_be_sent_to_another_repository(self):
+        api = 'https://api.github.com/repos/another/project/actions/runs/123/jobs'
+        with self.assertRaises(readback.ReadbackError):
+            self.read([], url=api, token='PRIVATE_TOKEN_CANARY')
+        self.assertEqual(self.requests, [])
 
     def test_transient_failure_retries_only_the_same_request(self):
         for error in (HTTPError(URL, 502, 'private detail', {}, None), URLError(TimeoutError())):
@@ -62,6 +86,14 @@ class JointReadbackHttpTests(unittest.TestCase):
                 self.read([result])
             self.assertEqual(len(self.requests), 1)
             self.assertEqual(self.delays, [])
+
+    def test_an_empty_retry_after_header_also_stops(self):
+        headers = Message()
+        headers['Retry-After'] = ''
+        with self.assertRaises(readback.ReadbackError):
+            self.read([HTTPError(URL, 503, 'private detail', headers, None), Response()])
+        self.assertEqual(len(self.requests), 1)
+        self.assertEqual(self.delays, [])
 
     def test_other_hosts_and_unsafe_urls_are_not_requested(self):
         for url in ('https://other.example/test', 'http://api.github.com/test', 'https://user@api.github.com/test'):
