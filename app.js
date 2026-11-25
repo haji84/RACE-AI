@@ -3578,7 +3578,7 @@ if (typeof window === 'object' && typeof location === 'object') window.RaceNoteI
 (() => {
   'use strict';
   const M=window.RaceKeirinNote,C=window.RaceKeirinConfidence;
-  const reviewedGrowth = {"historical":{"from":"2026-10-01","to":"2026-11-22","races":3201,"days":48,"hits":{"top1_3t":{"baseline":401,"challenger":428},"top4_3t":{"baseline":928,"challenger":947},"top8_3t":{"baseline":1298,"challenger":1323},"top2_2t":{"baseline":1237,"challenger":1240}},"intervals":{"top4_3t":[0.0006240941083707286,0.01141774882240312],"top2_2t":[-0.004423415677557355,0.005897049978602079]}},"forward":{"day":"2026-11-25","registered":10,"matched":10,"hits":{"top1_3t":{"baseline":2,"challenger":2},"top4_3t":{"baseline":3,"challenger":4},"top8_3t":{"baseline":4,"challenger":4},"top2_2t":{"baseline":3,"challenger":3}}}};
+  const reviewedGrowth = {"historical":{"from":"2026-10-01","to":"2026-11-22","races":3201,"days":48,"hits":{"top1_3t":{"baseline":401,"challenger":428},"top4_3t":{"baseline":928,"challenger":947},"top8_3t":{"baseline":1298,"challenger":1323},"top2_2t":{"baseline":1237,"challenger":1240}},"intervals":{"top4_3t":[0.0006240941083707286,0.01141774882240312],"top2_2t":[-0.004423415677557355,0.005897049978602079]}},"forward":{"day":"2026-11-25","registered":10,"matched":10,"hits":{"top1_3t":{"baseline":2,"challenger":2},"top4_3t":{"baseline":3,"challenger":4},"top8_3t":{"baseline":4,"challenger":4},"top2_2t":{"baseline":3,"challenger":3}}},"replay":{"day":"2026-11-25","race":"\u6b66\u96c41R","frames":12,"riders":6,"agreed":65,"correct":46,"incorrect":7,"abstained":12,"unscorable":7,"official_finish_positions":6,"trial_training_segments":2}};
   if(!M||!C||document.getElementById('keirin-note-dialog'))return;
   const fragment=window.RaceNoteInitialFragment||location.hash;
   const dialog=document.createElement('dialog');dialog.id='keirin-note-dialog';dialog.className='kn-modal';dialog.setAttribute('aria-label','競輪の予想・分析ガイド');
@@ -3731,7 +3731,7 @@ if (typeof window === 'object' && typeof location === 'object') window.RaceNoteI
     panel.hidden=!data||!reviewedGrowth;
     if(panel.hidden){panel.open=false;content.textContent='';return;}
     if(content.hasChildNodes())return;
-    const {historical,forward}=reviewedGrowth;
+    const {historical,forward,replay}=reviewedGrowth;
     const interval=key=>historical.intervals[key].map(value=>signedGrowth(value*100,2)).join('〜')+'ポイント';
     content.innerHTML=`<section aria-labelledby="kn-growth-historical"><h2 id="kn-growth-historical">既知期間の再現</h2>
       <p class="kn-small">${esc(historical.from)}〜${esc(historical.to)} · ${historical.races.toLocaleString('ja-JP')}件</p>
@@ -3743,6 +3743,10 @@ if (typeof window === 'object' && typeof location === 'object') window.RaceNoteI
       <p>原本を別の実行環境で復号し、2媒体で一致した結果を同じ点数で採点しました。</p>
       ${growthTable(forward.hits,'kn-growth-forward')}
       <p class="kn-small">主催者による締切・公式結果の認証は未確認です。</p></section>
+      <section aria-labelledby="kn-growth-replay"><h2 id="kn-growth-replay">映像検証</h2>
+      <p class="kn-small">${esc(replay.day)} · ${esc(replay.race)} · ${replay.frames}フレーム・${replay.riders}車</p>
+      <p>追跡結果を伏せて別々に行ったAI判読が一致した${replay.agreed}件を照合しました。車番追跡は一致${replay.correct}件、誤り${replay.incorrect}件、判定保留${replay.abstained}件でした。判読できなかった${replay.unscorable}件は集計から外しました。</p>
+      <p>公式着順は${replay.official_finish_positions}車分を別に照合しました。映像で確認した動き${replay.trial_training_segments}件を試験学習に使用し、本番採用は保留です。</p></section>
       <p class="kn-growth-decision">比較Bの採用は保留です。精度向上を判定するには、未使用の複数開催日での比較が必要です。</p>`;
   }
   function renderCards(){

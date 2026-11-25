@@ -7,8 +7,8 @@
       "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
     },
     "app.js": {
-      "bytes": 416592,
-      "sha256": "de8ed42b7e1357275c33d2c1df4959a583fe4f19f840a84bf3d7534548af7878"
+      "bytes": 417579,
+      "sha256": "38d7270f72f1a21fdf4074c1a8ddbaf4e1f7dc871f705ca21d6dc0d2dd7be161"
     },
     "assets/racer-portraits/boat-3415.webp": {
       "bytes": 1071860,
@@ -248,7 +248,7 @@
     },
     "index.html": {
       "bytes": 25839,
-      "sha256": "3782a1621ac8726bbf27b330b65b307987bca96d0e0bc24721d26f3fad69acf4"
+      "sha256": "bb6f0d1510da7fb9686db5dcd55773dfc4ba3e98a5bc9cf58f57eda55b1196c6"
     },
     "product-data.js": {
       "bytes": 58796,
