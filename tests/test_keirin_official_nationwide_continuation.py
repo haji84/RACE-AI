@@ -5,6 +5,7 @@ from hashlib import sha256
 import importlib
 from pathlib import Path
 import json
+import subprocess
 import tempfile
 import unittest
 from unittest.mock import patch, Mock
@@ -273,6 +274,87 @@ class RunnerTests(unittest.TestCase):
         self.assertEqual(assessment,saved['confidence_assessment'])
         self.assertEqual(baseline,saved['baseline'])
         self.assertNotIn('confidence_assessment',baseline)
+
+    def test_publish_loads_only_the_needed_archive_blobs_from_a_temporary_shallow_view(self):
+        from race_ai import keirin_nationwide_forecast_view as view
+
+        api = self.api()
+        with tempfile.TemporaryDirectory() as directory:
+            folder = Path(directory)
+            source, private = folder / 'source', folder / 'private'
+            source.mkdir(); private.mkdir(mode=0o700)
+            def git(*args, cwd=source):
+                return subprocess.check_output(['git', *map(str,args)], cwd=cwd,
+                    stderr=subprocess.DEVNULL, text=True).strip()
+            git('init', '-q')
+            git('switch', '-q', '-c', api.archive.BRANCH)
+            git('config', 'uploadpack.allowFilter', 'true')
+            git('config', 'uploadpack.allowAnySHA1InWant', 'true')
+            irrelevant = source / 'unneeded-ciphertext'
+            irrelevant.write_bytes(b'invented unrelated bytes')
+            blob = git('hash-object', irrelevant)
+            git('add', irrelevant.name)
+            git('-c','user.name=Fixture','-c','user.email=fixture@example.invalid','commit','-qm','initial')
+            inventory, _ = cutoff_fixture()
+            registry = inventory['registry']
+            payload = dict(schema=api.records.DAY_SCHEMA,day_jst=DAY,observed_at=AT.isoformat(),
+                producer_run_id='123456789',producer_commit='a'*40,prior_race_ids=[],registry=registry,
+                inventory={key:inventory[key] for key in ('calendar_receipt','list_sources')},
+                safe_report=dict(day_jst=DAY,registered_races=len(registry['registered_race_ids'])),
+                states=[dict(race_id=rid,state='WAITING_SOURCE_CAPTURE',
+                             condition_state='HISTORY_NOT_COLLECTED')
+                        for rid in registry['registered_race_ids']])
+            raw = api.history.seal_evidence(api.records.wire(payload),self.public,DAY,AT.isoformat())
+            digest = api.history._checked_cipher(raw)['evidence_plaintext_sha256']
+            path = source / api.records.ROOT / DAY
+            path.mkdir(parents=True)
+            (path / (digest+'.sealed.json')).write_bytes(raw)
+            index = dict(api.records._empty(DAY),registry=dict(
+                kind='registry',evidence_sha256=digest,cipher_sha256=sha256(raw).hexdigest(),
+                observed_at=AT.isoformat(),producer_run_id='123456789',producer_commit='a'*40))
+            (path / 'index.json').write_bytes(api.history._canonical(index))
+            git('add', api.records.ROOT)
+            git('-c','user.name=Fixture','-c','user.email=fixture@example.invalid','commit','-qm','registry')
+
+            checked_out = folder / 'protected-checkout'
+            runtime = (checked_out,private,DAY,self.public,'b'*40)
+            command, remote, load = api.archive._cmd, api.archive._remote, api.records.load_admitted_day
+            fetches, views = [], []
+            def local_git(repo,*args,**kwargs):
+                if args[:3] == ('remote','add','origin'):
+                    self.assertEqual(args[3:],(f'https://github.com/{api.archive.REPO}.git',))
+                    args = (*args[:3],source.as_uri())
+                if args[0] == 'fetch':
+                    fetches.append(args)
+                return command(repo,*args,**kwargs)
+            def local_archive(repo,*,synthetic_local):
+                self.assertFalse(synthetic_local)
+                return remote(repo,synthetic_local=True)
+            def read_archive(repo,*args,**kwargs):
+                self.assertEqual(Path(repo).parent,private)
+                views.append(Path(repo))
+                result = load(repo,*args,**kwargs)
+                tracking = f'refs/remotes/origin/{api.archive.BRANCH}'
+                self.assertEqual(git('rev-list','--count',tracking,cwd=repo),'1')
+                self.assertIn('?'+blob,git('rev-list','--missing=print','--objects',tracking,cwd=repo))
+                self.assertEqual(result['registry'],registry)
+                return result
+            with (patch.object(api,'_runtime',return_value=runtime),
+                  patch.object(api.archive,'_cmd',side_effect=local_git),
+                  patch.object(api.archive,'_remote',side_effect=local_archive),
+                  patch.object(api.records,'load_admitted_day',side_effect=read_archive),
+                  patch.object(view,'publish_day',return_value={
+                      'state':'EXISTING_NATIONWIDE_DISPLAY_REUSED','provider_requests':0}) as publish):
+                report=api.run_publish(repo=checked_out,private_root=private,owner_public_pem='/public',
+                    owner_private_pem=self.private,day=DAY,clock=lambda:AT)
+            branch = api.archive.BRANCH
+            self.assertEqual(fetches,[('fetch','--no-tags','--depth=1','--filter=blob:none',
+                '--no-recurse-submodules','origin',f'refs/heads/{branch}:refs/remotes/origin/{branch}')])
+            self.assertEqual(len(views),1)
+            self.assertFalse(views[0].exists())
+            self.assertEqual(publish.call_args.args[0],checked_out)
+            self.assertEqual(publish.call_args.args[1]['registry'],registry)
+            self.assertEqual(report['source_requests'],0)
 
     def test_pending_current_day_rotates_and_newly_due_order_precedes_unit_retry(self):
         api=self.api();context=api.SettlementContext();context.client=object();context.tick=1
