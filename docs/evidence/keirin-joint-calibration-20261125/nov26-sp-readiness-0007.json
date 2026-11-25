@@ -1,0 +1,23 @@
+{
+  "schema": "KEIRIN_REGISTERED_COHORT_SP_OPT_IN_READINESS_V1",
+  "day_jst": "2026-11-26",
+  "registered": 84,
+  "methods": 7,
+  "forecasts_sha256": "9ff66a537d8fed8a1c96c36cf0c0192882cc015f9a00001288496ef7987d8de1",
+  "identity_witness": "de4611e04b15b44c1519c1cb9679b7ed300275fe",
+  "frozen_identity_sha256": "d7f1965c0133b5e55defdc193bad27c17ff9843d11e6ef19d02492c6be931782",
+  "note_index": "29ea0592830ef958022200da2d936b837f749e2c",
+  "note_index_sha256": "36e8c07c6a6a237f02a5e1944da6717fe2c9503e99318a50c88eb34c3c0f9980",
+  "checked_at": "2026-11-25T15:07:31.479809+00:00",
+  "pre_cutoff_unstarted": 84,
+  "matched": 0,
+  "official_sp": {
+    "index_commit": "4a269de3357f6e5063b41f8051e91948879bb112",
+    "indexed": 0,
+    "replay_held": 0,
+    "requested": 0,
+    "state": "no_matched_results",
+    "verified": 0
+  },
+  "owner_readback_sha256": "10e3a75708a67c95239e531a40caf49928ab129c4ab56d7e830081e1a75ded13"
+}
