@@ -15,6 +15,8 @@ import subprocess
 import tempfile
 
 from .keirin_note_view import canonical, _private_root, _create, MAX_VIEW, OUTER, SCHEMA
+from .keirin_shadow_verification import (KIND as SHADOW_VERIFICATION, SEALED_PLAINTEXT_BYTES,
+                                         checked_note as checked_shadow_note)
 
 REPO='haji84/RACE-AI'
 BRANCH='state/keirin-note-view'
@@ -77,7 +79,7 @@ def checked_entry(entry):
     if entry.get('kind') == 'result': fields = fields | {'result_revisions'}
     if entry.get('kind') == 'canary-original': fields = fields | {'original_revisions'}
     if entry.get('kind') == 'nationwide': fields = fields | {'day_revision','original_revisions','registered_race_ids'}
-    need(set(entry)==fields and entry['kind'] in {'import','research','archive','result','results','canary-original','nationwide'},'ENTRY')
+    need(set(entry)==fields and entry['kind'] in {'import','research','archive','result','results','canary-original','nationwide',SHADOW_VERIFICATION},'ENTRY')
     for name in ('cipher_sha256','source_content_sha256'):
         need(type(entry[name]) is str and re.fullmatch('[a-f0-9]{64}',entry[name]),'ENTRY_HASH')
     need(len(unb64(entry['ephemeral_public_key']))==65 and len(unb64(entry['salt']))==32,'ENTRY_ECDH')
@@ -88,6 +90,8 @@ def checked_entry(entry):
     captured=_ids(entry['captured_race_ids']);priority=_ids(entry['priority_window_race_ids'])
     need(set(priority)<=set(captured),'PRIORITY_IDS')
     need(entry['kind']!='results' or not captured and not priority,'RESULTS_NOT_FORECAST_COVERAGE')
+    if entry['kind'] == SHADOW_VERIFICATION:
+        need(len(entry['days']) == 1 and not captured and not priority, 'SHADOW_VERIFICATION_SCOPE')
     if entry['kind'] in {'result','canary-original'}:
         revisions = entry['result_revisions' if entry['kind'] == 'result' else 'original_revisions']
         need(type(revisions) is dict and 0 < len(revisions) <= 300 and
@@ -141,6 +145,14 @@ def seal_snapshot(note,recipient,*,kind,captured_ids=(),priority_ids=(),clock=No
             path.split('/')[1] in note['dates'] for path in note['files']),'RESULTS_ONLY_FILES')
     result_revisions = {}
     original_revisions = {}
+    shadow_imported = None
+    if kind == SHADOW_VERIFICATION:
+        measurement, shadow_imported = checked_shadow_note(note)
+        path, = note['files']
+        raw = canonical(measurement)
+        files = {path: dict(text=raw.decode(), bytes=len(raw), sha256=sha256(raw).hexdigest())}
+        # Keep small hit/miss outcomes unguessable from the public content SHA.
+        note = dict(note, files=files, shadow_verification_private_nonce=b64(os.urandom(32)))
     if kind == 'nationwide':
         from .keirin_nationwide_forecast_view import checked_day, public_identities, MAX_FILE_BYTES
         need(not captured_ids and not priority_ids and type(note.get('files')) is dict and
@@ -186,6 +198,9 @@ def seal_snapshot(note,recipient,*,kind,captured_ids=(),priority_ids=(),clock=No
         # Existing imported/forecast packets and their encryption are unchanged.
         note = dict(note, result_private_nonce=b64(os.urandom(32)))
     plain=canonical(note);need(0<len(plain)<=MAX_VIEW,'PLAIN_BOUND')
+    if kind == SHADOW_VERIFICATION:
+        need(len(plain) <= SEALED_PLAINTEXT_BYTES, 'SHADOW_VERIFICATION_PLAIN_BOUND')
+        plain = plain.ljust(SEALED_PLAINTEXT_BYTES, b' ')
     ephemeral=ec.generate_private_key(ec.SECP256R1())
     public=ec.EllipticCurvePublicKey.from_encoded_point(ec.SECP256R1(),unb64(recipient['public_key']))
     salt=os.urandom(32)
@@ -196,6 +211,7 @@ def seal_snapshot(note,recipient,*,kind,captured_ids=(),priority_ids=(),clock=No
         ciphertext=base64.b64encode(AESGCM(aes).encrypt(nonce,plain,canonical(header))).decode()))+b'\n'
     observed=(clock or (lambda:datetime.now(timezone.utc)))()
     need(isinstance(observed,datetime) and observed.utcoffset() is not None,'CLOCK')
+    need(shadow_imported is None or shadow_imported <= observed, 'SHADOW_VERIFICATION_CLOCK')
     entry_values=dict(cipher_sha256=sha256(wire).hexdigest(),
         source_content_sha256=header['source_content_sha256'],
         ephemeral_public_key=b64(ephemeral.public_key().public_bytes(
