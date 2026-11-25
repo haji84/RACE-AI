@@ -54,7 +54,10 @@ class ClassEvidenceTests(unittest.TestCase):
             detail = detail_data()
             detail['SC0201']['C0201data']['selRaceNo'] = number
             for car, row in enumerate(detail['SJ0315']['sensyuTypeInfo']):
-                row['kyuhan'] = 'A3' if 'チャレンジ' in label else ('A1' if car % 2 else 'A2')
+                if label.startswith('ガ'):
+                    row['kyuhan'] = 'L1'
+                else:
+                    row['kyuhan'] = 'A3' if 'チャレンジ' in label else ('A1' if car % 2 else 'A2')
             details[number] = html(detail)
         raw = html(data).replace(b'</body>', (''.join('<script src="'+path+'"></script>'
             for path in sources.LIST_SCRIPTS)+'</body>').encode())
@@ -94,6 +97,17 @@ class ClassEvidenceTests(unittest.TestCase):
                 clock=lambda:AT)
             self.assertEqual(out['records'], [])
             self.assertEqual(session.calls, [])
+
+    def test_official_girls_round_forms_can_be_safely_reported_without_admission(self):
+        labels = ('ガールズ予選1', 'ガ予2', 'ガールズ予選1 架空選手')
+        inventory, details = self.fixture(labels)
+        out = self.api().collect_unknown_class_evidence(session=SourceSession(details),
+                                                       inventory=inventory, clock=lambda: AT)
+        self.assertEqual([row['class_label'] for row in out['safe_summary']],
+                         ['ガールズ予選1', 'ガ予2', 'UNRECOGNIZED_CLASS_LABEL'])
+        self.assertTrue(all(row['grades'] == ['L1'] for row in out['safe_summary']))
+        self.assertTrue(all(row['prediction_admitted'] is False for row in out['safe_summary']))
+        self.assertEqual(out['model_generation'], 0)
 
     def test_denial_stops_remaining_class_evidence_and_never_exposes_exception(self):
         inventory, details = self.fixture()
