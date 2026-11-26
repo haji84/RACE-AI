@@ -257,7 +257,7 @@ def _read_capture_card(*, session, inventory, race):
 
 
 def collect_capture_cutoff(*, session, inventory, race, clock):
-    """Use an exact current card as an ordering hint within the source budget."""
+    """Read the current official card cutoff within the source budget."""
     args, _ = _read_capture_card(session=session, inventory=inventory, race=race)
     observed = form._aware(args['detail_observed_at'])
     need(form._aware(args['list_observed_at']) <= observed <= form._aware(clock()), 'CUTOFF_CARD_CLOCK_INVALID')

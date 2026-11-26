@@ -381,6 +381,7 @@ def run_capture(*,repo,private_root,owner_public_pem,owner_private_pem,day=None,
         cohort=records.cohort(registry);attempted=0
         finalization_reserve = timedelta(seconds=sources.CAPTURE_FINALIZATION_SECONDS)
         request_reserve = timedelta(seconds=sources.CAPTURE_LEASE_RESERVE_SECONDS)
+        start_margin = timedelta(seconds=sources.CAPTURE_START_MARGIN_SECONDS)
         history_duration = timedelta(seconds=sources.CONDITION_DURATION_SECONDS)
         required_calls = BASELINE_RACE_REQUESTS + BASELINE_SHARED_REQUESTS + CLASS_EVIDENCE_REQUESTS
         from race_ai.keirin_official_class_evidence import collect_unknown_class_evidence, replay_cutoff_hints, LABEL
@@ -398,6 +399,11 @@ def run_capture(*,repo,private_root,owner_public_pem,owner_private_pem,day=None,
                 row['state']='UNSUPPORTED_CLASS_OR_ROUND';continue
             if session.halted:
                 row['state']='PROVIDER_STOPPED' if session.provider_denied else 'SOURCE_UNAVAILABLE';continue
+            cutoff = fresh_cutoffs.get(rid)
+            if cutoff is not None and cutoff - form._aware(clock()) < start_margin:
+                row['state'] = 'CUTOFF_MARGIN_INSUFFICIENT'
+                baseline_holds['OFFICIAL_CONTINUATION_CAPTURE_START_MARGIN_REQUIRED'] += 1
+                continue
             if attempted>=max_races:row['state']='SOURCE_CAPTURE_BUDGET_PENDING';continue
             if ready:
                 deadline = _archive_batch_deadline([cutoff for cutoff, _, _ in ready], finalization_reserve)
