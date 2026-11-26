@@ -480,7 +480,7 @@ def run_publish(*,repo,private_root,owner_public_pem,owner_private_pem,day=None,
         archive._cmd(reader,'config','--local','remote.origin.promisor','true')
         archive._cmd(reader,'config','--local','remote.origin.partialclonefilter','blob:none')
         admitted=records.load_admitted_day(reader,owner_private_pem,day,partial_read=True)
-    result=publish_day(repo,admitted,commit,owner_private_pem)
+    result=publish_day(repo,admitted,commit,owner_private_pem,clock=clock,public_view=True)
     need(type(result) is dict and result.get('provider_requests')==0 and result.get('state') in
          ('KEIRIN_NOTE_ENCRYPTED_GIT_READBACK_VERIFIED','EXISTING_NATIONWIDE_DISPLAY_REUSED'),
          'PUBLICATION_ACK_INVALID')
@@ -789,16 +789,19 @@ def replay_results(*,repo,owner_private_pem,day,source_commit,publish=True):
     pipeline.check_owner_private_key(owner_private_pem)
     store=records.RecordStore(repo,day);documents=[];held=0;written=acks=0
     original_count=original_acks=day_status=0
+    public_forecasts=None
     if publish:
         try:
             from race_ai.keirin_nationwide_forecast_view import publish_day
             admitted=records.load_admitted_day(repo,owner_private_pem,day)
-            original_ack=publish_day(repo,admitted,source_commit,owner_private_pem)
+            original_ack=publish_day(repo,admitted,source_commit,owner_private_pem,
+                public_view=day==now_utc().astimezone(form.JST).date().isoformat())
             need(original_ack.get('provider_requests')==0 and original_ack.get('state') in
                 ('KEIRIN_NOTE_ENCRYPTED_GIT_READBACK_VERIFIED','EXISTING_NATIONWIDE_DISPLAY_REUSED'),
                 'SAVED_ORIGINAL_PUBLICATION_ACK_INVALID')
             original_count=original_ack['published_originals'];day_status=original_ack['published_day_status']
             original_acks=1
+            public_forecasts=original_ack.get('public_forecasts')
         except (ValueError,KeyError,TypeError,OSError):held+=1
     for rid,versions in sorted(store.index['results'].items()):
         try:
@@ -808,10 +811,13 @@ def replay_results(*,repo,owner_private_pem,day,source_commit,publish=True):
                 ack=_publish_result(repo,doc,source_commit,owner_private_pem)
                 written+=ack['published_races'];acks+=1
         except (ValueError,KeyError,TypeError,OSError):held+=1
-    return dict(state='OFFICIAL_SP_SAVED_RESULTS_REPLAYED',source_requests=0,provider_requests=0,
+    report = dict(state='OFFICIAL_SP_SAVED_RESULTS_REPLAYED',source_requests=0,provider_requests=0,
         published_races=written,publication_acks=acks,results_held=held,
         published_originals=original_count,original_publication_acks=original_acks,published_day_status=day_status,
         updates=_join_updates(documents) if documents else None)
+    if public_forecasts is not None:
+        report['public_forecasts']=public_forecasts
+    return report
 
 
 def run_settle(*,repo,private_root,owner_public_pem,owner_private_pem,day=None,clock=now_utc,max_races=8):

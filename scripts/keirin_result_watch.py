@@ -406,6 +406,8 @@ def run_watch(*, repo, mode, private_root, owner_public_path, owner_private_pem,
                     summary['published_originals']+=replay.get('published_originals',0)
                     summary['original_publication_acks']+=replay.get('original_publication_acks',0)
                     summary['published_day_status']+=replay.get('published_day_status',0)
+                    if 'public_forecasts' in replay:
+                        summary['public_forecasts']=replay['public_forecasts']
                     summary['published_snapshots']+=int(replay['published_races']>0)
                     summary['days_held']+=replay['results_held']
                     if day not in summary['days_visited']:summary['days_visited'].append(day)

@@ -1,3 +1,193 @@
+/* The public hash boots a read-only view in its own document. */
+(() => {
+  "use strict";
+  const byId = id => globalThis.document?.getElementById(id);
+  const panel = byId("page-keirin-public");
+  if (!panel) return;
+
+  const hash = "#keirin-public";
+  const isPublic = location.hash === hash;
+  window.addEventListener("hashchange", event => {
+    if (isPublic === (location.hash === hash)) return;
+    event.stopImmediatePropagation();
+    location.reload();
+  });
+  if (!isPublic) return;
+
+  document.body.classList.add("keirin-public-page");
+  panel.hidden = false;
+  document.querySelector(".skip-link")?.addEventListener("click", event => {
+    event.preventDefault();
+    byId("keirin-public-title").focus();
+  });
+
+  const dayInput = byId("keirin-public-day");
+  const status = byId("keirin-public-status");
+  const updated = byId("keirin-public-updated");
+  const races = byId("keirin-public-races");
+  const base = "https://raw.githubusercontent.com/haji84/RACE-AI/state/keirin-public-forecasts/forecasts/";
+  const jstToday = globalThis.RaceAuditModel.jstToday;
+  const jstDateTime = new Intl.DateTimeFormat("ja-JP", {
+    timeZone: "Asia/Tokyo", year: "numeric", month: "2-digit", day: "2-digit",
+    hour: "2-digit", minute: "2-digit", second: "2-digit", hourCycle: "h23"
+  });
+  // Venue codes from the official KEIRIN.JP venue list (keirin.jp/sp/jyolist).
+  const venues = {
+    11: "函館", 12: "青森", 13: "いわき平", 21: "弥彦", 22: "前橋", 23: "取手", 24: "宇都宮",
+    25: "大宮", 26: "西武園", 27: "京王閣", 28: "立川", 31: "松戸", 32: "千葉", 34: "川崎",
+    35: "平塚", 36: "小田原", 37: "伊東温泉", 38: "静岡", 42: "名古屋", 43: "岐阜",
+    44: "大垣", 45: "豊橋", 46: "富山", 47: "松阪", 48: "四日市", 51: "福井", 53: "奈良",
+    54: "向日町", 55: "和歌山", 56: "岸和田", 61: "玉野", 62: "広島", 63: "防府",
+    71: "高松", 73: "小松島", 74: "高知", 75: "松山", 81: "小倉", 83: "久留米",
+    84: "武雄", 85: "佐世保", 86: "別府", 87: "熊本"
+  };
+  let currentRequest;
+
+  function validDay(day) {
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(day)) return false;
+    const date = new Date(day + "T00:00:00Z");
+    return Number.isFinite(date.getTime()) && date.toISOString().slice(0, 10) === day;
+  }
+
+  function validClock(value) {
+    return typeof value === "string" && value.length <= 40 &&
+      /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d+)?(?:Z|[+-]\d{2}:\d{2})$/.test(value) &&
+      validDay(value.slice(0, 10)) && Number.isFinite(Date.parse(value));
+  }
+
+  function validTickets(tickets) {
+    return tickets.length >= 1 && tickets.length <= 8 && tickets.every(ticket => Array.isArray(ticket) && ticket.length === 3 &&
+      ticket.every(car => Number.isInteger(car) && car >= 1 && car <= 9) && new Set(ticket).size === 3) &&
+      new Set(tickets.map(ticket => ticket.join("-"))).size === tickets.length;
+  }
+
+  function validSnapshot(snapshot, day) {
+    if (snapshot?.schema !== "RACE_AI_KEIRIN_PUBLIC_FORECASTS_V1" || snapshot.day !== day ||
+        !validClock(snapshot.published_at) || !Array.isArray(snapshot.races) || snapshot.races.length > 300) return false;
+    const seen = new Set(), datePrefix = day.replaceAll("-", "");
+    return snapshot.races.every(row => {
+      if (typeof row?.race_id !== "string" || !/^\d{10}(?:0[1-9]|1[0-2])$/.test(row.race_id) ||
+          !row.race_id.startsWith(datePrefix) || seen.has(row.race_id) ||
+          !Array.isArray(row.a) || !Array.isArray(row.b) || (row.cutoff_at !== null && !validClock(row.cutoff_at))) return false;
+      seen.add(row.race_id);
+      if (row.status === "pending") return row.saved_at === null && row.a.length === 0 && row.b.length === 0;
+      return row.status === "saved" && validClock(row.saved_at) && row.cutoff_at !== null &&
+        Date.parse(row.saved_at) < Date.parse(row.cutoff_at) &&
+        Date.parse(row.saved_at) <= Date.parse(snapshot.published_at) &&
+        validTickets(row.a) && validTickets(row.b);
+    });
+  }
+
+  function element(tag, className, label) {
+    const result = document.createElement(tag);
+    if (className) result.className = className;
+    if (label !== undefined) result.textContent = label;
+    return result;
+  }
+
+  function clock(value, day, seconds = true) {
+    const date = new Date(value);
+    const full = jstDateTime.format(date);
+    const label = day === jstToday(date) ? (seconds ? full.slice(-8) : full.slice(-8, -3)) : full;
+    const result = element("time", "", label);
+    result.dateTime = value;
+    return result;
+  }
+
+  function ticketList(arm, tickets) {
+    const group = element("div", "keirin-public-model");
+    const list = element("ol");
+    list.setAttribute("aria-label", arm + "の三連単（予想順）");
+    list.append(...tickets.map(ticket => element("li", "", ticket.join("–"))));
+    group.append(element("h3", "", arm), list);
+    return group;
+  }
+
+  function raceCard(row, day) {
+    const venueCode = row.race_id.slice(8, 10);
+    const name = (venues[venueCode] || "開催コード " + venueCode) + " " + Number(row.race_id.slice(-2)) + "R";
+    const card = element("article", "keirin-public-race");
+    const head = element("div", "keirin-public-race-head");
+    const saved = row.status === "saved";
+    head.append(element("h2", "", name),
+      element("span", "keirin-public-badge " + (saved ? "is-saved" : ""), saved ? "掲載済み" : "未掲載"));
+    const clocks = element("p", "keirin-public-clocks");
+    clocks.append("締切 ", row.cutoff_at === null ? "未確認" : clock(row.cutoff_at, day, false));
+    if (saved) clocks.append("　保存 ", clock(row.saved_at, day));
+    card.append(head, clocks);
+    if (saved) {
+      const arms = element("div", "keirin-public-arms");
+      arms.append(ticketList("A", row.a), ticketList("B", row.b));
+      card.append(arms);
+    }
+    return card;
+  }
+
+  function render(snapshot) {
+    const ordered = snapshot.races.slice().sort((a, b) =>
+      (a.cutoff_at === null ? Infinity : Date.parse(a.cutoff_at)) -
+      (b.cutoff_at === null ? Infinity : Date.parse(b.cutoff_at)) || a.race_id.localeCompare(b.race_id));
+    const saved = ordered.filter(row => row.status === "saved").length;
+    const pending = ordered.length - saved;
+    status.replaceChildren("掲載済み ", element("strong", "", saved + " / " + ordered.length), " レース");
+    if (pending) status.append(" ・ 未掲載 " + pending + " レース");
+    if (!ordered.length) status.textContent = "この日の公開データにレースはありません。";
+    updated.replaceChildren("公開データ更新 ", clock(snapshot.published_at), " JST");
+    updated.hidden = false;
+    races.replaceChildren(...ordered.map(row => raceCard(row, snapshot.day)));
+  }
+
+  async function load() {
+    currentRequest?.abort();
+    currentRequest = null;
+    updated.hidden = true;
+    races.replaceChildren();
+    dayInput.max = jstToday();
+    const day = dayInput.value;
+    if (!validDay(day) || day < dayInput.min || day > dayInput.max) {
+      dayInput.setAttribute("aria-invalid", "true");
+      races.setAttribute("aria-busy", "false");
+      status.textContent = "選択できる範囲の日付を入力してください。";
+      return;
+    }
+    dayInput.removeAttribute("aria-invalid");
+    status.textContent = "公開予想を読み込んでいます。";
+    races.setAttribute("aria-busy", "true");
+    const request = new AbortController();
+    currentRequest = request;
+    const timeout = setTimeout(() => request.abort(), 15000);
+    try {
+      const response = await fetch(base + day + ".json", {
+        cache: "no-store", credentials: "omit", redirect: "error", referrerPolicy: "no-referrer", signal: request.signal
+      });
+      if (currentRequest !== request) return;
+      if (response.status === 404) {
+        status.textContent = "この日の公開予想は掲載されていません。";
+        return;
+      }
+      if (!response.ok) throw new Error("Public forecast unavailable");
+      const snapshot = await response.json().catch(() => null);
+      if (currentRequest !== request) return;
+      if (validSnapshot(snapshot, day)) render(snapshot);
+      else status.textContent = "公開データの形式を確認できません。";
+    } catch {
+      if (currentRequest === request) status.textContent = "公開予想を取得できませんでした。再読み込みで確認できます。";
+    } finally {
+      clearTimeout(timeout);
+      if (currentRequest === request) {
+        races.setAttribute("aria-busy", "false");
+        currentRequest = null;
+      }
+    }
+  }
+
+  dayInput.value = jstToday();
+  dayInput.addEventListener("change", load);
+  byId("keirin-public-refresh").addEventListener("click", load);
+  load();
+})();
+
+if (!globalThis.document?.body?.classList.contains("keirin-public-page")) {
 /* Count-only visual attestation against the owner-approved 2026-11-12 AES audit.
  * Never changes encrypted originals, forecasts, actual-purchase records, or
  * racing-provider traffic. Every displayed match must come from a loaded view.
@@ -2099,3 +2289,4 @@
   window.addEventListener("race-ai-daily-updated", ()=>{renderDailyCard();syncResultRefreshUI();});
   globalThis.RaceRacerDaily?.load();
 })();
+}

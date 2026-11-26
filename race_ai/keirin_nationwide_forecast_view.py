@@ -7,12 +7,13 @@ owner key pin. It never collects sources or regenerates a prediction. The old
 four-arm canary schema remains unchanged and strict.
 """
 from copy import deepcopy
-from datetime import date, timedelta, timezone
+from datetime import date, datetime, timedelta, timezone
 from hashlib import sha256
 import hmac
 import json
 from pathlib import Path
 import re
+from subprocess import TimeoutExpired
 
 from . import keirin_frozen_forecast_view as frozen
 from . import keirin_note_feed as feed
@@ -300,8 +301,10 @@ def public_identities(doc):
     return {row['race_id']:row['original_identity'] for row in doc['races'] if row['original_identity'] is not None}
 
 
-def publish_day(repo, admitted, source_commit, owner_private_pem, *, clock=None, store=None, recipient=None):
+def publish_day(repo, admitted, source_commit, owner_private_pem, *, clock=None, store=None,
+                recipient=None, public_view=False):
     doc = from_admitted(admitted, owner_private_pem)
+    public_doc = dict(doc, races=[dict(row) for row in doc['races']]) if public_view else None
     repo = Path(repo); store = store or feed.NoteFeedGit(repo)
     recipient = feed.checked_recipient(recipient or json.loads((repo/'config/keirin-note-recipient.json').read_bytes()))
     parent = store.head(); prior = feed.load_index(store, recipient, parent)
@@ -335,8 +338,17 @@ def publish_day(repo, admitted, source_commit, owner_private_pem, *, clock=None,
     doc['revision'] = _day_revision(_identity_key(owner_private_pem), doc)
     checked_day(doc)
     if latest == doc['revision']:
-        return dict(state='EXISTING_NATIONWIDE_DISPLAY_REUSED', published_originals=0,
-                    published_day_status=0, provider_requests=0)
-    sealed = feed.seal_snapshot(note_packet(doc, source_commit), recipient, kind=KIND, clock=clock)
-    saved = feed.publish_snapshot(store, recipient, sealed, expected_parent=parent)
-    return dict(saved, published_originals=changed, published_day_status=1, provider_requests=0)
+        report = dict(state='EXISTING_NATIONWIDE_DISPLAY_REUSED', published_originals=0,
+                      published_day_status=0, provider_requests=0)
+    else:
+        sealed = feed.seal_snapshot(note_packet(doc, source_commit), recipient, kind=KIND, clock=clock)
+        saved = feed.publish_snapshot(store, recipient, sealed, expected_parent=parent)
+        report = dict(saved, published_originals=changed, published_day_status=1, provider_requests=0)
+    if public_doc is not None:
+        from . import keirin_public_forecasts as public
+        try:
+            body = public.project(public_doc, published_at=(clock or (lambda: datetime.now(timezone.utc)))())
+            report['public_forecasts'] = public.publish(repo,body)
+        except (OSError,ValueError,TypeError,KeyError,OverflowError,TimeoutExpired):
+            report['public_forecasts'] = {'state':'HOLD_PUBLIC_FORECASTS'}
+    return report

@@ -165,3 +165,73 @@ body{overflow-wrap:break-word}button{min-height:34px}input,select{min-height:36p
 #all-races .race-result-card{display:block;padding:16px}#all-races .race-result-card .race-card-head{display:flex;flex-wrap:wrap;align-items:flex-start}#all-races .race-result-card .race-card-head>div{flex:1 1 150px;min-width:0}#all-races .race-result-card .saved-outcome{max-width:100%}
 
 .outcome-upcoming{background:#e8f5fc;color:#2c6687}.outcome-time_unknown{background:#edf1f5;color:#526b87}
+
+.keirin-public-entry{
+  display:inline-flex;align-items:center;gap:8px;min-height:44px;margin:0 0 12px;
+  padding:8px 14px;border:1px solid #a9c9db;border-radius:8px;
+  background:#fff;color:#145779;font-size:13px;font-weight:750;text-decoration:none
+}
+.keirin-public-entry:hover{background:#e8f5fc}
+.keirin-public-page .sidebar,.keirin-public-page .topbar,.keirin-public-page .bottom-nav,
+.keirin-public-page main>:not(#page-keirin-public){display:none}
+.keirin-public-page .app-shell{margin:0}
+.keirin-public-page main{max-width:1040px;padding:clamp(14px,3vw,32px)}
+.keirin-public-back{
+  display:inline-flex;align-items:center;min-height:44px;
+  color:#165c83;font-size:13px;font-weight:750;text-decoration:none
+}
+.keirin-public-back:hover{text-decoration:underline}
+.keirin-public-header{margin:4px 0 18px}
+.keirin-public-header h1{margin:0;font-size:clamp(27px,5vw,39px);line-height:1.22}
+.keirin-public-header p{margin:8px 0 0;color:#45647c;font-size:14px}
+.keirin-public-summary{
+  display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:4px 18px;
+  margin:0 0 14px;padding:14px 16px;border:1px solid #c7e0e9;border-radius:12px;background:#eaf6fb
+}
+.keirin-public-controls{
+  grid-area:1 / 2 / 3 / 3;display:flex;align-items:end;gap:8px;min-width:0
+}
+.keirin-public-controls label{
+  display:grid;flex:1;gap:4px;min-width:0;color:#395a70;font-size:12px;font-weight:700
+}
+.keirin-public-controls input,.keirin-public-controls button{
+  min-width:0;min-height:44px;margin:0;padding:7px 10px;border:1px solid #a7c6d8;border-radius:8px;
+  background:#fff;color:var(--navy);font-size:16px
+}
+.keirin-public-controls button{font-size:13px;font-weight:750}
+.keirin-public-controls button:hover{border-color:#4d859e;background:#f7fcff}
+#keirin-public-status{margin:0;font-size:14px;line-height:1.55}
+#keirin-public-status strong{font-size:17px;font-variant-numeric:tabular-nums}
+#keirin-public-updated{margin:0;color:#486479;font-size:12px;font-variant-numeric:tabular-nums}
+.keirin-public-races{
+  display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,370px),1fr));gap:12px;align-items:start
+}
+.keirin-public-race{
+  padding:13px 14px;border:1px solid #d7e6ed;border-radius:12px;background:#fff;
+  box-shadow:0 2px 8px #102c4c07
+}
+.keirin-public-race-head{display:flex;justify-content:space-between;align-items:center;gap:8px}
+.keirin-public-race-head h2{margin:0;font-size:18px;line-height:1.35}
+.keirin-public-badge{
+  padding:3px 8px;border-radius:5px;background:#edf2f6;color:#4a6074;
+  font-size:11px;font-weight:750;white-space:nowrap
+}
+.keirin-public-badge.is-saved{background:#dff3ed;color:#175944}
+.keirin-public-clocks{margin:6px 0 0;color:#45647c;font-size:12px;font-variant-numeric:tabular-nums}
+.keirin-public-clocks time{white-space:nowrap}
+.keirin-public-arms{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-top:10px}
+.keirin-public-model{padding:7px 9px;border:1px solid #e1ebf0;border-radius:8px;background:#f6fafc}
+.keirin-public-model h3{margin:0 0 4px;color:#24516b;font-size:14px}
+.keirin-public-model ol{
+  display:grid;grid-template-columns:repeat(2,minmax(0,1fr));grid-template-rows:repeat(4,auto);
+  grid-auto-flow:column;gap:2px 4px;margin:0;padding:0;list-style-position:inside
+}
+.keirin-public-model li{font-size:13px;font-weight:700;font-variant-numeric:tabular-nums;white-space:nowrap}
+.keirin-public-model li::marker{color:#4d6879;font-size:10px;font-weight:500}
+@media(max-width:560px){
+  .keirin-public-summary{grid-template-columns:minmax(0,1fr);padding:12px;gap:6px}
+  .keirin-public-controls{grid-area:auto;margin-bottom:4px}
+  .keirin-public-controls label{max-width:185px}
+  .keirin-public-controls input{width:100%}
+  .keirin-public-race{padding:12px}
+}
