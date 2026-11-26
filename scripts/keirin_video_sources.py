@@ -307,8 +307,11 @@ def capture(page, key, url, directory, interval, *, approval=None):
                 out.write(image)
             frames.append({'video_seconds': actual, 'frame_sha256': sha256(image).hexdigest()})
         if exact_winticket:
-            video.evaluate('v => v.play()')
-            page.wait_for_function('v => v.ended || v.error || v.mediaKeys || window.__raceEncrypted',
+            video.evaluate("""v => {
+                if (!v.ended) v.play().catch(() => { v.__raceFinishFailed = true; });
+            }""")
+            page.wait_for_function("""v => v.ended || v.error || v.mediaKeys || window.__raceEncrypted
+                                   || v.__raceFinishFailed""",
                                    arg=video, timeout=10000)
             if video.evaluate('v => !!(v.mediaKeys || window.__raceEncrypted)'):
                 raise AccessDenied('protected player')
