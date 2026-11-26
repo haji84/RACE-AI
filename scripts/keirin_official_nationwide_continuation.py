@@ -473,6 +473,7 @@ def run_publish(*,repo,private_root,owner_public_pem,owner_private_pem,day=None,
     repo,root,day,public,commit=_runtime(repo=repo,private_root=private_root,owner_public_pem=owner_public_pem,
         owner_private_pem=owner_private_pem,day=day,clock=clock,mode='publish')
     from race_ai.keirin_nationwide_forecast_view import publish_day
+    from scripts.keirin_publish_rider_context import publish_day as publish_rider_context
     from scripts.keirin_public_rider_projection import publish_starters
     # Keep the shallow promisor repository out of the archive and Note writer checkouts.
     with TemporaryDirectory(prefix='official-publish-archive-',dir=root) as folder:
@@ -481,7 +482,8 @@ def run_publish(*,repo,private_root,owner_public_pem,owner_private_pem,day=None,
         archive._cmd(reader,'remote','add','origin',f'https://github.com/{archive.REPO}.git')
         archive._cmd(reader,'config','--local','remote.origin.promisor','true')
         archive._cmd(reader,'config','--local','remote.origin.partialclonefilter','blob:none')
-        admitted=records.load_admitted_day(reader,owner_private_pem,day,partial_read=True,include_starters=True)
+        admitted=records.load_admitted_day(reader,owner_private_pem,day,partial_read=True,include_starters=True,
+                                          include_dossier_context=True)
     result=publish_day(repo,admitted,commit,owner_private_pem,clock=clock,public_view=True)
     need(type(result) is dict and result.get('provider_requests')==0 and result.get('state') in
          ('KEIRIN_NOTE_ENCRYPTED_GIT_READBACK_VERIFIED','EXISTING_NATIONWIDE_DISPLAY_REUSED'),
@@ -491,8 +493,13 @@ def run_publish(*,repo,private_root,owner_public_pem,owner_private_pem,day=None,
     except (OSError,ValueError,TypeError,KeyError,OverflowError,TimeoutExpired):
         public_starters={'state':'HOLD_PUBLIC_OFFICIAL_STARTERS'}
     public_starters['source_projection_holds']=admitted['starter_source_holds']
+    try:
+        public_context = publish_rider_context(repo, day, admitted.get('dossier_rows', []), published_at=clock())
+    except (OSError,ValueError,TypeError,KeyError,OverflowError,TimeoutExpired):
+        public_context={'state':'HOLD_PUBLIC_RIDER_CONTEXT'}
+    public_context['source_projection_holds']=admitted.get('dossier_holds', 0)
     return dict(result,day_jst=day,source_requests=0,authenticated_originals=len(admitted['records']),
-                public_starters=public_starters)
+                public_starters=public_starters,public_rider_context=public_context)
 
 
 class SettlementContext:
