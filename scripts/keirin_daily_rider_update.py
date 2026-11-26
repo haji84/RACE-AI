@@ -221,11 +221,9 @@ def refresh(repo, reader, owner_private_pem, *, clock=lambda: datetime.now(timez
     indexes = _archive_indexes(reader, head, dated, records.ROOT)
     need(known.keys() <= indexes.keys(), 'ARCHIVED_DAYS_MISSING')
     dirty = sorted(day for day, oid in indexes.items() if known.get(day, {}).get('archive_index') != oid)
-    # Keep the latest results moving while reserving room for earlier corrections.
-    selected = dirty if len(dirty) <= MAX_REPLAYS else dirty[:2] + dirty[-2:]
-    pending = {}
+    ready = []
     holds = 0
-    for day in selected:
+    for day in dirty:
         try:
             selected_store = records.RecordStore(reader, day, index_commit=head)
             if day in known:
@@ -236,11 +234,28 @@ def refresh(repo, reader, owner_private_pem, *, clock=lambda: datetime.now(timez
                     continue
             if not selected_store.index['results'] and day not in known:
                 continue
+            ready.append((day, selected_store))
+        except (ValueError, KeyError, TypeError, OSError, TimeoutExpired):
+            holds += 1
+    selected = ready
+    if len(ready) > MAX_REPLAYS:
+        # Earlier corrections rotate by JST day so held records cannot monopolize
+        # every run. Leave two slots for the most recent changed dates.
+        earlier, recent = ready[:-2], ready[-2:]
+        cursor = date.fromisoformat(today).toordinal() % len(earlier)
+        selected = recent + (earlier[cursor:] + earlier[:cursor])[:MAX_REPLAYS - 2]
+    pending = {}
+    for day, selected_store in selected:
+        try:
             pending[indexes[day]] = checked_day(history.project_rider_day(
                 selected_store, owner_private_pem, now=as_of))
         except (ValueError, KeyError, TypeError, OSError, TimeoutExpired):
             holds += 1
-    published = publish_days(store, prior, pending, published_at=clock()) if pending else None
+    if pending:
+        published = publish_days(store, prior, pending, published_at=clock())
+    else:
+        _read_days(store, parent, prior)
+        published = None
     latest = published['latest'] if published else prior
     rows = latest['days'] if latest else []
     state = 'PUBLIC_RIDER_HISTORY_UPDATED' if published else (
@@ -248,7 +263,7 @@ def refresh(repo, reader, owner_private_pem, *, clock=lambda: datetime.now(timez
     return dict(state=state,
                 archive_commit=head, public_commit=published['commit'] if published else parent,
                 days_updated=published['updated_days'] if published else 0, days_held=holds,
-                days_deferred=len(dirty)-len(selected), result_days=len(rows),
+                days_deferred=len(ready)-len(selected), result_days=len(rows),
                 verified_races=sum(row['verified_races'] for row in rows),
                 numeric_finishes=sum(row['observed_count'] for row in rows),
                 latest_result_day=rows[-1]['day'] if rows else None, provider_requests=0)

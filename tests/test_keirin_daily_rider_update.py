@@ -1,8 +1,14 @@
 from datetime import datetime, timezone
 from hashlib import sha256
 import json
+from pathlib import Path
+from types import SimpleNamespace
 import unittest
+from unittest.mock import patch
 
+from race_ai import keirin_official_nationwide_records as records
+from race_ai import keirin_official_rider_history as history
+from scripts import keirin_official_day_pipeline as pipeline
 from scripts import keirin_daily_rider_update as dossier
 
 
@@ -107,6 +113,49 @@ class DailyHistoryPublicationTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             self.publish({'c' * 40: receipt(FIRST, 3)}, NOW.replace(minute=2))
         self.assertEqual(self.store.head(), fresh)
+
+    def test_unrelated_archive_updates_do_not_take_the_replay_slots(self):
+        days = [f'2026-11-{day}' for day in range(23, 29)]
+        previous = {s * 40: receipt(day, 1) for s, day in zip('abc', (days[0], days[1], days[4]))}
+        self.publish(previous, datetime(2026, 11, 28, tzinfo=timezone.utc))
+        indexes = {day: f'{i+1:040x}' for i, day in enumerate(days)}
+        checked = []
+
+        def open_day(reader, day, *, index_commit):
+            return SimpleNamespace(day=day, index={'results': {} if day in (days[3], days[5]) else {'race': 1}})
+
+        def replay(store, private, *, now):
+            checked.append(store.day)
+            return receipt(store.day, 2, 'c')
+
+        directory = Path(__file__).resolve().parents[1]
+        pin = directory / 'docs/evidence/2026-11-18/keirin_owner_existing_rsa_public_spki3072.pem'
+        with (patch.object(pipeline, 'check_owner_private_key', return_value=pin.read_bytes()),
+              patch.object(records, 'fetch_partial_head', return_value='e' * 40),
+              patch.object(records, 'discover_days_at', return_value=days),
+              patch.object(dossier, '_archive_indexes', return_value=indexes),
+              patch.object(records, 'RecordStore', side_effect=open_day),
+              patch.object(history, 'archive_signature', return_value='b' * 64),
+              patch.object(history, 'project_rider_day', side_effect=replay)):
+            report = dossier.refresh(directory, 'synthetic', b'', store=self.store,
+                                     clock=lambda: datetime(2026, 11, 29, tzinfo=timezone.utc))
+        self.assertEqual(checked, [days[2]])
+        self.assertEqual(report['days_updated'], 1)
+
+    def test_unchanged_archive_still_checks_the_published_summary(self):
+        self.publish({'a' * 40: receipt(FIRST, 1)})
+        live = self.latest()
+        live['riders'][0]['finish_counts'][0] = 2
+        self.store.trees[self.store.head()][dossier.LATEST] = dossier._encode(live)
+        directory = Path(__file__).resolve().parents[1]
+        pin = directory / 'docs/evidence/2026-11-18/keirin_owner_existing_rsa_public_spki3072.pem'
+        with (patch.object(pipeline, 'check_owner_private_key', return_value=pin.read_bytes()),
+              patch.object(records, 'fetch_partial_head', return_value='e' * 40),
+              patch.object(records, 'discover_days_at', return_value=[FIRST]),
+              patch.object(dossier, '_archive_indexes', return_value={FIRST: 'a' * 40}),
+              self.assertRaisesRegex(ValueError, 'PREVIOUS_AGGREGATE')):
+            dossier.refresh(directory, 'synthetic', b'', store=self.store, clock=lambda: NOW)
+        self.assertEqual(self.store.published, 1)
 
 
 if __name__ == '__main__':
