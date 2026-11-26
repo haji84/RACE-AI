@@ -469,6 +469,34 @@ class RunnerTests(unittest.TestCase):
                          [{'stage': 'RESULT_ARCHIVE_FETCH', 'code': 'ENCRYPTED_ARCHIVE_FETCH_TIMEOUT'}])
         self.assertFalse(context.allow_archive_timeout_retry())
 
+    def test_capture_archive_timeout_reports_an_explicit_pre_source_hold(self):
+        api = self.api()
+        timeout = api.archive.GitCipherFetchTimeout('GIT_COMMAND_OR_REMOTE_UNAVAILABLE')
+        with tempfile.TemporaryDirectory() as folder:
+            root = Path(folder) / 'private'
+            report = root / 'safe' / 'summary.json'
+            with (patch.object(api, '_runtime', return_value=('/synthetic', root, DAY, self.public, 'a'*40)),
+                  patch.object(api.records, 'RecordStore', side_effect=timeout) as store,
+                  patch.object(api, '_begin_lease') as open_provider,
+                  patch('builtins.print')):
+                code = api.main(['capture', '--repo', '/synthetic', '--private-root', str(root),
+                                 '--owner-public-pem', '/public', '--report', str(report), '--day', DAY])
+            saved = json.loads(report.read_bytes())
+        self.assertEqual(code, 2)
+        store.assert_called_once_with('/synthetic', DAY, retry_archive_timeout=True)
+        open_provider.assert_not_called()
+        self.assertEqual(saved['state'], 'HOLD_OFFICIAL_SP_CAPTURE_ARCHIVE_FETCH_TIMEOUT')
+        self.assertEqual(saved['source_requests'], 0)
+        self.assertEqual(saved['new_A_B_git_archived'], 0)
+
+    def test_capture_never_claims_a_new_jst_day_for_an_older_snapshot(self):
+        api = self.api()
+        with patch('race_ai.keirin_official_source_continuation.begin') as begin:
+            with self.assertRaisesRegex(ValueError, 'CAPTURE_ACTUAL_DAY_REQUIRED'):
+                api._begin_lease('/synthetic', self.private, lambda: AT + timedelta(days=1),
+                                 'a'*40, expected_day=DAY)
+        begin.assert_not_called()
+
     def test_pending_current_day_rotates_and_newly_due_order_precedes_unit_retry(self):
         api=self.api();context=api.SettlementContext();context.client=object();context.tick=1
         store=FakeStore('/synthetic','2030-01-15')
