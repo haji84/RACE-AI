@@ -61,6 +61,16 @@ class TestLocalMedia(unittest.TestCase):
         self.assertEqual(media.verify(self.db, self.manifest), dict(processed=1, hash_mismatch=1, verified=1))
         self.assertEqual(len(next(media.verified_rows(self.db))['frames']), 1)
 
+    def test_playback_time_window_survives_the_ledger_and_export(self):
+        frame = dict(self.entry(400), window_ms=[199, 601])
+        self.write_frames(frame)
+        self.assertEqual(media.verify(self.db, self.manifest)['verified'], 1)
+        row, = media.verified_rows(self.db)
+        self.assertEqual(row['frames'][0]['window_ms'], [199, 601])
+        self.write_frames(dict(frame, window_ms=[450, 600]))
+        with self.assertRaisesRegex(ValueError, 'time window'):
+            media.verify(self.db, self.manifest)
+
     def test_bad_bytes_decoding_and_invalid_manifest_rollback(self):
         self.frame.write_bytes(b'bad image')
         self.write_frames(self.entry(0, digest=hashlib.sha256(b'bad image').hexdigest()))

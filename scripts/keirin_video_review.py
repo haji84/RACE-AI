@@ -20,6 +20,7 @@ from html import escape
 from pathlib import Path
 
 
+from scripts.keirin_video_media import frame_window
 from scripts.keirin_video_rider_learning import ATTACK_PHASES, FULL_WINDOWS, LEVELS, TARGETED_FOLLOW, label_values
 
 
@@ -109,6 +110,7 @@ def review_inputs(args):
         if len({f['at_ms'] for f in frames}) != len(frames):
             raise ValueError('ambiguous frame timestamp in source')
         for frame in frames:
+            frame_window(frame)
             checked_file(frame)
     elif source['kind'] in ('clip', 'full'):
         if (args.start_ms < source['start_ms']
@@ -133,6 +135,11 @@ def atomic_private(path, binary=False):
             os.replace(temp, path)
         finally:
             temp.unlink(missing_ok=True)
+
+
+def frame_label(frame):
+    window = frame_window(frame)
+    return f'{window[0]}–{window[1]} ms' if window is not None else f"{frame['at_ms']} ms"
 
 
 def write_contact_sheet(args, race, riders, source, frames):
@@ -166,7 +173,8 @@ def write_contact_sheet(args, race, riders, source, frames):
             frame_path = BytesIO(proc.stdout)
         with Image.open(frame_path) as original:
             sheet.paste(ImageOps.contain(original, (width, height)), (x, y + 19))
-        draw.text((x + 3, y + 2), f"{stamp} ms" + ('' if frames else ' (seek)'), fill='white')
+        label = frame_label(frames[i]) if frames else f'{stamp} ms (seek)'
+        draw.text((x + 3, y + 2), label, fill='white')
     with atomic_private(args.output, binary=True) as stream:
         sheet.save(stream, format='PNG' if args.output.suffix.lower() == '.png' else 'JPEG')
 
@@ -187,10 +195,10 @@ main{{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,22rem),
 figure{{margin:0}} img,video{{display:block;width:100%;height:auto}} figcaption{{padding:.3rem 0}}
 </style><h1>{title}</h1><p>{roster}</p>''')
         if frames:
-            f.write('<p>フレームを選ぶと原寸で表示します。表示時刻は映像内の時刻です。</p><main>')
+            f.write('<p>フレームを選ぶと原寸で表示します。範囲は撮影時刻の推定区間です。</p><main>')
             for frame in frames:
                 link = escape(Path(frame['path']).as_uri(), quote=True)
-                label = f"{frame['at_ms']} ms"
+                label = frame_label(frame)
                 f.write(f'<figure><a href="{link}"><img loading="lazy" src="{link}" alt="{label}"></a>'
                         f'<figcaption>{label}</figcaption></figure>')
             f.write('</main>')
@@ -222,6 +230,8 @@ def make_observation(args, race, riders, source, frames):
     if args.scope == 'whole_race' and source['kind'] != 'full':
         raise ValueError('whole race requires a verified owner-declared full movie')
     if frames:
+        if any(frame_window(frame) is not None for frame in frames):
+            raise ValueError('a frame time window is for inspection; review records require actual frame timestamps')
         if len(frames) < 2:
             raise ValueError('review needs at least two timestamps')
         if frames[0]['at_ms'] != args.start_ms or frames[-1]['at_ms'] != args.end_ms:

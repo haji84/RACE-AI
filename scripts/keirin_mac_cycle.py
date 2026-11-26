@@ -135,10 +135,11 @@ def _replay_media_state(root, folder, key, url, approval, pinned_at, now):
                    for row in verified):
                 return 'REPLAY_MEDIA_VERIFIED'
         else:
-            expected_frames = {(round(item['video_seconds'] * 1000), item['frame_sha256'])
-                               for item in receipt['frames']}
-            if any(row['kind'] == 'frames' and row['source_ref'] == url and expected_frames == {
-                    (item['at_ms'], item['sha256']) for item in row['frames']} for row in verified):
+            expected_frames = [dict(media.capture_clock(item, receipt.get('sampling')),
+                                    sha256=item['frame_sha256']) for item in receipt['frames']]
+            if any(row['kind'] == 'frames' and row['source_ref'] == url and expected_frames == [
+                    {name: value for name, value in item.items() if name != 'path'}
+                    for item in row['frames']] for row in verified):
                 return 'REPLAY_FRAMES_VERIFIED'
     return ('REPLAY_RECORDED_AWAITING_MEDIA_VERIFICATION' if approval.continuous
             else 'REPLAY_FRAMES_AWAITING_MEDIA_VERIFICATION')
@@ -230,7 +231,8 @@ def _capture_settled_replay(root, request, approval_path, settled, video, browse
         return 'REPLAY_DEFERRED_EXISTING_CAPTURE'
     if shutil.disk_usage(root).free < 50 * GIB:
         return 'HOLD_CAPTURE_STORAGE'
-    retryable = {sources.RESULT_PAGE_UNPUBLISHED, sources.DIGEST_BUTTON_UNAVAILABLE}
+    pending_publication = {sources.RESULT_PAGE_UNPUBLISHED, sources.DIGEST_BUTTON_UNAVAILABLE}
+    retryable = pending_publication.copy()
     # The foreground dialog binding was verified after the original player selection stopped.
     # A new frame approval can use an existing attempt slot after that specific hold.
     if (not approval.continuous and previous and previous[-1].get('capture_mode') is None
@@ -245,6 +247,22 @@ def _capture_settled_replay(root, request, approval_path, settled, video, browse
             and previous[-1]['status'] == sources.PLAYER_SEEK_UNAVAILABLE):
         retryable.add(sources.PLAYER_SEEK_UNAVAILABLE)
         attempt_limit += 1
+    if (not approval.continuous and len(previous) == REPLAY_MAX_ATTEMPTS+1
+            and previous[-1].get('capture_mode') == sources.REPLAY_FRAME_MODE
+            and previous[-1].get('sampling') == sources.FORWARD_REPLAY_SAMPLING
+            and previous[-1]['status'] == sources.REPLAY_FRAME_UNOBSERVED):
+        observation_path = Path(approval_path).with_name('komatsushima-passive-inspection-proof.json')
+        observation = shadow._read(observation_path, 4096) if observation_path.is_file() else {}
+        if (observation.get('race_id') == race_id and observation.get('source_ref') == url
+                and observation.get('settlement_sha256') == settled_sha
+                and observation.get('media_saved') is False
+                and type(observation.get('presented_frames')) is int and observation['presented_frames'] >= 2
+                and type(observation.get('distinct_sampled_frames')) is int
+                and observation['distinct_sampled_frames'] >= 2
+                and datetime.fromisoformat(previous[-1]['at_utc'])
+                <= datetime.fromisoformat(observation['recorded_at']) <= now):
+            retryable.add(sources.REPLAY_FRAME_UNOBSERVED)
+            attempt_limit += 2
     if previous and previous[-1]['status'] not in retryable:
         return 'HOLD_REPLAY_SOURCE_UNVERIFIED'
     if sum(1 for _ in work.glob('poll-*.json')) != len(previous):
@@ -267,7 +285,7 @@ def _capture_settled_replay(root, request, approval_path, settled, video, browse
     if counts['captured'] or counts['reused']:
         return ('REPLAY_RECORDED_AWAITING_MEDIA_VERIFICATION' if approval.continuous
                 else 'REPLAY_FRAMES_AWAITING_MEDIA_VERIFICATION')
-    if retryable.intersection(counts):
+    if pending_publication.intersection(counts):
         return 'WAITING_FOR_REPLAY_PUBLICATION'
     return 'HOLD_REPLAY_SOURCE_UNVERIFIED'
 
@@ -414,7 +432,8 @@ def _video(root, before, census, manifest, bounds, reviewed, source_approval, tr
                         key = (row['race_id'], row['source_ref'])
                         active_races.add(row['race_id'])
                         if row['kind'] == 'frames':
-                            active.update((*key, frame['at_ms'], frame['sha256']) for frame in row['frames'])
+                            active.update((*key, frame['at_ms'], frame['sha256']) for frame in row['frames']
+                                          if 'window_ms' not in frame)
                         else:
                             active.add((*key, row['sha256']))
                             continuous.add(row['race_id'])

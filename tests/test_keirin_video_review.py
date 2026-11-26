@@ -57,6 +57,17 @@ class KeirinVideoReviewTest(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, 'conflict'):
             main(self.args + self.record + ['--value', 'lost'])
 
+    def test_bounded_screenshot_clock_is_for_inspection(self):
+        for frame in self.frames:
+            frame['window_ms'] = [frame['at_ms'] - 45, frame['at_ms'] + 65]
+        self.write_media(self.item)
+        output = self.root / 'windows.html'
+        main([*self.args, 'sheet', '--output', str(output)])
+        self.assertIn('955–1065 ms', output.read_text())
+        with self.assertRaisesRegex(ValueError, 'time window'):
+            main(self.args + self.record)
+        self.assertFalse(self.out.exists())
+
     def test_unknown_records_reason_but_never_fabricates_a_target(self):
         args = self.record.copy()
         del args[args.index('--target-car'):args.index('--target-car') + 2]

@@ -304,7 +304,8 @@ class MacCycleTests(unittest.TestCase):
         calls = []
         now = NOW
         outcomes = [cycle.sources.DIGEST_BUTTON_UNAVAILABLE, cycle.sources.AMBIGUOUS_PLAYER,
-                    cycle.sources.PLAYER_SEEK_UNAVAILABLE, 'ordinary replay frame not observed']
+                    cycle.sources.PLAYER_SEEK_UNAVAILABLE, cycle.sources.REPLAY_FRAME_UNOBSERVED,
+                    cycle.sources.REPLAY_FRAME_UNOBSERVED]
 
         def capture(queue, out, **options):
             row = json.loads(queue.read_text())
@@ -317,6 +318,8 @@ class MacCycleTests(unittest.TestCase):
                 attempt['capture_mode'] = cycle.sources.REPLAY_FRAME_MODE
                 if len(calls) == 4:
                     attempt['sampling'] = cycle.sources.FORWARD_REPLAY_SAMPLING
+                if len(calls) == 5:
+                    attempt['sampling'] = cycle.sources.PASSIVE_REPLAY_SAMPLING
             with open(out/'attempts.jsonl', 'a', opener=cycle.sources.private_log_fd) as history:
                 history.write(json.dumps(attempt)+'\n')
             return Counter({status: 1})
@@ -336,8 +339,19 @@ class MacCycleTests(unittest.TestCase):
                 now = NOW+timedelta(minutes=offset)
                 result = self.run_cycle(shadow_request=request, now=now)
                 self.assertEqual(result['shadow_replay']['state'], expected)
+            admitted = self.root/'keirin-mac-shadow-results/202611267301/github-public/published-result.json'
+            evidence = dict(race_id=KOMATSUSHIMA['race_id'], source_ref=KOMATSUSHIMA['race_detail_url'],
+                            settlement_sha256=sha256(admitted.read_bytes()).hexdigest(),
+                            recorded_at=now.isoformat(), media_saved=False, presented_frames=9,
+                            distinct_sampled_frames=2)
+            self.write('komatsushima-passive-inspection-proof.json', evidence).chmod(0o600)
+            for offset in (135, 165):
+                now = NOW+timedelta(minutes=offset)
+                result = self.run_cycle(shadow_request=request, now=now)
+                self.assertEqual(result['shadow_replay']['state'], 'HOLD_REPLAY_SOURCE_UNVERIFIED')
         self.assertEqual(calls, [(NOW+timedelta(minutes=offset), mode)
-                                 for offset, mode in ((0, True), (30, True), (60, False), (90, False))])
+                                 for offset, mode in ((0, True), (30, True), (60, False), (90, False),
+                                                      (135, False))])
 
     def test_no_census_runs_the_retained_comparison_and_preserves_absent_video_state(self):
         result = self.run_cycle()

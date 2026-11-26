@@ -6,7 +6,8 @@ resume and export one active, combined cohort in a single command.
 
 "frames" imports existing browser screenshot receipts. "verify" accepts JSONL
 rows with race_id (YYYYMMDD-VV-RR), race_date, source_ref and kind. A frames
-row supplies frames [{at_ms, path, sha256}]. A clip/full row supplies path,
+row supplies frames [{at_ms, path, sha256}], with an optional window_ms for a
+screen grab whose clock can only be bounded. A clip/full row supplies path,
 sha256 and optional start_ms (the time of the first frame on the source
 clock). Full coverage and race identity of owner media are supplied by its
 provider. Movie verification records size, resolution and black/frozen spans.
@@ -25,6 +26,7 @@ from hashlib import file_digest, sha256
 import fcntl
 from itertools import groupby
 import json
+from math import ceil, floor
 import os
 from pathlib import Path
 import re
@@ -65,6 +67,26 @@ def atomic_jsonl(path, rows):
             temp.unlink(missing_ok=True)
             raise
     temp.replace(path)
+
+
+def capture_clock(capture, sampling):
+    clock = dict(at_ms=round(1000 * capture['video_seconds']))
+    if sampling == replay.PASSIVE_REPLAY_SAMPLING:
+        clock['window_ms'] = [floor(1000 * capture['presented_at']),
+                              ceil(1000 * capture['player_clock_after'])]
+    return clock
+
+
+def frame_window(frame):
+    if 'window_ms' not in frame:
+        return None
+    window = frame['window_ms']
+    if (type(window) is not list or len(window) != 2
+            or any(type(bound) is not int for bound in window)
+            or not 0 <= window[0] <= frame['at_ms'] <= window[1]
+            or window[1] - window[0] > ceil(1000 * replay.MAX_REPLAY_STILL_WINDOW) + 2):
+        raise ValueError('invalid frame time window')
+    return window
 
 
 def captured_rows(roots):
@@ -147,7 +169,7 @@ def captured_rows(roots):
                                 if file_digest(media, 'sha256').hexdigest() == capture['frame_sha256']:
                                     frame = near
                                     break
-                frames.append(dict(at_ms=round(1000 * seconds), path=str(frame.resolve()),
+                frames.append(dict(capture_clock(capture, source.get('sampling')), path=str(frame.resolve()),
                                    sha256=capture['frame_sha256']))
             yield dict(base, kind='frames', source_ref=source['public_result_page'], frames=frames)
 
@@ -175,9 +197,12 @@ def assets(row, folder):
             raise ValueError('invalid clock or SHA-256')
         if not isinstance(entry['path'], str) or not entry['path'] or '://' in entry['path']:
             raise ValueError('an asset must have a local file path')
-        yield dict(race_id=row['race_id'], race_date=row['race_date'], source_ref=ref,
-                   kind=kind, path=str((folder / entry['path']).absolute()),
-                   at_ms=at, sha256=entry['sha256'])
+        spec = dict(race_id=row['race_id'], race_date=row['race_date'], source_ref=ref,
+                    kind=kind, path=str((folder / entry['path']).absolute()), at_ms=at,
+                    sha256=entry['sha256'])
+        if kind == 'frames' and (window := frame_window(entry)) is not None:
+            spec['window_ms'] = window
+        yield spec
 
 
 def connect(db):
@@ -378,7 +403,8 @@ def verified_rows(conn, race_id=None):
             header = dict(race_id=race_id, race_date=item['race_date'], source_ref=ref,
                           kind=kind, status='verified')
             if kind == 'frames':
-                frames.append({key: item[key] for key in ('at_ms', 'path', 'sha256')})
+                frames.append({key: item[key] for key in ('at_ms', 'path', 'sha256', 'window_ms')
+                               if key in item})
             else:
                 if item.get('movie_quality_version') != MOVIE_QUALITY_VERSION:
                     raise ValueError('movie quality check required; verify the original manifest or capture root again')

@@ -158,6 +158,8 @@ def load_media(db, row):
     if kind == "frames":
         frames = {}
         for frame in row["frames"]:
+            if "window_ms" in frame:
+                continue  # A bounded screenshot has no exact annotation timestamp.
             t, digest = frame["at_ms"], frame["sha256"]
             if (
                 type(t) is not int
@@ -167,6 +169,8 @@ def load_media(db, row):
             ):
                 raise ValueError(f"invalid frame receipt: {key}")
             frames[t] = digest
+        if row["frames"] and not frames:
+            return
         if not frames:
             raise ValueError(f"empty frame receipt: {key}")
         old = db.execute(
