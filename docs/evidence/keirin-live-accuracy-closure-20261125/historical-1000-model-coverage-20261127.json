@@ -1,0 +1,427 @@
+{
+  "all_models_on_common_cohort_completed": false,
+  "archived_original_cover": {
+    "archive_commit": "ea3df7d73948bcb524b9d988de2976a5beecf8d6",
+    "common_cohort_baseline_receipts": 7,
+    "common_cohort_form_on_official_sp_bases": 5,
+    "common_cohort_form_receipts": 6,
+    "common_cohort_official_sp_index_matches": 6,
+    "full_archive_baseline_receipts": 103,
+    "full_archive_form_receipts": 72
+  },
+  "canary": {
+    "fixed_four_arms_independently_settled": 1,
+    "scope": "SEPARATE_LEGACY_CANARY",
+    "settlement_run_id": "44784648369"
+  },
+  "cohort": {
+    "days": 48,
+    "eligible_races": 3201,
+    "feature_holds": {},
+    "first_day": "20261001",
+    "last_day": "20261122",
+    "race_ids_sha256": "730c5b020a18c2d3556e7045e9724e48315753c784a860557ed0e339f4892f9b",
+    "races": 1000,
+    "selection_seed": "RACE_AI_KEIRIN_ARCHIVE_1000_20261127_V1"
+  },
+  "comparison_c": {
+    "formal_candidates_produced": 0,
+    "independently_attested_historical_follow_labels": "HELD"
+  },
+  "delivery_observation": {
+    "all_models_requirement_elapsed_seconds": null,
+    "blocking_factor": "INSUFFICIENT_SHARED_MODEL_INPUTS_AND_FOLLOW_LABELS",
+    "end_to_end_elapsed_seconds": null,
+    "first_verified_archive_report_seconds_after_dispatch": 265,
+    "main_replay_change_review": "INDEPENDENT_REVIEW_AND_PROTECTED_CI",
+    "regression_tests_passed": 46,
+    "session_token_usage": null
+  },
+  "display_research": {
+    "archive_checked_as_final_payout_source": true,
+    "candidate_packet_sha256": "906cb59ac9c1a17264239c65951b33d615279d09575e6a4415404df3c8244aa6",
+    "cohort": {
+      "days": 48,
+      "eligible_races": 3201,
+      "feature_holds": {},
+      "first_day": "20261001",
+      "last_day": "20261122",
+      "race_ids_sha256": "730c5b020a18c2d3556e7045e9724e48315753c784a860557ed0e339f4892f9b",
+      "races": 1000,
+      "selection_seed": "RACE_AI_KEIRIN_ARCHIVE_1000_20261127_V1"
+    },
+    "generated_models": {
+      "observed-ability-on-evidenced-scenarios": 1000,
+      "role-and-pace-on-evidenced-scenarios": 1000
+    },
+    "independent_readback_sha256": "92c085c4d113a3738f3db292be7ee84b7204fffebd486397fd600003f97c0407",
+    "method": "forward-phase-independent-pair-selection-20261122",
+    "original_receipt_overlaps": {
+      "baseline_receipt_and_cipher": 7,
+      "form_receipt_and_cipher": 6
+    },
+    "results": {
+      "observed-ability-on-evidenced-scenarios": {
+        "2t": {
+          "hits": 254,
+          "insufficient_candidates": 13,
+          "payout_yen": 143700,
+          "scored": 987,
+          "stake_yen": 197400
+        },
+        "3t": {
+          "hits": 157,
+          "insufficient_candidates": 22,
+          "payout_yen": 282830,
+          "scored": 978,
+          "stake_yen": 391200
+        }
+      },
+      "role-and-pace-on-evidenced-scenarios": {
+        "2t": {
+          "hits": 252,
+          "insufficient_candidates": 13,
+          "payout_yen": 138170,
+          "scored": 987,
+          "stake_yen": 197400
+        },
+        "3t": {
+          "hits": 156,
+          "insufficient_candidates": 22,
+          "payout_yen": 286130,
+          "scored": 978,
+          "stake_yen": 391200
+        }
+      }
+    },
+    "same_market_pairs": {
+      "2t": 987,
+      "3t": 978
+    },
+    "scope": "RESULT_UNREAD_RETROSPECTIVE_DISPLAY_RESEARCH_ONLY",
+    "source_commit": "6dd71787264d574745b1b1c87dc1efe11bf6bdaa",
+    "source_model_sha256": "b30b7940cb054fc3225f109f1f35e70cab034c704e0d701937ded8309b8f5b47"
+  },
+  "pr71": {
+    "before_model_pin_day_on_cohort": 541,
+    "seven_or_nine_car_races_after_pin_day_in_archive_candidates": 1347,
+    "strict_historical_input_packets_found": 0,
+    "union_of_field_and_day_exclusions": 561,
+    "unsupported_field_sizes_on_cohort": 44
+  },
+  "research_four_arms_common_budget": {
+    "aggregate": {
+      "all_96": {
+        "2t_hits": 365,
+        "2t_payout_yen": 141160,
+        "2t_scored": 978,
+        "2t_stake_yen": 195600,
+        "3t_hits": 275,
+        "3t_payout_yen": 279760,
+        "3t_scored": 978,
+        "3t_stake_yen": 391200
+      },
+      "display_A": {
+        "2t_hits": 252,
+        "2t_payout_yen": 143120,
+        "2t_scored": 978,
+        "2t_stake_yen": 195600,
+        "3t_hits": 157,
+        "3t_payout_yen": 282830,
+        "3t_scored": 978,
+        "3t_stake_yen": 391200
+      },
+      "display_B": {
+        "2t_hits": 250,
+        "2t_payout_yen": 137590,
+        "2t_scored": 978,
+        "2t_stake_yen": 195600,
+        "3t_hits": 156,
+        "3t_payout_yen": 286130,
+        "3t_scored": 978,
+        "3t_stake_yen": 391200
+      },
+      "saved": {
+        "2t_hits": 370,
+        "2t_payout_yen": 147100,
+        "2t_scored": 978,
+        "2t_stake_yen": 195600,
+        "3t_hits": 265,
+        "3t_payout_yen": 274810,
+        "3t_scored": 978,
+        "3t_stake_yen": 391200
+      }
+    },
+    "only_common_equal_ticket_coverage": true,
+    "race_ids_sha256": "ffc6dede5469243b3c1f56db8f100ea335941701ffbde124a8e318c3bf85d4ce",
+    "races": 978
+  },
+  "saved_official_replay": [
+    {
+      "admitted_meeting_condition_trials": 0,
+      "archive_commit": "ea3df7d73948bcb524b9d988de2976a5beecf8d6",
+      "archive_score_sha256": "8bc419982d409b2234e30e4fd35374dcd8262195d78557fd4a0c3632d457e0e1",
+      "cohort": {
+        "not_registered": 0,
+        "race_ids_sha256": "65f2397f8876e7efb96a0189d1a2a09ef585459d99512490957e1534e0a42264",
+        "requested_races": 2
+      },
+      "coverage": {
+        "archived_baseline_races": 2,
+        "archived_baseline_without_result": 0,
+        "archived_result_races": 2,
+        "cancelled_or_refunded_result_replays": 0,
+        "official_order_replay_verified_races": 2,
+        "official_payout_verified_races": 2,
+        "official_registered_races": 2,
+        "official_result_replay_held_races": 0,
+        "registered_without_original": 0
+      },
+      "day_jst": "2026-11-21",
+      "dispatch_to_verified_report_seconds": 265,
+      "result_replay_holds": {},
+      "run_id": "45870199212",
+      "runner_runtime_seconds": 20,
+      "trifecta_top4": {
+        "baseline_A_vs_baseline_B": {
+          "all_pre_cutoff": {
+            "hits": [
+              0,
+              0
+            ],
+            "paired_races": 2,
+            "payout_yen": [
+              0,
+              0
+            ],
+            "stake_yen": [
+              800,
+              800
+            ],
+            "virtual_return_races": 2
+          },
+          "official_t15": {
+            "hits": [
+              0,
+              0
+            ],
+            "paired_races": 2,
+            "payout_yen": [
+              0,
+              0
+            ],
+            "stake_yen": [
+              800,
+              800
+            ],
+            "virtual_return_races": 2
+          }
+        },
+        "baseline_A_vs_conditioned_A": {
+          "all_pre_cutoff": {
+            "hits": [
+              0,
+              0
+            ],
+            "paired_races": 1,
+            "payout_yen": [
+              0,
+              0
+            ],
+            "stake_yen": [
+              400,
+              400
+            ],
+            "virtual_return_races": 1
+          },
+          "official_t15": {
+            "hits": [
+              0,
+              0
+            ],
+            "paired_races": 1,
+            "payout_yen": [
+              0,
+              0
+            ],
+            "stake_yen": [
+              400,
+              400
+            ],
+            "virtual_return_races": 1
+          }
+        },
+        "baseline_B_vs_conditioned_B": {
+          "all_pre_cutoff": {
+            "hits": [
+              0,
+              0
+            ],
+            "paired_races": 1,
+            "payout_yen": [
+              0,
+              0
+            ],
+            "stake_yen": [
+              400,
+              400
+            ],
+            "virtual_return_races": 1
+          },
+          "official_t15": {
+            "hits": [
+              0,
+              0
+            ],
+            "paired_races": 1,
+            "payout_yen": [
+              0,
+              0
+            ],
+            "stake_yen": [
+              400,
+              400
+            ],
+            "virtual_return_races": 1
+          }
+        }
+      }
+    },
+    {
+      "admitted_meeting_condition_trials": 0,
+      "archive_commit": "ea3df7d73948bcb524b9d988de2976a5beecf8d6",
+      "archive_score_sha256": "375455970523103632f1cba30e3cc1f4eb6f8e0d610b8379cc2623f01cc1710d",
+      "cohort": {
+        "not_registered": 0,
+        "race_ids_sha256": "3014178707719cc034dec98a2ab897caddf863c9851f48f9f4e08762b5612740",
+        "requested_races": 4
+      },
+      "coverage": {
+        "archived_baseline_races": 4,
+        "archived_baseline_without_result": 0,
+        "archived_result_races": 4,
+        "cancelled_or_refunded_result_replays": 0,
+        "official_order_replay_verified_races": 4,
+        "official_payout_verified_races": 4,
+        "official_registered_races": 4,
+        "official_result_replay_held_races": 0,
+        "registered_without_original": 0
+      },
+      "day_jst": "2026-11-22",
+      "dispatch_to_verified_report_seconds": 291,
+      "result_replay_holds": {},
+      "run_id": "45870530859",
+      "runner_runtime_seconds": 38,
+      "trifecta_top4": {
+        "baseline_A_vs_baseline_B": {
+          "all_pre_cutoff": {
+            "hits": [
+              0,
+              0
+            ],
+            "paired_races": 4,
+            "payout_yen": [
+              0,
+              0
+            ],
+            "stake_yen": [
+              1600,
+              1600
+            ],
+            "virtual_return_races": 4
+          },
+          "official_t15": {
+            "hits": [
+              0,
+              0
+            ],
+            "paired_races": 3,
+            "payout_yen": [
+              0,
+              0
+            ],
+            "stake_yen": [
+              1200,
+              1200
+            ],
+            "virtual_return_races": 3
+          }
+        },
+        "baseline_A_vs_conditioned_A": {
+          "all_pre_cutoff": {
+            "hits": [
+              0,
+              0
+            ],
+            "paired_races": 4,
+            "payout_yen": [
+              0,
+              0
+            ],
+            "stake_yen": [
+              1600,
+              1600
+            ],
+            "virtual_return_races": 4
+          },
+          "official_t15": {
+            "hits": [
+              0,
+              0
+            ],
+            "paired_races": 3,
+            "payout_yen": [
+              0,
+              0
+            ],
+            "stake_yen": [
+              1200,
+              1200
+            ],
+            "virtual_return_races": 3
+          }
+        },
+        "baseline_B_vs_conditioned_B": {
+          "all_pre_cutoff": {
+            "hits": [
+              0,
+              0
+            ],
+            "paired_races": 4,
+            "payout_yen": [
+              0,
+              0
+            ],
+            "stake_yen": [
+              1600,
+              1600
+            ],
+            "virtual_return_races": 4
+          },
+          "official_t15": {
+            "hits": [
+              0,
+              0
+            ],
+            "paired_races": 3,
+            "payout_yen": [
+              0,
+              0
+            ],
+            "stake_yen": [
+              1200,
+              1200
+            ],
+            "virtual_return_races": 3
+          }
+        }
+      }
+    }
+  ],
+  "schema": "RACE_AI_KEIRIN_HISTORICAL_1000_MODEL_COVERAGE_V1",
+  "video_research": {
+    "exact_readback_of_post_fit_subset": "ARTIFACT_UNAVAILABLE",
+    "overlapping_races_with_visual_observations": 20,
+    "post_fit_races_in_common_cohort": 38
+  }
+}
