@@ -288,13 +288,17 @@ class RecordStore:
         self.index=checked_index(history._json(raw),self.day) if raw is not None else _empty(self.day)
         return self.index
 
-    def read(self, meta, owner_private_pem):
+    def read_cipher(self, meta):
         path=ROOT+'/'+self.day+'/'+meta['evidence_sha256']+'.sealed.json'
         raw=archive.read_blob_bytes(self.repo,self.head,path,max_bytes=history.MAX_CIPHER_BYTES)
         need(raw is not None and sha256(raw).hexdigest()==meta['cipher_sha256'],'EVIDENCE_CIPHER_SHA')
         envelope=history._checked_cipher(raw)
         need(envelope['day_jst']==self.day and envelope['evidence_plaintext_sha256']==meta['evidence_sha256'] and
              envelope['observed_at']==meta['observed_at'],'EVIDENCE_ENVELOPE')
+        return raw
+
+    def read(self, meta, owner_private_pem):
+        raw = self.read_cipher(meta)
         payload=pipeline.restore_private_snapshot_json(history.decrypt_evidence(raw,owner_private_pem))
         need(payload.get('day_jst')==self.day and payload.get('schema')=={
             'registry':DAY_SCHEMA,'original':PRE_SCHEMA,'result':RESULT_SCHEMA}[meta['kind']] and
@@ -583,3 +587,64 @@ def _replay_saved_result(store,original_meta,result_meta,owner_private_pem):
 def replay_saved_result(store,original_meta,result_meta,owner_private_pem):
     """Source-free reconstruction of the existing public result update."""
     return result_updates(*_replay_saved_result(store,original_meta,result_meta,owner_private_pem))
+
+
+def _trial_receipt_fields(row):
+    fields = ('condition_trial_sha256', 'evidence_sha256', 'evidence_cipher_sha256')
+    need(all(type(row.get(key)) is str and archive.SHA.fullmatch(row[key]) for key in fields),
+         'CONDITION_TRIAL_RECEIPT_SHA')
+    return {key: row[key] for key in fields}
+
+
+def verify_condition_trial_cipher(row, store):
+    """Independently read back the encrypted original containing both trial arms."""
+    trial_fields = _trial_receipt_fields(row)
+    meta = store.index['originals'][row['race_id']]
+    need(meta['evidence_sha256'] == trial_fields['evidence_sha256'] and
+         meta['cipher_sha256'] == trial_fields['evidence_cipher_sha256'] and
+         meta['baseline_cipher_sha256'] == row['cipher_sha256'], 'CONDITION_TRIAL_CIPHER_BINDING')
+    store.read_cipher(meta)
+    return dict(trial_fields, condition_trial_state='SECOND_RUNNER_CONDITION_TRIAL_SHA_CONFIRMED')
+
+
+def admit_saved_pair(store, original_meta, result_meta, owner_private_pem, *, history_cache=None):
+    """Prove the stored pair from the protected capture, readback and pinned dossier."""
+    from . import keirin_official_condition_trial as trial
+
+    payload = store.read(original_meta, owner_private_pem)
+    pair = payload.get('condition_trial')
+    if pair is None:
+        return None
+    saved_result = store.read(result_meta, owner_private_pem)
+    need(saved_result['original_evidence_sha256'] == original_meta['evidence_sha256'],
+         'CONDITION_TRIAL_RESULT_ORIGINAL')
+    packets = saved_result['origin_packets']
+    raw, _ = archived_original(store, payload)
+    original, _ = verify_origins(dict(payload, conditioned=None), raw, None, packets)
+    cutoff = model.when(payload['baseline']['published_cutoff_at'])
+    latest_server = model.when(original['latest_server_evidence_at'])
+    sealed_at = model.when(original_meta['observed_at'])
+    need(max(latest_server, sealed_at) <= cutoff - trial.WITNESS_MARGIN, 'CONDITION_TRIAL_T15')
+    first = origin._bundle(packets['producer'], role='producer', policy=POLICY)
+    second = origin._bundle(packets['readback'], role='readback', policy=POLICY)
+    rid = payload['race_id']
+    producer = next((row for row in first['report']['new_encrypted_originals'] if row['race_id'] == rid), None)
+    reader = next((row for row in second['report']['records'] if row['race_id'] == rid), None)
+    need(producer is not None and reader is not None and
+         reader.get('condition_trial_state') == 'SECOND_RUNNER_CONDITION_TRIAL_SHA_CONFIRMED',
+         'CONDITION_TRIAL_INDEPENDENT_READBACK')
+    fields = dict(condition_trial_sha256=model.digest(pair), evidence_sha256=original_meta['evidence_sha256'],
+                  evidence_cipher_sha256=original_meta['cipher_sha256'])
+    need(_trial_receipt_fields(producer) == _trial_receipt_fields(reader) == fields,
+         'CONDITION_TRIAL_EXACT_ARCHIVE')
+    commit = pair['historical_release']
+    cache = {} if history_cache is None else history_cache
+    if commit not in cache:
+        cache[commit] = trial.HistoryPacket.from_repository(store.repo, store.day, pinned_commit=commit)
+    history_packet = cache[commit]
+    need(history_packet is not None and history_packet.sha256 == pair['historical_packet_sha256'],
+         'CONDITION_TRIAL_HISTORY_BINDING')
+    rebuilt = trial.build_from_official_card(payload['snapshot'], payload['baseline'],
+                                            payload['baseline_arguments']['card_arguments'], history_packet)
+    need(rebuilt == pair, 'CONDITION_TRIAL_REPLAY')
+    return pair, latest_server.isoformat(), sealed_at.isoformat()

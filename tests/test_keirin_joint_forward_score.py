@@ -176,6 +176,52 @@ class JointForwardScoreTests(unittest.TestCase):
         self.assertEqual(report['exacta_top2']['matched'],0)
         self.assertEqual(report['trifecta_by_points']['8']['trial_hits'],0)
 
+    def test_measured_comparison_uses_equal_points_and_real_payouts_on_matching_results(self):
+        measured = self.score()['measured_comparison']
+        self.assertEqual(measured['result_authority'], 'TWO_SOURCE_PUBLISHED_REFERENCE')
+        self.assertEqual(measured['coverage']['registered'], 6)
+        self.assertEqual(measured['coverage']['matched_results'], 3)
+        self.assertEqual(measured['coverage']['official_t15_matched_pairs'], 0)
+        self.assertEqual(measured['coverage']['matched_pairs_with_published_t15_witness'], 3)
+        self.assertEqual(measured['adoption_status'], 'HOLD_RESEARCH_REFERENCE_ONLY')
+        market = measured['markets']['trifecta_top4']
+        self.assertEqual(market['paired_races'], 3)
+        self.assertEqual(market['lost'], 1)
+        self.assertEqual(market['published']['hits'], 3)
+        self.assertEqual(market['published']['rate'], 1)
+        self.assertEqual(len(market['paired_difference_ci95']), 2)
+        trial = market['virtual_returns']['trial']
+        self.assertEqual(trial['stake_yen'], 1200)
+        self.assertEqual(trial['payout_yen'], 500)
+        self.assertEqual(trial['net_yen'], -700)
+        self.assertAlmostEqual(trial['return_rate'], 500 / 1200)
+        self.assertEqual(trial['max_drawdown_yen'], 700)
+        self.assertEqual(market['published']['calibration']['count'], 3)
+        self.assertTrue(0 < market['published']['calibration']['brier'] < 1)
+        self.assertGreater(measured['markets']['exacta_top2']['trial']['calibration']['log_loss'], 0)
+        self.assertEqual(measured['markets']['top3_set_top1']['virtual_returns']['paired_races'], 0)
+        self.assertEqual(measured['probability_scores']['published']['rider_top3']['count'], 12)
+        self.assertEqual(measured['probability_scores']['published']['trifecta_order']['count'], 3)
+        self.assertEqual(measured['subgroups']['field_size']['4']['exacta_top2']['paired_races'], 3)
+
+    def test_late_relative_to_published_t15_counts_only_in_research(self):
+        cutoff = self.roster['races'][0]['published_cutoff_at']
+        self.assertTrue(cutoff.endswith('16:00:00+09:00'))
+        self.witness['observed_at'] = DAY + 'T06:50:00Z'
+        measured = self.score()['measured_comparison']
+        self.assertEqual(measured['markets']['exacta_top2']['paired_races'], 3)
+        self.assertEqual(measured['coverage']['matched_pairs_with_published_t15_witness'], 0)
+
+    def test_empty_measurements_never_report_zero_rates_or_ready_status(self):
+        self.results['races'] = []
+        measured = self.score()['measured_comparison']
+        market = measured['markets']['trifecta_top4']
+        self.assertIsNone(market['published']['rate'])
+        self.assertIsNone(market['paired_difference_ci95'])
+        self.assertIsNone(market['virtual_returns']['trial']['return_rate'])
+        self.assertIsNone(market['trial']['calibration']['brier'])
+        self.assertEqual(measured['coverage']['official_t15_progress'], {'100':False, '500':False, '1000':False})
+
     def test_arm_identity_and_original_distribution_consistency_are_enforced(self):
         for change in (lambda row:row.update(model_version='different-weights'),
                        lambda row:row['riders'][0].update(name='SOMEONE ELSE')):

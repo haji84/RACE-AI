@@ -21,7 +21,8 @@ MAX_NOTE = 8 * 1024 * 1024
 SOURCE_SHA256 = {
     'scripts/keirin_joint_original_readback.py': '0c3aced968a1ade54dc5085b306435433f3c033944674c584c7e1a1535f5603c',
     'race_ai/keirin_official_run_history.py': '6ca4ffe0211186d4b08cd8d897c79c5e1dbcb4ba460f0aa73410ca317adf1266',
-    'scripts/keirin_joint_forward_score.py': '67182d37f9cc019670a6a06c07e24ac60ae1187853d3826056c8fede4e2c8f10',
+    'scripts/keirin_joint_forward_score.py': '2ab3c69f169bff5b026fe6d766896b489909cca187e2720f84cbc1dd41264dd2',
+    'race_ai/keirin_paired_measurement.py': '7e7b3f3a5cc28dac65ebd995d0910fa96f43aa590cb68e77407fb757a518c1c2',
 }
 
 
@@ -182,6 +183,7 @@ def score_recovery(raw_cipher, private_pem, receipt_raw, publication_raw, witnes
         try:
             report = scorer.score_joint(note, publication_raw, witness_raw, roster_raw, results_raw,
                 expected_note_sha256=receipt['original_note_sha256'], clock=lambda: now)
+            report['measured_comparison']['original_authentication'] = 'INDEPENDENT_RSA_READBACK_VERIFIED'
         except Exception:
             raise RecoveryScoreHold('JOINT_RECOVERY_SCORE_SCORING_FAILED') from None
         report.update(original_plaintext_authentication='INDEPENDENT_RSA_READBACK_VERIFIED',

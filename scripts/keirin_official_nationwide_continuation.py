@@ -46,15 +46,16 @@ def need(ok,code):
 def _runtime(*,repo,private_root,owner_public_pem,owner_private_pem,day,clock,mode):
     at=form._aware(clock());today=at.astimezone(form.JST).date().isoformat()
     day=day or today;history._day(day)
-    need(mode in ('capture','publish','settle'),'MODE_INVALID')
+    need(mode in ('capture','publish','settle','measure'),'MODE_INVALID')
     need(os.getenv('GITHUB_ACTIONS')=='true' and os.getenv('GITHUB_REPOSITORY')==archive.REPO and
          os.getenv('GITHUB_REPOSITORY_ID')==archive.REPO_ID and os.getenv('GITHUB_REF')=='refs/heads/main' and
          os.getenv('GITHUB_EVENT_NAME') in ('schedule','workflow_dispatch') and
          os.getenv('RACE_AI_KEIRIN_AB_GIT_STORE_ENABLED')=='true','TRUSTED_RUNTIME_REQUIRED')
-    roles={'capture':'official-sp-capture','publish':'official-sp-publish','settle':'official-sp-settle'}
     pair=(os.getenv('GITHUB_WORKFLOW_REF'),os.getenv('GITHUB_JOB'))
-    need(pair==(WORKFLOW,roles[mode]) or mode=='settle' and pair==(WATCH_WORKFLOW,'observe-results'),
-         'EXACT_SOURCE_JOB_REQUIRED')
+    allowed = {'capture': {(WORKFLOW,'official-sp-capture')}, 'publish': {(WORKFLOW,'official-sp-publish')},
+               'settle': {(WORKFLOW,'official-sp-settle'), (WATCH_WORKFLOW,'observe-results')},
+               'measure': {(WATCH_WORKFLOW,'measured-results')}}
+    need(pair in allowed[mode], 'EXACT_SOURCE_JOB_REQUIRED')
     need(mode!='capture' or day==today,'CAPTURE_ACTUAL_DAY_REQUIRED')
     private_public=pipeline.check_owner_private_key(owner_private_pem)
     public=Path(owner_public_pem).read_bytes();parsed=storage.checked_public_key(public)
@@ -125,7 +126,7 @@ def _save_registry(store,inventory,states,source_attempts,prior,public,clock):
 
 
 def _seal_and_archive(*,candidate,condition_input,history_manifest,condition_state,session,
-                      store,public,root,clock,commit,cohort):
+                      store,public,root,clock,commit,cohort,condition_history=None):
     snapshot=candidate['snapshot'];rid=snapshot['race_id']
     generated=form._aware(clock()).isoformat()
     baseline=model.generate_A_B(snapshot,generated_at=generated,max_tickets=12)
@@ -182,11 +183,25 @@ def _seal_and_archive(*,candidate,condition_input,history_manifest,condition_sta
         identity_proof=condition_input['identity_proof'] if adjusted is not None else None,
         availability=condition_input['availability'] if adjusted is not None else None,
         safe_report=dict(day_jst=store.day,race_id=rid,state='FROZEN_ORIGINAL_SOURCE_BUNDLE'))
+    trial = None
+    if condition_history is not None:
+        from race_ai import keirin_official_condition_trial as trial_model
+
+        try:
+            trial = trial_model.build_from_official_card(snapshot, baseline,
+                        candidate['arguments']['card_arguments'], condition_history)
+        except (OSError, ValueError, TypeError, KeyError, ArithmeticError):
+            # The ageing history or trial must never block the original forecast.
+            trial = None
+        if trial is not None and model.when(snapshot['published_cutoff_at']) - clock() >= trial_model.WITNESS_MARGIN:
+            payload['condition_trial'] = trial
     evidence=store.append(kind='original',payload=payload,public_pem=public,observed_at=clock(),race_id=rid)
     row=dict(race_id=rid,cipher_sha256=digest,conditioned_state=condition_archive_state,
              baseline_prediction_sha256=baseline['prediction_sha256'],cohort_sha256=cohort_sha,
              evidence_cipher_sha256=evidence['cipher_sha256'])
     if condition_sha is not None:row['conditioned_cipher_sha256']=condition_sha
+    if 'condition_trial' in payload:
+        row.update(condition_trial_sha256=model.digest(trial), evidence_sha256=evidence['evidence_sha256'])
     return row,condition_state
 
 
@@ -328,6 +343,16 @@ def run_capture(*,repo,private_root,owner_public_pem,owner_private_pem,day=None,
             attempted_states={'BASELINE_SOURCE_UNVERIFIED','CUTOFF_MARGIN_INSUFFICIENT','FROZEN_ARCHIVE_UNVERIFIED'}
             source_attempts={r['race_id']:1 for r in previous['states'] if r['state'] in attempted_states}
     prior=sorted(set(prior)|set(store.index['originals']))
+    from race_ai.keirin_official_condition_trial import HistoryPacket, study_is_open
+
+    try:
+        study_open = study_is_open(day)
+        condition_history = HistoryPacket.from_repository(repo, day) if study_open else None
+        report['condition_history_state'] = ('STUDY_INACTIVE' if not study_open else
+                                             'AVAILABLE' if condition_history else 'NOT_PUBLISHED')
+    except (ValueError, KeyError, TypeError, OSError, TimeoutExpired):
+        condition_history = None
+        report['condition_history_state'] = 'SOURCE_READ_HELD'
     lease=_begin_lease(repo,owner_private_pem,clock,commit,expected_day=day)
     session=sources.OfficialSourceSession(repo=repo,private_root=capture_files._private_directory(root/'sources'),
                                          lease=lease,clock=clock)
@@ -414,7 +439,8 @@ def run_capture(*,repo,private_root,owner_public_pem,owner_private_pem,day=None,
             try:
                 saved,condition_state=_seal_and_archive(candidate=candidate,condition_input=joined,
                     history_manifest=manifest,condition_state=condition_state,session=session,store=store,
-                    public=public,root=root,clock=clock,commit=commit,cohort=cohort)
+                    public=public,root=root,clock=clock,commit=commit,cohort=cohort,
+                    condition_history=condition_history)
                 report['new_encrypted_originals'].append(saved)
                 earliest_frozen_cutoff=earliest_cutoff
                 session.capture_deadline=earliest_frozen_cutoff-finalization_reserve
@@ -448,6 +474,8 @@ def run_capture(*,repo,private_root,owner_public_pem,owner_private_pem,day=None,
         report['baseline_hold_reasons'] = dict(sorted(baseline_holds.items()))
         _save_registry(store,inventory,states,source_attempts,prior,public,clock)
         count=len(report['new_encrypted_originals'])
+        report['condition_trials_frozen'] = sum('condition_trial_sha256' in row
+                                                for row in report['new_encrypted_originals'])
         report.update(new_A_B_sealed=count,new_A_B_git_archived=count,
             new_conditioned_A_B_git_archived=sum('conditioned_cipher_sha256' in row for row in report['new_encrypted_originals']),
             statuses=dict(sorted(Counter(row['state'] for row in states.values()).items())))

@@ -1,0 +1,146 @@
+"""Preregistered, read-only paired prediction using the original tactical scenarios."""
+from dataclasses import dataclass
+from datetime import date, timedelta
+from hashlib import sha256
+from itertools import permutations
+from math import exp, fsum
+import re
+
+from . import keirin_dossier_conditions as dossier
+from . import keirin_joint_forecast as joint_forecast
+from . import keirin_nationwide_auto_generator as model
+from . import keirin_public_forecasts as public
+from .keirin_joint_finish import JointFinish
+
+SCHEMA = 'RACE_AI_KEIRIN_OFFICIAL_CONDITION_TRIAL_V1'
+BASELINE = 'official-b-scenarios-with-full-support-v1'
+CHALLENGER = 'official-b-scenarios-with-meeting-round-history-v1'
+MIN_STARTS = 10
+WITNESS_MARGIN = timedelta(minutes=15)
+FULL_SUPPORT = 0.20
+STUDY_FIRST_DAY = date(2026, 11, 27)
+STUDY_DAYS = 180
+
+
+def study_is_open(day):
+    return STUDY_FIRST_DAY <= date.fromisoformat(day) < STUDY_FIRST_DAY + timedelta(days=STUDY_DAYS)
+
+
+def _need(ok, reason):
+    if not ok:
+        raise ValueError('OFFICIAL_CONDITION_TRIAL_' + reason)
+
+
+@dataclass(frozen=True)
+class HistoryPacket:
+    commit: str
+    sha256: str
+    day: str
+    published_at: str
+    races: dict
+    cells: dict
+
+    @classmethod
+    def read(cls, commit, raw):
+        _need(type(commit) is str and re.fullmatch(r'[0-9a-f]{40}', commit) and
+              type(raw) is bytes and 0 < len(raw) <= dossier.MAX_BYTES, 'HISTORY_BYTES')
+        packet = dossier.checked_day(public._json(raw))
+        return cls(commit, sha256(raw).hexdigest(), packet['day'], packet['published_at'],
+                   {row['race_id']: row for row in packet['races']},
+                   {(row['registration'], cell['meeting_grade'], cell['round_stage']): cell
+                    for row in packet['riders'] for cell in row['cells']
+                    if cell['meeting_grade'] is not None and cell['round_stage'] is not None})
+
+    @classmethod
+    def from_repository(cls, repo, day, *, pinned_commit=None):
+        store = public.PublicForecastGit(repo)
+        head = pinned_commit or store.head()
+        if head is None:
+            return None
+        store.fetch(head)
+        raw = store.read_previous(head, f'rider-conditions/{day}.json')
+        if raw is None:
+            return None
+        packet = cls.read(head, raw)
+        _need(packet.day == day, 'HISTORY_DAY')
+        return packet
+
+
+def build_from_official_card(snapshot, baseline, arguments, history):
+    from scripts.keirin_public_rider_projection import project_sp_starter_row
+
+    if history is None:
+        return None
+    condition = dossier.condition_for_card(arguments, now=model.when(baseline['generated_at']))
+    origins = project_sp_starter_row(arguments, snapshot)['riders']
+    roster = [dict(car=row['number'], name=row['name'], registration=row['registration']) for row in origins]
+    return build_pair(snapshot, baseline, condition, roster, history)
+
+
+def _reference_mass(snapshot, baseline):
+    powers = {car: exp(2 * strength) for car, strength in model._strengths(snapshot['riders']).items()}
+    total = fsum(powers.values())
+    mass = {}
+    for a, b, c in permutations(sorted(powers), 3):
+        first = powers[a] / total
+        second = powers[b] / (total - powers[a])
+        third = powers[c] / (total - powers[a] - powers[b])
+        mass[a, b, c] = FULL_SUPPORT * first * second * third
+    for scenario in baseline['B']['six_phase_scenarios']:
+        order = tuple(scenario['projected_3ren_tan'])
+        mass[order] += (1 - FULL_SUPPORT) * scenario['relative_research_weight']
+    return powers, mass
+
+
+def build_pair(snapshot, baseline, condition, roster, history):
+    """Use the same immutable A/B input and vary only a supported exact condition."""
+    rid, generated = snapshot['race_id'], baseline['generated_at']
+    model.validate_snapshot(snapshot, computed_at=generated)
+    _need(baseline['race_id'] == rid and baseline['source_facts_sha256'] == model.digest(snapshot) and
+          baseline['prediction_sha256'] == model.digest({key: value for key, value in baseline.items()
+                                                         if key != 'prediction_sha256'}), 'BASELINE')
+    cutoff = model.when(snapshot['published_cutoff_at'])
+    observed = model.when(generated)
+    if history is None or cutoff - observed < WITNESS_MARGIN or model.when(history.published_at) > observed:
+        return None
+    previous_card = history.races.get(rid)
+    if previous_card is None or condition['race_id'] != rid or condition['round_label'] != snapshot['round_stage']:
+        return None
+    grade, stage = condition['meeting_grade'], condition['round_stage']
+    if (grade is None or stage is None or (grade, stage, condition['round_label']) !=
+            (previous_card['meeting_grade'], previous_card['round_stage'], previous_card['round_label']) or
+            model.when(condition['source_at']) > observed):
+        return None
+    bindings = {row['car']: row['athlete_id'] for row in snapshot['riders']}
+    _need(len(roster) == len(bindings) and {r['car']: r['registration'] for r in roster} == bindings, 'ROSTER')
+    corrections = {}
+    for rider in snapshot['riders']:
+        cell = history.cells.get((rider['athlete_id'], grade, stage))
+        if cell is None or cell['numeric_finishes'] < MIN_STARTS:
+            continue
+        starts = cell['numeric_finishes']
+        difference = cell['wins'] / starts - rider['recent_form_score']
+        corrections[rider['car']] = max(-0.12, min(0.12, 0.8 * difference * starts / (starts + 30)))
+    if not corrections:
+        return None
+    powers, base_mass = _reference_mass(snapshot, baseline)
+    delta = {car: corrections.get(car, 0.0) for car in powers}
+    tilted = {(a, b, c): value * exp(2 * delta[a] + delta[b] + 0.5 * delta[c])
+              for (a, b, c), value in base_mass.items()}
+    total = fsum(tilted.values())
+    input_sha = model.digest(dict(snapshot_sha256=model.digest(snapshot), condition=condition,
+                                  historical_release=history.commit, historical_packet_sha256=history.sha256))
+    identification = dict(race_id=rid, generated_at=generated, cutoff_at=snapshot['published_cutoff_at'],
+                          source_as_of=max(map(model.when, (snapshot['as_of'], history.published_at,
+                                                             condition['source_at']))).isoformat(),
+                          model_version=SCHEMA, input_sha256=input_sha, source_packet_sha256=history.sha256,
+                          source_forecast_generated_at=generated, riders=roster)
+    original = joint_forecast.build_forecast(JointFinish(sorted(powers), base_mass, tail=(0.0, 0.0)),
+                                             model_id=BASELINE, **identification)
+    candidate = joint_forecast.build_forecast(JointFinish(sorted(powers),
+                                              {key: value / total for key, value in tilted.items()}, tail=(0.0, 0.0)),
+                                              model_id=CHALLENGER, **identification)
+    return dict(schema=SCHEMA, race_id=rid, baseline_prediction_sha256=baseline['prediction_sha256'],
+                historical_release=history.commit, historical_packet_sha256=history.sha256,
+                meeting_grade=grade, round_stage=stage, covered_riders=len(corrections),
+                baseline=original, challenger=candidate)

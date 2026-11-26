@@ -12,6 +12,7 @@ on:
       - 'race_ai/keirin_provider_reconciliation.py'
       - 'race_ai/keirin_official_source_continuation.py'
       - 'race_ai/keirin_official_nationwide_*.py'
+      - 'race_ai/keirin_official_condition_trial.py'
       - 'race_ai/keirin_official_class_evidence.py'
       - 'tests/test_keirin_official_class_evidence.py'
       - 'race_ai/keirin_nationwide_forecast_view.py'
@@ -64,6 +65,7 @@ on:
       - 'scripts/keirin_nationwide_independent_cipher_readback.py'
       - 'tests/test_keirin_nationwide_auto_*.py'
       - 'race_ai/keirin_official_*.py'
+      - 'tests/test_keirin_official_condition_trial.py'
       - 'race_ai/keirin_github_evidence_client.py'
       - 'race_ai/keirin_github_origin_evidence.py'
       - 'race_ai/keirin_nationwide_cipher_history.py'
@@ -134,6 +136,7 @@ jobs:
             tests.test_keirin_official_source_continuation \
             tests.test_keirin_official_class_evidence \
             tests.test_keirin_official_nationwide_continuation \
+            tests.test_keirin_official_condition_trial \
             tests.test_keirin_official_nationwide_sources \
             tests.test_keirin_official_nationwide_records \
             tests.test_keirin_official_continuation_workflow \

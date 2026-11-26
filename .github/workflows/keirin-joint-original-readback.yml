@@ -7,6 +7,7 @@ on:
       - '.github/workflows/keirin-joint-original-readback.yml'
       - 'race_ai/keirin_joint_finish.py'
       - 'race_ai/keirin_joint_forecast.py'
+      - 'race_ai/keirin_paired_measurement.py'
       - 'race_ai/keirin_public_rank_distribution.py'
       - 'scripts/keirin_publish_rank_exhibit.py'
       - 'scripts/keirin_joint_original_readback.py'
@@ -26,6 +27,7 @@ on:
     branches: [main]
     paths:
       - '.github/workflows/keirin-joint-original-readback.yml'
+      - 'race_ai/keirin_paired_measurement.py'
       - 'scripts/keirin_joint_original_readback.py'
       - 'scripts/keirin_joint_readback_http.py'
       - 'scripts/keirin_joint_recovery_score.py'
