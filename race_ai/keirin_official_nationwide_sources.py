@@ -233,7 +233,7 @@ def require_list_scripts(session, listed):
         need(all(part in compact for part in required),'LIST_SCRIPT_CHANGED')
 
 
-def collect_candidate(*, session, inventory, race, clock):
+def _read_capture_card(*, session, inventory, race):
     day, venue, number = inventory['registry']['event_day'], race['venue_code'], race['race_no']
     listed = next(s for s in inventory['list_sources'] if s['venue_code']==venue)
     require_list_scripts(session, listed)
@@ -253,8 +253,26 @@ def collect_candidate(*, session, inventory, race, clock):
                    if int(cards.receipt._norm(r['strRaceNo']))==number)
     label = cards.receipt._norm(current['strSyumokuName'])
     need(label in extension.OBSERVED_CLASSES,'CLASS_OR_ROUND_NOT_OBSERVED')
+    return args, label
+
+
+def collect_capture_cutoff(*, session, inventory, race, clock):
+    """Use an exact current card as an ordering hint within the source budget."""
+    args, _ = _read_capture_card(session=session, inventory=inventory, race=race)
+    observed = form._aware(args['detail_observed_at'])
+    need(form._aware(args['list_observed_at']) <= observed <= form._aware(clock()), 'CUTOFF_CARD_CLOCK_INVALID')
+    detail = cards.receipt.parse_race_detail(args['detail_raw'], expected_day=args['expected_day'],
+        expected_venue_code=args['venue_code'], expected_race_number=args['race_number'],
+        observed_at=observed, expected_sha256=args['detail_sha256'],
+        calendar_receipt=args['calendar_receipt'])
+    return None if detail['race_cancelled'] else form._aware(detail['official_cutoff_at'])
+
+
+def collect_candidate(*, session, inventory, race, clock):
+    args, label = _read_capture_card(session=session, inventory=inventory, race=race)
+    detail_raw = args['detail_raw']
     if extension.OBSERVED_CLASSES[label] != 'GIRLS':
-        doc = cards.browser_source._document(raw['raw_bytes'])
+        doc = cards.browser_source._document(detail_raw)
         need(any(n.tag=='script' and n.attrs.get('src')==extension.LINE_VIEW_PATH for n in doc.nodes),
              'LINE_VIEW_NOT_LINKED')
         args['line_view_source'] = session.fetch('https://keirin.jp'+extension.LINE_VIEW_PATH)
@@ -262,11 +280,11 @@ def collect_candidate(*, session, inventory, race, clock):
     need((form._aware(card['official_cutoff_at'])-form._aware(clock())).total_seconds()
          >= CAPTURE_START_MARGIN_SECONDS,
          'CAPTURE_START_MARGIN_REQUIRED')
-    linked = {n.attrs.get('src') for n in cards.browser_source._document(raw['raw_bytes']).nodes if n.tag=='script'}
+    linked = {n.attrs.get('src') for n in cards.browser_source._document(detail_raw).nodes if n.tag=='script'}
     need(set(cards._TAB_SCRIPT_REQUIREMENTS)<=linked,'MARKS_SCRIPTS_NOT_LINKED')
     scripts = {path:session.fetch('https://keirin.jp'+path)['raw_bytes']
                for path in cards._TAB_SCRIPT_REQUIREMENTS}
-    request = cards.derive_prediction_tab_request(raw['raw_bytes'],scripts)
+    request = cards.derive_prediction_tab_request(detail_raw,scripts)
     prediction = session.fetch(request['url'],referer='https://keirin.jp/sp/race')
     profiles = []
     for rider in card['riders']:
