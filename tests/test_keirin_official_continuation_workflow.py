@@ -41,15 +41,16 @@ class ContinuationWorkflowTests(unittest.TestCase):
             with self.subTest(changes=changes):
                 self.assertFalse(self.allowed('official-sp-capture',**changes))
 
-    def test_manual_settlement_is_independent_and_is_not_a_second_scheduled_poller(self):
+    def test_recovery_settlement_waits_for_writers_without_requiring_their_success(self):
         self.assertTrue(self.allowed('official-sp-settle',capture='failure',readback='failure'))
+        self.assertTrue(self.allowed('official-sp-settle',capture='skipped',readback='skipped'))
         for changes in ({'event':'schedule'},{'event':'push'},{'tests':'failure'},
                         {'mode':'test'},{'ref':'refs/heads/feature'},{'cancelled':True}):
             with self.subTest(changes=changes):
                 self.assertFalse(self.allowed('official-sp-settle',**changes))
         _, blocks = jobs()
-        self.assertIn('needs: source-free-tests',blocks['official-sp-settle'])
-        self.assertNotIn('needs: [official-sp-capture',blocks['official-sp-settle'])
+        self.assertIn('needs: [source-free-tests, official-sp-capture, official-sp-publish]',
+                      blocks['official-sp-settle'])
 
     def test_saved_baselines_need_a_distinct_successful_readback_before_publication(self):
         self.assertTrue(self.allowed('official-sp-independent-readback'))
