@@ -30,6 +30,7 @@ from scripts import keirin_official_day_pipeline as pipeline
 from scripts import keirin_capture_official_form_history as capture_files
 
 SCHEMA='RACE_AI_KEIRIN_GITHUB_ONLY_LIVE_AB_DAY_V1'
+CAPTURE_ARCHIVE_FETCH_HOLD = 'HOLD_OFFICIAL_SP_CAPTURE_ARCHIVE_FETCH_TIMEOUT'
 WORKFLOW='haji84/RACE-AI/.github/workflows/keirin-nationwide-ab-auto.yml@refs/heads/main'
 WATCH_WORKFLOW='haji84/RACE-AI/.github/workflows/keirin-result-live.yml@refs/heads/main'
 
@@ -67,10 +68,13 @@ def _runtime(*,repo,private_root,owner_public_pem,owner_private_pem,day,clock,mo
     return repo,root,day,public,commit
 
 
-def _begin_lease(repo,owner_private_pem,clock,commit):
+def _begin_lease(repo,owner_private_pem,clock,commit,*,expected_day=None):
     from race_ai import keirin_official_source_continuation as continuation
-    return continuation.begin(repo=repo,now=clock(),source_commit=commit,
-        owner_private_pem=owner_private_pem,event_day=form._aware(clock()).astimezone(form.JST).date().isoformat(),
+    at = form._aware(clock())
+    event_day = at.astimezone(form.JST).date().isoformat()
+    need(expected_day is None or expected_day == event_day, 'CAPTURE_ACTUAL_DAY_REQUIRED')
+    return continuation.begin(repo=repo,now=at,source_commit=commit,
+        owner_private_pem=owner_private_pem,event_day=event_day,
         max_requests=300,lease_seconds=900)
 
 
@@ -197,7 +201,14 @@ def run_capture(*,repo,private_root,owner_public_pem,owner_private_pem,day=None,
     repo,root,day,public,commit=_runtime(repo=repo,private_root=private_root,owner_public_pem=owner_public_pem,
         owner_private_pem=owner_private_pem,day=day,clock=clock,mode='capture')
     need(type(max_races) is int and 1<=max_races<=8,'CAPTURE_RACE_BOUND')
-    report=_summary(day);store=records.RecordStore(repo,day);prior=[];source_attempts={};previous=None
+    report = _summary(day)
+    try:
+        # This initial read precedes the source lease and every archive write.
+        store = records.RecordStore(repo, day, retry_archive_timeout=True)
+    except archive.GitCipherFetchTimeout:
+        report['state'] = CAPTURE_ARCHIVE_FETCH_HOLD
+        return report
+    prior=[];source_attempts={};previous=None
     if store.index['registry']:
         previous=store.read(store.index['registry'],owner_private_pem)
         prior=records.replay_registry(previous)['registered_race_ids']
@@ -208,7 +219,7 @@ def run_capture(*,repo,private_root,owner_public_pem,owner_private_pem,day=None,
             attempted_states={'BASELINE_SOURCE_UNVERIFIED','CUTOFF_MARGIN_INSUFFICIENT','FROZEN_ARCHIVE_UNVERIFIED'}
             source_attempts={r['race_id']:1 for r in previous['states'] if r['state'] in attempted_states}
     prior=sorted(set(prior)|set(store.index['originals']))
-    lease=_begin_lease(repo,owner_private_pem,clock,commit)
+    lease=_begin_lease(repo,owner_private_pem,clock,commit,expected_day=day)
     session=sources.OfficialSourceSession(repo=repo,private_root=capture_files._private_directory(root/'sources'),
                                          lease=lease,clock=clock)
     finish='FAILED'
@@ -714,7 +725,10 @@ def main(argv=None):
         capture_files._private_directory(target.parent)
         options=dict(repo=args.repo,private_root=root,owner_public_pem=args.owner_public_pem,
             owner_private_pem=os.getenv('RACE_AI_KEIRIN_PRIVATE_RSA_PEM','').encode(),day=args.day)
-        if args.mode=='capture':report=run_capture(**options,max_races=args.max_races)
+        if args.mode=='capture':
+            report=run_capture(**options,max_races=args.max_races)
+            if report['state'] == CAPTURE_ARCHIVE_FETCH_HOLD:
+                code = 2
         elif args.mode=='publish':report=run_publish(**options)
         else:report=run_settle(**options,max_races=args.max_races)
     except Exception:
