@@ -403,7 +403,9 @@ class GithubOnlyABDay(unittest.TestCase):
             self.assertEqual(command(reader, 'config', '--local', 'remote.origin.partialclonefilter')[1], 'blob:none')
             return head
 
-        env = dict(RUNNER_TEMP=str(self.root), RACE_AI_KEIRIN_AB_GIT_STORE_ENABLED='true')
+        env = dict(RUNNER_TEMP=str(self.root), RACE_AI_KEIRIN_AB_GIT_STORE_ENABLED='true',
+                   GITHUB_ACTIONS='true', GITHUB_REPOSITORY=readback.archive.REPO,
+                   GITHUB_REPOSITORY_ID=readback.archive.REPO_ID, GITHUB_REF='refs/heads/main')
         with patch.dict(os.environ, env), redirect_stdout(StringIO()), \
                 patch.object(official_archive, 'fetch_partial_head', side_effect=fetch) as partial, \
                 patch.object(readback.archive, '_read_at', return_value={}) as baseline, \
