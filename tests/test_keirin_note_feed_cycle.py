@@ -9,7 +9,7 @@ from pathlib import Path
 import subprocess
 from tempfile import TemporaryDirectory
 import unittest
-from unittest.mock import patch
+from unittest.mock import Mock, patch
 
 from race_ai import keirin_note_feed as feed
 from tests.test_keirin_note_browser import packet
@@ -67,6 +67,14 @@ class FeedCycleTests(unittest.TestCase):
         (folder/'reference_AB.json').write_text('[]')
         (folder/'manifest.json').write_text(json.dumps(dict(day_jst=day,safe_report=report)))
         return dict(site_root=str(root),safe_report=report)
+
+    def collect_raw_only(self,**kwargs):
+        collected=self.collect_empty(**kwargs)
+        root=Path(kwargs['private_root'])/'raw'
+        root.mkdir()
+        (root/'kdreams.html').write_text('invented saved Kdreams racecard')
+        collected['safe_report'].update(selected_races=79,public_page_requests=158)
+        return collected
 
     def test_missing_seed_stops_without_provider_get_or_branch_genesis(self):
         r=self.cycle();self.assertEqual(r['state'],'HOLD_NOTE_OWNER_SEED_REQUIRED')
@@ -148,6 +156,50 @@ class FeedCycleTests(unittest.TestCase):
                          {'state':'HOLD_PUBLIC_RIDER_CONTEXT_SECONDARY'})
         self.assertFalse(private_roots[0].exists())
         self.assertEqual(len(self.result_calls),1)
+
+    def test_verified_raw_capture_without_forecast_inputs_runs_secondary_only(self):
+        self.seed()
+        self.collect=self.collect_raw_only
+        reference=Mock()
+        odds=Mock()
+        published=[]
+
+        def context(repo,root,note,entry,*,published_at):
+            index=feed.load_index(self.store,self.recipient,self.store.head())
+            if entry in index['entries'] and (root/'raw/kdreams.html').is_file():
+                published.append((entry['captured_race_ids'],note['source_profile']))
+            return dict(state='PUBLIC_RIDER_CONTEXT_SECONDARY_UPDATED',provider_requests=0)
+
+        result=self.cycle(reference_publisher=reference,odds_stager=odds,
+                          secondary_context_publisher=context)
+        self.assertEqual(published,[([], 'owner-imported-kdreams-netkeirin-20261120')])
+        self.assertEqual(result['public_rider_context_secondary']['state'],
+                         'PUBLIC_RIDER_CONTEXT_SECONDARY_UPDATED')
+        reference.assert_not_called()
+        odds.assert_not_called()
+
+    def test_raw_capture_secondary_requires_nonempty_selection_and_final_git_admission(self):
+        self.seed()
+        context=Mock()
+        self.collect=self.collect_empty
+        self.cycle(secondary_context_publisher=context)
+        self.collect=self.collect_raw_only
+        with patch('scripts.keirin_note_feed_cycle._publish_collected',
+                   return_value=dict(state='UNVERIFIED',provider_denied=False)):
+            self.cycle(secondary_context_publisher=context)
+        with patch('scripts.keirin_note_feed_cycle._publish_collected',
+                   return_value=dict(state='KEIRIN_NOTE_ENCRYPTED_GIT_READBACK_VERIFIED',provider_denied=True)):
+            self.cycle(secondary_context_publisher=context)
+
+        def denied(**kwargs):
+            collected=self.collect_raw_only(**kwargs)
+            collected['safe_report']['provider_denied']=True
+            return collected
+
+        self.collect=denied
+        self.cycle(secondary_context_publisher=context)
+        self.assertTrue(feed.load_index(self.store,self.recipient,self.store.head())['provider_denied'])
+        context.assert_not_called()
 
     def test_secondary_context_is_skipped_without_verified_capture_or_after_denial(self):
         self.seed()

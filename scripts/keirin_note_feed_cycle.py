@@ -223,8 +223,9 @@ def cycle(repo,*,recipient=None,store=None,collector=None,result_collector=None,
                     result=_publish_collected(store,recipient,sealed,parent=parent,prior=prior,
                                               denied=safe['provider_denied'])
                 result['acquisition']=safe
-                verified_capture = (safe['captured_race_ids'] and not safe['provider_denied'] and
+                verified_archive = (not safe['provider_denied'] and
                                     result['state']=='KEIRIN_NOTE_ENCRYPTED_GIT_READBACK_VERIFIED')
+                verified_capture = verified_archive and safe['captured_race_ids']
                 if reference_publisher is not None and verified_capture:
                     result['public_reference']=reference_publisher(repo,note,sealed['entry'],published_at=clock())
                 if odds_stager is not None and verified_capture:
@@ -232,8 +233,11 @@ def cycle(repo,*,recipient=None,store=None,collector=None,result_collector=None,
                         result['public_odds_handoff']=odds_stager(root,note,sealed['entry'])
                     except (_FAILURES + (ImportError,)):
                         result['public_odds_handoff']={'state':'HOLD_PUBLIC_ODDS_HANDOFF'}
-                if (secondary_context_publisher is not None and verified_capture
-                        and not result.get('provider_denied')):
+                # Racecard comments can qualify independently of normalized forecast inputs.
+                selected_races = safe.get('selected_races')
+                if (secondary_context_publisher is not None and verified_archive
+                        and type(selected_races) is int and selected_races > 0
+                        and result.get('provider_denied') is False):
                     try:
                         published = secondary_context_publisher(repo,root,note,sealed['entry'],published_at=clock())
                         result['public_rider_context_secondary'] = _secondary_context_receipt(published)
