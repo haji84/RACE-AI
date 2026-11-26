@@ -41,6 +41,12 @@ def archive_signature(store):
         raise ValueError(HOLD) from None
 
 
+def conditioned_signature(day, result_sha256, conditions_sha256):
+    _require(type(conditions_sha256) is str and SHA.fullmatch(conditions_sha256))
+    return sha256(history._canonical(dict(
+        day=day, result_sha256=result_sha256, conditions_sha256=conditions_sha256))).hexdigest()
+
+
 def _identities(rows, registration_key):
     identities = {}
     for row in rows:
@@ -115,20 +121,41 @@ def _latest_finishes(store, original_meta, revisions, owner_private_pem, as_of):
 
 def project_rider_day(store, owner_private_pem, *, now):
     """Verify every archived result chain or hold the day without a partial aggregate."""
+    return _project_rider_day(store, owner_private_pem, now=now)[0]
+
+
+def project_rider_day_with_conditions(store, owner_private_pem, *, now, race_conditions,
+                                      conditions_sha256):
+    """Reuse the very same exact replay for the ordinary and conditioned count projections."""
+    return _project_rider_day(store, owner_private_pem, now=now, race_conditions=race_conditions,
+                              conditions_sha256=conditions_sha256)
+
+
+def _project_rider_day(store, owner_private_pem, *, now, race_conditions=None, conditions_sha256=None):
     try:
         index = _checked_index(store)
         as_of = _aware(now)
         _require(store.day <= as_of.astimezone(JST).date().isoformat())
-        counts = {}
+        counts, observations = {}, []
         for race_id, revisions in index['results'].items():
             finishes = _latest_finishes(store, index['originals'][race_id], revisions, owner_private_pem, as_of)
+            context = (race_conditions or {}).get(race_id, {})
             for registration, _, place in finishes.values():
                 if place is not None:
                     counts.setdefault(registration, [0] * 9)[place - 1] += 1
+                    if race_conditions is not None:
+                        observations.append((registration, context.get('meeting_grade'),
+                                             context.get('round_stage'), place))
         races = len(index['results'])
-        return dict(schema=SCHEMA, day=store.day, source_sha256=_signature(index),
-                    archive_races=races, verified_races=races,
-                    riders=[dict(registration=registration, finish_counts=counts[registration])
-                            for registration in sorted(counts)])
+        ordinary = dict(schema=SCHEMA, day=store.day, source_sha256=_signature(index),
+                        archive_races=races, verified_races=races,
+                        riders=[dict(registration=registration, finish_counts=counts[registration])
+                                for registration in sorted(counts)])
+        if race_conditions is None:
+            return ordinary, None
+        from . import keirin_dossier_conditions as conditions
+
+        signature = conditioned_signature(store.day, ordinary['source_sha256'], conditions_sha256)
+        return ordinary, conditions.result_slice(store.day, signature, observations)
     except (ValueError, KeyError, TypeError, OSError, OverflowError):
         raise ValueError(HOLD) from None

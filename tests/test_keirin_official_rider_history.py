@@ -94,6 +94,20 @@ class RiderDayTests(unittest.TestCase):
         rows = self.project()['riders']
         self.assertEqual([row['finish_counts'][:2] for row in rows], [[0, 1], [1, 0], [0, 1], [0, 0]])
 
+    def test_conditions_share_the_latest_verified_full_field_and_numeric_denominator(self):
+        self.correction()
+        with patch.object(records, '_replay_saved_result', side_effect=lambda _, __, revision, ___: (
+                self.original, {'official_result': self.answers[revision['evidence_sha256']]}, {})):
+            ordinary, conditional = history.project_rider_day_with_conditions(
+                self.store, b'synthetic', now=NOW,
+                race_conditions={RACE: {'meeting_grade': 'F1', 'round_stage': 'FINAL'}},
+                conditions_sha256='e' * 64)
+        self.assertEqual(ordinary, self.project())
+        self.assertEqual((conditional['numeric_finishes'], conditional['condition_matched_finishes']), (4, 4))
+        self.assertEqual(conditional['riders'][0]['registration'], '014001')
+        self.assertEqual(conditional['riders'][0]['cells'][-1]['wins'], 0)
+        self.assertEqual(conditional['riders'][0]['cells'][-1]['top2'], 1)
+
     def test_signature_tracks_finishes_and_relevant_originals_only(self):
         before = history.archive_signature(self.store)
         self.index['registry'] = metadata('registry', '5', '2026-11-25T10:00:00Z')
