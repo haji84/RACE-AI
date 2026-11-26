@@ -1,0 +1,1732 @@
+{
+  "schema": "RACE_AI_KEIRIN_SMALL_FIELD_RETROSPECTIVE_V1",
+  "scope": "ARCHIVE_RECONSTRUCTION_NO_PRE_CUTOFF_INPUT_ATTESTATION",
+  "evaluation_days_jst": [
+    "20261001",
+    "20261122"
+  ],
+  "original_cohort_sha256": "730c5b020a18c2d3556e7045e9724e48315753c784a860557ed0e339f4892f9b",
+  "archived_sqlite_sha256": [
+    "1bdad22b9744c9c5563f7bb1af31875170a3e6b7f4b0dd73fba8f98d645d8fc4",
+    "d915560877493816b90df8bcd5e7bdef45557f57100b4cd40a3d017cd959334d"
+  ],
+  "frozen_model_stage_sha256": [
+    "660f4420daccf3c152016c5a9c6677dca092d1994eeaf0dab3c1dca471adeaff",
+    "b28fa423694ca2f73bd3236bd4ff15b31c340cb410583465ed1d1921a21275e9",
+    "2fd5e2599f1879e7fcb585c9ffb52b05c5d0c9b7bb85c54ee4f8ead9df03db33"
+  ],
+  "research_runtime_commit": "6b30e6368216519cb55232f417462caffc6c57f6",
+  "display_method": "forward-phase-independent-pair-selection-20261122",
+  "primary_comparison_arm": "all_96",
+  "research_configurations": [
+    "saved",
+    "first_two_24",
+    "first_two_56",
+    "third_56",
+    "all_24",
+    "all_56",
+    "all_96",
+    "all_96_half",
+    "display_A",
+    "display_B"
+  ],
+  "validation_unit_yen": 100,
+  "full_evaluation_window_by_field": {
+    "5": {
+      "races": 26,
+      "days": 18,
+      "race_ids_sha256": "6aa26673f2eebb0e381fb51dafa9ee7c6b7a76bc61a927a48380fa35729f0a18",
+      "markets": {
+        "3t": {
+          "comparable_all_research_settings": 21,
+          "individual": {
+            "saved": {
+              "races": 26,
+              "hits": 12,
+              "stake_yen": 10400,
+              "payout_yen": 8760
+            },
+            "first_two_24": {
+              "races": 26,
+              "hits": 12,
+              "stake_yen": 10400,
+              "payout_yen": 8760
+            },
+            "first_two_56": {
+              "races": 26,
+              "hits": 12,
+              "stake_yen": 10400,
+              "payout_yen": 8760
+            },
+            "third_56": {
+              "races": 26,
+              "hits": 12,
+              "stake_yen": 10400,
+              "payout_yen": 8760
+            },
+            "all_24": {
+              "races": 26,
+              "hits": 12,
+              "stake_yen": 10400,
+              "payout_yen": 8760
+            },
+            "all_56": {
+              "races": 26,
+              "hits": 12,
+              "stake_yen": 10400,
+              "payout_yen": 8760
+            },
+            "all_96": {
+              "races": 26,
+              "hits": 11,
+              "stake_yen": 10400,
+              "payout_yen": 7530
+            },
+            "all_96_half": {
+              "races": 26,
+              "hits": 12,
+              "stake_yen": 10400,
+              "payout_yen": 8760
+            },
+            "display_A": {
+              "races": 21,
+              "hits": 6,
+              "stake_yen": 8400,
+              "payout_yen": 7970
+            },
+            "display_B": {
+              "races": 21,
+              "hits": 6,
+              "stake_yen": 8400,
+              "payout_yen": 7970
+            }
+          },
+          "paired": {
+            "saved": {
+              "races": 21,
+              "hits": 9,
+              "stake_yen": 8400,
+              "payout_yen": 7770
+            },
+            "first_two_24": {
+              "races": 21,
+              "hits": 9,
+              "stake_yen": 8400,
+              "payout_yen": 7770
+            },
+            "first_two_56": {
+              "races": 21,
+              "hits": 9,
+              "stake_yen": 8400,
+              "payout_yen": 7770
+            },
+            "third_56": {
+              "races": 21,
+              "hits": 9,
+              "stake_yen": 8400,
+              "payout_yen": 7770
+            },
+            "all_24": {
+              "races": 21,
+              "hits": 9,
+              "stake_yen": 8400,
+              "payout_yen": 7770
+            },
+            "all_56": {
+              "races": 21,
+              "hits": 9,
+              "stake_yen": 8400,
+              "payout_yen": 7770
+            },
+            "all_96": {
+              "races": 21,
+              "hits": 8,
+              "stake_yen": 8400,
+              "payout_yen": 6540
+            },
+            "all_96_half": {
+              "races": 21,
+              "hits": 9,
+              "stake_yen": 8400,
+              "payout_yen": 7770
+            },
+            "display_A": {
+              "races": 21,
+              "hits": 6,
+              "stake_yen": 8400,
+              "payout_yen": 7970
+            },
+            "display_B": {
+              "races": 21,
+              "hits": 6,
+              "stake_yen": 8400,
+              "payout_yen": 7970
+            }
+          },
+          "candidate_count_holds": {
+            "display_A": 5,
+            "display_B": 5
+          }
+        },
+        "2t": {
+          "comparable_all_research_settings": 23,
+          "individual": {
+            "saved": {
+              "races": 26,
+              "hits": 13,
+              "stake_yen": 5200,
+              "payout_yen": 4970
+            },
+            "first_two_24": {
+              "races": 26,
+              "hits": 11,
+              "stake_yen": 5200,
+              "payout_yen": 3470
+            },
+            "first_two_56": {
+              "races": 26,
+              "hits": 13,
+              "stake_yen": 5200,
+              "payout_yen": 4970
+            },
+            "third_56": {
+              "races": 26,
+              "hits": 13,
+              "stake_yen": 5200,
+              "payout_yen": 4970
+            },
+            "all_24": {
+              "races": 26,
+              "hits": 11,
+              "stake_yen": 5200,
+              "payout_yen": 3470
+            },
+            "all_56": {
+              "races": 26,
+              "hits": 13,
+              "stake_yen": 5200,
+              "payout_yen": 4970
+            },
+            "all_96": {
+              "races": 26,
+              "hits": 13,
+              "stake_yen": 5200,
+              "payout_yen": 5360
+            },
+            "all_96_half": {
+              "races": 26,
+              "hits": 13,
+              "stake_yen": 5200,
+              "payout_yen": 4970
+            },
+            "display_A": {
+              "races": 23,
+              "hits": 7,
+              "stake_yen": 4600,
+              "payout_yen": 1720
+            },
+            "display_B": {
+              "races": 23,
+              "hits": 7,
+              "stake_yen": 4600,
+              "payout_yen": 1720
+            }
+          },
+          "paired": {
+            "saved": {
+              "races": 23,
+              "hits": 12,
+              "stake_yen": 4600,
+              "payout_yen": 4800
+            },
+            "first_two_24": {
+              "races": 23,
+              "hits": 10,
+              "stake_yen": 4600,
+              "payout_yen": 3300
+            },
+            "first_two_56": {
+              "races": 23,
+              "hits": 12,
+              "stake_yen": 4600,
+              "payout_yen": 4800
+            },
+            "third_56": {
+              "races": 23,
+              "hits": 12,
+              "stake_yen": 4600,
+              "payout_yen": 4800
+            },
+            "all_24": {
+              "races": 23,
+              "hits": 10,
+              "stake_yen": 4600,
+              "payout_yen": 3300
+            },
+            "all_56": {
+              "races": 23,
+              "hits": 12,
+              "stake_yen": 4600,
+              "payout_yen": 4800
+            },
+            "all_96": {
+              "races": 23,
+              "hits": 12,
+              "stake_yen": 4600,
+              "payout_yen": 5190
+            },
+            "all_96_half": {
+              "races": 23,
+              "hits": 12,
+              "stake_yen": 4600,
+              "payout_yen": 4800
+            },
+            "display_A": {
+              "races": 23,
+              "hits": 7,
+              "stake_yen": 4600,
+              "payout_yen": 1720
+            },
+            "display_B": {
+              "races": 23,
+              "hits": 7,
+              "stake_yen": 4600,
+              "payout_yen": 1720
+            }
+          },
+          "candidate_count_holds": {
+            "display_A": 3,
+            "display_B": 3
+          }
+        }
+      }
+    },
+    "6": {
+      "races": 106,
+      "days": 41,
+      "race_ids_sha256": "ae36e891a83ede3b63d88f41f2752304b739eef04b1fc1e668407b179604ea70",
+      "markets": {
+        "3t": {
+          "comparable_all_research_settings": 99,
+          "individual": {
+            "saved": {
+              "races": 106,
+              "hits": 29,
+              "stake_yen": 42400,
+              "payout_yen": 23850
+            },
+            "first_two_24": {
+              "races": 106,
+              "hits": 29,
+              "stake_yen": 42400,
+              "payout_yen": 28690
+            },
+            "first_two_56": {
+              "races": 106,
+              "hits": 29,
+              "stake_yen": 42400,
+              "payout_yen": 28690
+            },
+            "third_56": {
+              "races": 106,
+              "hits": 29,
+              "stake_yen": 42400,
+              "payout_yen": 23290
+            },
+            "all_24": {
+              "races": 106,
+              "hits": 28,
+              "stake_yen": 42400,
+              "payout_yen": 26850
+            },
+            "all_56": {
+              "races": 106,
+              "hits": 27,
+              "stake_yen": 42400,
+              "payout_yen": 25540
+            },
+            "all_96": {
+              "races": 106,
+              "hits": 27,
+              "stake_yen": 42400,
+              "payout_yen": 25540
+            },
+            "all_96_half": {
+              "races": 106,
+              "hits": 28,
+              "stake_yen": 42400,
+              "payout_yen": 26850
+            },
+            "display_A": {
+              "races": 99,
+              "hits": 15,
+              "stake_yen": 39600,
+              "payout_yen": 63900
+            },
+            "display_B": {
+              "races": 99,
+              "hits": 15,
+              "stake_yen": 39600,
+              "payout_yen": 63900
+            }
+          },
+          "paired": {
+            "saved": {
+              "races": 99,
+              "hits": 26,
+              "stake_yen": 39600,
+              "payout_yen": 22220
+            },
+            "first_two_24": {
+              "races": 99,
+              "hits": 26,
+              "stake_yen": 39600,
+              "payout_yen": 27060
+            },
+            "first_two_56": {
+              "races": 99,
+              "hits": 26,
+              "stake_yen": 39600,
+              "payout_yen": 27060
+            },
+            "third_56": {
+              "races": 99,
+              "hits": 26,
+              "stake_yen": 39600,
+              "payout_yen": 21660
+            },
+            "all_24": {
+              "races": 99,
+              "hits": 25,
+              "stake_yen": 39600,
+              "payout_yen": 25220
+            },
+            "all_56": {
+              "races": 99,
+              "hits": 24,
+              "stake_yen": 39600,
+              "payout_yen": 23910
+            },
+            "all_96": {
+              "races": 99,
+              "hits": 24,
+              "stake_yen": 39600,
+              "payout_yen": 23910
+            },
+            "all_96_half": {
+              "races": 99,
+              "hits": 25,
+              "stake_yen": 39600,
+              "payout_yen": 25220
+            },
+            "display_A": {
+              "races": 99,
+              "hits": 15,
+              "stake_yen": 39600,
+              "payout_yen": 63900
+            },
+            "display_B": {
+              "races": 99,
+              "hits": 15,
+              "stake_yen": 39600,
+              "payout_yen": 63900
+            }
+          },
+          "candidate_count_holds": {
+            "display_A": 7,
+            "display_B": 7
+          }
+        },
+        "2t": {
+          "comparable_all_research_settings": 102,
+          "individual": {
+            "saved": {
+              "races": 106,
+              "hits": 37,
+              "stake_yen": 21200,
+              "payout_yen": 14250
+            },
+            "first_two_24": {
+              "races": 106,
+              "hits": 36,
+              "stake_yen": 21200,
+              "payout_yen": 13840
+            },
+            "first_two_56": {
+              "races": 106,
+              "hits": 36,
+              "stake_yen": 21200,
+              "payout_yen": 13840
+            },
+            "third_56": {
+              "races": 106,
+              "hits": 37,
+              "stake_yen": 21200,
+              "payout_yen": 14250
+            },
+            "all_24": {
+              "races": 106,
+              "hits": 36,
+              "stake_yen": 21200,
+              "payout_yen": 13840
+            },
+            "all_56": {
+              "races": 106,
+              "hits": 36,
+              "stake_yen": 21200,
+              "payout_yen": 13840
+            },
+            "all_96": {
+              "races": 106,
+              "hits": 36,
+              "stake_yen": 21200,
+              "payout_yen": 13840
+            },
+            "all_96_half": {
+              "races": 106,
+              "hits": 37,
+              "stake_yen": 21200,
+              "payout_yen": 14250
+            },
+            "display_A": {
+              "races": 102,
+              "hits": 20,
+              "stake_yen": 20400,
+              "payout_yen": 15760
+            },
+            "display_B": {
+              "races": 102,
+              "hits": 21,
+              "stake_yen": 20400,
+              "payout_yen": 17480
+            }
+          },
+          "paired": {
+            "saved": {
+              "races": 102,
+              "hits": 35,
+              "stake_yen": 20400,
+              "payout_yen": 13890
+            },
+            "first_two_24": {
+              "races": 102,
+              "hits": 34,
+              "stake_yen": 20400,
+              "payout_yen": 13480
+            },
+            "first_two_56": {
+              "races": 102,
+              "hits": 34,
+              "stake_yen": 20400,
+              "payout_yen": 13480
+            },
+            "third_56": {
+              "races": 102,
+              "hits": 35,
+              "stake_yen": 20400,
+              "payout_yen": 13890
+            },
+            "all_24": {
+              "races": 102,
+              "hits": 34,
+              "stake_yen": 20400,
+              "payout_yen": 13480
+            },
+            "all_56": {
+              "races": 102,
+              "hits": 34,
+              "stake_yen": 20400,
+              "payout_yen": 13480
+            },
+            "all_96": {
+              "races": 102,
+              "hits": 34,
+              "stake_yen": 20400,
+              "payout_yen": 13480
+            },
+            "all_96_half": {
+              "races": 102,
+              "hits": 35,
+              "stake_yen": 20400,
+              "payout_yen": 13890
+            },
+            "display_A": {
+              "races": 102,
+              "hits": 20,
+              "stake_yen": 20400,
+              "payout_yen": 15760
+            },
+            "display_B": {
+              "races": 102,
+              "hits": 21,
+              "stake_yen": 20400,
+              "payout_yen": 17480
+            }
+          },
+          "candidate_count_holds": {
+            "display_A": 4,
+            "display_B": 4
+          }
+        }
+      }
+    },
+    "8": {
+      "races": 15,
+      "days": 9,
+      "race_ids_sha256": "838e46a0b7d335e407150ac48578bcc6393adf2196a27c3c5e0f28626bffce55",
+      "markets": {
+        "3t": {
+          "comparable_all_research_settings": 15,
+          "individual": {
+            "saved": {
+              "races": 15,
+              "hits": 2,
+              "stake_yen": 6000,
+              "payout_yen": 2220
+            },
+            "first_two_24": {
+              "races": 15,
+              "hits": 2,
+              "stake_yen": 6000,
+              "payout_yen": 2220
+            },
+            "first_two_56": {
+              "races": 15,
+              "hits": 2,
+              "stake_yen": 6000,
+              "payout_yen": 2220
+            },
+            "third_56": {
+              "races": 15,
+              "hits": 2,
+              "stake_yen": 6000,
+              "payout_yen": 2220
+            },
+            "all_24": {
+              "races": 15,
+              "hits": 2,
+              "stake_yen": 6000,
+              "payout_yen": 2220
+            },
+            "all_56": {
+              "races": 15,
+              "hits": 2,
+              "stake_yen": 6000,
+              "payout_yen": 2220
+            },
+            "all_96": {
+              "races": 15,
+              "hits": 2,
+              "stake_yen": 6000,
+              "payout_yen": 2220
+            },
+            "all_96_half": {
+              "races": 15,
+              "hits": 2,
+              "stake_yen": 6000,
+              "payout_yen": 2220
+            },
+            "display_A": {
+              "races": 15,
+              "hits": 2,
+              "stake_yen": 6000,
+              "payout_yen": 8520
+            },
+            "display_B": {
+              "races": 15,
+              "hits": 1,
+              "stake_yen": 6000,
+              "payout_yen": 6580
+            }
+          },
+          "paired": {
+            "saved": {
+              "races": 15,
+              "hits": 2,
+              "stake_yen": 6000,
+              "payout_yen": 2220
+            },
+            "first_two_24": {
+              "races": 15,
+              "hits": 2,
+              "stake_yen": 6000,
+              "payout_yen": 2220
+            },
+            "first_two_56": {
+              "races": 15,
+              "hits": 2,
+              "stake_yen": 6000,
+              "payout_yen": 2220
+            },
+            "third_56": {
+              "races": 15,
+              "hits": 2,
+              "stake_yen": 6000,
+              "payout_yen": 2220
+            },
+            "all_24": {
+              "races": 15,
+              "hits": 2,
+              "stake_yen": 6000,
+              "payout_yen": 2220
+            },
+            "all_56": {
+              "races": 15,
+              "hits": 2,
+              "stake_yen": 6000,
+              "payout_yen": 2220
+            },
+            "all_96": {
+              "races": 15,
+              "hits": 2,
+              "stake_yen": 6000,
+              "payout_yen": 2220
+            },
+            "all_96_half": {
+              "races": 15,
+              "hits": 2,
+              "stake_yen": 6000,
+              "payout_yen": 2220
+            },
+            "display_A": {
+              "races": 15,
+              "hits": 2,
+              "stake_yen": 6000,
+              "payout_yen": 8520
+            },
+            "display_B": {
+              "races": 15,
+              "hits": 1,
+              "stake_yen": 6000,
+              "payout_yen": 6580
+            }
+          },
+          "candidate_count_holds": {}
+        },
+        "2t": {
+          "comparable_all_research_settings": 15,
+          "individual": {
+            "saved": {
+              "races": 15,
+              "hits": 6,
+              "stake_yen": 3000,
+              "payout_yen": 3020
+            },
+            "first_two_24": {
+              "races": 15,
+              "hits": 6,
+              "stake_yen": 3000,
+              "payout_yen": 3020
+            },
+            "first_two_56": {
+              "races": 15,
+              "hits": 6,
+              "stake_yen": 3000,
+              "payout_yen": 3020
+            },
+            "third_56": {
+              "races": 15,
+              "hits": 6,
+              "stake_yen": 3000,
+              "payout_yen": 3020
+            },
+            "all_24": {
+              "races": 15,
+              "hits": 6,
+              "stake_yen": 3000,
+              "payout_yen": 3020
+            },
+            "all_56": {
+              "races": 15,
+              "hits": 6,
+              "stake_yen": 3000,
+              "payout_yen": 3020
+            },
+            "all_96": {
+              "races": 15,
+              "hits": 5,
+              "stake_yen": 3000,
+              "payout_yen": 2260
+            },
+            "all_96_half": {
+              "races": 15,
+              "hits": 6,
+              "stake_yen": 3000,
+              "payout_yen": 3020
+            },
+            "display_A": {
+              "races": 15,
+              "hits": 3,
+              "stake_yen": 3000,
+              "payout_yen": 2130
+            },
+            "display_B": {
+              "races": 15,
+              "hits": 2,
+              "stake_yen": 3000,
+              "payout_yen": 1840
+            }
+          },
+          "paired": {
+            "saved": {
+              "races": 15,
+              "hits": 6,
+              "stake_yen": 3000,
+              "payout_yen": 3020
+            },
+            "first_two_24": {
+              "races": 15,
+              "hits": 6,
+              "stake_yen": 3000,
+              "payout_yen": 3020
+            },
+            "first_two_56": {
+              "races": 15,
+              "hits": 6,
+              "stake_yen": 3000,
+              "payout_yen": 3020
+            },
+            "third_56": {
+              "races": 15,
+              "hits": 6,
+              "stake_yen": 3000,
+              "payout_yen": 3020
+            },
+            "all_24": {
+              "races": 15,
+              "hits": 6,
+              "stake_yen": 3000,
+              "payout_yen": 3020
+            },
+            "all_56": {
+              "races": 15,
+              "hits": 6,
+              "stake_yen": 3000,
+              "payout_yen": 3020
+            },
+            "all_96": {
+              "races": 15,
+              "hits": 5,
+              "stake_yen": 3000,
+              "payout_yen": 2260
+            },
+            "all_96_half": {
+              "races": 15,
+              "hits": 6,
+              "stake_yen": 3000,
+              "payout_yen": 3020
+            },
+            "display_A": {
+              "races": 15,
+              "hits": 3,
+              "stake_yen": 3000,
+              "payout_yen": 2130
+            },
+            "display_B": {
+              "races": 15,
+              "hits": 2,
+              "stake_yen": 3000,
+              "payout_yen": 1840
+            }
+          },
+          "candidate_count_holds": {}
+        }
+      }
+    }
+  },
+  "previous_1000_race_subset_by_field": {
+    "5": {
+      "races": 11,
+      "days": 10,
+      "race_ids_sha256": "5a2db3c025ab5d4606712a4b99cab0c459fd805737132b5ecb32c823c1e73b2a",
+      "markets": {
+        "3t": {
+          "comparable_all_research_settings": 8,
+          "individual": {
+            "saved": {
+              "races": 11,
+              "hits": 3,
+              "stake_yen": 4400,
+              "payout_yen": 2310
+            },
+            "first_two_24": {
+              "races": 11,
+              "hits": 3,
+              "stake_yen": 4400,
+              "payout_yen": 2310
+            },
+            "first_two_56": {
+              "races": 11,
+              "hits": 3,
+              "stake_yen": 4400,
+              "payout_yen": 2310
+            },
+            "third_56": {
+              "races": 11,
+              "hits": 3,
+              "stake_yen": 4400,
+              "payout_yen": 2310
+            },
+            "all_24": {
+              "races": 11,
+              "hits": 3,
+              "stake_yen": 4400,
+              "payout_yen": 2310
+            },
+            "all_56": {
+              "races": 11,
+              "hits": 3,
+              "stake_yen": 4400,
+              "payout_yen": 2310
+            },
+            "all_96": {
+              "races": 11,
+              "hits": 3,
+              "stake_yen": 4400,
+              "payout_yen": 2310
+            },
+            "all_96_half": {
+              "races": 11,
+              "hits": 3,
+              "stake_yen": 4400,
+              "payout_yen": 2310
+            },
+            "display_A": {
+              "races": 8,
+              "hits": 1,
+              "stake_yen": 3200,
+              "payout_yen": 260
+            },
+            "display_B": {
+              "races": 8,
+              "hits": 1,
+              "stake_yen": 3200,
+              "payout_yen": 260
+            }
+          },
+          "paired": {
+            "saved": {
+              "races": 8,
+              "hits": 2,
+              "stake_yen": 3200,
+              "payout_yen": 1750
+            },
+            "first_two_24": {
+              "races": 8,
+              "hits": 2,
+              "stake_yen": 3200,
+              "payout_yen": 1750
+            },
+            "first_two_56": {
+              "races": 8,
+              "hits": 2,
+              "stake_yen": 3200,
+              "payout_yen": 1750
+            },
+            "third_56": {
+              "races": 8,
+              "hits": 2,
+              "stake_yen": 3200,
+              "payout_yen": 1750
+            },
+            "all_24": {
+              "races": 8,
+              "hits": 2,
+              "stake_yen": 3200,
+              "payout_yen": 1750
+            },
+            "all_56": {
+              "races": 8,
+              "hits": 2,
+              "stake_yen": 3200,
+              "payout_yen": 1750
+            },
+            "all_96": {
+              "races": 8,
+              "hits": 2,
+              "stake_yen": 3200,
+              "payout_yen": 1750
+            },
+            "all_96_half": {
+              "races": 8,
+              "hits": 2,
+              "stake_yen": 3200,
+              "payout_yen": 1750
+            },
+            "display_A": {
+              "races": 8,
+              "hits": 1,
+              "stake_yen": 3200,
+              "payout_yen": 260
+            },
+            "display_B": {
+              "races": 8,
+              "hits": 1,
+              "stake_yen": 3200,
+              "payout_yen": 260
+            }
+          },
+          "candidate_count_holds": {
+            "display_A": 3,
+            "display_B": 3
+          }
+        },
+        "2t": {
+          "comparable_all_research_settings": 9,
+          "individual": {
+            "saved": {
+              "races": 11,
+              "hits": 3,
+              "stake_yen": 2200,
+              "payout_yen": 1710
+            },
+            "first_two_24": {
+              "races": 11,
+              "hits": 1,
+              "stake_yen": 2200,
+              "payout_yen": 210
+            },
+            "first_two_56": {
+              "races": 11,
+              "hits": 3,
+              "stake_yen": 2200,
+              "payout_yen": 1710
+            },
+            "third_56": {
+              "races": 11,
+              "hits": 3,
+              "stake_yen": 2200,
+              "payout_yen": 1710
+            },
+            "all_24": {
+              "races": 11,
+              "hits": 1,
+              "stake_yen": 2200,
+              "payout_yen": 210
+            },
+            "all_56": {
+              "races": 11,
+              "hits": 3,
+              "stake_yen": 2200,
+              "payout_yen": 1710
+            },
+            "all_96": {
+              "races": 11,
+              "hits": 3,
+              "stake_yen": 2200,
+              "payout_yen": 2100
+            },
+            "all_96_half": {
+              "races": 11,
+              "hits": 3,
+              "stake_yen": 2200,
+              "payout_yen": 1710
+            },
+            "display_A": {
+              "races": 9,
+              "hits": 1,
+              "stake_yen": 1800,
+              "payout_yen": 210
+            },
+            "display_B": {
+              "races": 9,
+              "hits": 1,
+              "stake_yen": 1800,
+              "payout_yen": 210
+            }
+          },
+          "paired": {
+            "saved": {
+              "races": 9,
+              "hits": 3,
+              "stake_yen": 1800,
+              "payout_yen": 1710
+            },
+            "first_two_24": {
+              "races": 9,
+              "hits": 1,
+              "stake_yen": 1800,
+              "payout_yen": 210
+            },
+            "first_two_56": {
+              "races": 9,
+              "hits": 3,
+              "stake_yen": 1800,
+              "payout_yen": 1710
+            },
+            "third_56": {
+              "races": 9,
+              "hits": 3,
+              "stake_yen": 1800,
+              "payout_yen": 1710
+            },
+            "all_24": {
+              "races": 9,
+              "hits": 1,
+              "stake_yen": 1800,
+              "payout_yen": 210
+            },
+            "all_56": {
+              "races": 9,
+              "hits": 3,
+              "stake_yen": 1800,
+              "payout_yen": 1710
+            },
+            "all_96": {
+              "races": 9,
+              "hits": 3,
+              "stake_yen": 1800,
+              "payout_yen": 2100
+            },
+            "all_96_half": {
+              "races": 9,
+              "hits": 3,
+              "stake_yen": 1800,
+              "payout_yen": 1710
+            },
+            "display_A": {
+              "races": 9,
+              "hits": 1,
+              "stake_yen": 1800,
+              "payout_yen": 210
+            },
+            "display_B": {
+              "races": 9,
+              "hits": 1,
+              "stake_yen": 1800,
+              "payout_yen": 210
+            }
+          },
+          "candidate_count_holds": {
+            "display_A": 2,
+            "display_B": 2
+          }
+        }
+      }
+    },
+    "6": {
+      "races": 29,
+      "days": 23,
+      "race_ids_sha256": "8b51439d7ea8aa760088f986fbababf1cbffb0e02d8000f9c4d7444034317979",
+      "markets": {
+        "3t": {
+          "comparable_all_research_settings": 25,
+          "individual": {
+            "saved": {
+              "races": 29,
+              "hits": 7,
+              "stake_yen": 11600,
+              "payout_yen": 5610
+            },
+            "first_two_24": {
+              "races": 29,
+              "hits": 7,
+              "stake_yen": 11600,
+              "payout_yen": 5610
+            },
+            "first_two_56": {
+              "races": 29,
+              "hits": 7,
+              "stake_yen": 11600,
+              "payout_yen": 5610
+            },
+            "third_56": {
+              "races": 29,
+              "hits": 7,
+              "stake_yen": 11600,
+              "payout_yen": 5610
+            },
+            "all_24": {
+              "races": 29,
+              "hits": 7,
+              "stake_yen": 11600,
+              "payout_yen": 5610
+            },
+            "all_56": {
+              "races": 29,
+              "hits": 7,
+              "stake_yen": 11600,
+              "payout_yen": 5610
+            },
+            "all_96": {
+              "races": 29,
+              "hits": 7,
+              "stake_yen": 11600,
+              "payout_yen": 5610
+            },
+            "all_96_half": {
+              "races": 29,
+              "hits": 7,
+              "stake_yen": 11600,
+              "payout_yen": 5610
+            },
+            "display_A": {
+              "races": 25,
+              "hits": 2,
+              "stake_yen": 10000,
+              "payout_yen": 1200
+            },
+            "display_B": {
+              "races": 25,
+              "hits": 2,
+              "stake_yen": 10000,
+              "payout_yen": 1200
+            }
+          },
+          "paired": {
+            "saved": {
+              "races": 25,
+              "hits": 6,
+              "stake_yen": 10000,
+              "payout_yen": 4700
+            },
+            "first_two_24": {
+              "races": 25,
+              "hits": 6,
+              "stake_yen": 10000,
+              "payout_yen": 4700
+            },
+            "first_two_56": {
+              "races": 25,
+              "hits": 6,
+              "stake_yen": 10000,
+              "payout_yen": 4700
+            },
+            "third_56": {
+              "races": 25,
+              "hits": 6,
+              "stake_yen": 10000,
+              "payout_yen": 4700
+            },
+            "all_24": {
+              "races": 25,
+              "hits": 6,
+              "stake_yen": 10000,
+              "payout_yen": 4700
+            },
+            "all_56": {
+              "races": 25,
+              "hits": 6,
+              "stake_yen": 10000,
+              "payout_yen": 4700
+            },
+            "all_96": {
+              "races": 25,
+              "hits": 6,
+              "stake_yen": 10000,
+              "payout_yen": 4700
+            },
+            "all_96_half": {
+              "races": 25,
+              "hits": 6,
+              "stake_yen": 10000,
+              "payout_yen": 4700
+            },
+            "display_A": {
+              "races": 25,
+              "hits": 2,
+              "stake_yen": 10000,
+              "payout_yen": 1200
+            },
+            "display_B": {
+              "races": 25,
+              "hits": 2,
+              "stake_yen": 10000,
+              "payout_yen": 1200
+            }
+          },
+          "candidate_count_holds": {
+            "display_A": 4,
+            "display_B": 4
+          }
+        },
+        "2t": {
+          "comparable_all_research_settings": 26,
+          "individual": {
+            "saved": {
+              "races": 29,
+              "hits": 9,
+              "stake_yen": 5800,
+              "payout_yen": 3520
+            },
+            "first_two_24": {
+              "races": 29,
+              "hits": 9,
+              "stake_yen": 5800,
+              "payout_yen": 3520
+            },
+            "first_two_56": {
+              "races": 29,
+              "hits": 9,
+              "stake_yen": 5800,
+              "payout_yen": 3520
+            },
+            "third_56": {
+              "races": 29,
+              "hits": 9,
+              "stake_yen": 5800,
+              "payout_yen": 3520
+            },
+            "all_24": {
+              "races": 29,
+              "hits": 9,
+              "stake_yen": 5800,
+              "payout_yen": 3520
+            },
+            "all_56": {
+              "races": 29,
+              "hits": 9,
+              "stake_yen": 5800,
+              "payout_yen": 3520
+            },
+            "all_96": {
+              "races": 29,
+              "hits": 9,
+              "stake_yen": 5800,
+              "payout_yen": 3520
+            },
+            "all_96_half": {
+              "races": 29,
+              "hits": 9,
+              "stake_yen": 5800,
+              "payout_yen": 3520
+            },
+            "display_A": {
+              "races": 26,
+              "hits": 3,
+              "stake_yen": 5200,
+              "payout_yen": 1090
+            },
+            "display_B": {
+              "races": 26,
+              "hits": 3,
+              "stake_yen": 5200,
+              "payout_yen": 1090
+            }
+          },
+          "paired": {
+            "saved": {
+              "races": 26,
+              "hits": 8,
+              "stake_yen": 5200,
+              "payout_yen": 3300
+            },
+            "first_two_24": {
+              "races": 26,
+              "hits": 8,
+              "stake_yen": 5200,
+              "payout_yen": 3300
+            },
+            "first_two_56": {
+              "races": 26,
+              "hits": 8,
+              "stake_yen": 5200,
+              "payout_yen": 3300
+            },
+            "third_56": {
+              "races": 26,
+              "hits": 8,
+              "stake_yen": 5200,
+              "payout_yen": 3300
+            },
+            "all_24": {
+              "races": 26,
+              "hits": 8,
+              "stake_yen": 5200,
+              "payout_yen": 3300
+            },
+            "all_56": {
+              "races": 26,
+              "hits": 8,
+              "stake_yen": 5200,
+              "payout_yen": 3300
+            },
+            "all_96": {
+              "races": 26,
+              "hits": 8,
+              "stake_yen": 5200,
+              "payout_yen": 3300
+            },
+            "all_96_half": {
+              "races": 26,
+              "hits": 8,
+              "stake_yen": 5200,
+              "payout_yen": 3300
+            },
+            "display_A": {
+              "races": 26,
+              "hits": 3,
+              "stake_yen": 5200,
+              "payout_yen": 1090
+            },
+            "display_B": {
+              "races": 26,
+              "hits": 3,
+              "stake_yen": 5200,
+              "payout_yen": 1090
+            }
+          },
+          "candidate_count_holds": {
+            "display_A": 3,
+            "display_B": 3
+          }
+        }
+      }
+    },
+    "8": {
+      "races": 4,
+      "days": 3,
+      "race_ids_sha256": "9f530962164a0f53aeeaa456b1ffc049cd2c7ac7d3f6d5e777825f0144b41ced",
+      "markets": {
+        "3t": {
+          "comparable_all_research_settings": 4,
+          "individual": {
+            "saved": {
+              "races": 4,
+              "hits": 0,
+              "stake_yen": 1600,
+              "payout_yen": 0
+            },
+            "first_two_24": {
+              "races": 4,
+              "hits": 0,
+              "stake_yen": 1600,
+              "payout_yen": 0
+            },
+            "first_two_56": {
+              "races": 4,
+              "hits": 0,
+              "stake_yen": 1600,
+              "payout_yen": 0
+            },
+            "third_56": {
+              "races": 4,
+              "hits": 0,
+              "stake_yen": 1600,
+              "payout_yen": 0
+            },
+            "all_24": {
+              "races": 4,
+              "hits": 0,
+              "stake_yen": 1600,
+              "payout_yen": 0
+            },
+            "all_56": {
+              "races": 4,
+              "hits": 0,
+              "stake_yen": 1600,
+              "payout_yen": 0
+            },
+            "all_96": {
+              "races": 4,
+              "hits": 0,
+              "stake_yen": 1600,
+              "payout_yen": 0
+            },
+            "all_96_half": {
+              "races": 4,
+              "hits": 0,
+              "stake_yen": 1600,
+              "payout_yen": 0
+            },
+            "display_A": {
+              "races": 4,
+              "hits": 0,
+              "stake_yen": 1600,
+              "payout_yen": 0
+            },
+            "display_B": {
+              "races": 4,
+              "hits": 0,
+              "stake_yen": 1600,
+              "payout_yen": 0
+            }
+          },
+          "paired": {
+            "saved": {
+              "races": 4,
+              "hits": 0,
+              "stake_yen": 1600,
+              "payout_yen": 0
+            },
+            "first_two_24": {
+              "races": 4,
+              "hits": 0,
+              "stake_yen": 1600,
+              "payout_yen": 0
+            },
+            "first_two_56": {
+              "races": 4,
+              "hits": 0,
+              "stake_yen": 1600,
+              "payout_yen": 0
+            },
+            "third_56": {
+              "races": 4,
+              "hits": 0,
+              "stake_yen": 1600,
+              "payout_yen": 0
+            },
+            "all_24": {
+              "races": 4,
+              "hits": 0,
+              "stake_yen": 1600,
+              "payout_yen": 0
+            },
+            "all_56": {
+              "races": 4,
+              "hits": 0,
+              "stake_yen": 1600,
+              "payout_yen": 0
+            },
+            "all_96": {
+              "races": 4,
+              "hits": 0,
+              "stake_yen": 1600,
+              "payout_yen": 0
+            },
+            "all_96_half": {
+              "races": 4,
+              "hits": 0,
+              "stake_yen": 1600,
+              "payout_yen": 0
+            },
+            "display_A": {
+              "races": 4,
+              "hits": 0,
+              "stake_yen": 1600,
+              "payout_yen": 0
+            },
+            "display_B": {
+              "races": 4,
+              "hits": 0,
+              "stake_yen": 1600,
+              "payout_yen": 0
+            }
+          },
+          "candidate_count_holds": {}
+        },
+        "2t": {
+          "comparable_all_research_settings": 4,
+          "individual": {
+            "saved": {
+              "races": 4,
+              "hits": 1,
+              "stake_yen": 800,
+              "payout_yen": 800
+            },
+            "first_two_24": {
+              "races": 4,
+              "hits": 1,
+              "stake_yen": 800,
+              "payout_yen": 800
+            },
+            "first_two_56": {
+              "races": 4,
+              "hits": 1,
+              "stake_yen": 800,
+              "payout_yen": 800
+            },
+            "third_56": {
+              "races": 4,
+              "hits": 1,
+              "stake_yen": 800,
+              "payout_yen": 800
+            },
+            "all_24": {
+              "races": 4,
+              "hits": 1,
+              "stake_yen": 800,
+              "payout_yen": 800
+            },
+            "all_56": {
+              "races": 4,
+              "hits": 1,
+              "stake_yen": 800,
+              "payout_yen": 800
+            },
+            "all_96": {
+              "races": 4,
+              "hits": 1,
+              "stake_yen": 800,
+              "payout_yen": 800
+            },
+            "all_96_half": {
+              "races": 4,
+              "hits": 1,
+              "stake_yen": 800,
+              "payout_yen": 800
+            },
+            "display_A": {
+              "races": 4,
+              "hits": 0,
+              "stake_yen": 800,
+              "payout_yen": 0
+            },
+            "display_B": {
+              "races": 4,
+              "hits": 0,
+              "stake_yen": 800,
+              "payout_yen": 0
+            }
+          },
+          "paired": {
+            "saved": {
+              "races": 4,
+              "hits": 1,
+              "stake_yen": 800,
+              "payout_yen": 800
+            },
+            "first_two_24": {
+              "races": 4,
+              "hits": 1,
+              "stake_yen": 800,
+              "payout_yen": 800
+            },
+            "first_two_56": {
+              "races": 4,
+              "hits": 1,
+              "stake_yen": 800,
+              "payout_yen": 800
+            },
+            "third_56": {
+              "races": 4,
+              "hits": 1,
+              "stake_yen": 800,
+              "payout_yen": 800
+            },
+            "all_24": {
+              "races": 4,
+              "hits": 1,
+              "stake_yen": 800,
+              "payout_yen": 800
+            },
+            "all_56": {
+              "races": 4,
+              "hits": 1,
+              "stake_yen": 800,
+              "payout_yen": 800
+            },
+            "all_96": {
+              "races": 4,
+              "hits": 1,
+              "stake_yen": 800,
+              "payout_yen": 800
+            },
+            "all_96_half": {
+              "races": 4,
+              "hits": 1,
+              "stake_yen": 800,
+              "payout_yen": 800
+            },
+            "display_A": {
+              "races": 4,
+              "hits": 0,
+              "stake_yen": 800,
+              "payout_yen": 0
+            },
+            "display_B": {
+              "races": 4,
+              "hits": 0,
+              "stake_yen": 800,
+              "payout_yen": 0
+            }
+          },
+          "candidate_count_holds": {}
+        }
+      }
+    }
+  },
+  "official_separate_day": {
+    "day_jst": "2026-11-26",
+    "run_id": "45862545918",
+    "source_report_sha256": "69c0e5970b2ec2b5cd3094791fa6860dad97f445beafaa980caf21be54ea95c9",
+    "market": "trifecta_top4",
+    "cutoff_scope": "official_t15",
+    "comparisons": {
+      "baseline_A_vs_baseline_B": {
+        "5": {
+          "paired_races": 2,
+          "hits": [
+            2,
+            1
+          ]
+        },
+        "6": {
+          "paired_races": 4,
+          "hits": [
+            1,
+            0
+          ]
+        },
+        "8": {
+          "paired_races": 0,
+          "hits": null
+        }
+      },
+      "baseline_A_vs_conditioned_A": {
+        "5": {
+          "paired_races": 1,
+          "hits": [
+            1,
+            1
+          ]
+        },
+        "6": {
+          "paired_races": 3,
+          "hits": [
+            0,
+            0
+          ]
+        },
+        "8": {
+          "paired_races": 0,
+          "hits": null
+        }
+      },
+      "baseline_B_vs_conditioned_B": {
+        "5": {
+          "paired_races": 1,
+          "hits": [
+            0,
+            0
+          ]
+        },
+        "6": {
+          "paired_races": 3,
+          "hits": [
+            0,
+            0
+          ]
+        },
+        "8": {
+          "paired_races": 0,
+          "hits": null
+        }
+      }
+    }
+  },
+  "model_refitted": false,
+  "legacy_pr71_small_field_results": "HELD_UNSUPPORTED_FIELD_AND_MISSING_INPUTS",
+  "local_execution_seconds": 2.645,
+  "independent_readback": {
+    "receipt_sha256": "985c163318eb07d312222c91b1cf0dc57f3013765cf8204b07aaa6e63ae6706c",
+    "primary_comparisons_matching": 96,
+    "payout_winner_records_checked": 294,
+    "runtime_seconds": 1.907
+  },
+  "legacy_fixed_canary": {
+    "field_size": 6,
+    "common_cohort_race_count": 1,
+    "settlement_run_id": "44784648369",
+    "saved_only_replay_run_id": "44786003895",
+    "precutoff_result_and_payout_verified": true,
+    "payout_unit_yen": 100,
+    "comparable_arms": 4
+  },
+  "delivery_observation": {
+    "elapsed_to_first_archive_replay_seconds": 2.645,
+    "end_to_end_elapsed_seconds": null,
+    "session_token_usage": null
+  }
+}
