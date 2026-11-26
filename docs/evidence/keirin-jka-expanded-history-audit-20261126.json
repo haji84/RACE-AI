@@ -1,0 +1,169 @@
+{
+  "schema": "RACE_AI_KEIRIN_JKA_EXPANDED_HISTORY_AUDIT_V1",
+  "historical_period": {
+    "first_day": "2024-11-26",
+    "last_day": "2025-09-30"
+  },
+  "strict_numeric_finishes": 152925,
+  "previous_dated_witness_rows": 29467,
+  "previous_jka_rows": 17377,
+  "new_jka_2024": {
+    "athlete_renewal_tables": 14,
+    "registered_identities": 1020,
+    "additional_rows": 49282,
+    "audit_sha256": "1dcf68c78bcb7587fcc122d683608c5275c3d82e9d68c0ded1d4f3a6f9fe5556",
+    "roundtrip_manifest_sha256": "6cde49c13be3824febe1bf07757907a87d6a052192ebe670bfca7500b8d42f23"
+  },
+  "new_jka_2023": {
+    "athlete_renewal_tables": 14,
+    "registered_identities": 1146,
+    "additional_rows": 47554,
+    "audit_sha256": "d9cb83aea1d29dfd57708b0ce5f6db490eb28822b8c0ec84a2952d16ae80a460"
+  },
+  "combined_jka_rows": 114213,
+  "bound_strict_finishes": 143680,
+  "unbound_strict_finishes": 9245,
+  "published_rider_summaries": {
+    "current_roster": 2416,
+    "riders_with_jka_history": 1706,
+    "numeric_finishes": 107930,
+    "result_directory_sha256": "294cca225d4022636d66c47fcc5786ebef8a9541b998080d0c52d3b6c9d51cb6",
+    "aggregate_readback_sha256": "85bc0a617419b04970f7f9420b9ac09937e3552ec2f0c7e2ff126e26990c7651"
+  },
+  "historical_pre_cutoff_racecard_admissions": 0,
+  "training_rows_added": 0,
+  "documents": [
+    {
+      "source_url": "https://www.keirin-autorace.or.jp/documents/www/public/koho_keirin/2024/keirin_190.pdf",
+      "sha256": "7e95d6a807d77b0a4ad57d19fd5c7493129ced303761a4955a19cd71b80e10f4",
+      "bytes": 1730733,
+      "observed_at": "2026-11-26T12:01:10.317926+00:00"
+    },
+    {
+      "source_url": "https://www.keirin-autorace.or.jp/documents/www/public/koho_keirin/2024/keirin_191.pdf",
+      "sha256": "74caa93bb3979cd351e05103941c45234b5b2121dc9eee5be98041ee076e5502",
+      "bytes": 2957612,
+      "observed_at": "2026-11-26T12:01:12.154277+00:00"
+    },
+    {
+      "source_url": "https://www.keirin-autorace.or.jp/documents/www/public/koho_keirin/2024/keirin_192.pdf",
+      "sha256": "a31f45da2eb33ad41d3bd5ed6dea116953322d41ac31cec3bea53a976c6afc66",
+      "bytes": 1811578,
+      "observed_at": "2026-11-26T12:01:13.301603+00:00"
+    },
+    {
+      "source_url": "https://www.keirin-autorace.or.jp/documents/www/public/koho_keirin/2024/keirin_193.pdf",
+      "sha256": "77843986c13afbb82c82aa244594c41461023ca7700b26004dfd0b1102d1444d",
+      "bytes": 2535437,
+      "observed_at": "2026-11-26T12:01:15.850500+00:00"
+    },
+    {
+      "source_url": "https://www.keirin-autorace.or.jp/documents/www/public/koho_keirin/2024/keirin_194.pdf",
+      "sha256": "e8090a5abd86d74429465613d76b391178fd8ccbae3c82b140fa022fee3d0821",
+      "bytes": 1919900,
+      "observed_at": "2026-11-26T12:01:17.102986+00:00"
+    },
+    {
+      "source_url": "https://www.keirin-autorace.or.jp/documents/www/public/koho_keirin/2024/keirin_195.pdf",
+      "sha256": "e437b78e6a5727c2f0db927ccb0d40ce654da9910f98b82a2fb363545ff72188",
+      "bytes": 1773920,
+      "observed_at": "2026-11-26T12:01:18.164558+00:00"
+    },
+    {
+      "source_url": "https://www.keirin-autorace.or.jp/documents/www/public/koho_keirin/2024/keirin_196.pdf",
+      "sha256": "1852a54953543e20605c2515af573a16f600c0b10d86a70a20a368e1a6bd58c9",
+      "bytes": 2265863,
+      "observed_at": "2026-11-26T12:01:20.285857+00:00"
+    },
+    {
+      "source_url": "https://www.keirin-autorace.or.jp/documents/www/public/koho_keirin/2024/keirin_197.pdf",
+      "sha256": "d6303b00c2d159c9c0361582d8ba584020659f089cd1063c513085a0358517ca",
+      "bytes": 2381230,
+      "observed_at": "2026-11-26T12:01:22.951540+00:00"
+    },
+    {
+      "source_url": "https://www.keirin-autorace.or.jp/documents/www/public/koho_keirin/2024/keirin_198.pdf",
+      "sha256": "b62af96317e2b50022a44ec1da2553507e577dbf4dbaa8be696ae69d14b6e3cb",
+      "bytes": 2031639,
+      "observed_at": "2026-11-26T12:01:23.820084+00:00"
+    },
+    {
+      "source_url": "https://www.keirin-autorace.or.jp/documents/www/public/koho_keirin/2024/keirin_199.pdf",
+      "sha256": "fc19b13a2b0ceb06be9dc6cba02551e789a05827f4c43ed3d26490ff57808a0e",
+      "bytes": 1926129,
+      "observed_at": "2026-11-26T12:01:26.114388+00:00"
+    },
+    {
+      "source_url": "https://www.keirin-autorace.or.jp/documents/www/public/koho_keirin/2023/keirin_178.pdf",
+      "sha256": "a813cec9ccdcf39409dbc3861ac69a2b4b5c740b379cce6a4b5142947b751e2b",
+      "bytes": 1997972,
+      "observed_at": "2026-11-26T12:12:21.998185+00:00"
+    },
+    {
+      "source_url": "https://www.keirin-autorace.or.jp/documents/www/public/koho_keirin/2023/keirin_179.pdf",
+      "sha256": "65c31df99f64e91249e18a4eb3bc12600f19ef210895fe0a0992a98ec2334858",
+      "bytes": 1661339,
+      "observed_at": "2026-11-26T12:12:24.752622+00:00"
+    },
+    {
+      "source_url": "https://www.keirin-autorace.or.jp/documents/www/public/koho_keirin/2023/keirin_180.pdf",
+      "sha256": "cf0dbc5963dfe8160f67c9be6f8b3dba05c95f5d71fe72d285e317f663537026",
+      "bytes": 1815935,
+      "observed_at": "2026-11-26T12:12:27.006137+00:00"
+    },
+    {
+      "source_url": "https://www.keirin-autorace.or.jp/documents/www/public/koho_keirin/2023/keirin_181.pdf",
+      "sha256": "8a2a19808825c720cb13d557ff7d670b144301c165418264ac1bcb62ab2fb959",
+      "bytes": 1661994,
+      "observed_at": "2026-11-26T12:12:29.149559+00:00"
+    },
+    {
+      "source_url": "https://www.keirin-autorace.or.jp/documents/www/public/koho_keirin/2023/keirin_182.pdf",
+      "sha256": "ca79ee5896bbc1bd3e302146979395c576ff11e243d27efb9027fd8389c107e8",
+      "bytes": 1814307,
+      "observed_at": "2026-11-26T12:12:31.191380+00:00"
+    },
+    {
+      "source_url": "https://www.keirin-autorace.or.jp/documents/www/public/koho_keirin/2023/keirin_183.pdf",
+      "sha256": "8791d0b4bccbcfe27ce080e967a24f7a582c50baeaeda46028ce72dd24200789",
+      "bytes": 2155544,
+      "observed_at": "2026-11-26T12:12:33.688182+00:00"
+    },
+    {
+      "source_url": "https://www.keirin-autorace.or.jp/documents/www/public/koho_keirin/2023/keirin_184.pdf",
+      "sha256": "e5bc775f6da955e3f7bb79b80e991c310e3faebb8f3f7228e1530a2fa1f1efb6",
+      "bytes": 3474029,
+      "observed_at": "2026-11-26T12:12:35.756656+00:00"
+    },
+    {
+      "source_url": "https://www.keirin-autorace.or.jp/documents/www/public/koho_keirin/2023/keirin_185.pdf",
+      "sha256": "e654e019a55c6f596743242690352a86778b96946333b3f3e31c3a5385f07367",
+      "bytes": 2531327,
+      "observed_at": "2026-11-26T12:12:38.100705+00:00"
+    },
+    {
+      "source_url": "https://www.keirin-autorace.or.jp/documents/www/public/koho_keirin/2023/keirin_186.pdf",
+      "sha256": "cce85424d71f0c25af925b20ca141f1a4d442c6eca39ea61a086f675fc863f48",
+      "bytes": 2940826,
+      "observed_at": "2026-11-26T12:12:41.030611+00:00"
+    },
+    {
+      "source_url": "https://www.keirin-autorace.or.jp/documents/www/public/koho_keirin/2023/keirin_187.pdf",
+      "sha256": "10618f19f0bcb6c735c91068a1bf7b01d8b8336b272339fd161add7eb8f39740",
+      "bytes": 1917993,
+      "observed_at": "2026-11-26T12:12:43.888291+00:00"
+    },
+    {
+      "source_url": "https://www.keirin-autorace.or.jp/documents/www/public/koho_keirin/2023/keirin_188.pdf",
+      "sha256": "ed08ba4a583ad0f3e2a520f736564bac382dd4619fe20822c8864de20ffa5c64",
+      "bytes": 1531581,
+      "observed_at": "2026-11-26T12:12:46.303394+00:00"
+    },
+    {
+      "source_url": "https://www.keirin-autorace.or.jp/documents/www/public/koho_keirin/2023/keirin_189.pdf",
+      "sha256": "c8342792a3eda44a91a3d848e83594cd47482e0a7480b5ac8c6eef930e0ff4ac",
+      "bytes": 1514991,
+      "observed_at": "2026-11-26T12:12:48.024292+00:00"
+    }
+  ]
+}
