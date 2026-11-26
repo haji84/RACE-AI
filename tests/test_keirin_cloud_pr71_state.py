@@ -3,12 +3,13 @@
 No live bookmaker access, no real result, no public rider/plaintext upload.
 Uses the actual existing 4-model engine and Node production codec.
 """
-from contextlib import redirect_stdout
+from contextlib import redirect_stderr, redirect_stdout
 from datetime import datetime
 from pathlib import Path
 from tempfile import TemporaryDirectory
 from unittest.mock import patch
 import base64
+from io import StringIO
 import json
 import os
 import shutil
@@ -25,6 +26,26 @@ from test_keirin_pr71_model_adapter import make_sources, RID
 def sh(*args,cwd=None):
     return subprocess.run(args,cwd=cwd,capture_output=True,
                           text=True,check=True,timeout=18).stdout.strip()
+
+
+class CloudPr71HoldDiagnosticsTests(unittest.TestCase):
+    def test_hold_reaches_actions_stderr_without_releasing_exception_text(self):
+        for error,reason in (
+                (cloud.ArchiveError("CIPHER_BYTES_SHA_MISMATCH"),"CIPHER_BYTES_SHA_MISMATCH"),
+                (cloud.ArchiveError("private source value"),"PRIVATE_GATE_UNVERIFIED"),
+                (OSError("private file location"),"PRIVATE_GATE_UNVERIFIED")):
+            with self.subTest(reason=reason):
+                output,diagnostic=StringIO(),StringIO()
+                with redirect_stdout(output),redirect_stderr(diagnostic), \
+                        patch.object(cloud,"require_main_event"), \
+                        patch.object(cloud,"check_owner_cipher_consent"), \
+                        patch.object(cloud,"cycle",side_effect=error):
+                    status=cloud.main(["cycle","--repo",".","--source-root","."])
+                self.assertEqual(status,2)
+                self.assertEqual(json.loads(output.getvalue()),{
+                    "state":"HOLD_PR71_CLOUD_GATE_NOT_VERIFIED","real_forecasts_claimed":False})
+                self.assertEqual(json.loads(diagnostic.getvalue()),{
+                    "state":"HOLD_PR71_CLOUD_GATE_NOT_VERIFIED","stage":"CYCLE","reason":reason})
 
 
 class CloudPr71GitHistoryTests(unittest.TestCase):
