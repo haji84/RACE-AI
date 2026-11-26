@@ -7,6 +7,10 @@ on:
       - '.github/workflows/keirin-rider-dossier-readback.yml'
       - 'scripts/keirin_rider_dossier_readback.py'
       - 'scripts/keirin_public_rider_projection.py'
+      - 'scripts/keirin_dossier_condition_archive.py'
+      - 'race_ai/keirin_dossier_conditions.py'
+      - 'tests/test_keirin_dossier_condition_archive.py'
+      - 'tests/test_keirin_dossier_conditions.py'
       - 'tests/test_keirin_public_rider_projection.py'
       - 'tests/test_keirin_rider_dossier_readback.py'
       - 'docs/evidence/keirin-live-accuracy-closure-20261125/rider-dossier-recovery.json'
@@ -16,6 +20,8 @@ on:
       - '.github/workflows/keirin-rider-dossier-readback.yml'
       - 'scripts/keirin_rider_dossier_readback.py'
       - 'scripts/keirin_public_rider_projection.py'
+      - 'scripts/keirin_dossier_condition_archive.py'
+      - 'race_ai/keirin_dossier_conditions.py'
       - 'tests/test_keirin_public_rider_projection.py'
       - 'docs/evidence/keirin-live-accuracy-closure-20261125/rider-dossier-recovery.json'
   workflow_dispatch:
@@ -35,13 +41,13 @@ jobs:
         with:
           python-version: '3.12'
       - run: python -m pip install --disable-pip-version-check 'cryptography>=44,<48'
-      - run: python -m unittest tests.test_keirin_rider_dossier_readback tests.test_keirin_joint_original_readback tests.test_keirin_public_rider_projection -v
+      - run: python -m unittest tests.test_keirin_rider_dossier_readback tests.test_keirin_joint_original_readback tests.test_keirin_public_rider_projection tests.test_keirin_dossier_conditions tests.test_keirin_dossier_condition_archive -v
 
   independent-private-restore:
     needs: contracts
     if: github.repository == 'haji84/RACE-AI' && github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
     runs-on: ubuntu-24.04
-    timeout-minutes: 5
+    timeout-minutes: 9
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
         with:
@@ -121,3 +127,35 @@ jobs:
             ${{ runner.temp }}/keirin-dossier-public/public-rider-directory-receipt.json
           if-no-files-found: error
           retention-days: 7
+      - name: Reconcile meeting grades and rounds against the restored finish history
+        shell: bash
+        run: |
+          set -euo pipefail
+          umask 077
+          private="$RUNNER_TEMP/keirin-dossier-private"
+          public="$RUNNER_TEMP/keirin-dossier-public"
+          source='https://raw.githubusercontent.com/sumidatadayoshi/keirin-data/2a1260fb0940ad11160b56a36f9c24cc4fb2f6d2/data'
+          curl --fail --silent --show-error --proto '=https' --max-time 90 --max-filesize 104706048 \
+            "$source/keirin.db" --output "$private/keirin.db"
+          curl --fail --silent --show-error --proto '=https' --max-time 90 --max-filesize 45436928 \
+            "$source/keirin_2026q4.db" --output "$private/keirin_2026q4.db"
+          (
+            cd "$private"
+            sha256sum --check --status <<'EOF'
+          1bdad22b9744c9c5563f7bb1af31875170a3e6b7f4b0dd73fba8f98d645d8fc4  keirin.db
+          d915560877493816b90df8bcd5e7bdef45557f57100b4cd40a3d017cd959334d  keirin_2026q4.db
+          EOF
+          )
+          python -m scripts.keirin_dossier_condition_archive --restored "$private/restored" \
+            --database "$private/keirin.db" --database "$private/keirin_2026q4.db" \
+            --output "$public/rider-condition-archive.json" >> "$GITHUB_STEP_SUMMARY"
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: keirin-public-rider-condition-archive-${{ github.run_id }}
+          path: ${{ runner.temp }}/keirin-dossier-public/rider-condition-archive.json
+          if-no-files-found: error
+          retention-days: 7
+      - name: Remove the private restored source documents
+        if: always()
+        shell: bash
+        run: rm -rf -- "$RUNNER_TEMP/keirin-dossier-private"
