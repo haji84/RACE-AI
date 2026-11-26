@@ -1,13 +1,17 @@
 """Source-free pipeline tests: do not mistake mocks for live coverage."""
 from copy import deepcopy
+from contextlib import redirect_stdout
 from datetime import datetime, timezone
 from hashlib import sha256
+from io import StringIO
 from pathlib import Path
 from tempfile import TemporaryDirectory
 from unittest.mock import patch
 import os
+import json
 import unittest
 
+from race_ai import keirin_official_nationwide_records as official_archive
 from scripts import keirin_github_only_ab_day as live
 from scripts import keirin_github_only_ab_readback as readback
 
@@ -374,6 +378,58 @@ class GithubOnlyABDay(unittest.TestCase):
         self.assertEqual(result["independently_verified"], 1)
         self.assertFalse(result["RSA_private_decryption_verified"])
         self.assertFalse(result["organizer_result_verified"])
+
+    def test_readback_cli_pins_one_independent_partial_archive_for_all_ciphertexts(self):
+        checkout = self.root / 'existing-checkout'
+        checkout.mkdir()
+        command = readback.archive._cmd
+        command(checkout, 'init', '--quiet', '--template=')
+        remote = 'https://github.com/haji84/RACE-AI.git'
+        command(checkout, 'remote', 'add', 'origin', remote)
+        report = self.root / 'producer-receipt.json'
+        target = self.root / 'reader-receipt.json'
+        report.write_text(json.dumps(dict(schema=live.SCHEMA, day_jst=DAY, new_A_B_git_archived=2,
+            new_encrypted_originals=[dict(race_id=RID1, cipher_sha256='1'*64,
+                conditioned_state='GIT_CONDITIONED_ORIGINAL_CREATE_ONCE_AND_RESTORED',
+                conditioned_cipher_sha256='2'*64, baseline_prediction_sha256='3'*64, cohort_sha256='4'*64),
+                dict(race_id=RID2, cipher_sha256='5'*64)])))
+        head = 'a'*40
+
+        def fetch(reader, *, with_ancestry):
+            self.assertNotEqual(reader, checkout)
+            self.assertTrue(with_ancestry)
+            self.assertEqual(command(reader, 'remote', 'get-url', 'origin')[1], remote)
+            self.assertEqual(command(reader, 'config', '--local', 'remote.origin.promisor')[1], 'true')
+            self.assertEqual(command(reader, 'config', '--local', 'remote.origin.partialclonefilter')[1], 'blob:none')
+            return head
+
+        env = dict(RUNNER_TEMP=str(self.root), RACE_AI_KEIRIN_AB_GIT_STORE_ENABLED='true')
+        with patch.dict(os.environ, env), redirect_stdout(StringIO()), \
+                patch.object(official_archive, 'fetch_partial_head', side_effect=fetch) as partial, \
+                patch.object(readback.archive, '_read_at', return_value={}) as baseline, \
+                patch.object(readback.archive, '_read_conditioned_at', return_value={}) as conditioned, \
+                patch.object(readback.archive, '_refresh', side_effect=AssertionError('full archive fetch')):
+            status = readback.main(['--repo',str(checkout),'--report',str(report),'--out',str(target)])
+
+        self.assertEqual(status, 0)
+        partial.assert_called_once()
+        reader = partial.call_args.args[0]
+        self.assertFalse(reader.exists())
+        self.assertEqual([call.args for call in baseline.call_args_list],
+                         [(reader,head,RID1,'1'*64), (reader,head,RID2,'5'*64)])
+        conditioned.assert_called_once_with(reader,head,RID1,'2'*64,'1'*64,'3'*64,'4'*64)
+        receipt = json.loads(target.read_text())
+        self.assertEqual(receipt['independently_verified'], 2)
+        self.assertEqual(receipt['paired_cipher_originals_verified'], 1)
+        self.assertFalse(receipt['RSA_private_decryption_verified'])
+
+    def test_readback_without_new_originals_does_not_contact_archive(self):
+        report = dict(schema=live.SCHEMA, day_jst=DAY, new_A_B_git_archived=0,
+                      new_encrypted_originals=[])
+        with patch.object(official_archive, 'fetch_partial_head') as fetch:
+            receipt = readback._verify_independently(report, self.root, self.root)
+        fetch.assert_not_called()
+        self.assertEqual(receipt['independently_verified'], 0)
 
     def test_readback_rejects_duplicate_races(self):
         row = {"race_id":RID2,"cipher_sha256":"a"*64}
