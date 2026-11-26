@@ -132,7 +132,19 @@ def private_denial(root,safe=None):
         'state')=='HOLD_PROVIDER_DENIED_OR_RATE_LIMITED_STOP'
 
 
-def cycle(repo,*,recipient=None,store=None,collector=None,result_collector=None,clock=None,source_commit=None):
+def _publish_reference_projection(repo,note,entry,*,published_at):
+    from race_ai import keirin_public_forecasts
+    try:
+        public=keirin_public_forecasts.project_reference(note,entry,published_at=published_at)
+        if not public['races']:
+            return {'state':'NO_PRE_CUTOFF_PUBLIC_REFERENCES'}
+        return keirin_public_forecasts.publish_reference(repo,public)
+    except _FAILURES:
+        return {'state':'HOLD_PUBLIC_REFERENCE_FORECASTS'}
+
+
+def cycle(repo,*,recipient=None,store=None,collector=None,result_collector=None,clock=None,source_commit=None,
+          reference_publisher=None):
     with _phase('OWNER_FEED_READ'):
         repo=Path(repo).resolve();store=store or NoteFeedGit(repo)
         recipient=checked_recipient(recipient or json.loads(
@@ -180,6 +192,9 @@ def cycle(repo,*,recipient=None,store=None,collector=None,result_collector=None,
                     result=_publish_collected(store,recipient,sealed,parent=parent,prior=prior,
                                               denied=safe['provider_denied'])
                 result['acquisition']=safe
+                if (reference_publisher is not None and safe['captured_race_ids'] and
+                        not safe['provider_denied'] and result['state']=='KEIRIN_NOTE_ENCRYPTED_GIT_READBACK_VERIFIED'):
+                    result['public_reference']=reference_publisher(repo,note,sealed['entry'],published_at=clock())
         except Exception:
             with _phase('PROVIDER_STOP_PERSISTENCE'):
                 if private_denial(root,safe):latch_denial(store,recipient)
@@ -280,14 +295,22 @@ def latch_denial(store,recipient):
 
 def main(argv=None):
     parser=argparse.ArgumentParser(description=__doc__);parser.add_argument('--repo',required=True)
+    parser.add_argument('--publish-reference',action='store_true')
     args=parser.parse_args(argv)
     # This new source profile never grants production-state access or executes
     # code from untrusted PRs. No new workflow trigger/permission is required.
     need(os.getenv('GITHUB_REPOSITORY')==REPO and os.getenv('GITHUB_REF')=='refs/heads/main'
          and os.getenv('GITHUB_EVENT_NAME') in {'schedule','workflow_dispatch'},'TRUSTED_MAIN_EVENT')
+    if args.publish_reference:
+        need(os.getenv('GITHUB_ACTIONS')=='true' and
+             os.getenv('GITHUB_REPOSITORY_ID')=='1416489937' and
+             os.getenv('GITHUB_WORKFLOW_REF')=='haji84/RACE-AI/.github/workflows/keirin-pr71-owner-autonomous.yml@refs/heads/main' and
+             os.getenv('GITHUB_JOB')=='github-hosted-pr71-cycle','PUBLIC_REFERENCE_TRUSTED_MAIN_RUN')
+        checked_out=subprocess.check_output(['git','rev-parse','HEAD'],cwd=args.repo).decode().strip()
+        need(os.getenv('GITHUB_SHA')==checked_out,'PUBLIC_REFERENCE_TRUSTED_CHECKOUT')
     try:
         with _phase('RUN_CONTEXT'):
-            result=cycle(args.repo)
+            result=cycle(args.repo,reference_publisher=_publish_reference_projection) if args.publish_reference else cycle(args.repo)
             print(json.dumps(result,ensure_ascii=False,sort_keys=True))
     except FeedCycleFailure as error:
         print(json.dumps(dict(state='HOLD_NOTE_SOURCE_OR_ENCRYPTED_PUBLICATION',

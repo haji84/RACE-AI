@@ -1,6 +1,6 @@
 """Nationwide display uses invented races and ephemeral test-only owner keys."""
 from copy import deepcopy
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from hashlib import sha256
 import importlib
 import json
@@ -317,3 +317,164 @@ class NationwideForecastViewTests(unittest.TestCase):
             proc=subprocess.run(['node','-e',script],input=json.dumps(payload).encode(),
                 cwd=Path(__file__).resolve().parents[1],stdout=subprocess.PIPE,stderr=subprocess.PIPE,timeout=30)
             self.assertEqual(proc.returncode,0,proc.stderr.decode()); self.assertEqual(proc.stdout,b'')
+
+
+class PublicReferenceForecastTests(unittest.TestCase):
+    def setUp(self):
+        from race_ai import keirin_public_forecasts as public
+        from race_ai.keirin_note_view import import_site
+        from scripts.keirin_note_collect_inputs import collect_day
+        from tests.test_keirin_note_collect_inputs import DAY, NOW, pages_for, rid
+
+        folder = TemporaryDirectory()
+        self.addCleanup(folder.cleanup)
+        self.root = Path(folder.name).resolve()
+        self.root.chmod(0o700)
+        self.public, self.day, self.now = public, DAY, NOW
+        self.ids = [rid(1), rid(2)]
+        self.recipient = feed.create_recipient(self.root/'test-recipient')['public']
+        collected = collect_day(day_jst=DAY, private_root=self.root/'capture',
+            fetch=pages_for([(1, '12:12'), (2, '13:00')]).__getitem__,
+            clock=lambda: NOW, model_source_commit='a'*40)
+        self.note = import_site(Path(collected['site_root']), source_commit='a'*40,
+            clock=lambda: NOW+timedelta(seconds=1))
+        self.note.update(scope='OWNER_MATCHED_SOURCE_RESEARCH_REFRESH', source_site=None,
+            source_profile='owner-imported-kdreams-netkeirin-20261120',
+            actual_four_model_forecast_saved=False)
+        self.reference_path = f'data/{DAY}/reference_AB.json'
+        self.reference_key = f'references/{DAY}.json'
+
+    def seal(self, note, *, ids=None):
+        return feed.seal_snapshot(note, self.recipient, kind='research',
+            captured_ids=self.ids if ids is None else ids,
+            clock=lambda: self.now+timedelta(seconds=2))['entry']
+
+    def project(self, *, published_at=None):
+        return self.public.project_reference(self.note, self.seal(self.note),
+            published_at=published_at or self.now+timedelta(seconds=3))
+
+    def test_reference_is_exactly_the_first_eight_existing_candidates(self):
+        projected = self.project()
+        self.assertEqual(set(projected), {'schema','day','published_at','races'})
+        self.assertEqual(projected['schema'], 'RACE_AI_KEIRIN_PUBLIC_REFERENCE_FORECASTS_V1')
+        self.assertEqual(projected['day'], self.day)
+        self.assertEqual(projected['published_at'], '2030-01-15T12:00:03+09:00')
+        research = json.loads(self.note['files'][self.reference_path]['text'])
+        outputs = {row['output']['race_id']:row['output'] for row in research}
+        self.assertEqual([row['race_id'] for row in projected['races']], self.ids)
+        for row in projected['races']:
+            existing = outputs[row['race_id']]
+            self.assertGreater(len(existing['A']['ranked_tickets']), 8)
+            self.assertEqual(row, dict(race_id=existing['race_id'], cutoff_at=existing['published_cutoff_at'],
+                saved_at='2030-01-15T03:00:02+00:00', a=existing['A']['ranked_tickets'][:8],
+                b=existing['B']['ranked_tickets'][:8]))
+
+    def test_readback_at_or_after_cutoff_excludes_individual_races(self):
+        partly_late = self.project(published_at=self.now+timedelta(minutes=12))
+        self.assertEqual([row['race_id'] for row in partly_late['races']], self.ids[1:])
+        all_late = self.project(published_at=self.now+timedelta(hours=1))
+        self.assertEqual(all_late['races'], [])
+        with self.assertRaisesRegex(ValueError, 'PUBLICATION_CLOCK'):
+            self.project(published_at=self.now.replace(tzinfo=None))
+        with self.assertRaises(ValueError):
+            self.project(published_at=self.now+timedelta(seconds=1))
+
+    def test_reference_requires_bound_note_and_complete_captured_set(self):
+        valid_entry = self.seal(self.note)
+        at = self.now+timedelta(seconds=3)
+        with self.assertRaises(ValueError):
+            self.public.project_reference(self.note, self.seal(self.note, ids=self.ids[:1]), published_at=at)
+        with self.assertRaises(ValueError):
+            self.public.project_reference(dict(self.note, dates=['2030-01-16']), valid_entry, published_at=at)
+        with self.assertRaises(ValueError):
+            self.public.project_reference(dict(self.note, source_commit='b'*40), valid_entry, published_at=at)
+
+    def test_reference_rejects_resealed_mismatched_models_and_nonfinite_json(self):
+        raw = self.note['files'][self.reference_path]['text']
+        for text in (raw.replace('"model_source_commit":"'+'a'*40, '"model_source_commit":"'+'b'*40),
+                     raw.replace('"model_source_sha256":"', '"model_source_sha256":"bad'),
+                     raw.replace('"model_source_sha256":', '"unused":1e999,"model_source_sha256":'),
+                     raw.replace('"independent_runner_readback":false', '"independent_runner_readback":true')):
+            with self.subTest(text_length=len(text)):
+                self.assertNotEqual(text, raw)
+                note = deepcopy(self.note)
+                note['files'][self.reference_path] = dict(text=text,
+                    bytes=len(text.encode()), sha256=sha256(text.encode()).hexdigest())
+                with self.assertRaises(ValueError):
+                    self.public.project_reference(note, self.seal(note),
+                        published_at=self.now+timedelta(seconds=3))
+
+    def test_reference_append_preserves_first_candidates_and_official_blob(self):
+        public, root = self.public, self.root
+        repo, remote = root/'repo', root/'remote.git'
+
+        def git(*args, cwd=None):
+            return subprocess.check_output(['git',*args], cwd=cwd, stderr=subprocess.DEVNULL)
+
+        class LocalStore(public.PublicForecastGit):
+            def _remote(self):
+                return 'origin'
+
+        git('init','--bare',str(remote))
+        git('init',str(repo))
+        git('remote','add','origin',str(remote),cwd=repo)
+        store = LocalStore(repo)
+        at = self.now+timedelta(seconds=3)
+        official_body = dict(schema=public.SCHEMA, day=self.day, published_at=at.isoformat(),
+            races=[dict(race_id=self.ids[0], cutoff_at=None, status='pending', saved_at=None, a=[], b=[])])
+        official = public.publish(repo, official_body, store=store)
+        official_path = f'forecasts/{self.day}.json'
+        official_bytes = store.read_previous(official['commit'], official_path)
+
+        projected = self.project()
+        first, second = projected['races']
+        receipt = public.publish_reference(repo, dict(projected, races=[first]), store=store)
+        changed = dict(first, a=list(reversed(first['a'])))
+        duplicate = public.publish_reference(repo, dict(projected, races=[changed]), store=store)
+        self.assertEqual(duplicate['commit'], receipt['commit'])
+        self.assertEqual(store.head(), receipt['commit'])
+        next_body = dict(projected, published_at=(self.now+timedelta(minutes=13)).isoformat(),
+            races=[changed,second])
+        appended = public.publish_reference(repo, next_body, store=store)
+        self.assertEqual(appended['published_races'], 2)
+        self.assertEqual(store.read_previous(appended['commit'], official_path), official_bytes)
+        self.assertEqual(json.loads(store.read_previous(appended['commit'], self.reference_key)),
+            dict(next_body, races=[first,second]))
+        self.assertEqual(store.run(['rev-list','--parents','-n','1',appended['commit']]).decode().split(),
+            [appended['commit'],receipt['commit']])
+
+    def test_reference_retries_fast_forward_and_keeps_the_concurrent_first_pick(self):
+        public = self.public
+        repo, remote = self.root/'retry-repo', self.root/'retry.git'
+        for args, cwd in ((['init','--bare',str(remote)],None), (['init',str(repo)],None),
+                          (['remote','add','origin',str(remote)],repo)):
+            subprocess.check_output(['git',*args], cwd=cwd, stderr=subprocess.DEVNULL)
+
+        class LocalStore(public.PublicForecastGit):
+            def _remote(self):
+                return 'origin'
+
+        other = LocalStore(repo)
+        projected = self.project()
+        first, second = projected['races']
+        winner = dict(first, a=list(reversed(first['a'])))
+        initial = other.commit({f'forecasts/{self.day}.json':b'{"official_fixture":true}\n'}, None)
+        other.push(initial, None)
+        later = (self.now+timedelta(seconds=4)).isoformat()
+        concurrent_revisions = []
+
+        class RacingStore(LocalStore):
+            def push(self, commit, parent):
+                if not concurrent_revisions:
+                    concurrent = public.publish_reference(repo,
+                        dict(projected,published_at=later,races=[winner]), store=other)
+                    concurrent_revisions.append(concurrent['commit'])
+                return super().push(commit, parent)
+
+        store = RacingStore(repo)
+        saved = public.publish_reference(repo, projected, store=store)
+        self.assertEqual(json.loads(store.read_previous(saved['commit'], self.reference_key))['races'],
+            [winner,second])
+        self.assertEqual(saved['published_at'], later)
+        self.assertEqual(store.run(['rev-list','--parents','-n','1',saved['commit']]).decode().split(),
+            [saved['commit'],concurrent_revisions[0]])

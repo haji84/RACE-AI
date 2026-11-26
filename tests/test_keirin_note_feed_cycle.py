@@ -82,6 +82,43 @@ class FeedCycleTests(unittest.TestCase):
         self.assertEqual(index['entries'][0]['kind'],'import')
         self.assertEqual(index['entries'][1]['kind'],'research')
 
+    def test_public_projection_gets_the_in_memory_forecast_only_after_encrypted_readback(self):
+        self.seed()
+        published=[]
+        def publish(repo,note,entry,*,published_at):
+            index=feed.load_index(self.store,self.recipient,self.store.head())
+            self.assertIn(entry,index['entries'])
+            self.assertEqual(note['scope'],'OWNER_MATCHED_SOURCE_RESEARCH_REFRESH')
+            self.assertEqual(entry['captured_race_ids'],['203001159801'])
+            self.assertEqual(published_at.tzinfo,timezone.utc)
+            published.append(entry['cipher_sha256'])
+            return {'state':'PUBLIC_REFERENCES_UPDATED','published_races':1}
+        result=self.cycle(reference_publisher=publish)
+        self.assertEqual(len(published),1)
+        self.assertEqual(result['public_reference']['published_races'],1)
+        self.assertEqual(len(self.result_calls),1)
+
+    def test_reference_publisher_is_off_by_default_and_after_a_failed_encrypted_write(self):
+        self.seed()
+        result=self.cycle()
+        self.assertNotIn('public_reference',result)
+        with patch('scripts.keirin_note_feed_cycle.publish_snapshot',side_effect=ValueError('GIT_OPERATION_FAILED')):
+            with self.assertRaisesRegex(ValueError,'GIT_OPERATION_FAILED'):
+                self.cycle(reference_publisher=lambda *args,**kwargs:self.fail('pre-readback public release'))
+
+    def test_publication_is_opt_in_only_in_the_existing_main_actions_job(self):
+        from scripts import keirin_note_feed_cycle as cycle
+        env={
+            'GITHUB_REPOSITORY':'haji84/RACE-AI', 'GITHUB_REPOSITORY_ID':'1416489937',
+            'GITHUB_REF':'refs/heads/main','GITHUB_ACTIONS':'true','GITHUB_EVENT_NAME':'schedule',
+            'GITHUB_WORKFLOW_REF':'haji84/RACE-AI/.github/workflows/keirin-pr71-owner-autonomous.yml@refs/heads/main',
+            'GITHUB_JOB':'other-job',
+        }
+        with patch.dict(os.environ,env,clear=True),patch.object(cycle,'cycle') as roll:
+            with self.assertRaisesRegex(ValueError,'PUBLIC_REFERENCE_TRUSTED_MAIN_RUN'):
+                cycle.main(['--repo',str(self.repo),'--publish-reference'])
+        roll.assert_not_called()
+
     def append_archive(self):
         incoming=feed.seal_snapshot(packet(),self.recipient,kind='archive')
         return feed.publish_snapshot(self.store,self.recipient,incoming,expected_parent=self.store.head())
