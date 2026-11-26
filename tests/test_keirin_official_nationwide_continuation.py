@@ -345,7 +345,8 @@ class RunnerTests(unittest.TestCase):
         self.assertEqual(out['new_A_B_git_archived'],0)
         self.assertFalse(any(r['kind']=='original' for r in store.saved))
 
-    def capture_batch_fixture(self, *, history_http_error=None, first_cutoff_seconds=3600, first_collection_seconds=0):
+    def capture_batch_fixture(self, *, history_http_error=None, first_cutoff_seconds=3600,
+                              first_collection_seconds=0, cutoff_probed=False):
         api = self.api()
         inventory, _ = cutoff_fixture((97, 98, 99))
         store = FakeStore('/synthetic', DAY)
@@ -355,14 +356,24 @@ class RunnerTests(unittest.TestCase):
         calls = []
         generated = []
         now = AT
+        probed_id = next(race['race_id'] for race in inventory['registry']['races']
+                         if race['venue_code'] == 97 and race['race_no'] == 1)
+
+        def probe_cutoff(*, session, inventory, race, clock):
+            if cutoff_probed and race['race_id'] == probed_id:
+                return AT + timedelta(seconds=first_cutoff_seconds)
+            return None
 
         def collect_baseline(*, session, inventory, race, clock):
             nonlocal now
             self.assertFalse(session.halted)
-            session.count += 11 if generated else 18
             rid = race['race_id']
             calls.append(('baseline', rid))
-            cutoff = AT + timedelta(seconds=3600 if generated else first_cutoff_seconds)
+            probed = probe_cutoff(session=session, inventory=inventory, race=race, clock=clock)
+            if probed is not None and (probed - now).total_seconds() < api.sources.CAPTURE_START_MARGIN_SECONDS:
+                raise api.sources.SourceError('OFFICIAL_CONTINUATION_CAPTURE_START_MARGIN_REQUIRED')
+            session.count += 11 if generated else 18
+            cutoff = probed or AT + timedelta(seconds=3600 if generated or cutoff_probed else first_cutoff_seconds)
             if not generated:
                 now += timedelta(seconds=first_collection_seconds)
             generated.append(rid)
@@ -401,7 +412,7 @@ class RunnerTests(unittest.TestCase):
               patch.object(api.records,'RecordStore',return_value=store),
               patch.object(api.capture_files,'_private_directory',return_value=Path('/private')),
               patch.object(api.sources,'OfficialSourceSession',return_value=session),
-              patch.object(api.sources,'collect_capture_cutoff',return_value=None),
+              patch.object(api.sources,'collect_capture_cutoff',side_effect=probe_cutoff),
               patch.object(api.sources,'collect_candidate',side_effect=collect_baseline),
               patch.object(api.sources,'collect_conditions',side_effect=collect_history) as history,
               patch.object(extension,'collect_day_inventory',return_value=inventory),
@@ -420,6 +431,25 @@ class RunnerTests(unittest.TestCase):
         self.assertEqual(result['statuses']['SOURCE_CAPTURE_BUDGET_PENDING'],1)
         self.assertEqual(store.saved[-1]['payload']['source_attempt_counts'],dict.fromkeys(generated,1))
         self.assertEqual(lease.finished,['PARTIAL'])
+
+    def test_fresh_infeasible_cutoff_is_recorded_without_using_a_capture_attempt(self):
+        margin = self.api().sources.CAPTURE_START_MARGIN_SECONDS
+        for remaining in (-1, margin - 1):
+            with self.subTest(remaining=remaining):
+                report, store, _, calls, generated, _, _ = self.capture_batch_fixture(
+                    first_cutoff_seconds=remaining, cutoff_probed=True)
+                race_id = DAY.replace('-', '') + '9701'
+                self.assertNotIn(('baseline', race_id), calls)
+                self.assertEqual(report['registered_races'], 9)
+                self.assertEqual(report['new_A_B_git_archived'], 8)
+                self.assertEqual(report['statuses']['CUTOFF_MARGIN_INSUFFICIENT'], 1)
+                self.assertEqual(report['baseline_hold_reasons'],
+                    {'OFFICIAL_CONTINUATION_CAPTURE_START_MARGIN_REQUIRED': 1})
+                self.assertEqual(store.saved[-1]['payload']['source_attempt_counts'], dict.fromkeys(generated, 1))
+
+        _, _, _, calls, _, _, _ = self.capture_batch_fixture(
+            first_cutoff_seconds=margin, cutoff_probed=True)
+        self.assertIn(('baseline', DAY.replace('-', '') + '9701'), calls)
 
     def test_history_stop_archives_every_validated_baseline_without_further_source_calls(self):
         for status in (502, 403):
