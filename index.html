@@ -8,7 +8,7 @@
   <meta http-equiv="Content-Security-Policy" content="default-src 'none';script-src 'self';style-src 'self';img-src 'self' data:;connect-src 'self' https://raw.githubusercontent.com/haji84/RACE-AI/state/boat-saved-view/ https://raw.githubusercontent.com/haji84/RACE-AI/ https://raw.githubusercontent.com/haji84/RACE-AI/;font-src 'none';form-action 'none';object-src 'none';base-uri 'none'">
   <title>RACE AI | レース・予想・分析</title>
   <meta name="description" content="4競技の保存済み予想と結果、モデルの根拠、買い目候補を確認する閲覧用アプリ。">
-  <link rel="stylesheet" href="./style.css?v=b2f8a617b177">
+  <link rel="stylesheet" href="./style.css?v=12d94b2e5b09">
   <script defer src="./forecast-audit-model.js?v=ae91d3f3a068"></script>
   <script defer src="./product-data.js?v=f013981ae038"></script>
   <script defer src="./existing-model-catalog.js?v=ff08efd5d08e"></script>
@@ -20,7 +20,7 @@
   <script defer src="./racer-profiles.js?v=ab387b5b9958"></script>
   <script defer src="./racer-daily.js?v=08187ac31a8a"></script>
   <script defer src="./saved-view-crypto.js?v=60fb3f8f1668"></script>
-  <script defer src="./app.js?v=f50968edf801"></script>
+  <script defer src="./app.js?v=256b84b452ab"></script>
 <meta name="referrer" content="no-referrer">
 <meta name="race-ai-saved-view-forecast-sha" content="4169db99a1d99bbcf96c8fa1bfb076ed2d2fb1f434fc64cf7e43b38e55f5adda">
 <meta name="race-ai-encrypted-saved-view" content="./views/1cc763080b7efc2cd0327efbf789312558086db8f60d6088504c70262acb0aec.json">
@@ -54,9 +54,27 @@
     </header>
     <main id="main-content">
       <div class="page-heading"><div><p class="eyebrow" id="page-eyebrow">YOUR RACE DASHBOARD</p><h1 id="page-title">今日のレースを、確かなデータで。</h1><p id="page-description">保存済みの予想・結果と、あなたの買い目候補をひとつに。</p></div><span class="preview-badge">個人用 · 自動投票なし</span></div>
+      <a class="keirin-public-entry" href="#keirin-public">競輪の公開予想 <span aria-hidden="true">→</span></a>
       <div id="data-banner" class="dataset-banner" role="status">レース情報を確認しています。</div>
 
       <div class="view-controls"><label class="period-control">集計期間<select id="period-filter"><option value="day">指定日</option><option value="week">指定日を含む週</option><option value="all">読み込んだ全期間</option></select></label><label class="check"><input id="period-all" type="checkbox">読み込んだ全期間</label><span id="display-day" class="muted"></span></div>
+
+      <section id="page-keirin-public" aria-labelledby="keirin-public-title" hidden>
+        <a class="keirin-public-back" href="#home">← RACE AI ホーム</a>
+        <header class="keirin-public-header">
+          <h1 id="keirin-public-title" tabindex="-1">競輪の公開予想</h1>
+          <p>締切前の保存を確認できた研究用A/Bの三連単を、最大8点ずつ掲載します。</p>
+        </header>
+        <section class="keirin-public-summary" aria-label="公開予想の掲載状況">
+          <div class="keirin-public-controls">
+            <label for="keirin-public-day">対象日（JST）<input id="keirin-public-day" type="date" min="2000-01-01"></label>
+            <button id="keirin-public-refresh" type="button">再読み込み</button>
+          </div>
+          <p id="keirin-public-status" role="status"></p>
+          <p id="keirin-public-updated" hidden></p>
+        </section>
+        <div id="keirin-public-races" class="keirin-public-races"></div>
+      </section>
 
       <section id="page-home" class="page">
         <section class="panel home-venue-panel" aria-labelledby="home-venue-title"><div class="section-heading"><div><p class="eyebrow">YOUR RACE DESK</p><h2 id="home-venue-title">会場から、今日を見よう。</h2></div><button type="button" id="home-all-venues" class="text-button">全会場を見る →</button></div><p id="home-venue-note" class="muted small"></p><div id="home-venues" class="home-venues"></div></section>
