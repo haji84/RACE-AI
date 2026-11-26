@@ -36,8 +36,12 @@ WINTICKET_VENUES = {'84': ('takeo', '武雄')}
 WINTICKET_PERMISSION_BASES = ('owner_attestation', 'provider_document')
 KOMATSUSHIMA_REPLAY_RACE = '20261126-73-01'
 KOMATSUSHIMA_REPLAY_KEY = KOMATSUSHIMA_REPLAY_RACE.replace('-', '')
+KOMATSUSHIMA_DIALOG = '[role="dialog"][aria-modal="true"]'
+REPLAY_FRAME_MODE = 'settled_replay_frames'
+MAX_REPLAY_FRAME_SAMPLES = 24
 RESULT_PAGE_UNPUBLISHED = 'replay result page not yet published'
 DIGEST_BUTTON_UNAVAILABLE = 'race digest button unavailable'
+AMBIGUOUS_PLAYER = 'visible player is ambiguous'
 RACE = re.compile(r'([0-9]{8})-([0-9]{2})-(0[1-9]|1[0-2])')
 DETAIL = re.compile(r'/[a-z0-9-]+/racedetail/([0-9]{2})([0-9]{8})[0-9]{4}([0-9]{2})/')
 WINTICKET_DETAIL = re.compile(r'/keirin/([a-z0-9-]+)/raceresult/([0-9]{8})([0-9]{2})/([1-7])/(1[0-2]|[1-9])')
@@ -141,9 +145,18 @@ def timeline(duration, interval):
 
 def validate_receipt(folder, key, url):
     proof = json.loads((folder / 'overview.json').read_text())
-    check_title(key, proof['page_title'])
+    check_title(key, proof['page_title'], url=url)
     if proof['public_result_page'] != url or not proof['frames']:
         raise ValueError('stored capture belongs to another source or has no frames')
+    if urlsplit(url).netloc == WINTICKET_HOST:
+        clocks = [frame['video_seconds'] for frame in proof['frames']]
+        duration = proof['browser_player_seconds']
+        if (key != KOMATSUSHIMA_REPLAY_KEY or proof.get('capture_mode') != REPLAY_FRAME_MODE
+                or not 2 <= len(clocks) <= MAX_REPLAY_FRAME_SAMPLES
+                or not 1 < duration <= 360 or not 0 <= clocks[0] <= .35
+                or not duration - .4 <= clocks[-1] <= duration
+                or any(first >= second for first, second in zip(clocks, clocks[1:]))):
+            raise ValueError('stored stills did not cover the approved replay clock')
     for item in proof['frames']:
         frame = folder / f"t{round(item['video_seconds'] * 100):05d}.png"
         if sha256(frame.read_bytes()).hexdigest() != item['frame_sha256']:
@@ -178,6 +191,9 @@ def open_player(page, key, url):
         control = page.locator('[name="digestControl"]').get_by_alt_text('ダイジェスト映像を見る', exact=True)
     if control.count() != 1 or not control.is_visible():
         raise PlayerUnavailable(DIGEST_BUTTON_UNAVAILABLE)
+    dialog = page.locator(KOMATSUSHIMA_DIALOG + ':visible') if exact else None
+    if dialog is not None and dialog.count():
+        raise PlayerUnavailable(AMBIGUOUS_PLAYER)
     refused_media = []
 
     def watch_media(result):
@@ -189,14 +205,18 @@ def open_player(page, key, url):
         page.on('response', watch_media)
     try:
         control.click(timeout=12000)
-        page.wait_for_function("""() => [...document.querySelectorAll('video')].some(
-            v => v.readyState >= 2 && v.videoWidth && Number.isFinite(v.duration))""", timeout=18000)
+        selector = KOMATSUSHIMA_DIALOG + ' video' if exact else 'video'
+        page.wait_for_function("""selector => [...document.querySelectorAll(selector)].some(
+            v => v.getClientRects().length && v.readyState >= 2 && v.videoWidth
+                && Number.isFinite(v.duration))""", arg=selector, timeout=18000)
     finally:
         if refused_media:
             raise AccessDenied(f'source HTTP {refused_media[0]}')
-    video = page.locator('video:visible')
+    if dialog is not None and dialog.count() != 1:
+        raise PlayerUnavailable(AMBIGUOUS_PLAYER)
+    video = dialog.locator('video:visible') if dialog is not None else page.locator('video:visible')
     if video.count() != 1:
-        raise PlayerUnavailable('visible player is ambiguous')
+        raise PlayerUnavailable(AMBIGUOUS_PLAYER)
     if video.evaluate('v => !!(v.mediaKeys || window.__raceEncrypted)'):
         raise AccessDenied('protected player')
     return video, title, refused_media
@@ -206,11 +226,18 @@ def capture(page, key, url, directory, interval, *, approval=None):
     require_capture_scope(approval, key, url, continuous=False)
     video, title, refused_media = open_player(page, key, url)
     duration = video.evaluate('v => v.duration')
-    video.evaluate("""v => {
-      v.pause(); v.controls = false;
-      Object.assign(v.style,{position:'fixed',left:'0',top:'0',width:'1280px',height:'720px',
-                             margin:'0',zIndex:2147483647});
-    }""")
+    exact_winticket = urlsplit(url).netloc == WINTICKET_HOST
+    if exact_winticket:
+        if not 1 < duration <= 360:
+            raise PlayerUnavailable('visible replay exceeds the supported inspection duration')
+        interval = max(interval, duration / (MAX_REPLAY_FRAME_SAMPLES - 1))
+    video.evaluate("""(v, keepLayout) => {
+        v.pause(); v.controls = false;
+        if (!keepLayout) {
+            Object.assign(v.style,{position:'fixed',left:'0',top:'0',width:'1280px',height:'720px',
+                                   margin:'0',zIndex:2147483647});
+        }
+    }""", exact_winticket)
     frames = []
     for when in timeline(duration, interval):
         actual = video.evaluate(SEEK, when)
@@ -219,6 +246,10 @@ def capture(page, key, url, directory, interval, *, approval=None):
         if actual is None or abs(actual - when) > 0.1:
             raise PlayerUnavailable('decoded player seek unavailable')
         image = video.screenshot(animations='disabled', timeout=9000)
+        if refused_media:
+            raise AccessDenied(f'source HTTP {refused_media[0]}')
+        if exact_winticket and video.evaluate('v => !!(v.mediaKeys || window.__raceEncrypted)'):
+            raise AccessDenied('protected player')
         name = directory / f't{round(actual * 100):05d}.png'
         with name.open('xb') as out:
             out.write(image)
@@ -226,6 +257,8 @@ def capture(page, key, url, directory, interval, *, approval=None):
     proof = {'public_result_page': url, 'page_title': title, 'browser_player_seconds': duration,
              'observed_at_utc': datetime.now(timezone.utc).isoformat(),
              'frame_interval_seconds': interval, 'frames': frames}
+    if exact_winticket:
+        proof['capture_mode'] = REPLAY_FRAME_MODE
     (directory / 'overview.json').write_text(json.dumps(proof, ensure_ascii=False) + '\n')
 
 
@@ -432,8 +465,8 @@ def load_source_approval(path, continuous):
         raise ValueError('source approval does not cover a supported replay host')
     host = doc['source_host']
     basis = doc.get('permission_basis')
-    if host == WINTICKET_HOST and (not continuous or basis not in WINTICKET_PERMISSION_BASES):
-        raise ValueError('WINTICKET requires a continuous recording approval with permission provenance')
+    if host == WINTICKET_HOST and basis not in WINTICKET_PERMISSION_BASES:
+        raise ValueError('WINTICKET requires permission provenance for the requested capture mode')
     for field in ('reviewer', 'rights_ref', 'rights_sha256'):
         if not isinstance(doc.get(field), str) or not doc[field].strip():
             raise ValueError('source approval missing reviewer or permission evidence')
@@ -463,6 +496,8 @@ def load_source_approval(path, continuous):
         races = frozenset(races)
     if first is None and races is None:
         raise ValueError('source approval must identify permitted race dates or race IDs')
+    if host == WINTICKET_HOST and not continuous and races != {KOMATSUSHIMA_REPLAY_RACE}:
+        raise ValueError('WINTICKET stills require a separate approval for the exact settled replay')
     expiry = doc.get('valid_until')
     if expiry is not None:
         expiry = datetime.fromisoformat(expiry)
@@ -481,6 +516,8 @@ def require_capture_scope(approval, key, url, *, continuous):
             approval.source_host == WINTICKET_HOST and approval.race_ids == {KOMATSUSHIMA_REPLAY_RACE}
             and approval.settled_replay_url == url):
         raise ValueError('separate permission for the exact WINTICKET replay is required')
+    if approval.source_host == WINTICKET_HOST and not continuous and key != KOMATSUSHIMA_REPLAY_KEY:
+        raise ValueError('WINTICKET stills require a settled replay scope')
     if target(row)[0] != key or not approval.covers(row):
         raise ValueError('race outside approved capture scope')
 
@@ -489,8 +526,8 @@ def run(queue, output, *, interval, pause, limit, executable, retry_failed=False
         source_approval=None, chromium_sandbox=None, headless=None, stop_after_refusal=False,
         settled_replay_url=None, settled_replay_decision_sha256=None):
     approval = load_source_approval(source_approval, continuous)
-    if settled_replay_url is not None and not (continuous and limit == 1 and stop_after_refusal):
-        raise ValueError('settled replay requires a bounded single recording and refusal stop')
+    if settled_replay_url is not None and not (limit == 1 and stop_after_refusal):
+        raise ValueError('settled replay requires a bounded single attempt and refusal stop')
     if settled_replay_url is not None and settled_replay_decision_sha256 != approval.decision_sha256:
         raise ValueError('settled replay permission has changed since admission')
     if headless is None:
@@ -569,6 +606,10 @@ def run(queue, output, *, interval, pause, limit, executable, retry_failed=False
                                 page = browser.new_page(locale='ja-JP', timezone_id='Asia/Tokyo',
                                                         viewport={'width': 1360, 'height': 860})
                                 try:
+                                    if approval.source_host == WINTICKET_HOST:
+                                        page.add_init_script(
+                                            "document.addEventListener('encrypted', "
+                                            "() => { window.__raceEncrypted = true; }, true);")
                                     capture(page, key, url, tmp, interval, approval=approval)
                                     validate_receipt(tmp, key, url)
                                 finally:
@@ -578,6 +619,8 @@ def run(queue, output, *, interval, pause, limit, executable, retry_failed=False
                                      'race_id': row['race_id'], 'source_ref': url}
                             if approval.permission_basis:
                                 proof['permission_basis'] = approval.permission_basis
+                            if approval.source_host == WINTICKET_HOST and not continuous:
+                                proof['capture_mode'] = REPLAY_FRAME_MODE
                             with (tmp / 'source-approval.json').open('x') as receipt:
                                 json.dump(proof, receipt)
                             tmp.rename(folder)

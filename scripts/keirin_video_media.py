@@ -89,12 +89,17 @@ def captured_rows(roots):
                     raise ValueError(f'capture race identity mismatch in {receipt}') from exc
                 approval = receipt.with_name('source-approval.json')
                 proof = json.loads(approval.read_text(encoding='utf8')) if approval.is_file() else {}
-                if (receipt.name != 'clip.json' or source.get('browser_player_ended') is not True
+                stills = (receipt.name == 'overview.json' and key == replay.KOMATSUSHIMA_REPLAY_KEY
+                          and proof.get('capture_mode') == source.get('capture_mode') == replay.REPLAY_FRAME_MODE)
+                finished_clip = receipt.name == 'clip.json' and source.get('browser_player_ended') is True
+                if (not (stills or finished_clip)
                         or proof.get('race_id') != base['race_id'] or proof.get('source_ref') != url
                         or proof.get('permission_basis') not in replay.WINTICKET_PERMISSION_BASES
                         or not all(isinstance(proof.get(field), str) and SHA.fullmatch(proof[field])
                                    for field in ('decision_sha256', 'rights_sha256'))):
                     raise ValueError(f'capture is missing completed playback or bound source approval in {receipt}')
+                if stills:
+                    replay.validate_receipt(receipt.parent, key, url)
             else:
                 location = re.fullmatch(
                     r'/yenjoy/keirin-kaisai/race-card/result/(\d{10})/(\d{14})/(\d{1,2})/?', page.path)

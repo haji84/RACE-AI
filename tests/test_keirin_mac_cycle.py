@@ -216,6 +216,64 @@ class MacCycleTests(unittest.TestCase):
             result = self.run_cycle(shadow_request=request)
         self.assertEqual(result.get('shadow_replay', {}).get('state'), 'HOLD_PROVIDER_REFUSAL')
 
+    def test_approved_frame_mode_completes_without_a_movie_and_keeps_the_prior_attempt(self):
+        from collections import Counter
+        from scripts import keirin_mac_cycle as cycle
+
+        request, approval = self.komatsushima_inputs()
+        checks = []
+        now = NOW
+
+        def capture(queue, out, **options):
+            row = json.loads(queue.read_text())
+            checks.append(options['continuous'])
+            out.mkdir(mode=0o700, exist_ok=True)
+            status = cycle.sources.AMBIGUOUS_PLAYER if options['continuous'] else 'captured'
+            if status == 'captured':
+                folder = out/'202611267301'
+                folder.mkdir(mode=0o700)
+                scope = cycle.sources.load_source_approval(options['source_approval'], False)
+                frames = []
+                for seconds in (.2, 1.8):
+                    body = str(seconds).encode()
+                    (folder/f't{round(seconds*100):05d}.png').write_bytes(body)
+                    frames.append(dict(video_seconds=seconds, frame_sha256=sha256(body).hexdigest()))
+                (folder/'overview.json').write_text(json.dumps(dict(public_result_page=row['race_detail_url'],
+                    page_title=KOMATSUSHIMA_TITLE, capture_mode=cycle.sources.REPLAY_FRAME_MODE,
+                    browser_player_seconds=2, observed_at_utc=now.isoformat(), frames=frames)))
+                (folder/'source-approval.json').write_text(json.dumps(dict(race_id=row['race_id'],
+                    source_ref=row['race_detail_url'], capture_mode=cycle.sources.REPLAY_FRAME_MODE,
+                    decision_sha256=scope.decision_sha256, rights_sha256=scope.rights_sha256,
+                    permission_basis=scope.permission_basis)))
+                for path in folder.iterdir():
+                    path.chmod(0o600)
+            with open(out/'attempts.jsonl', 'a', opener=cycle.sources.private_log_fd) as history:
+                history.write(json.dumps(dict(race_id=row['race_id'], source_ref=row['race_detail_url'],
+                                              status=status, at_utc=now.isoformat()))+'\n')
+            return Counter({status: 1})
+
+        with (patch.dict('os.environ', {'RACE_AI_KEIRIN_OFFICIAL_SOURCE_ENABLED': 'false'}),
+              self.settled_shadow(NOW), patch.object(cycle.sources, 'run', side_effect=capture),
+              patch.object(cycle.media, 'inspect', return_value=('verified', {}))):
+            first = self.run_cycle(shadow_request=request, now=now)
+            self.assertEqual(first['shadow_replay']['state'], 'HOLD_REPLAY_SOURCE_UNVERIFIED')
+            decision = json.loads(approval.read_bytes())
+            decision['allowed_uses'].remove('video_recording')
+            decision['allowed_uses'].append('frame_capture')
+            self.write('komatsushima-frame-analysis-approval.json', decision).chmod(0o600)
+            now = NOW+timedelta(minutes=15)
+            waiting = self.run_cycle(shadow_request=request, now=now)
+            self.assertEqual(waiting['shadow_replay']['state'], 'WAITING_FOR_REPLAY_RETRY_INTERVAL')
+            now = NOW+timedelta(minutes=30)
+            stills = self.run_cycle(shadow_request=request, now=now)
+            self.assertEqual(stills['shadow_replay']['state'], 'REPLAY_FRAMES_AWAITING_MEDIA_VERIFICATION')
+            now = NOW+timedelta(minutes=45)
+            verified = self.run_cycle(shadow_request=request, now=now)
+        self.assertEqual(verified['shadow_replay']['state'], 'REPLAY_FRAMES_VERIFIED')
+        self.assertEqual(verified['video']['observation_count'], 0)
+        self.assertFalse((self.root/'digests/202611267301/digest.mp4').exists())
+        self.assertEqual(checks, [True, False])
+
     def test_permission_changed_after_pin_holds_before_the_browser(self):
         from scripts import keirin_mac_cycle as cycle
 

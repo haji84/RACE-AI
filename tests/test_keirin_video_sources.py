@@ -159,6 +159,7 @@ class CaptureTests(unittest.TestCase):
         page = Mock(url=url)
         page.goto.return_value.status = 200
         page.title.return_value = KOMATSUSHIMA_TITLE
+        page.locator.return_value.count.return_value = 0
         control = page.get_by_role.return_value
         control.count.return_value = 1
         control.is_visible.return_value = True
@@ -172,6 +173,42 @@ class CaptureTests(unittest.TestCase):
         page.wait_for_function.side_effect = unavailable
         with self.assertRaisesRegex(source.AccessDenied, 'source HTTP 403'):
             source.open_player(page, key, url)
+
+    def test_komatsushima_selects_the_new_replay_dialog_over_the_live_slot(self):
+        key, url = '202611267301', KOMATSUSHIMA['race_detail_url']
+        page = Mock(url=url)
+        page.goto.return_value.status = 200
+        page.title.return_value = KOMATSUSHIMA_TITLE
+        page.get_by_role.return_value.count.return_value = 1
+        page.get_by_role.return_value.is_visible.return_value = True
+        dialog = page.locator.return_value
+        dialog.count.side_effect = [0, 1]
+        video = dialog.locator.return_value
+        video.count.return_value = 1
+        video.evaluate.return_value = False
+        self.assertIs(source.open_player(page, key, url)[0], video)
+        dialog.locator.assert_called_once_with('video:visible')
+        page.locator.assert_called_once_with('[role="dialog"][aria-modal="true"]:visible')
+
+    def test_winticket_still_frames_require_a_separate_exact_approval(self):
+        with TemporaryDirectory() as temp:
+            root = Path(temp)
+            evidence = root / 'evidence'
+            evidence.write_bytes(b'fixture frame analysis scope')
+            approved = dict(source_host=source.WINTICKET_HOST, rights_ref=evidence.name,
+                rights_sha256=sha256(evidence.read_bytes()).hexdigest(), reviewer='test reviewer',
+                permission_basis='owner_attestation', race_ids=[KOMATSUSHIMA['race_id']],
+                race_detail_url=KOMATSUSHIMA['race_detail_url'],
+                allowed_uses=['automated_fetch', 'private_retention', 'history_analysis', 'frame_capture'])
+            approval = root / 'approval.json'
+            approval.write_text(json.dumps(approved))
+            key, url = source.target(KOMATSUSHIMA)
+            scope = source.load_source_approval(approval, False)
+            source.require_capture_scope(scope, key, url, continuous=False)
+            with self.assertRaises(ValueError):
+                source.load_source_approval(approval, True)
+            with self.assertRaises(ValueError):
+                source.require_capture_scope(scope, *source.target(WINTICKET), continuous=False)
 
     def test_winticket_single_host_approval_cannot_authorize_a_kdreams_queue(self):
         with TemporaryDirectory() as temp, patch.dict('sys.modules', {'playwright.sync_api': None}):

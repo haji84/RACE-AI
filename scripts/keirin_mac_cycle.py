@@ -107,23 +107,41 @@ def _register_replay_roster(root, row, race, full_finish):
 
 
 def _replay_media_state(root, folder, key, url, approval, pinned_at, now):
-    sources.check_clip(_private_root(folder), key, url)
+    folder = _private_root(folder)
+    if approval.continuous:
+        sources.check_clip(folder, key, url)
+        receipt_name = 'clip.json'
+    else:
+        sources.validate_receipt(folder, key, url)
+        receipt_name = 'overview.json'
     proof = json.loads(_read_regular(folder/'source-approval.json', 4096))
     expected = dict(race_id=sources.KOMATSUSHIMA_REPLAY_RACE, source_ref=url,
                     decision_sha256=approval.decision_sha256, rights_sha256=approval.rights_sha256,
                     permission_basis=approval.permission_basis)
-    clip = json.loads(_read_regular(folder/'clip.json', 16 * 1024))
-    observed = datetime.fromisoformat(clip['observed_at_utc'])
-    if proof != expected or clip.get('browser_player_ended') is not True or not pinned_at <= observed <= now:
+    if not approval.continuous:
+        expected['capture_mode'] = sources.REPLAY_FRAME_MODE
+    receipt = json.loads(_read_regular(folder/receipt_name, 16 * 1024))
+    observed = datetime.fromisoformat(receipt['observed_at_utc'])
+    if (proof != expected or approval.continuous and receipt.get('browser_player_ended') is not True
+            or not pinned_at <= observed <= now):
         raise ValueError('recording does not match the settled replay permission')
     ledger = root/'media.sqlite'
     if ledger.is_file():
         _private_file(ledger)
         with closing(sqlite3.connect(ledger.as_uri()+'?mode=ro', uri=True)) as db:
-            if any(row.get('sha256') == clip['sha256'] and row['source_ref'] == clip['source_ref']
-                   for row in media.verified_rows(db, race_id=sources.KOMATSUSHIMA_REPLAY_RACE)):
+            verified = list(media.verified_rows(db, race_id=sources.KOMATSUSHIMA_REPLAY_RACE))
+        if approval.continuous:
+            if any(row.get('sha256') == receipt['sha256'] and row['source_ref'] == receipt['source_ref']
+                   for row in verified):
                 return 'REPLAY_MEDIA_VERIFIED'
-    return 'REPLAY_RECORDED_AWAITING_MEDIA_VERIFICATION'
+        else:
+            expected_frames = {(round(item['video_seconds'] * 1000), item['frame_sha256'])
+                               for item in receipt['frames']}
+            if any(row['kind'] == 'frames' and row['source_ref'] == url and expected_frames == {
+                    (item['at_ms'], item['sha256']) for item in row['frames']} for row in verified):
+                return 'REPLAY_FRAMES_VERIFIED'
+    return ('REPLAY_RECORDED_AWAITING_MEDIA_VERIFICATION' if approval.continuous
+            else 'REPLAY_FRAMES_AWAITING_MEDIA_VERIFICATION')
 
 
 def _capture_settled_replay(root, request, approval_path, settled, video, browser, clock):
@@ -182,6 +200,30 @@ def _capture_settled_replay(root, request, approval_path, settled, video, browse
         pinned_at = now
         shadow._preserve(actor, dict(binding, admitted_at=now.isoformat()))
 
+    frame_path = Path(approval_path).with_name('komatsushima-frame-analysis-approval.json')
+    frame_pin = work/'frame-actor-pin.json'
+    if not (folder/'clip.json').is_file() and (
+            frame_path.exists() or frame_path.is_symlink() or frame_pin.exists() or frame_pin.is_symlink()):
+        try:
+            shadow._read(frame_path, 16 * 1024)
+            frame_approval = sources.load_source_approval(frame_path, continuous=False)
+            sources.require_capture_scope(frame_approval, key, url, continuous=False)
+        except INPUT_ERRORS:
+            return 'HOLD_REPLAY_PERMISSION_INVALID'
+        frame_binding = dict(binding, decision_sha256=frame_approval.decision_sha256,
+                             capture_mode=sources.REPLAY_FRAME_MODE)
+        if frame_pin.exists() or frame_pin.is_symlink():
+            previous_frame = shadow._read(frame_pin, 4096)
+            frame_at = datetime.fromisoformat(previous_frame.pop('admitted_at'))
+            if previous_frame != frame_binding or not pinned_at <= frame_at <= now:
+                raise ValueError('previous frame inspection approval does not match')
+        else:
+            if folder.exists() or folder.is_symlink():
+                raise ValueError('prior frame inspection requires its original actor pin')
+            frame_at = now
+            shadow._preserve(frame_pin, dict(frame_binding, admitted_at=frame_at.isoformat()))
+        approval, approval_path, pinned_at = frame_approval, frame_path, frame_at
+
     if folder.exists() or folder.is_symlink():
         return _replay_media_state(root, folder, key, url, approval, pinned_at, now)
     if video.get('capture_state') == 'RECORDED':
@@ -189,6 +231,10 @@ def _capture_settled_replay(root, request, approval_path, settled, video, browse
     if shutil.disk_usage(root).free < 50 * GIB:
         return 'HOLD_CAPTURE_STORAGE'
     retryable = {sources.RESULT_PAGE_UNPUBLISHED, sources.DIGEST_BUTTON_UNAVAILABLE}
+    # The foreground dialog binding was verified after the original player selection stopped.
+    # A new frame approval can use an existing attempt slot after that specific hold.
+    if not approval.continuous:
+        retryable.add(sources.AMBIGUOUS_PLAYER)
     if previous and previous[-1]['status'] not in retryable:
         return 'HOLD_REPLAY_SOURCE_UNVERIFIED'
     if sum(1 for _ in work.glob('poll-*.json')) != len(previous):
@@ -201,14 +247,16 @@ def _capture_settled_replay(root, request, approval_path, settled, video, browse
     with TemporaryDirectory(dir=root) as folder:
         queue = Path(folder)/'scoped-replay.jsonl'
         media.atomic_jsonl(queue, [row])
-        counts = sources.run(queue, digests, interval=3, pause=2, limit=1, executable=browser,
-                             continuous=True, source_approval=approval_path, chromium_sandbox=True,
+        counts = sources.run(queue, digests, interval=3 if approval.continuous else 4, pause=2,
+                             limit=1, executable=browser, continuous=approval.continuous,
+                             source_approval=approval_path, chromium_sandbox=True,
                              headless=False, stop_after_refusal=True, retry_failed=bool(previous),
                              settled_replay_url=url, settled_replay_decision_sha256=approval.decision_sha256)
     if any(_provider_refused(status) for status in counts):
         return 'HOLD_PROVIDER_REFUSAL'
     if counts['captured'] or counts['reused']:
-        return 'REPLAY_RECORDED_AWAITING_MEDIA_VERIFICATION'
+        return ('REPLAY_RECORDED_AWAITING_MEDIA_VERIFICATION' if approval.continuous
+                else 'REPLAY_FRAMES_AWAITING_MEDIA_VERIFICATION')
     if retryable.intersection(counts):
         return 'WAITING_FOR_REPLAY_PUBLICATION'
     return 'HOLD_REPLAY_SOURCE_UNVERIFIED'
