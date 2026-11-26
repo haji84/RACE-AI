@@ -11,7 +11,7 @@ PATH = ROOT/'.github/workflows/keirin-result-live.yml'
 class LiveWorkflowTests(unittest.TestCase):
     def text(self): return PATH.read_text()
 
-    def job(self): return self.text().split('  observe-results:\n',1)[1]
+    def job(self): return self.text().split('  observe-results:\n',1)[1].split('  publish-rider-dossiers:\n',1)[0]
 
     def test_observer_runs_independently_of_forecast_capture_with_same_permissions(self):
         block = self.job()
@@ -71,6 +71,32 @@ class LiveWorkflowTests(unittest.TestCase):
         block=text.split('  github-only-research-results:\n',1)[1].split('  form-canary-window:',1)[0]
         self.assertIn('false &&',block.split('    runs-on:',1)[0])
         self.assertIn('keirin-result-live.yml',block)
+
+    def test_dossier_update_reuses_scheduled_result_run_or_source_free_dispatch(self):
+        text = self.text()
+        job = text.split('  publish-rider-dossiers:\n', 1)[1]
+        self.assertIn('options: [test, saved-only, observe, rider-dossiers]', text)
+        self.assertIn('needs: [tests, observe-results]', job)
+        self.assertIn('scripts.keirin_daily_rider_update', job)
+        self.assertNotIn('scripts.keirin_result_watch', job)
+        self.assertNotIn('RACE_AI_STATE_KEY', job)
+        expression = job.split('    if: >-\n', 1)[1].split('    runs-on:', 1)[0]
+        expression = ' '.join(expression.split()).replace('&&', ' and ').replace('||', ' or ').replace('!cancelled()', 'not cancelled()')
+        for event, ref, mode, tests, expected in [
+            ('schedule', 'refs/heads/main', '', 'skipped', True),
+            ('pull_request', 'refs/heads/main', '', 'success', False),
+            ('workflow_dispatch', 'refs/heads/main', 'rider-dossiers', 'success', True),
+            ('workflow_dispatch', 'refs/heads/other', 'rider-dossiers', 'success', False),
+            ('workflow_dispatch', 'refs/heads/main', 'rider-dossiers', 'failure', False),
+            ('workflow_dispatch', 'refs/heads/main', 'saved-only', 'success', False),
+        ]:
+            with self.subTest(event=event, ref=ref, mode=mode, tests=tests):
+                context = dict(github=NS(event_name=event, ref=ref, repository='haji84/RACE-AI',
+                                         repository_id='1416489937'), inputs=NS(mode=mode),
+                               needs=NS(tests=NS(result=tests)),
+                               vars=NS(RACE_AI_AB_SOURCE_S3_PREFIX=''),
+                               always=lambda: True, cancelled=lambda: False)
+                self.assertEqual(bool(eval(expression, {'__builtins__': {}}, context)), expected)
 
 
 if __name__=='__main__':unittest.main()
