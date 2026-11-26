@@ -122,6 +122,64 @@ class FeedCycleTests(unittest.TestCase):
         self.assertEqual(result['public_odds_handoff'],{'state':'HOLD_PUBLIC_ODDS_HANDOFF'})
         self.assertEqual(len(self.result_calls),1)
 
+    def test_secondary_context_follows_public_reference_and_receives_verified_private_capture(self):
+        self.seed()
+        order=[]
+        private_roots=[]
+
+        def reference(repo,note,entry,*,published_at):
+            order.append('reference')
+            return {'state':'PUBLIC_REFERENCES_UPDATED'}
+
+        def context(repo,root,note,entry,*,published_at):
+            index=feed.load_index(self.store,self.recipient,self.store.head())
+            self.assertIn(entry,index['entries'])
+            self.assertTrue((root/'raw/original.html').is_file())
+            self.assertEqual(note['scope'],'OWNER_MATCHED_SOURCE_RESEARCH_REFRESH')
+            self.assertEqual(published_at.tzinfo,timezone.utc)
+            order.append('context')
+            private_roots.append(root)
+            raise OSError('private detail deliberately excluded from receipt')
+
+        result=self.cycle(reference_publisher=reference,secondary_context_publisher=context)
+        self.assertEqual(order,['reference','context'])
+        self.assertEqual(result['state'],'KEIRIN_NOTE_ENCRYPTED_GIT_READBACK_VERIFIED')
+        self.assertEqual(result['public_rider_context_secondary'],
+                         {'state':'HOLD_PUBLIC_RIDER_CONTEXT_SECONDARY'})
+        self.assertFalse(private_roots[0].exists())
+        self.assertEqual(len(self.result_calls),1)
+
+    def test_secondary_context_is_skipped_without_verified_capture_or_after_denial(self):
+        self.seed()
+        result=self.cycle()
+        self.assertNotIn('public_rider_context_secondary',result)
+
+        def unexpected(*args,**kwargs):
+            self.fail('secondary release without an admitted capture')
+
+        with patch('scripts.keirin_note_feed_cycle.publish_snapshot',side_effect=ValueError('GIT_OPERATION_FAILED')):
+            with self.assertRaisesRegex(ValueError,'GIT_OPERATION_FAILED'):
+                self.cycle(secondary_context_publisher=unexpected)
+
+        feed.publish_snapshot(self.store,self.recipient,expected_parent=self.store.head(),denied=True)
+        result=self.cycle(secondary_context_publisher=unexpected)
+        self.assertEqual(result['state'],'HOLD_NOTE_PREVIOUS_PROVIDER_DENIAL_NO_RETRY')
+        self.assertEqual(result['provider_requests'],0)
+
+    def test_secondary_context_only_reports_named_coverage_counters(self):
+        self.seed()
+
+        def context(*args,**kwargs):
+            return dict(state='PUBLIC_RIDER_CONTEXT_SECONDARY_UPDATED',commit='b'*40,
+                        coverage=dict(verified_riders=7,comments_missing=2,comments_held=True,
+                                      coverage_detail='invented private value'),provider_requests=0,
+                        private_comment='invented private comment')
+
+        result=self.cycle(secondary_context_publisher=context)
+        self.assertEqual(result['public_rider_context_secondary'],
+                         dict(state='PUBLIC_RIDER_CONTEXT_SECONDARY_UPDATED',commit='b'*40,
+                              coverage=dict(verified_riders=7,comments_missing=2),provider_requests=0))
+
     def test_publication_is_opt_in_only_in_the_existing_main_actions_job(self):
         from scripts import keirin_note_feed_cycle as cycle
         env={

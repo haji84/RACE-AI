@@ -6,6 +6,7 @@ import io
 import json
 import os
 from pathlib import Path
+import re
 import subprocess
 import tarfile
 from tempfile import TemporaryDirectory
@@ -20,6 +21,15 @@ _CONCURRENT_UPDATE = 'KEIRIN_NOTE_FEED_CONCURRENT_UPDATE'
 _MOVED_READBACK = 'KEIRIN_NOTE_FEED_REMOTE_READBACK'
 _MAX_PUBLISH_ATTEMPTS = 3
 _FAILURES = (ValueError, KeyError, TypeError, OSError, RuntimeError, subprocess.SubprocessError)
+_SECONDARY_CONTEXT_HOLD = 'HOLD_PUBLIC_RIDER_CONTEXT_SECONDARY'
+_SECONDARY_CONTEXT_STATES = frozenset({
+    'PUBLIC_RIDER_CONTEXT_SECONDARY_UPDATED', 'PUBLIC_RIDER_CONTEXT_SECONDARY_UNCHANGED',
+    'PUBLIC_RIDER_CONTEXT_SECONDARY_NO_QUALIFYING_ROWS',
+})
+_SECONDARY_CONTEXT_COUNTS = (
+    'registered_races', 'verified_races', 'registered_riders', 'verified_riders',
+    'comments_confirmed', 'comments_held', 'comments_missing',
+)
 _SAFE_REASONS = frozenset({
     'CAPTURE_REPORT', 'RESULT_REPORT',
     'GIT_OPERATION_FAILED', 'CONCURRENT_UPDATE', 'REMOTE_READBACK',
@@ -143,8 +153,29 @@ def _publish_reference_projection(repo,note,entry,*,published_at):
         return {'state':'HOLD_PUBLIC_REFERENCE_FORECASTS'}
 
 
+def _publish_secondary_context_projection(repo,root,note,entry,*,published_at):
+    from scripts.keirin_publish_secondary_context import publish_saved_reference
+
+    return publish_saved_reference(repo,root,note,entry,published_at=published_at)
+
+
+def _secondary_context_receipt(receipt):
+    state = receipt['state']
+    provider_requests=receipt.get('provider_requests')
+    if state not in _SECONDARY_CONTEXT_STATES or type(provider_requests) is not int or provider_requests != 0:
+        return {'state':_SECONDARY_CONTEXT_HOLD}
+    safe = dict(state=state, provider_requests=0)
+    commit = receipt.get('commit')
+    if isinstance(commit,str) and re.fullmatch('[0-9a-f]{40}',commit):
+        safe['commit'] = commit
+    coverage = receipt.get('coverage',{})
+    safe['coverage'] = {key:coverage[key] for key in _SECONDARY_CONTEXT_COUNTS
+                        if type(coverage.get(key)) is int and coverage[key] >= 0}
+    return safe
+
+
 def cycle(repo,*,recipient=None,store=None,collector=None,result_collector=None,clock=None,source_commit=None,
-          reference_publisher=None,odds_stager=None):
+          reference_publisher=None,odds_stager=None,secondary_context_publisher=None):
     with _phase('OWNER_FEED_READ'):
         repo=Path(repo).resolve();store=store or NoteFeedGit(repo)
         recipient=checked_recipient(recipient or json.loads(
@@ -201,6 +232,14 @@ def cycle(repo,*,recipient=None,store=None,collector=None,result_collector=None,
                         result['public_odds_handoff']=odds_stager(root,note,sealed['entry'])
                     except (_FAILURES + (ImportError,)):
                         result['public_odds_handoff']={'state':'HOLD_PUBLIC_ODDS_HANDOFF'}
+                if (secondary_context_publisher is not None and verified_capture
+                        and not result.get('provider_denied')):
+                    try:
+                        published = secondary_context_publisher(repo,root,note,sealed['entry'],published_at=clock())
+                        result['public_rider_context_secondary'] = _secondary_context_receipt(published)
+                    except Exception:
+                        # A supplemental projection must never stop original or result processing.
+                        result['public_rider_context_secondary'] = {'state':_SECONDARY_CONTEXT_HOLD}
         except Exception:
             with _phase('PROVIDER_STOP_PERSISTENCE'):
                 if private_denial(root,safe):latch_denial(store,recipient)
@@ -321,6 +360,7 @@ def main(argv=None):
             callbacks={}
             if args.publish_reference:
                 callbacks['reference_publisher']=_publish_reference_projection
+                callbacks['secondary_context_publisher']=_publish_secondary_context_projection
             if args.odds_handoff is not None:
                 def stage(root,note,entry):
                     from scripts.keirin_publish_forecast_odds import stage_reference_handoff
