@@ -1,6 +1,7 @@
 """Project public athlete fields from verified official roster and dossier receipts."""
 import argparse
-from datetime import datetime, timezone
+from calendar import monthrange
+from datetime import date, datetime, timezone
 from hashlib import sha256
 import json
 from math import isfinite
@@ -23,6 +24,8 @@ RECEIPT_FILE = 'public-rider-directory-receipt.json'
 JST = ZoneInfo('Asia/Tokyo')
 GRADES = frozenset(('SS', 'S1', 'S2', 'A1', 'A2', 'A3', 'L1'))
 STYLES = frozenset(('逃', '追', '両'))
+HISTORY_WINDOW_MONTHS = {'1_month': 1, '4_months': 4, '1_year': 12}
+FINISH_RANKS = tuple(map(str, range(1, 10)))
 
 
 class ProjectionHold(ValueError):
@@ -186,6 +189,61 @@ def publish_starters(repo, *, day, rows, published_at, store=None):
                 published_races=len(old) + len(additions), new_races=len(additions), commit=commit)
 
 
+def _history_month_start(cutoff, months):
+    # Match HistoryBook's calendar-month subtraction for the archived dossier.
+    year, month = divmod(cutoff.year * 12 + cutoff.month - 1 - months, 12)
+    if year < date.min.year:
+        return date.min
+    month += 1
+    return date(year, month, min(cutoff.day, monthrange(year, month)[1]))
+
+
+def _public_finish_counts(period):
+    return dict(observed_count=period['observed_count'],
+                finish_counts={rank: period['finish_counts'][rank] for rank in FINISH_RANKS},
+                first_observed_day=period['first_observed_day'],
+                latest_observed_day=period['latest_observed_day'])
+
+
+def _project_history_windows(periods, starts, cutoff):
+    present = starts.keys() & periods.keys()
+    if not present:
+        return None
+    _need(present == starts.keys(), 'PUBLIC_RIDER_DIRECTORY_WINDOW_SET')
+    windows = {}
+    enclosing = periods['all']
+    for name, start in reversed(tuple(starts.items())):
+        summary = periods[name]
+        _need(type(summary) is dict and summary.get('start_day_inclusive') == start.isoformat(),
+              'PUBLIC_RIDER_DIRECTORY_WINDOW_START')
+        observed, counts = summary.get('observed_count'), summary.get('finish_counts')
+        _need(type(observed) is int and observed >= 0 and type(counts) is dict and
+              set(counts) == set(FINISH_RANKS) and
+              all(type(count) is int and count >= 0 for count in counts.values()) and sum(counts.values()) == observed,
+              'PUBLIC_RIDER_DIRECTORY_WINDOW_COUNTS')
+        enclosing_counts = enclosing['finish_counts']
+        _need(all(counts[rank] <= enclosing_counts[rank] for rank in FINISH_RANKS),
+              'PUBLIC_RIDER_DIRECTORY_WINDOW_CONTAINMENT')
+        if observed:
+            first = readback._date(summary['first_observed_day'])
+            latest = readback._date(summary['latest_observed_day'])
+            enclosing_first = readback._date(enclosing['first_observed_day'])
+            enclosing_latest = readback._date(enclosing['latest_observed_day'])
+            _need(max(start, enclosing_first) <= first <= latest == enclosing_latest < cutoff,
+                  'PUBLIC_RIDER_DIRECTORY_WINDOW_DATES')
+            if enclosing_first >= start:
+                _need(counts == enclosing_counts and first == enclosing_first,
+                      'PUBLIC_RIDER_DIRECTORY_WINDOW_CONTAINMENT')
+        else:
+            enclosing_latest = enclosing['latest_observed_day']
+            _need(summary['first_observed_day'] is None and summary['latest_observed_day'] is None and
+                  (enclosing_latest is None or readback._date(enclosing_latest) < start),
+                  'PUBLIC_RIDER_DIRECTORY_WINDOW_DATES')
+        windows[name] = dict(start_day_inclusive=start.isoformat(), **_public_finish_counts(summary))
+        enclosing = summary
+    return windows
+
+
 def project_directory(files, receipt, *, now=None):
     """Project the exact original registry and dossiers from the protected restore."""
     _need(type(receipt) is dict and receipt.get('schema') == 'KEIRIN_RIDER_DOSSIER_RECOVERY_RECEIPT_V1' and
@@ -205,18 +263,18 @@ def project_directory(files, receipt, *, now=None):
     registry = readback._json(files[readback.REGISTRY])
     national = readback._json(files[readback.NATIONAL])
     profiles = {row['registration']: row for row in national['dossiers']}
+    cutoff = readback._date(receipt['day_jst'])
+    starts = {name: _history_month_start(cutoff, months) for name, months in HISTORY_WINDOW_MONTHS.items()}
     riders = []
     for person in sorted(registry['riders'], key=lambda row: row['registration']):
         registration = person['registration']
         name = _text(person['name'], 80)
         _need(name, 'PUBLIC_RIDER_DIRECTORY_NAME_INVALID')
-        overall = profiles[registration]['finish_history']['periods']['all']
-        row = dict(registration=registration, name=name, history=dict(
-            observed_count=overall['observed_count'],
-            finish_counts={str(rank): overall['finish_counts'][str(rank)] for rank in range(1, 10)},
-            first_observed_day=overall['first_observed_day'],
-            latest_observed_day=overall['latest_observed_day'],
-        ))
+        periods = profiles[registration]['finish_history']['periods']
+        row = dict(registration=registration, name=name, history=_public_finish_counts(periods['all']))
+        windows = _project_history_windows(periods, starts, cutoff)
+        if windows is not None:
+            row['history_windows'] = windows
         region = _text(person.get('prefecture_or_country'), 32)
         if region:
             row['region'] = region
