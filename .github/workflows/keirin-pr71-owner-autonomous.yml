@@ -427,13 +427,15 @@ jobs:
             # Run display publication after the archive attempt, preserving its status.
             trap 'finish_public_odds "$?"' EXIT
           fi
-          # The owner-imported display profile uses only its public recipient.
-          # Preserve the original PR71 cycle even if this independent view holds.
+          # Publish supplemental cards from the verified same-run capture while its private files still exist.
+          # Keep the licensed feed credentials and production state key confined to the original PR71 cycle.
           if ! (
             set -euo pipefail
             cd "$GITHUB_WORKSPACE"
             python -m pip install --disable-pip-version-check 'cryptography>=44,<48' 'beautifulsoup4>=4.12,<5'
-            env -u RACE_AI_STATE_KEY PYTHONPATH="$GITHUB_WORKSPACE" python -m scripts.keirin_note_feed_cycle \
+            env -u RACE_AI_STATE_KEY -u RACE_AI_KEIRIN_FEED_ENDPOINT -u RACE_AI_KEIRIN_FEED_RIGHTS_REF \
+              -u RACE_AI_KEIRIN_LICENSE_MANIFEST_B64 -u RACE_AI_KEIRIN_LICENSE_DOCUMENT_B64 \
+              -u RACE_AI_KEIRIN_FEED_TOKEN PYTHONPATH="$GITHUB_WORKSPACE" python -m scripts.keirin_note_feed_cycle \
               --repo "$GITHUB_WORKSPACE" --publish-reference "${odds_args[@]}"
           ); then
             echo 'NOTE_SOURCE_OR_ENCRYPTED_DISPLAY_HOLD; original PR71 cycle continues.' >> "$GITHUB_STEP_SUMMARY"
