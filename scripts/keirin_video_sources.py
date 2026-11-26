@@ -81,6 +81,30 @@ SEEK = """async (video, target) => {
     await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
     return video.currentTime;
 }"""
+SEEK_RENDERED_REPLAY = """async (video, target) => {
+    if (!video.isConnected || video.mediaKeys || window.__raceEncrypted) return null;
+    video.pause();
+    const actual = await new Promise(resolve => {
+        let frame;
+        const timer = setTimeout(() => {
+            video.cancelVideoFrameCallback(frame);
+            resolve(null);
+        }, 7000);
+        const check = (_, sample) => {
+            if (Math.abs(sample.mediaTime - target) <= 0.1) {
+                clearTimeout(timer);
+                resolve(sample.mediaTime);
+            } else {
+                frame = video.requestVideoFrameCallback(check);
+            }
+        };
+        frame = video.requestVideoFrameCallback(check);
+        video.currentTime = target;
+    });
+    if (actual === null || video.readyState < 2 || !video.videoWidth) return null;
+    await new Promise(resolve => requestAnimationFrame(resolve));
+    return actual;
+}"""
 
 
 class PlayerUnavailable(Exception):
@@ -151,11 +175,18 @@ def validate_receipt(folder, key, url):
     if urlsplit(url).netloc == WINTICKET_HOST:
         clocks = [frame['video_seconds'] for frame in proof['frames']]
         duration = proof['browser_player_seconds']
+        interval = proof['frame_interval_seconds']
         if (key != KOMATSUSHIMA_REPLAY_KEY or proof.get('capture_mode') != REPLAY_FRAME_MODE
                 or not 2 <= len(clocks) <= MAX_REPLAY_FRAME_SAMPLES
-                or not 1 < duration <= 360 or not 0 <= clocks[0] <= .35
+                or not 1 < duration <= 360
+                or not math.isfinite(interval) or interval < duration / (MAX_REPLAY_FRAME_SAMPLES - 1)):
+            raise ValueError('stored stills exceed the approved replay bounds')
+        targets = timeline(duration, interval)
+        if (len(clocks) != len(targets) or not 0 <= clocks[0] <= .35
                 or not duration - .4 <= clocks[-1] <= duration
-                or any(first >= second for first, second in zip(clocks, clocks[1:]))):
+                or any(first >= second for first, second in zip(clocks, clocks[1:]))
+                or any(abs(observed - target) > .1 for observed, target in zip(clocks, targets, strict=True))
+                or len({frame['frame_sha256'] for frame in proof['frames']}) < 2):
             raise ValueError('stored stills did not cover the approved replay clock')
     for item in proof['frames']:
         frame = folder / f"t{round(item['video_seconds'] * 100):05d}.png"
@@ -225,41 +256,49 @@ def open_player(page, key, url):
 def capture(page, key, url, directory, interval, *, approval=None):
     require_capture_scope(approval, key, url, continuous=False)
     video, title, refused_media = open_player(page, key, url)
-    duration = video.evaluate('v => v.duration')
     exact_winticket = urlsplit(url).netloc == WINTICKET_HOST
-    if exact_winticket:
-        if not 1 < duration <= 360:
-            raise PlayerUnavailable('visible replay exceeds the supported inspection duration')
-        interval = max(interval, duration / (MAX_REPLAY_FRAME_SAMPLES - 1))
-    video.evaluate("""(v, keepLayout) => {
-        v.pause(); v.controls = false;
-        if (!keepLayout) {
-            Object.assign(v.style,{position:'fixed',left:'0',top:'0',width:'1280px',height:'720px',
-                                   margin:'0',zIndex:2147483647});
-        }
-    }""", exact_winticket)
-    frames = []
-    for when in timeline(duration, interval):
-        actual = video.evaluate(SEEK, when)
+    try:
+        if exact_winticket:
+            video = video.element_handle()
+        duration = video.evaluate('v => v.duration')
+        if exact_winticket:
+            if not 1 < duration <= 360:
+                raise PlayerUnavailable('visible replay exceeds the supported inspection duration')
+            interval = max(interval, duration / (MAX_REPLAY_FRAME_SAMPLES - 1))
+        video.evaluate("""(v, keepLayout) => {
+            v.pause(); v.controls = false;
+            if (!keepLayout) {
+                Object.assign(v.style,{position:'fixed',left:'0',top:'0',width:'1280px',height:'720px',
+                                       margin:'0',zIndex:2147483647});
+            }
+        }""", exact_winticket)
+        frames = []
+        for when in timeline(duration, interval):
+            actual = video.evaluate(SEEK_RENDERED_REPLAY if exact_winticket else SEEK, when)
+            if refused_media:
+                raise AccessDenied(f'source HTTP {refused_media[0]}')
+            if actual is None or abs(actual - when) > 0.1:
+                raise PlayerUnavailable('decoded player seek unavailable')
+            image = video.screenshot(animations='disabled', timeout=9000)
+            if exact_winticket and video.evaluate('v => !!(v.mediaKeys || window.__raceEncrypted)'):
+                raise AccessDenied('protected player')
+            if exact_winticket and (page.url != url or not video.evaluate(
+                    '(v, selector) => v.isConnected && !!v.closest(selector)', KOMATSUSHIMA_DIALOG)):
+                raise PlayerUnavailable('the foreground replay changed during inspection')
+            name = directory / f't{round(actual * 100):05d}.png'
+            with name.open('xb') as out:
+                out.write(image)
+            frames.append({'video_seconds': actual, 'frame_sha256': sha256(image).hexdigest()})
+    finally:
         if refused_media:
             raise AccessDenied(f'source HTTP {refused_media[0]}')
-        if actual is None or abs(actual - when) > 0.1:
-            raise PlayerUnavailable('decoded player seek unavailable')
-        image = video.screenshot(animations='disabled', timeout=9000)
-        if refused_media:
-            raise AccessDenied(f'source HTTP {refused_media[0]}')
-        if exact_winticket and video.evaluate('v => !!(v.mediaKeys || window.__raceEncrypted)'):
-            raise AccessDenied('protected player')
-        name = directory / f't{round(actual * 100):05d}.png'
-        with name.open('xb') as out:
-            out.write(image)
-        frames.append({'video_seconds': actual, 'frame_sha256': sha256(image).hexdigest()})
     proof = {'public_result_page': url, 'page_title': title, 'browser_player_seconds': duration,
              'observed_at_utc': datetime.now(timezone.utc).isoformat(),
              'frame_interval_seconds': interval, 'frames': frames}
     if exact_winticket:
         proof['capture_mode'] = REPLAY_FRAME_MODE
     (directory / 'overview.json').write_text(json.dumps(proof, ensure_ascii=False) + '\n')
+    return refused_media
 
 
 def recording_bounds(path):
@@ -295,6 +334,7 @@ def record_digest(browser, key, url, directory, *, approval=None):
             context.add_init_script(MASK_SOURCE)
         page = context.new_page()
         video, title, refused_media = open_player(page, key, url)
+        video = video.element_handle()
         if isolate and not page.evaluate('() => !!window.__raceMask?.isConnected'):
             raise PlayerUnavailable('player viewport mask unavailable')
         duration, width, height = video.evaluate('v => [v.duration, v.videoWidth, v.videoHeight]')
@@ -336,14 +376,13 @@ def record_digest(browser, key, url, directory, *, approval=None):
             v.addEventListener('ended', () => { mark.style.background = 'black'; });
         }""", isolate)
         video.evaluate('v => v.play()')
-        player = video.element_handle()
         try:
             page.wait_for_function("v => v.ended || v.error || v.mediaKeys || window.__raceEncrypted",
-                                   arg=player, timeout=round((duration + 35) * 1000))
+                                   arg=video, timeout=round((duration + 35) * 1000))
         finally:
             if isolate and key == KOMATSUSHIMA_REPLAY_KEY and refused_media:
                 raise AccessDenied(f'source HTTP {refused_media[0]}')
-        finished, failed, protected = player.evaluate(
+        finished, failed, protected = video.evaluate(
             'v => [v.ended, !!v.error, !!(v.mediaKeys || window.__raceEncrypted)]')
         if protected:
             raise AccessDenied('protected player')
@@ -605,15 +644,18 @@ def run(queue, output, *, interval, pause, limit, executable, retry_failed=False
                             else:
                                 page = browser.new_page(locale='ja-JP', timezone_id='Asia/Tokyo',
                                                         viewport={'width': 1360, 'height': 860})
+                                refused = None
                                 try:
                                     if approval.source_host == WINTICKET_HOST:
                                         page.add_init_script(
                                             "document.addEventListener('encrypted', "
                                             "() => { window.__raceEncrypted = true; }, true);")
-                                    capture(page, key, url, tmp, interval, approval=approval)
+                                    refused = capture(page, key, url, tmp, interval, approval=approval)
                                     validate_receipt(tmp, key, url)
                                 finally:
                                     page.close()
+                                    if refused:
+                                        raise AccessDenied(f'source HTTP {refused[0]}')
                             proof = {'decision_sha256': approval.decision_sha256,
                                      'rights_sha256': approval.rights_sha256,
                                      'race_id': row['race_id'], 'source_ref': url}
@@ -636,9 +678,11 @@ def run(queue, output, *, interval, pause, limit, executable, retry_failed=False
                     tally[status] += 1
                     if status != 'captured':
                         failed.add(pair)
-                    attempts.write(json.dumps({'race_id': row['race_id'], 'source_ref': url,
-                                               'status': status,
-                                               'at_utc': datetime.now(timezone.utc).isoformat()}) + '\n')
+                    attempt = dict(race_id=row['race_id'], source_ref=url, status=status,
+                                   at_utc=datetime.now(timezone.utc).isoformat())
+                    if approval.source_host == WINTICKET_HOST and not continuous:
+                        attempt['capture_mode'] = REPLAY_FRAME_MODE
+                    attempts.write(json.dumps(attempt) + '\n')
                     attempts.flush()
                     if source_refused(status):
                         break

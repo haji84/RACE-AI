@@ -233,7 +233,8 @@ def _capture_settled_replay(root, request, approval_path, settled, video, browse
     retryable = {sources.RESULT_PAGE_UNPUBLISHED, sources.DIGEST_BUTTON_UNAVAILABLE}
     # The foreground dialog binding was verified after the original player selection stopped.
     # A new frame approval can use an existing attempt slot after that specific hold.
-    if not approval.continuous:
+    if (not approval.continuous and previous and previous[-1].get('capture_mode') is None
+            and datetime.fromisoformat(previous[-1]['at_utc']) <= pinned_at):
         retryable.add(sources.AMBIGUOUS_PLAYER)
     if previous and previous[-1]['status'] not in retryable:
         return 'HOLD_REPLAY_SOURCE_UNVERIFIED'

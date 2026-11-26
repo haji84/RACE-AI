@@ -210,6 +210,41 @@ class CaptureTests(unittest.TestCase):
             with self.assertRaises(ValueError):
                 source.require_capture_scope(scope, *source.target(WINTICKET), continuous=False)
 
+    def test_winticket_still_timeout_preserves_a_refusal_reported_during_the_read(self):
+        key, url = source.target(KOMATSUSHIMA)
+        approved = source.SourceApproval('a'*64, 'b'*64, None, None,
+            frozenset({KOMATSUSHIMA['race_id']}), None, False, source.WINTICKET_HOST,
+            'owner_attestation', url)
+        locator = Mock()
+        video = locator.element_handle.return_value
+        video.evaluate.side_effect = [8.0, None, .2]
+        refusals = []
+
+        def fail_read(**_):
+            refusals.append(403)
+            raise TimeoutError('browser read timed out')
+
+        video.screenshot.side_effect = fail_read
+        with (TemporaryDirectory() as folder,
+              patch.object(source, 'open_player', return_value=(locator, KOMATSUSHIMA_TITLE, refusals))):
+            with self.assertRaisesRegex(source.AccessDenied, 'source HTTP 403'):
+                source.capture(Mock(url=url), key, url, Path(folder), 4, approval=approved)
+            self.assertEqual(list(Path(folder).iterdir()), [])
+
+    def test_winticket_stills_reject_an_incomplete_or_repeated_presentation(self):
+        key, url = source.target(KOMATSUSHIMA)
+        with TemporaryDirectory() as temp:
+            folder = Path(temp)
+            receipt = dict(public_result_page=url, page_title=KOMATSUSHIMA_TITLE,
+                           capture_mode=source.REPLAY_FRAME_MODE, browser_player_seconds=90,
+                           frame_interval_seconds=4)
+            repeated = [{'video_seconds': time, 'frame_sha256': 'a'*64}
+                        for time in source.timeline(90, 4)]
+            for frames in (repeated, repeated[:1] + [dict(repeated[-1], frame_sha256='b'*64)]):
+                (folder/'overview.json').write_text(json.dumps(dict(receipt, frames=frames)))
+                with self.assertRaisesRegex(ValueError, 'replay clock'):
+                    source.validate_receipt(folder, key, url)
+
     def test_winticket_single_host_approval_cannot_authorize_a_kdreams_queue(self):
         with TemporaryDirectory() as temp, patch.dict('sys.modules', {'playwright.sync_api': None}):
             root = Path(temp)

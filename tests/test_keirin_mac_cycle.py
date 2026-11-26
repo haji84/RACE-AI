@@ -240,7 +240,8 @@ class MacCycleTests(unittest.TestCase):
                     frames.append(dict(video_seconds=seconds, frame_sha256=sha256(body).hexdigest()))
                 (folder/'overview.json').write_text(json.dumps(dict(public_result_page=row['race_detail_url'],
                     page_title=KOMATSUSHIMA_TITLE, capture_mode=cycle.sources.REPLAY_FRAME_MODE,
-                    browser_player_seconds=2, observed_at_utc=now.isoformat(), frames=frames)))
+                    browser_player_seconds=2, frame_interval_seconds=4, observed_at_utc=now.isoformat(),
+                    frames=frames)))
                 (folder/'source-approval.json').write_text(json.dumps(dict(race_id=row['race_id'],
                     source_ref=row['race_detail_url'], capture_mode=cycle.sources.REPLAY_FRAME_MODE,
                     decision_sha256=scope.decision_sha256, rights_sha256=scope.rights_sha256,
