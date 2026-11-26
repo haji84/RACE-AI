@@ -19,7 +19,9 @@ on:
       - 'race_ai/keirin_official_nationwide_*.py'
       - 'race_ai/keirin_official_rider_history.py'
       - 'race_ai/keirin_dossier_ability.py'
+      - 'race_ai/keirin_dossier_conditions.py'
       - 'race_ai/keirin_dossier_race_context.py'
+      - 'scripts/keirin_publish_dossier_conditions.py'
       - 'scripts/keirin_publish_rider_context.py'
       - 'tests/test_keirin_dossier_ability.py'
       - 'tests/test_keirin_dossier_race_context.py'
@@ -64,7 +66,10 @@ on:
       - 'race_ai/keirin_official_nationwide_*.py'
       - 'race_ai/keirin_official_rider_history.py'
       - 'race_ai/keirin_dossier_ability.py'
+      - 'race_ai/keirin_dossier_conditions.py'
       - 'race_ai/keirin_dossier_race_context.py'
+      - 'scripts/keirin_publish_dossier_conditions.py'
+      - 'tests/test_keirin_publish_dossier_conditions.py'
       - 'scripts/keirin_publish_rider_context.py'
       - 'tests/test_keirin_dossier_ability.py'
       - 'tests/test_keirin_dossier_race_context.py'
@@ -156,6 +161,8 @@ jobs:
             tests.test_keirin_official_nationwide_records \
             tests.test_keirin_daily_rider_update \
             tests.test_keirin_dossier_ability \
+            tests.test_keirin_dossier_conditions \
+            tests.test_keirin_publish_dossier_conditions \
             tests.test_keirin_dossier_race_context \
             tests.test_keirin_publish_rider_context \
             tests.test_keirin_official_rider_history \
@@ -295,7 +302,7 @@ jobs:
       - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
         with:
           python-version: '3.11'
-      - name: Publish numeric rider histories from the verified Git archive
+      - name: Publish rider finish rates by meeting grade and round from the verified Git archive
         shell: bash
         env:
           RACE_AI_KEIRIN_AB_GIT_STORE_ENABLED: 'true'

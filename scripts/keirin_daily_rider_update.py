@@ -220,9 +220,11 @@ def _archive_indexes(reader, head, days, root):
 
 
 def refresh(repo, reader, owner_private_pem, *, clock=lambda: datetime.now(timezone.utc), store=None):
+    from race_ai import keirin_dossier_conditions as conditions
     from race_ai import keirin_official_nationwide_records as records
     from race_ai import keirin_official_rider_history as history
     from scripts.keirin_official_day_pipeline import check_owner_private_key
+    from scripts import keirin_publish_dossier_conditions as dossier
 
     owner_public = check_owner_private_key(owner_private_pem)
     pin = Path(repo) / 'docs/evidence/2026-11-18/keirin_owner_existing_rsa_public_spki3072.pem'
@@ -240,22 +242,38 @@ def refresh(repo, reader, owner_private_pem, *, clock=lambda: datetime.now(timez
                           for age in range(min(MAX_DAYS, elapsed_days))}
     indexes = _archive_indexes(reader, head, dated, records.ROOT)
     need(known.keys() <= indexes.keys(), 'ARCHIVED_DAYS_MISSING')
-    dirty = sorted(day for day, oid in indexes.items()
-                   if first <= day and known.get(day, {}).get('archive_index') != oid)
+    condition_paths = set(store.run(['ls-tree', '-r', '--name-only', parent, '--',
+                                     'rider-condition-results/']).decode().splitlines())
+    dirty = sorted(day for day, oid in indexes.items() if first <= day and (
+        known.get(day, {}).get('archive_index') != oid or dossier.result_path(day) not in condition_paths))
     ready = []
     holds = Counter()
+    contexts = {}
     for day in dirty:
         try:
             selected_store = records.RecordStore(reader, day, index_commit=head)
-            if day in known:
+            if not selected_store.index['results'] and day not in known:
+                continue
+            regular_dirty = day not in known
+            if not regular_dirty and known[day]['archive_index'] != indexes[day]:
                 previous = store.read_previous(parent, _path(day))
                 need(previous and sha256(previous).hexdigest() == known[day]['sha256'], 'PREVIOUS_DAY_SHA')
                 old = checked_day(public._json(previous))
-                if old['source_sha256'] == history.archive_signature(selected_store):
-                    continue
-            if not selected_store.index['results'] and day not in known:
-                continue
-            ready.append((day, selected_store))
+                regular_dirty = old['source_sha256'] != history.archive_signature(selected_store)
+            context = None
+            if selected_store.index.get('registry') is not None:
+                try:
+                    candidate = dossier.registry_conditions(selected_store, owner_private_pem)
+                    contexts[day] = candidate
+                    previous = store.read_previous(parent, dossier.result_path(day))
+                    if previous is None or conditions.checked_result_slice(public._json(previous))[
+                            'source_sha256'] != history.conditioned_signature(
+                                day, history.archive_signature(selected_store), candidate[2]):
+                        context = candidate
+                except (ValueError, KeyError, TypeError, OSError, TimeoutExpired):
+                    holds['condition_registry'] += 1
+            if regular_dirty or context is not None:
+                ready.append((day, selected_store, regular_dirty, context))
         except (ValueError, KeyError, TypeError, OSError, TimeoutExpired):
             holds['archive_index'] += 1
     selected = ready
@@ -265,13 +283,28 @@ def refresh(repo, reader, owner_private_pem, *, clock=lambda: datetime.now(timez
         earlier, recent = ready[:-2], ready[-2:]
         cursor = today.toordinal() % len(earlier)
         selected = recent + (earlier[cursor:] + earlier[:cursor])[:MAX_REPLAYS - 2]
-    pending = {}
-    for day, selected_store in selected:
+    pending, conditions_pending = {}, {}
+    for day, selected_store, regular_dirty, context in selected:
         try:
-            pending[indexes[day]] = checked_day(history.project_rider_day(
-                selected_store, owner_private_pem, now=as_of))
+            if context is not None:
+                _, rows, signature = context
+                ordinary, condition_result = history.project_rider_day_with_conditions(
+                    selected_store, owner_private_pem, now=as_of, race_conditions=rows,
+                    conditions_sha256=signature)
+                conditions_pending[day] = condition_result
+            else:
+                ordinary = history.project_rider_day(selected_store, owner_private_pem, now=as_of)
+            if regular_dirty:
+                pending[indexes[day]] = checked_day(ordinary)
         except (ValueError, KeyError, TypeError, OSError, TimeoutExpired):
             holds['saved_result_replay'] += 1
+            # A sidecar failure never blocks the existing verified counts.
+            if context is not None and regular_dirty:
+                try:
+                    pending[indexes[day]] = checked_day(history.project_rider_day(
+                        selected_store, owner_private_pem, now=as_of))
+                except (ValueError, KeyError, TypeError, OSError, TimeoutExpired):
+                    pass
     if pending:
         published = publish_days(store, prior, pending, published_at=clock())
     else:
@@ -281,6 +314,34 @@ def refresh(repo, reader, owner_private_pem, *, clock=lambda: datetime.now(timez
     rows = latest['days'] if latest else []
     state = 'PUBLIC_RIDER_HISTORY_UPDATED' if published else (
         'HOLD_PUBLIC_RIDER_HISTORY_SOURCE' if holds else 'PUBLIC_RIDER_HISTORY_CURRENT')
+    condition_report = dict(state='HOLD_DOSSIER_CONDITIONS_REGISTRY')
+    event_day = today.isoformat()
+    if event_day in indexes:
+        try:
+            current = contexts.get(event_day)
+            if current is None:
+                source = records.RecordStore(reader, event_day, index_commit=head)
+                if source.index.get('registry') is not None:
+                    current = dossier.registry_conditions(source, owner_private_pem)
+            if current is not None:
+                registry, races, _ = current
+                outcome = dossier.publish_day(store, event_day, registry=registry,
+                    race_conditions=races, all_past_days={day for day in indexes if first <= day},
+                    updated_results=conditions_pending, published_at=clock())
+                condition_report = dict(state='DOSSIER_CONDITIONS_PUBLISHED' if outcome else
+                    'DOSSIER_CONDITIONS_CURRENT', race_day=event_day, registered_races=len(registry['registered_race_ids']),
+                    observed_grade=sum(row['meeting_grade'] is not None for row in races.values()),
+                    observed_round=sum(row['round_stage'] is not None for row in races.values()))
+                if outcome:
+                    packet = outcome['packet']
+                    window = packet['history']
+                    condition_report.update(commit=outcome['commit'], riders=len(packet['riders']),
+                        history_start_day=window['start_day'], history_end_day=window['end_day'],
+                        numeric_finishes=window['numeric_finishes'],
+                        condition_matched_finishes=window['condition_matched_finishes'],
+                        history_scope=window['scope'])
+        except (ValueError, KeyError, TypeError, OSError, TimeoutExpired):
+            condition_report = dict(state='HOLD_DOSSIER_CONDITIONS_PUBLICATION')
     return dict(state=state,
                 archive_commit=head, public_commit=published['commit'] if published else parent,
                 days_updated=published['updated_days'] if published else 0,
@@ -288,7 +349,8 @@ def refresh(repo, reader, owner_private_pem, *, clock=lambda: datetime.now(timez
                 days_deferred=len(ready)-len(selected), result_days=len(rows),
                 verified_races=sum(row['verified_races'] for row in rows),
                 numeric_finishes=sum(row['observed_count'] for row in rows),
-                latest_result_day=rows[-1]['day'] if rows else None, provider_requests=0)
+                latest_result_day=rows[-1]['day'] if rows else None, rider_conditions=condition_report,
+                provider_requests=0)
 
 
 def main():

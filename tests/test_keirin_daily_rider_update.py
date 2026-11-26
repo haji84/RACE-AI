@@ -6,10 +6,12 @@ from types import SimpleNamespace
 import unittest
 from unittest.mock import patch
 
+from race_ai import keirin_dossier_conditions as conditions
 from race_ai import keirin_official_nationwide_records as records
 from race_ai import keirin_official_rider_history as history
 from scripts import keirin_official_day_pipeline as pipeline
 from scripts import keirin_daily_rider_update as dossier
+from scripts import keirin_publish_dossier_conditions as publication
 
 
 FIRST = '2026-11-23'
@@ -172,6 +174,40 @@ class DailyHistoryPublicationTests(unittest.TestCase):
               self.assertRaisesRegex(ValueError, 'PREVIOUS_AGGREGATE')):
             dossier.refresh(directory, 'synthetic', b'', store=self.store, clock=lambda: NOW)
         self.assertEqual(self.store.published, 1)
+
+    def test_condition_backfill_runs_without_republishing_general_counts(self):
+        self.publish({'a' * 40: receipt(FIRST, 1)})
+        prior = self.store.read_previous(self.store.head(), dossier.LATEST)
+        today = '2026-11-25'
+        indexes = {FIRST:'a' * 40, today:'c' * 40}
+        rid = '202611259801'
+        registry = dict(registered_race_ids=[rid], calendar_source_sha256='c' * 64)
+        race = dict(race_id=rid, meeting_grade='F2', round_stage='FINAL', round_label='A級決勝',
+                    list_sha256='d' * 64, source_at=NOW.isoformat())
+        result = conditions.result_slice(FIRST, 'e' * 64, [(RIDER, 'F2', 'FINAL', 1)])
+        directory = Path(__file__).resolve().parents[1]
+        pin = directory / 'docs/evidence/2026-11-18/keirin_owner_existing_rsa_public_spki3072.pem'
+
+        def store_at(reader, day, *, index_commit):
+            return SimpleNamespace(day=day, index={'registry':'fixture',
+                'results':{'race':1} if day == FIRST else {}})
+
+        def registry_at(store, owner):
+            return registry, {rid:race}, 'e' * 64
+
+        with (patch.object(pipeline, 'check_owner_private_key', return_value=pin.read_bytes()),
+              patch.object(records, 'fetch_partial_head', return_value='e' * 40),
+              patch.object(dossier, '_archive_indexes', return_value=indexes),
+              patch.object(records, 'RecordStore', side_effect=store_at),
+              patch.object(publication, 'registry_conditions', side_effect=registry_at),
+              patch.object(history, 'project_rider_day_with_conditions',
+                           return_value=(receipt(FIRST, 1), result)) as replay):
+            report = dossier.refresh(directory, 'synthetic', b'', store=self.store, clock=lambda: NOW)
+        self.assertEqual(report['days_updated'], 0)
+        self.assertEqual(replay.call_count, 1)
+        self.assertEqual(report['rider_conditions']['history_end_day'], FIRST)
+        self.assertEqual(self.store.read_previous(self.store.head(), dossier.LATEST), prior)
+        self.assertIsNotNone(self.store.read_previous(self.store.head(), publication.condition_path(today)))
 
 
 if __name__ == '__main__':
