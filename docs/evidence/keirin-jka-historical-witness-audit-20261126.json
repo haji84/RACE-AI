@@ -1,0 +1,60 @@
+{
+  "schema": "RACE_AI_KEIRIN_JKA_HISTORY_WITNESS_AUDIT_V1",
+  "checked_at": "2026-11-26T11:32:41.475714+00:00",
+  "documents": [
+    {
+      "source_url": "https://www.keirin-autorace.or.jp/documents/www/public/koho_keirin/2024/keirin_200.pdf",
+      "filename": "keirin_200.pdf",
+      "sha256": "681e1f6f5aec26fc35d6d463b8ec3f108824b5802d0462f9469892e1e92c9756",
+      "observed_at": "2026-11-26T11:27:16.494878+00:00",
+      "bytes": 1839850
+    },
+    {
+      "source_url": "https://keirin-autorace.or.jp/documents/www/public/koho_keirin/2025/keirin_203.pdf",
+      "filename": "keirin_203.pdf",
+      "sha256": "e8effd06a28d6f06aa792cc3e55ac4aed1ada5d3e6b0cfe65744377121275395",
+      "observed_at": "2026-11-26T11:27:19.166340+00:00",
+      "bytes": 2475698
+    },
+    {
+      "source_url": "https://www.keirin-autorace.or.jp/documents/www/public/koho_keirin/2025/keirin_204.pdf",
+      "filename": "keirin_204.pdf",
+      "sha256": "208c7f38dec5386170abf6e964bd654b408185f5dd686d29f8eba04dd83fedf6",
+      "observed_at": "2026-11-26T11:27:21.067840+00:00",
+      "bytes": 1863361
+    },
+    {
+      "source_url": "https://www.keirin-autorace.or.jp/documents/www/public/koho_keirin/2025/keirin_205.pdf",
+      "filename": "keirin_205.pdf",
+      "sha256": "c0d9b1c77e743bcdab9aa1b8e924b6412825c2cf4490b16431f82c029d062ebe",
+      "observed_at": "2026-11-26T11:27:22.295802+00:00",
+      "bytes": 2325393
+    },
+    {
+      "source_url": "https://www.keirin-autorace.or.jp/documents/www/public/koho_keirin/2025/keirin_208.pdf",
+      "filename": "keirin_208.pdf",
+      "sha256": "b8213ed19945a5cb1a2e5140fe4b6c4d0770153b5973185efafce2b109e884ec",
+      "observed_at": "2026-11-26T11:27:23.567537+00:00",
+      "bytes": 1748356
+    }
+  ],
+  "renewal_lists": 11,
+  "identity_rows_checked": 570,
+  "unique_identity_tuples": 570,
+  "complete_numeric_finish_rows_checked": 152925,
+  "matched_previous_result_only_rows": 3580,
+  "conflicting_previous_rows": 0,
+  "additional_result_only_rows": 17377,
+  "additional_rows_riders": 467,
+  "additional_rows_races": 11460,
+  "unbound_complete_finish_rows": 106081,
+  "private_projection_sha256": "d96441b7848c615b67058091a80f4126c6516dbd5745a46538bf1b5a4f487002",
+  "historical_pre_cutoff_racecard_admitted_rows": 0,
+  "training_rows_added": 0,
+  "matching_rule": "Exact normalized name and prefecture, one observed cohort in the historical results, one JKA registration, and published bulletin date earlier than the race day.",
+  "publication_time_scope": "Bulletins have issue dates. Exact original racecard feature capture and organizer cutoff receipts are unavailable.",
+  "first_matched_race_day": "20241201",
+  "last_matched_race_day": "20250930",
+  "riders_in_20261125_official_directory": 433,
+  "rows_for_riders_in_20261125_official_directory": 16448
+}
