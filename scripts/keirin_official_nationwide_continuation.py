@@ -195,6 +195,57 @@ BASELINE_RACE_REQUESTS = 11
 BASELINE_SHARED_REQUESTS = len(sources.LIST_SCRIPTS) + 1 + len(sources.cards._TAB_SCRIPT_REQUIREMENTS)
 CAPTURE_CLASS_SAMPLES = 4
 CLASS_EVIDENCE_REQUESTS = CAPTURE_CLASS_SAMPLES + len(sources.LIST_SCRIPTS)
+MAX_CUTOFF_PROBES = 8
+NEAR_CUTOFF_WINDOW = timedelta(minutes=30)
+
+
+def _probe_capture_cutoffs(session, inventory, store, required_calls, clock):
+    cutoffs = {}
+    venues = set()
+    races = sorted(inventory['registry']['races'], key=lambda row: (row['race_no'], row['venue_code']))
+    # A first card can require two shared controller scripts. Leave enough
+    # scope for the existing full baseline and class verification.
+    probe_calls = required_calls + 1 + len(sources.LIST_SCRIPTS)
+    probe_seconds = sources.CAPTURE_LEASE_RESERVE_SECONDS + probe_calls * sources.REQUEST_SPACING_SECONDS
+    for race in races:
+        if len(venues) >= MAX_CUTOFF_PROBES or session.halted:
+            break
+        rid, venue = race['race_id'], race['venue_code']
+        if (venue in venues or rid in store.index['originals'] or race['source_state'] != 'RACECARD_PUBLISHED'
+                or _label(inventory, race) not in extension.OBSERVED_CLASSES):
+            continue
+        if _baseline_already_exists(store, rid):
+            continue
+        if not session.has_capture_capacity(probe_calls, seconds=probe_seconds):
+            break
+        venues.add(venue)
+        try:
+            cutoff = sources.collect_capture_cutoff(session=session, inventory=inventory, race=race, clock=clock)
+        except sources.CaptureBudgetPending:
+            break
+        except (ValueError, KeyError, TypeError, OSError, StopIteration):
+            continue
+        if cutoff is not None:
+            cutoffs[rid] = cutoff
+            feasible_at = form._aware(clock()) + timedelta(seconds=sources.CAPTURE_START_MARGIN_SECONDS)
+            if feasible_at <= cutoff <= feasible_at + timedelta(seconds=sources.CAPTURE_LEASE_RESERVE_SECONDS):
+                break
+    return cutoffs
+
+
+def _prioritize_capture_races(races, source_attempts, saved_cutoffs, fresh_cutoffs, now):
+    unknown = datetime.max.replace(tzinfo=timezone.utc)
+    earliest = now + timedelta(seconds=sources.CAPTURE_START_MARGIN_SECONDS)
+    horizon = now + NEAR_CUTOFF_WINDOW
+
+    def priority(race):
+        rid = race['race_id']
+        fresh = fresh_cutoffs.get(rid, unknown)
+        urgent = fresh if earliest <= fresh <= horizon else unknown
+        return (urgent, source_attempts.get(rid, 0), race['race_no'],
+                saved_cutoffs.get(rid, unknown), race['venue_code'])
+
+    return sorted(races, key=priority)
 
 
 def run_capture(*,repo,private_root,owner_public_pem,owner_private_pem,day=None,clock=now_utc,max_races=4):
@@ -243,11 +294,10 @@ def run_capture(*,repo,private_root,owner_public_pem,owner_private_pem,day=None,
         history_margin = finalization_reserve + timedelta(seconds=sources.CONDITION_DURATION_SECONDS)
         required_calls = BASELINE_RACE_REQUESTS + BASELINE_SHARED_REQUESTS + CLASS_EVIDENCE_REQUESTS
         from race_ai.keirin_official_class_evidence import collect_unknown_class_evidence, replay_cutoff_hints, LABEL
-        cutoff_hints=replay_cutoff_hints(previous,inventory,now=clock())
-        unknown_cutoff=datetime.max.replace(tzinfo=timezone.utc)
-        # Preserve the attempt and round order. Every capture still opens the current card.
-        ordered=sorted(registry['races'],key=lambda r:(source_attempts.get(r['race_id'],0),
-            r['race_no'],cutoff_hints.get(r['race_id'],unknown_cutoff),r['venue_code']))
+        fresh_cutoffs = _probe_capture_cutoffs(session, inventory, store, required_calls, clock)
+        now = form._aware(clock())
+        saved_cutoffs = replay_cutoff_hints(previous, inventory, now=now)
+        ordered = _prioritize_capture_races(registry['races'], source_attempts, saved_cutoffs, fresh_cutoffs, now)
         for index, race in enumerate(ordered):
             rid=race['race_id'];row=states[rid]
             if _baseline_already_exists(store,rid):row['state']='FROZEN_ORIGINAL_PRESERVED';continue

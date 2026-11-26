@@ -78,6 +78,57 @@ class RunnerTests(unittest.TestCase):
     def setUpClass(cls):NationwideRecordTests.setUpClass.__func__(cls)
     def setUp(self):NationwideRecordTests.setUp(self)
     def api(self):return importlib.import_module('scripts.keirin_official_nationwide_continuation')
+
+    def test_verified_nearby_cutoff_precedes_far_future_races_despite_previous_attempts(self):
+        inventory, _ = cutoff_fixture((98, 99))
+        races = inventory['registry']['races']
+        urgent = DAY.replace('-', '') + '9803'
+        later = DAY.replace('-', '') + '9901'
+        now = datetime.fromisoformat(DAY + 'T11:25:00+09:00')
+        fresh = {urgent: now + timedelta(minutes=12), later: now + timedelta(hours=8)}
+        ordered = self.api()._prioritize_capture_races(races, {urgent: 2}, {}, fresh, now)
+        self.assertEqual(ordered[0]['race_id'], urgent)
+        ordering_hint_only = self.api()._prioritize_capture_races(races, {urgent: 2}, fresh, {}, now)
+        self.assertEqual(ordering_hint_only[-1]['race_id'], urgent)
+
+    def test_cutoff_probe_uses_only_the_first_eligible_race_per_venue_and_stops_at_budget(self):
+        api = self.api()
+        inventory, records = cutoff_fixture((98, 99))
+        store = FakeStore('/synthetic', DAY)
+        store.index['originals'] = dict.fromkeys(DAY.replace('-', '') + suffix for suffix in ('9801', '9802'))
+        verified_unindexed = DAY.replace('-', '') + '9901'
+        session = Mock(halted=False)
+        session.has_capture_capacity.side_effect = (True, False)
+        next_card = next(row for row in records if row['race_id'].endswith('9902'))
+        session.fetch.return_value = next_card['detail_source']
+        with (patch.object(api.sources, 'require_list_scripts'),
+              patch.object(api, '_baseline_already_exists', side_effect=lambda _, rid: rid == verified_unindexed)):
+            cutoffs = api._probe_capture_cutoffs(session, inventory, store, 23, lambda: AT)
+        self.assertEqual(cutoffs, {next_card['race_id']: datetime.fromisoformat(DAY+'T12:20:00+09:00')})
+        session.fetch.assert_called_once_with('https://keirin.jp/sp/race',
+            [('encp', next_card['detail_source']['receipt']['form_fields']['encp']), ('disp', 'SJ0315')],
+            'https://keirin.jp/sp/racelist')
+        self.assertEqual(session.has_capture_capacity.call_count, 2)
+
+    def test_cutoff_probe_caps_distinct_venues_and_skips_later_races(self):
+        api = self.api()
+        prefix = DAY.replace('-', '')
+        for venues in (2, 10):
+            races = [dict(race_id=f'{prefix}{venue:02d}{number:02d}', venue_code=venue, race_no=number,
+                          source_state='RACECARD_PUBLISHED') for venue in range(1, venues + 1)
+                     for number in (1, 2)]
+            session = Mock(halted=False)
+            session.has_capture_capacity.return_value = True
+            inventory = {'registry': {'races': races}}
+            store = FakeStore('/synthetic', DAY)
+            for delay, expected in ((timedelta(hours=1), min(8, venues)), (timedelta(minutes=7), 1)):
+                with (self.subTest(venues=venues, delay=delay),
+                      patch.object(api, '_label', return_value='A級特予選'),
+                      patch.object(api, '_baseline_already_exists', return_value=False),
+                      patch.object(api.sources, 'collect_capture_cutoff', return_value=AT+delay)):
+                    cutoffs = api._probe_capture_cutoffs(session, inventory, store, 23, lambda: AT)
+                self.assertEqual(list(cutoffs), [f'{prefix}{i:02d}01' for i in range(1, expected+1)])
+
     def run_fixture(self,folder,*,condition_error=True,existing=False,capacity=(300,900),history_unavailable=False,history_cutoff_margin=None):
         from race_ai import keirin_official_nationwide_sources as sources
         args=NationwideExtensionTests().baseline_arguments();now=args.pop('now')
@@ -117,6 +168,7 @@ class RunnerTests(unittest.TestCase):
               patch.object(self.api(),'_baseline_already_exists',return_value=existing),
               patch.object(sources,'OfficialSourceSession',return_value=session),
               patch.object(extension,'collect_day_inventory',return_value=inventory),
+              patch.object(sources,'collect_capture_cutoff',return_value=None),
               patch.object(sources,'collect_candidate',side_effect=collect_baseline) as collect,
               patch.object(sources,'collect_conditions',side_effect=collect_history),
               patch.object(self.api().archive,'append_once',return_value={'state':'GIT_ORIGINAL_CREATE_ONCE_AND_RESTORED'})):
@@ -214,6 +266,7 @@ class RunnerTests(unittest.TestCase):
               patch.object(api.records,'RecordStore',return_value=store),
               patch.object(api.capture_files,'_private_directory',return_value=Path('/private')),
               patch.object(api.sources,'OfficialSourceSession',return_value=session),
+              patch.object(api.sources,'collect_capture_cutoff',return_value=None),
               patch.object(api.sources,'collect_candidate',side_effect=collect_baseline),
               patch.object(api.sources,'collect_conditions',side_effect=collect_history) as history,
               patch.object(extension,'collect_day_inventory',return_value=inventory),
@@ -262,6 +315,7 @@ class RunnerTests(unittest.TestCase):
               patch.object(api.records,'RecordStore',return_value=store),
               patch.object(api.capture_files,'_private_directory',return_value=Path('/private')),
               patch.object(api.sources,'OfficialSourceSession',return_value=session),
+              patch.object(api.sources,'collect_capture_cutoff',return_value=None),
               patch.object(api.sources,'collect_candidate',side_effect=collect),
               patch.object(extension,'collect_day_inventory',return_value=inventory),
               patch('race_ai.keirin_official_class_evidence.collect_unknown_class_evidence',
@@ -347,6 +401,7 @@ class RunnerTests(unittest.TestCase):
               patch.object(api.records,'RecordStore',return_value=store),
               patch.object(api.capture_files,'_private_directory',return_value=Path('/private')),
               patch.object(api.sources,'OfficialSourceSession',return_value=session),
+              patch.object(api.sources,'collect_capture_cutoff',return_value=None),
               patch.object(api.sources,'collect_candidate',side_effect=collect),
               patch.object(extension,'collect_day_inventory',return_value=inventory),
               patch.object(evidence,'collect_unknown_class_evidence',return_value={'safe_summary':[]})):
