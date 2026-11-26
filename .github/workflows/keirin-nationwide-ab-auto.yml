@@ -1689,11 +1689,12 @@ jobs:
           fi
 
   official-sp-settle:
-    # Explicit recovery only. The continuous source poller remains the
-    # existing result-live workflow, independent from this capture chain.
-    needs: source-free-tests
+    # This recovery invocation shares the encrypted archive and display with
+    # the preceding writers. Wait for them to stop, even if either failed.
+    # The scheduled result-live workflow runs independently.
+    needs: [source-free-tests, official-sp-capture, official-sp-publish]
     if: >-
-      !cancelled() &&
+      always() && !cancelled() &&
       github.repository == 'haji84/RACE-AI' &&
       github.repository_id == '1416489937' &&
       github.ref == 'refs/heads/main' &&
