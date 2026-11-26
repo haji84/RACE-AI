@@ -79,6 +79,15 @@ class RunnerTests(unittest.TestCase):
     def setUp(self):NationwideRecordTests.setUp(self)
     def api(self):return importlib.import_module('scripts.keirin_official_nationwide_continuation')
 
+    def test_baseline_hold_counts_use_only_fixed_codes_from_known_parsers(self):
+        api = self.api()
+        code = 'OFFICIAL_EXTENSION_CONTESTED_OR_MULTILEVEL_LINE_UNSUPPORTED'
+        self.assertEqual(api._baseline_hold_reason(extension.OfficialExtensionError(code)), code)
+        for error in (ValueError(code), KeyError('private-input'),
+                      extension.OfficialExtensionError('OFFICIAL_EXTENSION_PRIVATEINPUT123'),
+                      extension.OfficialExtensionError(code + ': private-input')):
+            self.assertEqual(api._baseline_hold_reason(error), 'BASELINE_VALIDATION_OR_OPERATION_HELD')
+
     def test_verified_nearby_cutoff_precedes_far_future_races_despite_previous_attempts(self):
         inventory, _ = cutoff_fixture((98, 99))
         races = inventory['registry']['races']
@@ -412,6 +421,7 @@ class RunnerTests(unittest.TestCase):
         self.assertEqual(result['new_A_B_git_archived'],0)
         self.assertEqual(store.saved[-1]['payload']['source_attempt_counts'],
                          dict.fromkeys(ids,1)|{'203001159803':2})
+        self.assertEqual(result['baseline_hold_reasons'], {'BASELINE_VALIDATION_OR_OPERATION_HELD': 6})
 
     def test_new_original_binds_the_same_confidence_in_source_bundle_and_both_cipher_arms(self):
         from race_ai import keirin_nationwide_auto_settlement as decrypt
