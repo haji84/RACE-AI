@@ -164,7 +164,47 @@ class FeedCycleTests(unittest.TestCase):
             self.store.read(head,'views/'+first['entry']['cipher_sha256']+'.json'),
             first['cipher'])
 
-    def test_second_concurrent_write_stops_after_one_retry(self):
+    def test_two_disjoint_concurrent_writes_retry_the_same_result_without_new_gets(self):
+        self.seed()
+        self.cycle()
+        self.collect=self.collect_empty
+        from scripts.keirin_note_collect_results import SCHEMA, _held, _status, fact_digest
+        rid='203001159801'
+        checked_at='2030-01-15T00:02:00+00:00'
+
+        def collect_results(**kwargs):
+            self.result_calls.append(kwargs)
+            root=Path(kwargs['private_root'])
+            folder=root/'data/2030-01-15';folder.mkdir(parents=True)
+            row=_held(rid,'PENDING_RESULT_NOT_PUBLISHED')
+            digest=fact_digest(row)
+            row.update(captured_at=checked_at,observation_sha256=digest,previous_observation_sha256=None)
+            (folder/'research_results.json').write_text(json.dumps(
+                dict(schema=SCHEMA,day_jst='2030-01-15',observations=[row])))
+            return dict(site_root=str(root),result_checks={rid:dict(
+                checked_at=checked_at,digest=digest,status=_status(row))},safe_report=dict(
+                provider_denied=False,changed_observations=1,public_page_requests=1))
+
+        self.collect_results=collect_results
+        self.result_calls.clear()
+        attempts=[]
+        def interleaved(*args,**kwargs):
+            attempts.append(args[2])
+            if len(attempts)<=2:
+                self.append_archive()
+            return feed.publish_snapshot(*args,**kwargs)
+
+        with patch('scripts.keirin_note_feed_cycle.publish_snapshot',side_effect=interleaved):
+            outcome=self.cycle()
+        self.assertEqual(len(self.result_calls),1)
+        self.assertEqual(len(attempts),3)
+        self.assertTrue(all(attempt is attempts[0] for attempt in attempts))
+        index=feed.load_index(self.store,self.recipient,outcome['source_commit'])
+        self.assertEqual([entry['kind'] for entry in index['entries']],
+            ['import','research','archive','archive','results'])
+        self.assertEqual(index['result_checks'][rid]['checked_at'],checked_at)
+
+    def test_concurrent_writes_stop_after_the_retry_budget(self):
         self.seed()
         attempts=[]
         def interleaved(*args,**kwargs):
@@ -174,11 +214,11 @@ class FeedCycleTests(unittest.TestCase):
         with patch('scripts.keirin_note_feed_cycle.publish_snapshot',side_effect=interleaved):
             with self.assertRaisesRegex(ValueError,'CONCURRENT_UPDATE'):
                 self.cycle()
-        self.assertEqual(len(attempts),2)
+        self.assertEqual(len(attempts),3)
         self.assertEqual(len(self.calls),1)
         self.assertEqual(self.result_calls,[])
         index=feed.load_index(self.store,self.recipient,self.store.head())
-        self.assertEqual([entry['kind'] for entry in index['entries']],['import','archive','archive'])
+        self.assertEqual([entry['kind'] for entry in index['entries']],['import','archive','archive','archive'])
 
     def test_non_fast_forward_change_cannot_rebase_a_cipher(self):
         self.seed()
