@@ -1,20 +1,24 @@
 """Publish bounded rider dossier facts from already retained Kdreams racecards."""
 import argparse
+import base64
 from collections import Counter
 from datetime import datetime, timezone
 from hashlib import sha256
+import io
 import json
 from pathlib import Path
 import re
 import subprocess
+import tarfile
 from unicodedata import normalize
 
 from race_ai import keirin_dossier_secondary as secondary
 from race_ai.keirin_dossier_race_context import MAX_RACES
 from race_ai import keirin_public_forecasts as public
-from scripts.keirin_capture_public_two_sources import private_dir
+from race_ai.keirin_note_view import MAX_VIEW
+from scripts.keirin_capture_public_two_sources import manifest_check, private_dir
 from scripts.keirin_daily_rider_update import BASE_SHA256
-from scripts.keirin_note_collect_inputs import _read
+from scripts.keirin_note_collect_inputs import SCHEMA as INPUT_COLLECTION_SCHEMA, _read
 from scripts.keirin_public_rider_projection import DIRECTORY_SCHEMA, _checked_starters
 from scripts.keirin_publish_result_unread import _source
 
@@ -110,9 +114,12 @@ def _publish_cards(store, parent, day, cards, *, published_at, published_only):
         try:
             public.need(registry is None or race_id in cutoffs, 'SECONDARY_DOSSIER_UNREGISTERED_RACE')
             card = secondary.source_card(raw, receipt, race_id, now=published_at)
+            cutoff = cutoffs.get(race_id) or card['source_cutoff_at']
             if expected_cutoff is not None:
                 public.need(public.when(expected_cutoff) == public.when(card['source_cutoff_at']),
                             'SECONDARY_DOSSIER_SOURCE_CUTOFF')
+                public.need(public.when(card['source_at']) < public.when(cutoff),
+                            'SECONDARY_DOSSIER_REGISTRY_PRE_CUTOFF')
             official = fields.get(race_id)
             if not official or 'name' not in official['riders'][0]:
                 public.need(not published_only, 'SECONDARY_DOSSIER_PUBLIC_ROSTER')
@@ -121,7 +128,6 @@ def _publish_cards(store, parent, day, cards, *, published_at, published_only):
                 official = dict(race_id=race_id, riders=[
                     dict(number=rider['number'], name=rider['name'],
                          registration=identities[_person(rider['name'])]) for rider in card['riders']])
-            cutoff = cutoffs.get(race_id) or card['source_cutoff_at']
             row = secondary._project_card(card, official, official_cutoff_at=cutoff, now=published_at)
             previous = additions.get(race_id) or retained.get(race_id)
             if previous is None or public.when(row['source_at']) > public.when(previous['source_at']):
@@ -146,27 +152,109 @@ def _publish_cards(store, parent, day, cards, *, published_at, published_only):
     return _status('UPDATED', day, coverage=packet['coverage'], commit=commit, holds=holds)
 
 
+def _manifest(note, day, entry):
+    path = f'data/{day}/manifest.json'
+    file = note['files'][path]
+    public.need(type(file) is dict and set(file) == {'text','bytes','sha256'} and
+                type(file['text']) is str and type(file['bytes']) is int, 'SECONDARY_DOSSIER_MANIFEST_FILE')
+    raw = file['text'].encode('utf-8')
+    public.need(0 < len(raw) == file['bytes'] <= public.MAX_FILE and sha256(raw).hexdigest() == file['sha256'],
+                'SECONDARY_DOSSIER_MANIFEST_SHA')
+    manifest = public._json(raw)
+    public.need(type(manifest) is dict and set(manifest) ==
+                {'schema','day_jst','source_manifest','source_receipts','safe_report','daily_coverage'} and
+                manifest['schema'] == INPUT_COLLECTION_SCHEMA and manifest['day_jst'] == day,
+                'SECONDARY_DOSSIER_MANIFEST_DAY')
+    safe = manifest['safe_report']
+    public.need(type(safe) is dict and safe.get('schema') == INPUT_COLLECTION_SCHEMA and safe.get('day_jst') == day and
+                safe.get('provider_denied') is False and
+                sorted(public.official._ids(safe['captured_race_ids'], day)) == sorted(entry['captured_race_ids']) and
+                sorted(public.official._ids(safe['priority_window_race_ids'], day)) == sorted(entry['priority_window_race_ids']),
+                'SECONDARY_DOSSIER_MANIFEST_RECEIPT')
+    source_manifest = manifest['source_manifest']
+    races = source_manifest['races']
+    public.need(type(races) is list and len(races) <= MAX_RACES and source_manifest['day_jst'] == day,
+                'SECONDARY_DOSSIER_SOURCE_DAY')
+    ids = public.official._ids([race['race_id'] for race in races], day)
+    manifest_check(source_manifest, registered_ids=ids)
+    public.need(set(entry['captured_race_ids']) <= set(ids), 'SECONDARY_DOSSIER_MANIFEST_RACES')
+    return path, raw, races, manifest['source_receipts']
+
+
+def _archived_sources(note, expected):
+    archive = note['preserved_archives']['source-inputs.tar.gz']
+    public.need(type(archive) is dict and set(archive) == {'base64','bytes','sha256'} and
+                type(archive['bytes']) is int and 0 < archive['bytes'] <= MAX_VIEW and
+                type(archive['base64']) is str and len(archive['base64']) == 4 * ((archive['bytes'] + 2) // 3),
+                'SECONDARY_DOSSIER_ARCHIVE_SHAPE')
+    try:
+        raw = base64.b64decode(archive['base64'], validate=True)
+    except ValueError:
+        raise ValueError('KEIRIN_PUBLIC_SECONDARY_DOSSIER_ARCHIVE_BASE64') from None
+    public.need(len(raw) == archive['bytes'] and sha256(raw).hexdigest() == archive['sha256'],
+                'SECONDARY_DOSSIER_ARCHIVE_SHA')
+    checked = set()
+    try:
+        with tarfile.open(fileobj=io.BytesIO(raw), mode='r|gz') as bundle:
+            for member in bundle:
+                if member.name not in expected:
+                    continue
+                size, digest = expected[member.name]
+                public.need(member.isfile() and member.name not in checked and member.size == size,
+                            'SECONDARY_DOSSIER_ARCHIVE_MEMBER')
+                with bundle.extractfile(member) as stream:
+                    public.need(sha256(stream.read(size + 1)).hexdigest() == digest,
+                                'SECONDARY_DOSSIER_ARCHIVE_MEMBER_SHA')
+                checked.add(member.name)
+    except (tarfile.TarError, EOFError, OSError):
+        raise ValueError('KEIRIN_PUBLIC_SECONDARY_DOSSIER_ARCHIVE_TAR') from None
+    public.need(checked == expected.keys(), 'SECONDARY_DOSSIER_ARCHIVE_SOURCE_MISSING')
+
+
+def _saved_cards(root, note, entry, day):
+    path, manifest_raw, races, observed = _manifest(note, day, entry)
+    public.need(type(observed) is list and len(observed) <= 3 * MAX_RACES and
+                all(type(row) is dict and type(row.get('url')) is str for row in observed),
+                'SECONDARY_DOSSIER_SOURCE_RECEIPTS')
+    observed_by_url = {receipt['url']:receipt for receipt in observed}
+    public.need(len(observed_by_url) == len(observed), 'SECONDARY_DOSSIER_RECEIPT_DUPLICATE')
+    references = {row['input']['race_id']:row['input']
+                  for row in public._captured_references(note, day, entry['captured_race_ids'])}
+    imported, saved = public.when(note['imported_at']), public.when(entry['created_at'])
+    expected = {path:(len(manifest_raw),sha256(manifest_raw).hexdigest())}
+    cards = []
+    for race in races:
+        race_id, url = race['race_id'], race['kdreams_url']
+        snapshot = references.get(race_id)
+        receipt = observed_by_url.get(url)
+        hint = race['cutoff_hint']
+        if receipt is None or hint is None:
+            public.need(snapshot is None, 'SECONDARY_DOSSIER_REFERENCE_SOURCE_MISSING')
+            continue
+        captured = public.when(receipt['captured_at'])
+        if not (captured.astimezone(public.official.JST).date().isoformat() == day and
+                captured <= imported and captured < public.when(hint)):
+            public.need(snapshot is None, 'SECONDARY_DOSSIER_REFERENCE_CAPTURE_CLOCK')
+            continue
+        cutoff = hint
+        if snapshot is not None:
+            source = snapshot['cutoff_source']
+            cutoff = snapshot['published_cutoff_at']
+            public.need(all(source[key] == receipt[key] for key in ('url','bytes_sha256','captured_at')) and
+                        captured < public.when(cutoff), 'SECONDARY_DOSSIER_NOTE_SOURCE')
+        raw, _ = _source(root, receipt, generated_at=saved)
+        digest = receipt['bytes_sha256']
+        expected[f'raw/{digest}.html'] = (len(raw),digest)
+        cards.append((race_id, raw, receipt, cutoff))
+    _archived_sources(note, expected)
+    return cards
+
+
 def publish_saved_reference(repo, root, note, entry, *, published_at):
-    """Reuse the verified in-run source bundle after its encrypted Git readback."""
+    """Project exact Kdreams observations from the verified, encrypted Note capture."""
     public.project_reference(note, entry, published_at=published_at)
     day, = entry['days']
-    saved = public.when(entry['created_at'])
-    root = private_dir(root)
-    references = public._captured_references(note, day, entry['captured_race_ids'])
-    manifest = public._json(note['files'][f'data/{day}/manifest.json']['text'])
-    observed = manifest['source_receipts']
-    observed_by_url = {receipt['url']: receipt for receipt in observed}
-    public.need(len(observed_by_url) == len(observed), 'SECONDARY_DOSSIER_RECEIPT_DUPLICATE')
-    cards = []
-    for reference in references:
-        snapshot = reference['input']
-        source = snapshot['cutoff_source']
-        receipt = observed_by_url[source['url']]
-        cutoff = snapshot['published_cutoff_at']
-        public.need(all(source[key] == receipt[key] for key in ('url','bytes_sha256','captured_at')) and
-                    public.when(receipt['captured_at']) < public.when(cutoff), 'SECONDARY_DOSSIER_NOTE_SOURCE')
-        raw, _ = _source(root, receipt, generated_at=saved)
-        cards.append((snapshot['race_id'], raw, receipt, cutoff))
+    cards = _saved_cards(private_dir(root), note, entry, day)
     return publish_cards(repo, day, cards, published_at=published_at, published_only=False)
 
 
