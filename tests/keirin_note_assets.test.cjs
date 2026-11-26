@@ -4,9 +4,11 @@ const fs=require('node:fs'),vm=require('node:vm');
 test('the combined guide preserves the existing BOAT source-free reader',()=>{
   const app=fs.readFileSync(require.resolve('../web/app.js'),'utf8');
   const boundary='\n"use strict";\n/* PR #62 page shell';
-  assert.ok(app.includes(boundary));
+  const start=app.indexOf('/* Count-only visual attestation against the owner-approved 2026-11-12 AES audit.');
+  const end=app.indexOf(boundary,start);
+  assert.ok(start>=0&&end>start);
   const holder={exports:{}};
-  vm.runInNewContext(app.split(boundary)[0],{module:holder,URL});
+  vm.runInNewContext(app.slice(start,end),{module:holder,URL});
   assert.equal(holder.exports.DAY,'2026-11-12');
   assert.ok(holder.exports.EVIDENCE.endsWith('/43339230921'));
 });
