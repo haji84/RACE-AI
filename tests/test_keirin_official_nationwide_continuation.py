@@ -452,6 +452,23 @@ class RunnerTests(unittest.TestCase):
             self.assertEqual(publish.call_args.args[1]['registry'],registry)
             self.assertEqual(report['source_requests'],0)
 
+    def test_settlement_archive_timeout_reports_a_hold_before_any_provider_call(self):
+        api = self.api()
+        context = api.SettlementContext()
+        timed_out = api.archive.GitCipherFetchTimeout('GIT_COMMAND_OR_REMOTE_UNAVAILABLE')
+        with (patch.object(api.records, 'RecordStore', side_effect=timed_out) as store,
+              patch.object(context, 'ensure') as open_provider):
+            report = api.settle_tick(repo='/synthetic', owner_private_pem=self.private,
+                private_root='/synthetic', clock=lambda: AT, context=context, days=[DAY],
+                source_commit='a'*40)
+        store.assert_called_once_with('/synthetic', DAY, retry_archive_timeout=True)
+        open_provider.assert_not_called()
+        self.assertEqual(report['source_requests'], 0)
+        self.assertTrue(report['no_provider_tick'])
+        self.assertEqual(report['safe_holds'],
+                         [{'stage': 'RESULT_ARCHIVE_FETCH', 'code': 'ENCRYPTED_ARCHIVE_FETCH_TIMEOUT'}])
+        self.assertFalse(context.allow_archive_timeout_retry())
+
     def test_pending_current_day_rotates_and_newly_due_order_precedes_unit_retry(self):
         api=self.api();context=api.SettlementContext();context.client=object();context.tick=1
         store=FakeStore('/synthetic','2030-01-15')

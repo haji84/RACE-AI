@@ -41,19 +41,27 @@ class GitCipherArchiveError(ValueError):
     pass
 
 
+class GitCipherFetchTimeout(GitCipherArchiveError):
+    pass
+
+
 def need(ok, reason):
     if not ok:
         raise GitCipherArchiveError(reason)
 
 
-def _cmd(repo, *args, okay=False):
+def _cmd(repo, *args, okay=False, timeout=35):
     env = dict(os.environ, GIT_TERMINAL_PROMPT="0")
     try:
         done = subprocess.run(
             ["git", *args], cwd=repo, text=True, encoding="utf-8",
             stdout=subprocess.PIPE, stderr=subprocess.DEVNULL,
-            timeout=35, env=env, check=False)
-    except (OSError, subprocess.TimeoutExpired):
+            timeout=timeout, env=env, check=False)
+    except subprocess.TimeoutExpired:
+        if args[0] == "fetch":
+            raise GitCipherFetchTimeout("GIT_COMMAND_OR_REMOTE_UNAVAILABLE") from None
+        raise GitCipherArchiveError("GIT_COMMAND_OR_REMOTE_UNAVAILABLE") from None
+    except OSError:
         raise GitCipherArchiveError("GIT_COMMAND_OR_REMOTE_UNAVAILABLE") from None
     if done.returncode != 0 and not okay:
         raise GitCipherArchiveError("GIT_COMMAND_OR_REMOTE_UNAVAILABLE")
@@ -135,9 +143,14 @@ def _receipt(doc, digest, run_id, producer_sha, previous_head, cohort_sha256=Non
     return receipt
 
 
-def _refresh(repo):
-    _cmd(repo,"fetch","--no-tags","origin",
-         f"refs/heads/{BRANCH}:refs/remotes/origin/{BRANCH}")
+def _refresh(repo, *, retry_on_timeout=False):
+    fetch = ("fetch", "--no-tags", "origin", f"refs/heads/{BRANCH}:refs/remotes/origin/{BRANCH}")
+    try:
+        _cmd(repo, *fetch)
+    except GitCipherFetchTimeout:
+        if not retry_on_timeout:
+            raise
+        _cmd(repo, *fetch, timeout=90)
     head=_cmd(repo,"rev-parse",f"refs/remotes/origin/{BRANCH}")[1]
     need(COMMIT.fullmatch(head), "STATE_HEAD_NOT_RETRIEVABLE")
     return head

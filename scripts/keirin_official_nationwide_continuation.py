@@ -373,6 +373,12 @@ class SettlementContext:
         self.attempted={};self.replay_attempted={};self.published_revisions=set();self.stores={}
         self.original_day_signatures={};self.original_day_attempted={}
         self.safe_holds=[]
+        self.archive_preflight_pending = True
+
+    def allow_archive_timeout_retry(self):
+        allowed = self.archive_preflight_pending and self.lease is None
+        self.archive_preflight_pending = False
+        return allowed
 
     def ensure(self,*,repo,private_root,owner_private_pem,clock,commit):
         need(not self.closed,'RESULT_CONTEXT_CLOSED')
@@ -429,7 +435,10 @@ def _hold(context,stage,code,race_id=None):
 
 def _known_days(repo,clock,context,days=None):
     now=form._aware(clock());today=now.astimezone(form.JST).date().isoformat()
-    known=records.discover_days(repo) if days is None else list(days)
+    if days is None:
+        known = records.discover_days(repo, retry_archive_timeout=context.allow_archive_timeout_retry())
+    else:
+        known = list(days)
     known=[day for day in known if day<=today]
     current=[d for d in known if d==today];older=sorted((d for d in known if d!=today),reverse=True)
     # One bounded backlog opportunity per observer window; current due originals
@@ -438,7 +447,9 @@ def _known_days(repo,clock,context,days=None):
 
 
 def _store_for_tick(repo,day,context):
-    if day not in context.stores:context.stores[day]=records.RecordStore(repo,day)
+    if day not in context.stores:
+        context.stores[day] = records.RecordStore(
+            repo, day, retry_archive_timeout=context.allow_archive_timeout_retry())
     return context.stores[day]
 
 
@@ -633,10 +644,13 @@ def settle_tick(*,repo,owner_private_pem,private_root,clock=now_utc,max_races=8,
         report['state']='OFFICIAL_SP_RESULT_POLL_COMPLETE'
         if session.halted:report['state']='HOLD_OFFICIAL_SP_PROVIDER_STOP' if session.provider_denied else 'HOLD_OFFICIAL_SP_SOURCE_UNAVAILABLE'
         return report
-    except Exception:
+    except Exception as error:
         report['state']='HOLD_OFFICIAL_SP_RESULT_GATE_OR_SOURCE_FAILED'
         report['source_unavailable']=True
-        _hold(context,'RESULT_GATE_OR_SOURCE','CONTINUATION_OR_SAVED_ARCHIVE_UNAVAILABLE')
+        if isinstance(error, archive.GitCipherFetchTimeout):
+            _hold(context, 'RESULT_ARCHIVE_FETCH', 'ENCRYPTED_ARCHIVE_FETCH_TIMEOUT')
+        else:
+            _hold(context,'RESULT_GATE_OR_SOURCE','CONTINUATION_OR_SAVED_ARCHIVE_UNAVAILABLE')
         return report
     finally:
         if context.session is not None:
