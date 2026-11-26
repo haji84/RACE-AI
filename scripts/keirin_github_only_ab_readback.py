@@ -29,6 +29,7 @@ def verify(*, report, repo, archive_head=None):
     """Check the producer receipt against Git, optionally at a fetched immutable archive tip."""
     found = set()
     rows = []
+    trial_store = None
     for row in _archived_rows(report):
         rid = row.get("race_id")
         digest = row.get("cipher_sha256")
@@ -74,12 +75,19 @@ def verify(*, report, repo, archive_head=None):
                     baseline_prediction_sha256=parent_sha, cohort_sha256=cohort_sha)
             except (ValueError, TypeError, KeyError, OSError):
                 checked["conditioned_state"] = "HOLD_CONDITIONED_SECOND_RUNNER_READBACK"
+        if 'condition_trial_sha256' in row and archive_head is not None:
+            try:
+                if trial_store is None:
+                    trial_store = official_archive.RecordStore(repo, report['day_jst'], index_commit=archive_head)
+                checked.update(official_archive.verify_condition_trial_cipher(row, trial_store))
+            except (ValueError, TypeError, KeyError, OSError):
+                checked['condition_trial_state'] = 'HOLD_CONDITION_TRIAL_SECOND_RUNNER_READBACK'
         rows.append(checked)
     day.require(len(rows) == report["new_A_B_git_archived"],
                 "ARCHIVED_COUNT_DIFFERS_FROM_SECOND_RUNNER")
     paired = sum(row["conditioned_state"] ==
                  "SECOND_RUNNER_CONDITIONED_GITHUB_SHA_CONFIRMED" for row in rows)
-    return {"schema": SCHEMA, "day_jst": report["day_jst"],
+    result = {"schema": SCHEMA, "day_jst": report["day_jst"],
             "new_archived": len(rows), "independently_verified": len(rows),
             "independently_verified_conditioned":paired,
             "paired_cipher_originals_verified":paired,
@@ -87,6 +95,10 @@ def verify(*, report, repo, archive_head=None):
             "plaintext_parent_linkage_verified":False,
             "organizer_result_verified": False,
             "records": rows}
+    if 'condition_trials_frozen' in report:
+        result['independently_verified_condition_trials'] = sum(row.get('condition_trial_state') ==
+            'SECOND_RUNNER_CONDITION_TRIAL_SHA_CONFIRMED' for row in rows)
+    return result
 
 
 def _verify_independently(report, checkout, temp_root):

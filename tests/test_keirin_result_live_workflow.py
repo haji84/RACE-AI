@@ -76,8 +76,8 @@ class LiveWorkflowTests(unittest.TestCase):
 
     def test_dossier_update_reuses_scheduled_result_run_or_source_free_dispatch(self):
         text = self.text()
-        job = text.split('  publish-rider-dossiers:\n', 1)[1]
-        self.assertIn('options: [test, saved-only, observe, rider-dossiers, dossier-context]', text)
+        job = text.split('  publish-rider-dossiers:\n', 1)[1].split('  measured-results:\n', 1)[0]
+        self.assertIn('options: [test, saved-only, observe, rider-dossiers, dossier-context, measure-results]', text)
         self.assertIn('needs: [tests, observe-results]', job)
         self.assertIn('scripts.keirin_daily_rider_update', job)
         self.assertNotIn('scripts.keirin_result_watch', job)
@@ -104,6 +104,16 @@ class LiveWorkflowTests(unittest.TestCase):
                                vars=NS(RACE_AI_AB_SOURCE_S3_PREFIX=''),
                                always=lambda: True, cancelled=lambda: False)
                 self.assertEqual(bool(eval(expression, {'__builtins__': {}}, context)), expected)
+
+    def test_measurement_is_a_separate_readback_on_existing_schedule(self):
+        job = self.text().split('  measured-results:\n', 1)[1]
+        self.assertIn('needs: [tests, observe-results]', job)
+        self.assertIn('github.ref == \'refs/heads/main\'', job)
+        self.assertIn('inputs.mode == \'measure-results\'', job)
+        self.assertIn('scripts.keirin_official_measured_outcomes', job)
+        self.assertNotIn('scripts.keirin_result_watch', job)
+        self.assertNotIn('RACE_AI_KEIRIN_OFFICIAL_SOURCE_ENABLED', job)
+        self.assertNotIn('RACE_AI_STATE_KEY', job)
 
 
 if __name__=='__main__':unittest.main()

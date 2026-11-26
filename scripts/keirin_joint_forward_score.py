@@ -5,14 +5,17 @@ supplies the externally anchored plaintext SHA and trusted publication/witness
 receipts. Cipher-only readback does not authenticate the plaintext independently.
 """
 import argparse
-from datetime import datetime, timezone
+from collections import defaultdict
+from datetime import datetime, timedelta, timezone
 from hashlib import sha256
 import json
+from math import fsum
 from pathlib import Path
 import re
 
 from race_ai.keirin_joint_forecast import validate_forecast
 from race_ai.keirin_nationwide_auto_generator import canonical, digest, when
+from race_ai import keirin_paired_measurement as measured
 from scripts import keirin_forward_score as forward
 from scripts.keirin_generate_result_unread_analysis import check_no_result_fields
 
@@ -81,6 +84,72 @@ def _identities(riders):
 def _ranked(record, market, cap):
     return [row['order'][:] for row in sorted(record[market],
             key=lambda row: (-row['probability'], row['order']))[:cap]]
+
+
+def _measurement(old, new, matched, outcomes, result_states, witness):
+    """Summarize frozen comparable orders and agreed observed returns."""
+    market_specs = dict(trifecta_top1=('trifectas', 1), trifecta_top4=('trifectas', 4),
+                        trifecta_top8=('trifectas', 8), exacta_top2=('exactas', 2),
+                        top3_set_top1=('sets', 1))
+    markets = {market: [] for market in market_specs}
+    issue_states = defaultdict(int)
+    errors = [{name: [] for name in ('rider_top1', 'rider_top2', 'rider_top3',
+                                    'trifecta_order', 'exacta_order')} for _ in measured.ARMS]
+    subgroup_market = {key: defaultdict(lambda: defaultdict(list)) for key in ('field_size', 'venue_code')}
+    published_t15 = 0
+    for rid, order in matched.items():
+        winner = tuple(order)
+        reference = outcomes[rid]['comparison']
+        cutoff = when(old[rid]['cutoff_at'])
+        published_t15 += when(witness['observed_at']) <= cutoff - timedelta(minutes=15)
+        records = (old[rid], new[rid])
+        distributions = {key: tuple(measured.distribution(record, key) for record in records)
+                         for key in ('trifectas', 'exactas')}
+        distributions['sets'] = tuple(measured.top3_sets(values) for values in distributions['trifectas'])
+        for name, (key, points) in market_specs.items():
+            target, payout = {
+                'trifectas': (winner, reference['payouts_100yen']['3t']),
+                'exactas': (winner[:2], reference['payouts_100yen']['2t']),
+                'sets': (tuple(sorted(winner)), None),
+            }[key]
+            row = measured.observe_market(rid, cutoff, points, distributions[key], target, payout)
+            if row is None:
+                issue_states[name] += 1
+                continue
+            markets[name].append(row)
+            if name in measured.PRIMARY:
+                subgroup_market['field_size'][str(len(old[rid]['cars']))][name].append(row)
+                subgroup_market['venue_code'][rid[8:10]][name].append(row)
+        for side, record in enumerate(records):
+            for name, key, target in (('trifecta_order', 'trifectas', winner), ('exacta_order', 'exactas', winner[:2])):
+                errors[side][name].append(measured.distribution_score(distributions[key][side], target))
+            for rank in (1, 2, 3):
+                top = winner[:rank]
+                errors[side][f'rider_top{rank}'].extend(
+                    measured.binary_score(fsum(rider['rank_probabilities'][:rank]), rider['car'] in top)
+                    for rider in record['riders'])
+    return dict(schema='KEIRIN_PAIRED_MEASUREMENT_V1', result_authority='TWO_SOURCE_PUBLISHED_REFERENCE',
+                coverage=dict(registered=len(old), matched_results=len(matched),
+                              held_result_or_refund_review=result_states.get('held', 0),
+                              pending_results=result_states.get('pending', 0),
+                              missing_results=result_states.get('missing', 0),
+                              matched_pairs_with_published_t15_witness=published_t15,
+                              official_t15_matched_pairs=0,
+                              official_t15_progress={str(target): False for target in measured.MILESTONES}),
+                adoption_status='HOLD_RESEARCH_REFERENCE_ONLY',
+                interval_scope='EXPLORATORY_NOMINAL_WILSON_RACES_UNCLUSTERED',
+                log_probability_floor=measured.LOG_FLOOR,
+                markets={k: dict(**measured.summarize_market(values, k),
+                                 insufficient_distinct_orders_pairs=issue_states[k])
+                         for k, values in markets.items()},
+                probability_scores={side: {k: measured.average_scores(values) for k, values in errors[index].items()}
+                                    for index, side in enumerate(measured.ARMS)},
+                subgroups={axis: {key: {name: measured.summarize_market(markets_[name], name, detail=False)
+                                        for name in measured.PRIMARY} for key, markets_ in sorted(groups.items())}
+                           for axis, groups in subgroup_market.items()},
+                unavailable=['COMPLETE_OBSERVED_FINISH_ORDER', 'OFFICIAL_SALES_CUTOFF', 'OFFICIAL_PAYOUT_REVISION',
+                             'MARKET_BENCHMARK', 'STARTER_REFUND_AFFECTED_TICKETS',
+                             'INDEPENDENT_VERIFIED_RACE_FLOW', 'MEETING_GRADE_ROUND_SUBGROUPS'])
 
 
 def _publication(note, publication, witness, expected_sha, now):
@@ -177,11 +246,13 @@ def score_joint(note_raw, publication_raw, witness_raw, roster_raw, results_raw,
     exacta = dict(matched=0, tickets_per_arm=0, published_hits=0, trial_hits=0)
     results = forward.unique_races(outcomes)
     checked_at = when(outcomes['checked_at'])
+    matched = {}
     for rid in sorted(ids):
         outcome = results.get(rid)
         if outcome is None or outcome['state'] != 'matched':
             continue
         winner = forward.confirmed_order(outcome, old[rid]['cutoff_at'], set(old[rid]['cars']), checked_at)
+        matched[rid] = winner
         for cap in (1, 4, 8):
             values = nested[str(cap)]
             values['matched'] += 1
@@ -193,6 +264,7 @@ def score_joint(note_raw, publication_raw, witness_raw, roster_raw, results_raw,
         for side, record in (('published', old[rid]), ('trial', new[rid])):
             exacta[side+'_hits'] += winner[:2] in _ranked(record, 'exactas', 2)
     report.update(trifecta_by_points=nested, exacta_top2=exacta,
+        measured_comparison=_measurement(old, new, matched, results, report['result_states'], witness),
         original_note_sha256=expected_note_sha256, archive_pointer=archive_pointer,
         publication_receipt_sha256=sha256(publication_raw).hexdigest(),
         independent_witness_sha256=sha256(witness_raw).hexdigest(),
