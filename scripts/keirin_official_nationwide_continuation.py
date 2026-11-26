@@ -321,6 +321,12 @@ def _baseline_hold_reason(error):
     return 'BASELINE_VALIDATION_OR_OPERATION_HELD'
 
 
+def _archive_batch_deadline(cutoffs, reserve):
+    # A pending original can use the full reserve before the next write starts.
+    return min(cutoff - position * reserve
+               for position, cutoff in enumerate(sorted(cutoffs), start=1))
+
+
 def run_capture(*,repo,private_root,owner_public_pem,owner_private_pem,day=None,clock=now_utc,max_races=4):
     repo,root,day,public,commit=_runtime(repo=repo,private_root=private_root,owner_public_pem=owner_public_pem,
         owner_private_pem=owner_private_pem,day=day,clock=clock,mode='capture')
@@ -372,9 +378,10 @@ def run_capture(*,repo,private_root,owner_public_pem,owner_private_pem,day=None,
         report.update(registered_races=len(states),day_inventory_complete=registry['day_inventory_complete'])
         for rid in registry['disappeared_race_ids']:states[rid]['state']='RACE_DISAPPEARED_FROM_CURRENT_LIST'
         _save_registry(store,inventory,states,source_attempts,prior,public,clock)
-        cohort=records.cohort(registry);attempted=0;earliest_frozen_cutoff=None
+        cohort=records.cohort(registry);attempted=0
         finalization_reserve = timedelta(seconds=sources.CAPTURE_FINALIZATION_SECONDS)
-        history_margin = finalization_reserve + timedelta(seconds=sources.CONDITION_DURATION_SECONDS)
+        request_reserve = timedelta(seconds=sources.CAPTURE_LEASE_RESERVE_SECONDS)
+        history_duration = timedelta(seconds=sources.CONDITION_DURATION_SECONDS)
         required_calls = BASELINE_RACE_REQUESTS + BASELINE_SHARED_REQUESTS + CLASS_EVIDENCE_REQUESTS
         from race_ai.keirin_official_class_evidence import collect_unknown_class_evidence, replay_cutoff_hints, LABEL
         fresh_cutoffs = _probe_capture_cutoffs(session, inventory, store, required_calls, clock)
@@ -382,7 +389,8 @@ def run_capture(*,repo,private_root,owner_public_pem,owner_private_pem,day=None,
         saved_cutoffs = replay_cutoff_hints(previous, inventory, now=now)
         ordered = _prioritize_capture_races(registry['races'], source_attempts, saved_cutoffs, fresh_cutoffs, now)
         baseline_holds = Counter()
-        for index, race in enumerate(ordered):
+        ready = []
+        for race in ordered:
             rid=race['race_id'];row=states[rid]
             if _baseline_already_exists(store,rid):row['state']='FROZEN_ORIGINAL_PRESERVED';continue
             if race['source_state']=='RESULT_PUBLISHED':row['state']='PUBLISHED_RESULT_NO_PRE_CUTOFF_ORIGINAL';continue
@@ -390,10 +398,13 @@ def run_capture(*,repo,private_root,owner_public_pem,owner_private_pem,day=None,
                 row['state']='UNSUPPORTED_CLASS_OR_ROUND';continue
             if session.halted:
                 row['state']='PROVIDER_STOPPED' if session.provider_denied else 'SOURCE_UNAVAILABLE';continue
-            if (earliest_frozen_cutoff is not None and (earliest_frozen_cutoff-form._aware(clock())).total_seconds()
-                    < sources.CAPTURE_START_MARGIN_SECONDS):
-                row['state']='SOURCE_CAPTURE_BUDGET_PENDING';continue
             if attempted>=max_races:row['state']='SOURCE_CAPTURE_BUDGET_PENDING';continue
+            if ready:
+                deadline = _archive_batch_deadline([cutoff for cutoff, _, _ in ready], finalization_reserve)
+                # Leave a write slot for this candidate in addition to the queued originals.
+                session.capture_deadline = deadline - finalization_reserve
+                if session.capture_deadline - form._aware(clock()) < request_reserve:
+                    row['state']='SOURCE_CAPTURE_BUDGET_PENDING';continue
             if not session.has_capture_capacity(required_calls, seconds=(
                     sources.CAPTURE_LEASE_RESERVE_SECONDS + required_calls * sources.REQUEST_SPACING_SECONDS)):
                 row['state']='SOURCE_UNAVAILABLE' if session.halted else 'SOURCE_CAPTURE_BUDGET_PENDING'
@@ -411,17 +422,22 @@ def run_capture(*,repo,private_root,owner_public_pem,owner_private_pem,day=None,
                 if row['state'] in ('CUTOFF_MARGIN_INSUFFICIENT', 'BASELINE_SOURCE_UNVERIFIED'):
                     baseline_holds[_baseline_hold_reason(exc)] += 1
                 continue
+            ready.append((form._aware(candidate['snapshot']['published_cutoff_at']), rid, candidate))
+
+        # Optional history uses the same leased provider. If it stops, every
+        # baseline already collected can still be frozen and read back.
+        ready.sort(key=lambda entry: entry[0])
+        cutoffs = [cutoff for cutoff, _, _ in ready]
+        readback_deadline = cutoffs[0] - finalization_reserve if cutoffs else None
+        for index, (_, rid, candidate) in enumerate(ready):
+            row = states[rid]
+            session.capture_deadline = min(readback_deadline,
+                _archive_batch_deadline(cutoffs[index:], finalization_reserve))
             joined=manifest=None;condition_state='HISTORY_NOT_COLLECTED'
-            remaining_baselines = min(max_races - attempted, len(ordered) - index - 1)
-            next_calls = CLASS_EVIDENCE_REQUESTS
-            if remaining_baselines:
-                next_calls += BASELINE_SHARED_REQUESTS + remaining_baselines * BASELINE_RACE_REQUESTS
-            cutoff = form._aware(candidate['snapshot']['published_cutoff_at'])
-            earliest_cutoff = min(cutoff, earliest_frozen_cutoff or cutoff)
-            if earliest_cutoff > form._aware(clock()) + history_margin and session.has_capture_capacity(
-                    sources.CONDITION_REQUEST_LIMIT + next_calls, seconds=(
+            if not session.halted and session.capture_deadline > form._aware(clock()) + history_duration and session.has_capture_capacity(
+                    sources.CONDITION_REQUEST_LIMIT + CLASS_EVIDENCE_REQUESTS, seconds=(
                         sources.CAPTURE_LEASE_RESERVE_SECONDS + sources.CONDITION_DURATION_SECONDS
-                        + next_calls * sources.REQUEST_SPACING_SECONDS)):
+                        + CLASS_EVIDENCE_REQUESTS * sources.REQUEST_SPACING_SECONDS)):
                 try:
                     manifest=sources.collect_conditions(session=session,candidate=candidate,clock=clock)
                     args=candidate['arguments']
@@ -442,14 +458,12 @@ def run_capture(*,repo,private_root,owner_public_pem,owner_private_pem,day=None,
                     public=public,root=root,clock=clock,commit=commit,cohort=cohort,
                     condition_history=condition_history)
                 report['new_encrypted_originals'].append(saved)
-                earliest_frozen_cutoff=earliest_cutoff
-                session.capture_deadline=earliest_frozen_cutoff-finalization_reserve
                 row.update(state='A_B_ARCHIVED_AWAITING_INDEPENDENT_READBACK',condition_state=condition_state)
             except (ValueError,KeyError,TypeError,OSError):
                 row.update(state='FROZEN_ARCHIVE_UNVERIFIED',condition_state=condition_state)
             _save_registry(store,inventory,states,source_attempts,prior,public,clock)
-        if not session.halted and (earliest_frozen_cutoff is None or
-                form._aware(clock())<earliest_frozen_cutoff-finalization_reserve):
+        session.capture_deadline = readback_deadline
+        if not session.halted and (readback_deadline is None or form._aware(clock()) < readback_deadline):
             if session.has_capture_capacity(CLASS_EVIDENCE_REQUESTS, seconds=(
                     sources.CAPTURE_LEASE_RESERVE_SECONDS + CLASS_EVIDENCE_REQUESTS * sources.REQUEST_SPACING_SECONDS)):
                 try:

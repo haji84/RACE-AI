@@ -345,34 +345,59 @@ class RunnerTests(unittest.TestCase):
         self.assertEqual(out['new_A_B_git_archived'],0)
         self.assertFalse(any(r['kind']=='original' for r in store.saved))
 
-    def test_eight_baselines_and_class_samples_fit_after_two_full_history_attempts(self):
+    def capture_batch_fixture(self, *, history_http_error=None, first_cutoff_seconds=3600, first_collection_seconds=0):
         api = self.api()
         inventory, _ = cutoff_fixture((97, 98, 99))
         store = FakeStore('/synthetic', DAY)
         lease = FakeLease()
         session = Mock(halted=False, provider_denied=False, count=11, safe_diagnostics=[])
         session.has_capture_capacity.side_effect = lambda requests, *, seconds: session.count + requests <= 300
+        calls = []
         generated = []
+        now = AT
 
         def collect_baseline(*, session, inventory, race, clock):
+            nonlocal now
+            self.assertFalse(session.halted)
             session.count += 11 if generated else 18
-            generated.append(race['race_id'])
-            return dict(snapshot=dict(published_cutoff_at=(AT+timedelta(hours=1)).isoformat()))
+            rid = race['race_id']
+            calls.append(('baseline', rid))
+            cutoff = AT + timedelta(seconds=3600 if generated else first_cutoff_seconds)
+            if not generated:
+                now += timedelta(seconds=first_collection_seconds)
+            generated.append(rid)
+            return dict(snapshot=dict(race_id=rid, published_cutoff_at=cutoff.isoformat()))
 
-        def collect_history(**kwargs):
+        def collect_history(*, candidate, **kwargs):
+            self.assertFalse(session.halted)
+            calls.append(('history', candidate['snapshot']['race_id']))
+            if history_http_error is not None:
+                session.count += 1
+                session.halted = True
+                session.provider_denied = history_http_error == 403
+                raise api.sources.SourceError('OFFICIAL_CONTINUATION_SOURCE_HTTP_UNAVAILABLE')
             session.count += 90
             raise api.sources.CaptureBudgetPending('CONDITION_CAPTURE_BUDGET')
 
         def collect_classes(**kwargs):
+            self.assertFalse(session.halted)
             session.count += 6
             return {'safe_summary': []}
+
+        def seal(*, candidate, condition_state, **kwargs):
+            nonlocal now
+            rid = candidate['snapshot']['race_id']
+            calls.append(('archive', rid))
+            self.assertLess(now, datetime.fromisoformat(candidate['snapshot']['published_cutoff_at']))
+            now += timedelta(seconds=1)
+            return {'race_id': rid}, condition_state
 
         runtime = (Path('/synthetic'), Path('/private'), DAY, self.public, 'a'*40)
         with (patch.dict('os.environ',{'GITHUB_RUN_ID':'123456789','GITHUB_SHA':'a'*40}),
               patch.object(api,'_runtime',return_value=runtime),
               patch.object(api,'_begin_lease',return_value=lease),
               patch.object(api,'_baseline_already_exists',return_value=False),
-              patch.object(api,'_seal_and_archive',return_value=({},'HISTORY_NOT_COLLECTED')),
+              patch.object(api,'_seal_and_archive',side_effect=seal),
               patch.object(api.records,'RecordStore',return_value=store),
               patch.object(api.capture_files,'_private_directory',return_value=Path('/private')),
               patch.object(api.sources,'OfficialSourceSession',return_value=session),
@@ -383,7 +408,11 @@ class RunnerTests(unittest.TestCase):
               patch('race_ai.keirin_official_class_evidence.collect_unknown_class_evidence',
                     side_effect=collect_classes) as classes):
             result = api.run_capture(repo='/synthetic',private_root='/private',owner_public_pem='/public',
-                owner_private_pem=self.private,day=DAY,clock=lambda:AT,max_races=8)
+                owner_private_pem=self.private,day=DAY,clock=lambda:now,max_races=8)
+        return result, store, lease, calls, generated, history, classes
+
+    def test_eight_baselines_and_class_samples_fit_with_two_full_history_attempts(self):
+        result, store, lease, _, generated, history, classes = self.capture_batch_fixture()
         self.assertEqual(result['new_A_B_git_archived'],8)
         self.assertEqual(history.call_count,2)
         classes.assert_called_once()
@@ -391,6 +420,30 @@ class RunnerTests(unittest.TestCase):
         self.assertEqual(result['statuses']['SOURCE_CAPTURE_BUDGET_PENDING'],1)
         self.assertEqual(store.saved[-1]['payload']['source_attempt_counts'],dict.fromkeys(generated,1))
         self.assertEqual(lease.finished,['PARTIAL'])
+
+    def test_history_stop_archives_every_validated_baseline_without_further_source_calls(self):
+        for status in (502, 403):
+            with self.subTest(status=status):
+                result, store, lease, calls, generated, history, classes = self.capture_batch_fixture(
+                    history_http_error=status)
+                self.assertEqual(result['registered_races'], 9)
+                self.assertEqual(result['new_A_B_git_archived'], 8)
+                self.assertEqual(result['source_requests'], 107)
+                self.assertEqual(result['provider_denied'], status == 403)
+                self.assertEqual(calls, [('baseline', rid) for rid in generated]
+                                 + [('history', generated[0])] + [('archive', rid) for rid in generated])
+                history.assert_called_once()
+                classes.assert_not_called()
+                self.assertEqual(store.saved[-1]['payload']['source_attempt_counts'], dict.fromkeys(generated, 1))
+                self.assertEqual(lease.finished, ['PROVIDER_STOPPED' if status == 403 else 'PARTIAL'])
+
+    def test_near_cutoff_baseline_is_archived_before_the_reserve_is_spent_on_more_cards(self):
+        result, _, _, calls, generated, history, _ = self.capture_batch_fixture(
+            first_cutoff_seconds=415, first_collection_seconds=65)
+        self.assertEqual(result['new_A_B_git_archived'], 1)
+        self.assertEqual(result['statuses']['SOURCE_CAPTURE_BUDGET_PENDING'], 8)
+        self.assertEqual(calls, [('baseline', generated[0]), ('archive', generated[0])])
+        history.assert_not_called()
 
     def test_later_capture_uses_the_saved_queue_after_early_source_holds(self):
         from tests.test_keirin_official_sp_receipt import AT, DAY, calendar_receipt, html, list_data
