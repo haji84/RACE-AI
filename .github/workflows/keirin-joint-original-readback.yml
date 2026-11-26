@@ -7,6 +7,8 @@ on:
       - '.github/workflows/keirin-joint-original-readback.yml'
       - 'race_ai/keirin_joint_finish.py'
       - 'race_ai/keirin_joint_forecast.py'
+      - 'race_ai/keirin_public_rank_distribution.py'
+      - 'scripts/keirin_publish_rank_exhibit.py'
       - 'scripts/keirin_joint_original_readback.py'
       - 'scripts/keirin_joint_readback_http.py'
       - 'scripts/keirin_joint_recovery_score.py'
@@ -16,6 +18,8 @@ on:
       - 'tests/test_keirin_joint_forecast.py'
       - 'tests/test_keirin_joint_original_readback.py'
       - 'tests/test_keirin_joint_readback_http.py'
+      - 'tests/test_keirin_public_rank_distribution.py'
+      - 'tests/test_keirin_publish_rank_exhibit.py'
       - 'docs/evidence/keirin-live-accuracy-closure-20261125/joint-original-rsa-recovery.json'
       - 'docs/evidence/keirin-live-accuracy-closure-20261125/independent-runner-readback.json'
   push:
@@ -30,6 +34,14 @@ on:
       - 'race_ai/keirin_secondary_result_consensus.py'
       - 'docs/evidence/keirin-live-accuracy-closure-20261125/joint-original-rsa-recovery.json'
   workflow_dispatch:
+    inputs:
+      mode:
+        description: 'Score the original or also prepare the archived public dossier exhibit'
+        type: choice
+        options:
+          - decrypt-and-score
+          - publish-dossier
+        default: decrypt-and-score
   workflow_run:
     workflows: ['KEIRIN public Site result updates']
     branches: [main]
@@ -57,7 +69,8 @@ jobs:
             tests.test_keirin_forward_score tests.test_keirin_joint_forward_score \
             tests.test_keirin_joint_recovery_score tests.test_keirin_published_result_validation \
             tests.test_keirin_flow_evaluation tests.test_keirin_form_fall_blind_pdca \
-            tests.test_keirin_race_development -v
+            tests.test_keirin_race_development tests.test_keirin_public_rank_distribution \
+            tests.test_keirin_publish_rank_exhibit -v
       - name: Verify public witness metadata with the existing read token
         if: github.event_name != 'workflow_run'
         env:
@@ -84,7 +97,8 @@ jobs:
   independent-owner-readback:
     needs: contracts
     if: >-
-      github.repository == 'haji84/RACE-AI' && github.ref == 'refs/heads/main' &&
+      github.repository == 'haji84/RACE-AI' && github.repository_id == '1416489937' &&
+      github.ref == 'refs/heads/main' &&
       github.event_name != 'pull_request' &&
       (github.event_name != 'workflow_run' ||
        ((github.event.workflow_run.conclusion == 'success' || github.event.workflow_run.conclusion == 'failure') &&
@@ -203,7 +217,10 @@ jobs:
               raise SystemExit('HOLD_JOINT_RECOVERY_PINNED_CIPHERTEXT_UNAVAILABLE') from None
           PY
       - name: Independently decrypt and score the same original after result updates
-        if: steps.capture.outputs.run_score == 'true'
+        id: independent-score
+        if: >-
+          steps.capture.outputs.run_score == 'true' &&
+          (inputs.mode != 'publish-dossier' || (github.event_name == 'workflow_dispatch' && github.ref_protected))
         env:
           RACE_AI_KEIRIN_PRIVATE_RSA_PEM: ${{ secrets.RACE_AI_KEIRIN_PRIVATE_RSA_PEM }}
         shell: bash
@@ -235,6 +252,37 @@ jobs:
           (folder/'score-report.json').write_text(json.dumps(report, ensure_ascii=False, sort_keys=True)+'\n')
           PY
           cat "$RUNNER_TEMP/keirin-joint-independent/score-report.json" | tee -a "$GITHUB_STEP_SUMMARY"
+      - name: Fetch the pinned public named roster without a key
+        id: named-roster
+        if: >-
+          steps.capture.outputs.run_score == 'true' && steps.independent-score.outcome == 'success' &&
+          inputs.mode == 'publish-dossier' &&
+          github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main' &&
+          github.ref_protected && github.repository == 'haji84/RACE-AI' && github.repository_id == '1416489937'
+        run: |
+          umask 077
+          python -m scripts.keirin_publish_rank_exhibit fetch-named-roster
+      - name: Project the independently verified research rank exhibit
+        id: rank-exhibit
+        if: >-
+          steps.capture.outputs.run_score == 'true' && steps.independent-score.outcome == 'success' &&
+          steps.named-roster.outcome == 'success' &&
+          inputs.mode == 'publish-dossier' && github.event_name == 'workflow_dispatch' &&
+          github.ref == 'refs/heads/main' && github.ref_protected &&
+          github.repository == 'haji84/RACE-AI' && github.repository_id == '1416489937'
+        env:
+          RACE_AI_KEIRIN_PRIVATE_RSA_PEM: ${{ secrets.RACE_AI_KEIRIN_PRIVATE_RSA_PEM }}
+        run: |
+          umask 077
+          python -m scripts.keirin_publish_rank_exhibit project
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        if: steps.rank-exhibit.outcome == 'success'
+        with:
+          name: keirin-joint-verified-rank-exhibit-${{ github.run_id }}
+          path: |
+            ${{ runner.temp }}/keirin-joint-independent/rank-distribution.json
+            ${{ runner.temp }}/keirin-joint-independent/rank-validation.json
+          if-no-files-found: error
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         if: always()
         with:

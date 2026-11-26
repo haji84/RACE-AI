@@ -18,6 +18,12 @@ on:
       - 'race_ai/keirin_official_source_continuation.py'
       - 'race_ai/keirin_official_nationwide_*.py'
       - 'race_ai/keirin_official_rider_history.py'
+      - 'race_ai/keirin_dossier_ability.py'
+      - 'race_ai/keirin_dossier_race_context.py'
+      - 'scripts/keirin_publish_rider_context.py'
+      - 'tests/test_keirin_dossier_ability.py'
+      - 'tests/test_keirin_dossier_race_context.py'
+      - 'tests/test_keirin_publish_rider_context.py'
       - 'race_ai/keirin_public_forecasts.py'
       - 'scripts/keirin_daily_rider_update.py'
       - 'tests/test_keirin_daily_rider_update.py'
@@ -57,6 +63,12 @@ on:
       - 'race_ai/keirin_official_source_continuation.py'
       - 'race_ai/keirin_official_nationwide_*.py'
       - 'race_ai/keirin_official_rider_history.py'
+      - 'race_ai/keirin_dossier_ability.py'
+      - 'race_ai/keirin_dossier_race_context.py'
+      - 'scripts/keirin_publish_rider_context.py'
+      - 'tests/test_keirin_dossier_ability.py'
+      - 'tests/test_keirin_dossier_race_context.py'
+      - 'tests/test_keirin_publish_rider_context.py'
       - 'race_ai/keirin_public_forecasts.py'
       - 'scripts/keirin_daily_rider_update.py'
       - 'tests/test_keirin_daily_rider_update.py'
@@ -88,7 +100,11 @@ on:
         type: choice
         required: true
         default: test
-        options: [test, saved-only, observe, rider-dossiers]
+        options: [test, saved-only, observe, rider-dossiers, dossier-context]
+      dossier_day:
+        type: string
+        description: JST day for source-free dossier replay
+        required: false
   schedule:
     # Start/recover the bounded observer during 08:00-23:59 JST.
     # GitHub may delay starts; this is not a push or wall-clock latency SLA.
@@ -139,6 +155,9 @@ jobs:
             tests.test_keirin_official_nationwide_sources \
             tests.test_keirin_official_nationwide_records \
             tests.test_keirin_daily_rider_update \
+            tests.test_keirin_dossier_ability \
+            tests.test_keirin_dossier_race_context \
+            tests.test_keirin_publish_rider_context \
             tests.test_keirin_official_rider_history \
             tests.test_keirin_official_continuation_workflow \
             tests.test_keirin_nationwide_forecast_view \
@@ -187,7 +206,7 @@ jobs:
       vars.RACE_AI_AB_SOURCE_S3_PREFIX == '' &&
       (github.event_name == 'schedule' ||
        (github.event_name == 'workflow_dispatch' && needs.tests.result == 'success' &&
-        (inputs.mode == 'saved-only' || inputs.mode == 'observe')))
+        (inputs.mode == 'saved-only' || inputs.mode == 'observe' || inputs.mode == 'dossier-context')))
     runs-on: ubuntu-24.04
     timeout-minutes: 15
     permissions:
@@ -212,11 +231,17 @@ jobs:
           GITHUB_TOKEN: ${{ github.token }}
           RACE_AI_KEIRIN_PRIVATE_RSA_PEM: ${{ secrets.RACE_AI_KEIRIN_PRIVATE_RSA_PEM }}
           RESULT_MODE: ${{ inputs.mode || 'observe' }}
+          DOSSIER_DAY: ${{ inputs.dossier_day }}
         run: |
           set -euo pipefail
           python -m pip install --disable-pip-version-check 'cryptography>=44,<48' 'beautifulsoup4>=4.12,<5'
           root="$RUNNER_TEMP/keirin-result-live-$GITHUB_RUN_ID"
           mkdir -m 700 -p "$root/private" "$root/safe"
+          if [ "$RESULT_MODE" = dossier-context ]; then
+            python -m scripts.keirin_publish_rider_context --repo "$GITHUB_WORKSPACE" \
+              --day "$DOSSIER_DAY" | tee "$root/safe/summary.json" "$GITHUB_STEP_SUMMARY"
+            exit 0
+          fi
           status=0
           python -m scripts.keirin_result_watch \
             --mode "$RESULT_MODE" \

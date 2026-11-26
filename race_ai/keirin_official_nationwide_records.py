@@ -426,17 +426,20 @@ def admit_original(store, payload, owner_private_pem, *, origin_client=None, pac
 
 
 def load_admitted_day(repo, owner_private_pem, day, *, origin_client=None, clock=None, partial_read=False,
-                      include_starters=False):
+                      index_commit=None, include_starters=False, include_dossier_context=False):
     pipeline.check_owner_private_key(owner_private_pem)
     if include_starters:
         from scripts.keirin_public_rider_projection import project_sp_starter_row
-    store=RecordStore(repo,day,partial_read=partial_read);registry=None;states={}
+    if include_dossier_context:
+        from race_ai.keirin_dossier_race_context import project_sp_context
+    store=RecordStore(repo,day,partial_read=partial_read,index_commit=index_commit);registry=None;states={}
     observed=form._aware((clock or (lambda:datetime.now(timezone.utc)))()).isoformat()
     if store.index['registry']:
         payload=store.read(store.index['registry'],owner_private_pem);registry=replay_registry(payload)
         states={row['race_id']:deepcopy(row) for row in payload['states']};observed=payload['observed_at']
     originals=[];cache={}
     starter_rows=[];starter_source_holds=0
+    dossier_rows=[];dossier_holds=0
     for rid,meta in sorted(store.index['originals'].items()):
         state=states.setdefault(rid,dict(race_id=rid,state='FROZEN_ARCHIVE_UNVERIFIED',condition_state='NO_CONDITIONED_ORIGINAL'))
         try:
@@ -453,6 +456,11 @@ def load_admitted_day(repo, owner_private_pem, day, *, origin_client=None, clock
                                                                admitted['snapshot']))
                 except (ValueError,KeyError,TypeError):
                     starter_source_holds+=1
+            if include_dossier_context:
+                try:
+                    dossier_rows.append(project_sp_context(payload, admitted))
+                except (ValueError,KeyError,TypeError,OverflowError):
+                    dossier_holds+=1
     need(registry is not None or not store.index['originals'],'REGISTRY_REQUIRED_FOR_ORIGINALS')
     if registry is not None:
         need(set(store.index['originals'])<=set(registry['registered_race_ids']),'REGISTRY_LOST_ORIGINAL')
@@ -461,6 +469,8 @@ def load_admitted_day(repo, owner_private_pem, day, *, origin_client=None, clock
                 states=sorted(states.values(),key=lambda r:r['race_id']),observed_at=observed)
     if include_starters:
         result.update(starter_rows=starter_rows,starter_source_holds=starter_source_holds)
+    if include_dossier_context:
+        result.update(dossier_rows=dossier_rows,dossier_holds=dossier_holds)
     return result
 
 

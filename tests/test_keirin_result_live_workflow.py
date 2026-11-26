@@ -35,10 +35,12 @@ class LiveWorkflowTests(unittest.TestCase):
                 ({'event':'workflow_dispatch','mode':'saved-only','source':'false','store':'false'},True),
                 ({'event':'workflow_dispatch','mode':'saved-only','tests':'failure'},False),
                 ({'event':'workflow_dispatch','mode':'observe','tests':'failure'},False),
+                ({'event':'workflow_dispatch','mode':'dossier-context','tests':'failure'},False),
                 ({'event':'workflow_dispatch','mode':'test'},False),
                 ({'event':'push'},False),({'cancelled':True},False),
                 ({'prefix':'external-source'},False),
-                ({'event':'workflow_dispatch','mode':'observe'},True)]:
+                ({'event':'workflow_dispatch','mode':'observe'},True),
+                ({'event':'workflow_dispatch','mode':'dossier-context'},True)]:
             v=dict(event='schedule',ref='refs/heads/main',repo='haji84/RACE-AI',id='1416489937',
                    source='true',store='true',mode='observe',tests='success',cancelled=False,prefix='');v.update(changes)
             context=dict(github=NS(event_name=v['event'],ref=v['ref'],repository=v['repo'],repository_id=v['id']),
@@ -75,11 +77,16 @@ class LiveWorkflowTests(unittest.TestCase):
     def test_dossier_update_reuses_scheduled_result_run_or_source_free_dispatch(self):
         text = self.text()
         job = text.split('  publish-rider-dossiers:\n', 1)[1]
-        self.assertIn('options: [test, saved-only, observe, rider-dossiers]', text)
+        self.assertIn('options: [test, saved-only, observe, rider-dossiers, dossier-context]', text)
         self.assertIn('needs: [tests, observe-results]', job)
         self.assertIn('scripts.keirin_daily_rider_update', job)
         self.assertNotIn('scripts.keirin_result_watch', job)
         self.assertNotIn('RACE_AI_STATE_KEY', job)
+        observer = self.job()
+        manual = observer.split('if [ "$RESULT_MODE" = dossier-context ]; then',1)[1].split('          fi',1)[0]
+        self.assertIn('scripts.keirin_publish_rider_context', manual)
+        self.assertIn('exit 0', manual)
+        self.assertNotIn('scripts.keirin_result_watch', manual)
         expression = job.split('    if: >-\n', 1)[1].split('    runs-on:', 1)[0]
         expression = ' '.join(expression.split()).replace('&&', ' and ').replace('||', ' or ').replace('!cancelled()', 'not cancelled()')
         for event, ref, mode, tests, expected in [
