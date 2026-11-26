@@ -195,6 +195,7 @@ class PinnedArchiveTests(unittest.TestCase):
             unrelated_blob.write_bytes(b'fixture unrelated archive blob')
             git(source, 'add', '--', unrelated_blob.name)
             git(source, 'commit', '-qm', 'fixture base')
+            ancestor = git(source, 'rev-parse', 'HEAD')
             unrelated_sha = git(source, 'rev-parse', 'HEAD:unrelated')
             for day in (DAY, '2026-11-24'):
                 index = source / records.ROOT / day / 'index.json'
@@ -222,3 +223,9 @@ class PinnedArchiveTests(unittest.TestCase):
                 records.RecordStore(reader, DAY, index_commit=foreign, synthetic_local=True)
             with self.assertRaises(ValueError):
                 records.discover_days_at(reader, foreign, synthetic_local=True)
+            self.assertNotEqual(archive._cmd(reader, 'merge-base', '--is-ancestor', ancestor, head,
+                                              okay=True)[0], 0)
+            complete_head = records.fetch_partial_head(reader, synthetic_local=True, with_ancestry=True)
+            self.assertEqual(complete_head, head)
+            git(reader, 'merge-base', '--is-ancestor', ancestor, head)
+            self.assertIn('?' + unrelated_sha, git(reader, 'rev-list', '--objects', '--missing=print', head))

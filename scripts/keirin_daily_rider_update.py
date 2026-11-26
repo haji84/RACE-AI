@@ -1,5 +1,6 @@
 """Publish daily numeric finish counts from the existing verified result archive."""
 import argparse
+from collections import Counter
 from datetime import date, datetime, timedelta, timezone
 from hashlib import sha256
 import json
@@ -209,13 +210,12 @@ def _archive_indexes(reader, head, days, root):
     if not paths:
         return {}
     _, listing = archive._cmd(reader, '--no-replace-objects', 'ls-tree', '-z', '--full-tree',
-                              head, '--', *paths)
+                              head, '--', *sorted(paths))
     result = {}
     for record in filter(None, listing.split('\0')):
         match = re.fullmatch(r'100644 blob ([0-9a-f]{40})\t(.+)', record)
         need(match is not None and match[2] in paths and paths[match[2]] not in result, 'ARCHIVE_INDEX')
         result[paths[match[2]]] = match[1]
-    need(set(result) == set(days), 'MISSING_ARCHIVE_INDEX')
     return result
 
 
@@ -231,17 +231,19 @@ def refresh(repo, reader, owner_private_pem, *, clock=lambda: datetime.now(timez
     parent, prior = read_latest(store)
     known = {row['day']: row for row in prior['days']} if prior else {}
     as_of = clock()
-    today = as_of.astimezone(JST).date().isoformat()
+    today = as_of.astimezone(JST).date()
     first = _window_start(as_of)
-    head = records.fetch_partial_head(reader)
-    dated = [day for day in records.discover_days_at(reader, head)
-             if day in known or (BASE_DAY < day <= today and first <= day)]
+    head = records.fetch_partial_head(reader, with_ancestry=True)
+    # Exact paths keep discovery bounded as prior seasons accumulate in Git.
+    elapsed_days = (today - date.fromisoformat(BASE_DAY)).days
+    dated = set(known) | {(today - timedelta(days=age)).isoformat()
+                          for age in range(min(MAX_DAYS, elapsed_days))}
     indexes = _archive_indexes(reader, head, dated, records.ROOT)
     need(known.keys() <= indexes.keys(), 'ARCHIVED_DAYS_MISSING')
     dirty = sorted(day for day, oid in indexes.items()
                    if first <= day and known.get(day, {}).get('archive_index') != oid)
     ready = []
-    holds = 0
+    holds = Counter()
     for day in dirty:
         try:
             selected_store = records.RecordStore(reader, day, index_commit=head)
@@ -255,13 +257,13 @@ def refresh(repo, reader, owner_private_pem, *, clock=lambda: datetime.now(timez
                 continue
             ready.append((day, selected_store))
         except (ValueError, KeyError, TypeError, OSError, TimeoutExpired):
-            holds += 1
+            holds['archive_index'] += 1
     selected = ready
     if len(ready) > MAX_REPLAYS:
         # Earlier corrections rotate by JST day so held records cannot monopolize
         # every run. Leave two slots for the most recent changed dates.
         earlier, recent = ready[:-2], ready[-2:]
-        cursor = date.fromisoformat(today).toordinal() % len(earlier)
+        cursor = today.toordinal() % len(earlier)
         selected = recent + (earlier[cursor:] + earlier[:cursor])[:MAX_REPLAYS - 2]
     pending = {}
     for day, selected_store in selected:
@@ -269,7 +271,7 @@ def refresh(repo, reader, owner_private_pem, *, clock=lambda: datetime.now(timez
             pending[indexes[day]] = checked_day(history.project_rider_day(
                 selected_store, owner_private_pem, now=as_of))
         except (ValueError, KeyError, TypeError, OSError, TimeoutExpired):
-            holds += 1
+            holds['saved_result_replay'] += 1
     if pending:
         published = publish_days(store, prior, pending, published_at=clock())
     else:
@@ -281,7 +283,8 @@ def refresh(repo, reader, owner_private_pem, *, clock=lambda: datetime.now(timez
         'HOLD_PUBLIC_RIDER_HISTORY_SOURCE' if holds else 'PUBLIC_RIDER_HISTORY_CURRENT')
     return dict(state=state,
                 archive_commit=head, public_commit=published['commit'] if published else parent,
-                days_updated=published['updated_days'] if published else 0, days_held=holds,
+                days_updated=published['updated_days'] if published else 0,
+                days_held=sum(holds.values()), hold_reasons=dict(holds),
                 days_deferred=len(ready)-len(selected), result_days=len(rows),
                 verified_races=sum(row['verified_races'] for row in rows),
                 numeric_finishes=sum(row['observed_count'] for row in rows),

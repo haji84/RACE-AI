@@ -240,6 +240,81 @@ class NationwideRecordTests(unittest.TestCase):
             safe_diagnostics=[])
         return original,payload,raw,adjusted,dict(producer=producer,readback=reader),capture
 
+    def test_partial_archive_replay_needs_conditioned_ancestry_without_unrelated_blobs(self):
+        from race_ai import keirin_nationwide_cipher_history as archive
+        from tests.test_keirin_official_run_history import git
+
+        api = self.api()
+        with tempfile.TemporaryDirectory() as folder, patch.dict('os.environ', {
+                'GITHUB_RUN_ID': '123456', 'GITHUB_SHA': 'a'*40}):
+            root = Path(folder)
+            original, payload, base, adjusted, packets, capture = self.comparison_fixture(root)
+            day, race = original['day_jst'], original['race_id']
+            origin, writer = root/'archive.git', root/'writer'
+            git(root, 'init', '--bare', '-b', archive.BRANCH, str(origin))
+            git(origin, 'config', 'uploadpack.allowFilter', 'true')
+            git(root, 'clone', str(origin), str(writer))
+            git(writer, 'config', 'user.name', 'Fixture')
+            git(writer, 'config', 'user.email', 'fixture@example.invalid')
+            (writer/'unrelated').write_bytes(b'An unrelated archive blob stays on the server')
+            git(writer, 'add', '--', 'unrelated')
+            git(writer, 'commit', '-qm', 'fixture archive root')
+            unrelated = git(writer, 'rev-parse', 'HEAD:unrelated')
+            git(writer, 'push', 'origin', 'HEAD:refs/heads/'+archive.BRANCH)
+
+            lineage = dict(repo=writer, producer_run_id=payload['producer_run_id'],
+                           producer_commit=payload['producer_commit'],
+                           cohort_sha256=payload['cohort_sha256'], synthetic_local=True)
+            archive.append_once(raw_cipher=base, expected_cipher_sha256=payload['baseline_cipher_sha256'],
+                                **lineage)
+            form_sha = payload['conditioned_cipher_sha256']
+            base_cipher_sha = payload['baseline_cipher_sha256']
+            base_prediction_sha = payload['baseline']['prediction_sha256']
+            archive.append_conditioned_once(raw_cipher=adjusted, expected_cipher_sha256=form_sha,
+                                            expected_baseline_cipher_sha256=base_cipher_sha,
+                                            expected_baseline_prediction_sha256=base_prediction_sha, **lineage)
+            store = api.RecordStore(writer, day, synthetic_local=True)
+            orig_meta = store.append(kind='original', payload=dict(payload, safe_report=dict(day_jst=day)),
+                                     public_pem=self.public,
+                                     race_id=race, observed_at=payload['baseline_sealed_at'])
+            scored = api.compare_result(original=original, payload=payload, raw_baseline=base,
+                                        raw_conditioned=adjusted, packets=packets, final_capture=capture)
+            saved = dict(schema=api.RESULT_SCHEMA, day_jst=day, race_id=race,
+                         producer_run_id=payload['producer_run_id'], producer_commit=payload['producer_commit'],
+                         original_evidence_sha256=orig_meta['evidence_sha256'], origin_packets=packets,
+                         final_capture=capture, scored=scored, safe_report=dict(day_jst=day))
+            revision = store.append(kind='result', payload=saved, public_pem=self.public, race_id=race,
+                                    observed_at='2030-01-15T04:10:00Z', monetary_complete=True)
+
+            def reader(name):
+                path = root/name
+                path.mkdir()
+                git(path, 'init', '-q')
+                git(path, 'remote', 'add', 'origin', origin.as_uri())
+                git(path, 'config', 'remote.origin.promisor', 'true')
+                git(path, 'config', 'remote.origin.partialclonefilter', 'blob:none')
+                return path
+
+            shallow = reader('shallow')
+            head = api.fetch_partial_head(shallow, synthetic_local=True)
+            self.assertEqual(git(shallow, 'rev-list', '--count', head), '1')
+            with self.assertRaisesRegex(ValueError, 'CONDITIONED_ARCHIVE_PARENT_NOT_ANCESTOR'):
+                archive._read_conditioned_at(shallow, head, race, form_sha, base_cipher_sha,
+                                             base_prediction_sha, payload['cohort_sha256'])
+            shallow_store = api.RecordStore(shallow, day, index_commit=head, synthetic_local=True)
+            with self.assertRaisesRegex(ValueError, 'SAVED_RESULT_NOT_REPRODUCIBLE'):
+                api.replay_saved_result(shallow_store, orig_meta, revision, self.private)
+
+            for partial in (reader('fresh-full-ancestry'), shallow):
+                with self.subTest(reader=partial.name):
+                    self.assertEqual(api.fetch_partial_head(partial, synthetic_local=True,
+                                                            with_ancestry=True), head)
+                    self.assertEqual(git(partial, 'rev-parse', '--is-shallow-repository'), 'false')
+                    complete = api.RecordStore(partial, day, index_commit=head, synthetic_local=True)
+                    replay = api.replay_saved_result(complete, orig_meta, revision, self.private)
+                    self.assertEqual(replay, api.result_updates(original, scored, capture))
+                    self.assertIn('?' + unrelated, git(partial, 'rev-list', '--objects', '--missing=print', head))
+
     def test_real_crypto_dynamic_server_proofs_and_result_bytes_reach_existing_four_arm_scorer(self):
         with tempfile.TemporaryDirectory() as folder:
             original,payload,raw,adjusted,packets,capture=self.comparison_fixture(folder)
