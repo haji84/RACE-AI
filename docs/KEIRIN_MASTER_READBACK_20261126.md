@@ -14,6 +14,8 @@
 
 参照 [公式名簿と着順集計の読戻し](https://github.com/haji84/RACE-AI/actions/runs/45806725727) · [公式出場者一覧の公開データ](https://github.com/haji84/RACE-AI/blob/a1600cc7d04b1a247e4f7a8d62daabf1d481f65d/starters/2026-11-26.json) · [公開ページ](https://keirin-20261119-race-note.chankuma.chatgpt.site/)。
 
+定期ジョブの公開工程で、独立認証済みの出走表から車番・登録番号・氏名を検証し、登録済みレースの一覧に追記する。11/26の公開済み84レース・延べ580出走は既存のまま保存する。直近の定期実行では84レース中56レースに独立認証済み原本があった。次の実データ検証では、日付が変わった後に公開件数を当日の公式開催母数と照合する。[直近の定期実行](https://github.com/haji84/RACE-AI/actions/runs/45794710030)。
+
 ## 小松島1R
 
 締切前に固定した原本を復元し、2媒体で一致した着順1–5–7と照合した。保存Bと比較Bは共に三連単Top4と二車単Top2が不的中。公式取得の保存証跡は照合時に別途確認し、今回の結果採点は2媒体の一致に基づく。[公開結果の固定版](https://github.com/haji84/RACE-AI/blob/92b75bd60f174202663cefbced067e80f9b8572d/results/2026-11-26.json) · [公式取得ジョブ](https://github.com/haji84/RACE-AI/actions/runs/45728403147)。

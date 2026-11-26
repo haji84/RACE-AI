@@ -79,6 +79,107 @@ class RunnerTests(unittest.TestCase):
     def setUp(self):NationwideRecordTests.setUp(self)
     def api(self):return importlib.import_module('scripts.keirin_official_nationwide_continuation')
 
+    def test_verified_sp_card_projection_exports_named_identity_only(self):
+        from scripts import keirin_public_rider_projection as starters
+        arguments = NationwideExtensionTests().baseline_arguments()
+        now = arguments.pop('now')
+        snapshot = extension.build_baseline_candidate(**arguments, now=now)['snapshot']
+        card_args = arguments['card_arguments']
+        projected = starters.project_sp_starter_row(card_args, snapshot)
+        self.assertEqual(projected['race_id'], snapshot['race_id'])
+        self.assertEqual(set(projected), {'race_id', 'source_at', 'riders'})
+        self.assertEqual([(row['number'], row['registration']) for row in projected['riders']],
+                         [(row['car'], row['athlete_id']) for row in snapshot['riders']])
+        self.assertTrue(all(set(row) == {'number', 'registration', 'name'} and row['name']
+                            for row in projected['riders']))
+        with self.assertRaises(ValueError):
+            starters.project_sp_starter_row(dict(card_args, detail_sha256='0'*64), snapshot)
+        with self.assertRaises(ValueError):
+            starters.project_sp_starter_row(card_args, dict(snapshot, riders=snapshot['riders'][1:]))
+
+    def test_roster_readback_only_projects_independently_admitted_archived_cards(self):
+        api = self.api()
+        arguments = NationwideExtensionTests().baseline_arguments()
+        now = arguments.pop('now')
+        snapshot = extension.build_baseline_candidate(**arguments, now=now)['snapshot']
+        card = arguments['card_arguments']
+        day, race_id = card['expected_day'], snapshot['race_id']
+        listed = dict(raw_bytes=card['list_raw'], expected_sha256=card['list_sha256'],
+                      observed_at=card['list_observed_at'], venue_code=card['venue_code'], http_status=200)
+        registry = extension.register_day(calendar_receipt=card['calendar_receipt'], list_sources=[listed],
+                                          event_day=day, now=now)
+        ids = registry['registered_race_ids']
+        held_id = next(rid for rid in ids if rid != race_id)
+        store = FakeStore('/synthetic', day)
+        store.index.update(registry='registry', originals={race_id: race_id, held_id: held_id})
+        def read(meta, _):
+            if meta == 'registry':
+                return dict(observed_at=now.isoformat(), states=[
+                    dict(race_id=rid, state='WAITING_SOURCE_CAPTURE', condition_state='NO_CONDITIONED_ORIGINAL')
+                    for rid in ids])
+            return dict(race_id=meta, baseline_arguments=arguments)
+        store.read = read
+        def admit(_, payload, *args, **kwargs):
+            if payload['race_id'] == held_id:
+                raise ValueError('SYNTHETIC_UNVERIFIED_ORIGIN')
+            return dict(snapshot=snapshot, condition_state='NO_CONDITIONED_ORIGINAL'), None
+        with (patch.object(api.records, 'RecordStore', return_value=store),
+              patch.object(api.records, 'replay_registry', return_value=registry),
+              patch.object(api.records, 'admit_original', side_effect=admit),
+              patch.object(api.records.pipeline, 'check_owner_private_key')):
+            admitted = api.records.load_admitted_day('/synthetic', self.private, day, clock=lambda: now,
+                                                       include_starters=True)
+        self.assertEqual([row['race_id'] for row in admitted['starter_rows']], [race_id])
+        self.assertEqual(admitted['starter_source_holds'], 0)
+        self.assertEqual(next(row['state'] for row in admitted['states'] if row['race_id'] == held_id),
+                         'ORIGIN_PROOF_PENDING')
+
+    def test_source_free_starter_publication_appends_without_revising_an_existing_card(self):
+        from race_ai import keirin_public_forecasts as forecasts
+        from scripts import keirin_public_rider_projection as starters
+        first, second, absent = [DAY.replace('-', '') + '98' + f'{number:02}' for number in (1, 2, 3)]
+        prior_path = f'starters/{DAY}.json'
+        forecast_path = f'forecasts/{DAY}.json'
+        prior = dict(race_id=first, source_at=(AT-timedelta(minutes=1)).isoformat(), riders=[
+            dict(number=1, registration='123456', name='保存した選手', region='架空')])
+        rows = [
+            dict(race_id=first, source_at=AT.isoformat(), riders=[
+                dict(number=1, registration='123456', name='印字が異なる選手')]),
+            dict(race_id=second, source_at=AT.isoformat(), riders=[
+                dict(number=2, registration='654321', name='新しい選手')]),
+        ]
+        registry = dict(schema=forecasts.SCHEMA, day=DAY, published_at=AT.isoformat(), races=[
+            dict(race_id=rid, cutoff_at=None, status='pending', saved_at=None, a=[], b=[])
+            for rid in [first, second, absent]
+        ])
+        body = dict(schema=starters.STARTERS_SCHEMA, day=DAY,
+                    published_at=(AT-timedelta(minutes=1)).isoformat(), races=[prior])
+        store = Mock()
+        store.head.return_value = 'a'*40
+        files = {prior_path: forecasts.canonical(body), forecast_path: forecasts.canonical(registry)}
+        store.read_previous.side_effect = lambda head, path: files.get(path)
+        store.commit.return_value = 'b'*40
+        store.run.return_value = prior_path.encode()+b'\n'
+        def push(commit, parent):
+            self.assertEqual((commit, parent), ('b'*40, 'a'*40))
+            files.update(store.commit.call_args.args[0])
+        store.push.side_effect = push
+
+        report = starters.publish_starters('/synthetic', day=DAY, rows=rows, published_at=AT, store=store)
+        self.assertEqual(report['published_races'], 2)
+        self.assertEqual(report['registered_races'], 3)
+        self.assertEqual(report['new_races'], 1)
+        self.assertEqual(set(store.commit.call_args.args[0]), {prior_path})
+        self.assertEqual(json.loads(files[prior_path])['races'], [prior, rows[1]])
+        again = starters.publish_starters('/synthetic', day=DAY, rows=rows, published_at=AT, store=store)
+        self.assertEqual(again['new_races'], 0)
+        self.assertEqual(store.push.call_count, 1)
+
+        bad = [dict(rows[1], race_id=DAY.replace('-', '')+'9901')]
+        with self.assertRaises(ValueError):
+            starters.publish_starters('/synthetic', day=DAY, rows=bad, published_at=AT, store=store)
+        self.assertEqual(store.push.call_count, 1)
+
     def test_baseline_hold_counts_use_only_fixed_codes_from_known_parsers(self):
         api = self.api()
         code = 'OFFICIAL_EXTENSION_CONTESTED_OR_MULTILEVEL_LINE_UNSUPPORTED'
@@ -516,6 +617,7 @@ class RunnerTests(unittest.TestCase):
             self.assertEqual(publish.call_args.args[0],checked_out)
             self.assertEqual(publish.call_args.args[1]['registry'],registry)
             self.assertTrue(publish.call_args.kwargs['public_view'])
+            self.assertEqual(report['public_starters']['new_races'],0)
             self.assertEqual(report['source_requests'],0)
 
     def test_settlement_archive_timeout_reports_a_hold_before_any_provider_call(self):

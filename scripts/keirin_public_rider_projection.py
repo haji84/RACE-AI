@@ -3,6 +3,7 @@ import argparse
 from datetime import datetime, timezone
 from hashlib import sha256
 import json
+from math import isfinite
 import os
 from pathlib import Path
 import re
@@ -76,6 +77,113 @@ def project_starters(schedule, *, published_at):
         races.append(dict(race_id=race['race_id'], source_at=source_at, riders=riders))
     return dict(schema=STARTERS_SCHEMA, day=schedule['day_jst'],
                 published_at=published.isoformat(), races=races)
+
+
+def project_sp_starter_row(card_args, snapshot):
+    """Read publicly named riders from the verified SP source for an admitted snapshot."""
+    from race_ai import keirin_official_sp_receipt as sp
+
+    observed = official._aware(card_args['detail_observed_at'])
+    calendar = card_args['calendar_receipt']
+    card = sp.parse_race_detail(card_args['detail_raw'], expected_day=card_args['expected_day'],
+        expected_venue_code=card_args['venue_code'], expected_race_number=card_args['race_number'],
+        observed_at=observed, expected_sha256=card_args['detail_sha256'],
+        calendar_receipt=dict(calendar, observed_at=official._aware(calendar['observed_at'])))
+    cut = snapshot['cutoff_source']
+    expected = {rider['car']: rider['athlete_id'] for rider in snapshot['riders']}
+    actual = {rider['car']: rider['registration_id'] for rider in card['riders']}
+    _need(card['race_id'] == snapshot['race_id'] and card['no_published_roster_exclusion_observed'] and
+          card['source_url'] == cut['url'] and card_args['detail_sha256'] == cut['bytes_sha256'] and
+          observed == official._aware(cut['captured_at']) and
+          official._aware(card['official_cutoff_at']) == official._aware(snapshot['published_cutoff_at']) and
+          actual == expected, 'PUBLIC_STARTERS_SP_SOURCE_BINDING')
+    riders = []
+    for rider in card['riders']:
+        name = _text(rider['name'], 80)
+        _need(name and rider['registration_id'] != '000000', 'PUBLIC_STARTERS_SP_IDENTITY')
+        riders.append(dict(number=rider['car'], registration=rider['registration_id'], name=name))
+    return dict(race_id=card['race_id'], source_at=observed.isoformat(), riders=riders)
+
+
+def _checked_starters(body):
+    """Allow only display fields, including optional fields in an existing public document."""
+    from race_ai import keirin_nationwide_forecast_view as nationwide
+
+    _need(type(body) is dict and set(body) == {'schema', 'day', 'published_at', 'races'} and
+          body['schema'] == STARTERS_SCHEMA, 'PUBLIC_STARTERS_DOCUMENT')
+    day = nationwide._day(body['day'])
+    posted = official._aware(body['published_at'])
+    rows = body['races']
+    _need(type(rows) is list and len(rows) <= nationwide.MAX_RACES, 'PUBLIC_STARTERS_ROWS')
+    seen = set()
+    for row in rows:
+        _need(type(row) is dict and {'race_id', 'riders'} <= set(row) <=
+              {'race_id', 'riders', 'source_at', 'source_url'}, 'PUBLIC_STARTERS_FIELDS')
+        rid = row['race_id']
+        _need(type(rid) is str and re.fullmatch(day.replace('-', '') + '[0-9]{4}', rid) and
+              1 <= int(rid[-2:]) <= 12 and rid not in seen, 'PUBLIC_STARTERS_RACE')
+        seen.add(rid)
+        if 'source_at' in row:
+            _need(type(row['source_at']) is str and official._aware(row['source_at']) <= posted,
+                  'PUBLIC_STARTERS_SOURCE_CLOCK')
+        if 'source_url' in row:
+            _need(row['source_url'] in ('https://keirin.jp/sp/race', 'https://keirin.jp/sp/racelist'),
+                  'PUBLIC_STARTERS_SAFE_SOURCE_URL')
+        riders = row['riders']
+        _need(type(riders) is list and 1 <= len(riders) <= 9, 'PUBLIC_STARTERS_RIDER_COUNT')
+        cars, people = set(), set()
+        for rider in riders:
+            _need(type(rider) is dict and {'number', 'registration', 'name'} <= set(rider) <=
+                  {'number', 'registration', 'name', 'region', 'style', 'grade', 'score'},
+                  'PUBLIC_STARTERS_RIDER_FIELDS')
+            car, registration, name = rider['number'], rider['registration'], rider['name']
+            _need(type(car) is int and 1 <= car <= 9 and car not in cars and
+                  type(registration) is str and re.fullmatch('[0-9]{6}', registration) and
+                  registration != '000000' and registration not in people and _text(name, 80),
+                  'PUBLIC_STARTERS_RIDER_IDENTITY')
+            cars.add(car)
+            people.add(registration)
+            _need('region' not in rider or _text(rider['region'], 32), 'PUBLIC_STARTERS_RIDER_REGION')
+            _need('style' not in rider or rider['style'] in tuple(STYLES), 'PUBLIC_STARTERS_RIDER_STYLE')
+            _need('grade' not in rider or rider['grade'] in tuple(GRADES), 'PUBLIC_STARTERS_RIDER_GRADE')
+            if 'score' in rider:
+                score = rider['score']
+                _need(type(score) in (int, float) and 0 <= score <= 150 and isfinite(score),
+                      'PUBLIC_STARTERS_RIDER_SCORE')
+    return body
+
+
+def publish_starters(repo, *, day, rows, published_at, store=None):
+    """Add named races to the existing public registry without replacing published rows."""
+    from race_ai import keirin_public_forecasts as public
+
+    posted = official._aware(published_at)
+    body = _checked_starters(dict(schema=STARTERS_SCHEMA, day=day, published_at=posted.isoformat(), races=rows))
+    if not rows:
+        return dict(state='PUBLIC_STARTERS_NO_ELIGIBLE_RACES', day_jst=day, new_races=0)
+    store = store or public.PublicForecastGit(repo)
+    parent = store.head()
+    _need(parent is not None, 'PUBLIC_STARTERS_REGISTRY_REQUIRED')
+    path = f'starters/{day}.json'
+    prior = public._previous_candidates(store, parent, path, day, _checked_starters)
+    raw = store.read_previous(parent, f'forecasts/{day}.json')
+    _need(raw is not None, 'PUBLIC_STARTERS_REGISTRY_REQUIRED')
+    registry = public.checked(public._json(raw))
+    registered = {race['race_id'] for race in registry['races']}
+    old = {row['race_id']: row for row in prior['races']} if prior else {}
+    new = {row['race_id']: row for row in body['races']}
+    _need(registry['day'] == day and (old.keys() | new.keys()) <= registered, 'PUBLIC_STARTERS_UNREGISTERED_RACE')
+    additions = {rid: row for rid, row in new.items() if rid not in old}
+    state, commit = 'PUBLIC_STARTERS_CURRENT', parent
+    if additions:
+        _need(prior is None or official._aware(prior['published_at']) <= posted, 'PUBLIC_STARTERS_CLOCK_BACKWARDS')
+        combined = {**old, **additions}
+        body = _checked_starters(dict(body, races=[combined[rid] for rid in sorted(combined)]))
+        commit, encoded = public._commit_projection(store, parent, path, body)
+        public._push_projection(store, parent, path, commit, encoded)
+        state = 'PUBLIC_STARTERS_UPDATED'
+    return dict(state=state, day_jst=day, registered_races=len(registered),
+                published_races=len(old) + len(additions), new_races=len(additions), commit=commit)
 
 
 def project_directory(files, receipt, *, now=None):
