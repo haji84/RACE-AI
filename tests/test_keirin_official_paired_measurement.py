@@ -53,6 +53,7 @@ class OfficialPairedMeasurementTests(TestCase):
             archived_result_races=3, official_order_replay_verified_races=2, official_payout_verified_races=1,
             official_result_replay_held_races=1, archived_baseline_without_result=1, registered_without_original=1,
             cancelled_or_refunded_result_replays=0))
+        self.assertEqual(report['result_replay_holds'], {'ARCHIVE_REPLAY_VALIDATION_HELD': 1})
         scope = report['comparisons']['baseline_A_vs_baseline_B']
         cutoff_scores = scope['all_pre_cutoff']
         self.assertEqual(cutoff_scores['trifecta_top4']['paired_races'], 2)
