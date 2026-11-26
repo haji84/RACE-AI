@@ -393,14 +393,18 @@ def admit_original(store, payload, owner_private_pem, *, origin_client=None, pac
     return original,packets
 
 
-def load_admitted_day(repo, owner_private_pem, day, *, origin_client=None, clock=None, partial_read=False):
+def load_admitted_day(repo, owner_private_pem, day, *, origin_client=None, clock=None, partial_read=False,
+                      include_starters=False):
     pipeline.check_owner_private_key(owner_private_pem)
+    if include_starters:
+        from scripts.keirin_public_rider_projection import project_sp_starter_row
     store=RecordStore(repo,day,partial_read=partial_read);registry=None;states={}
     observed=form._aware((clock or (lambda:datetime.now(timezone.utc)))()).isoformat()
     if store.index['registry']:
         payload=store.read(store.index['registry'],owner_private_pem);registry=replay_registry(payload)
         states={row['race_id']:deepcopy(row) for row in payload['states']};observed=payload['observed_at']
     originals=[];cache={}
+    starter_rows=[];starter_source_holds=0
     for rid,meta in sorted(store.index['originals'].items()):
         state=states.setdefault(rid,dict(race_id=rid,state='FROZEN_ARCHIVE_UNVERIFIED',condition_state='NO_CONDITIONED_ORIGINAL'))
         try:
@@ -410,12 +414,22 @@ def load_admitted_day(repo, owner_private_pem, day, *, origin_client=None, clock
             state.update(state='A_B_AUTHENTICATED_PRE_CUTOFF',condition_state=admitted['condition_state'])
         except (ValueError,KeyError,TypeError,OSError):
             state['state']='ORIGIN_PROOF_PENDING'
+        else:
+            if include_starters:
+                try:
+                    starter_rows.append(project_sp_starter_row(payload['baseline_arguments']['card_arguments'],
+                                                               admitted['snapshot']))
+                except (ValueError,KeyError,TypeError):
+                    starter_source_holds+=1
     need(registry is not None or not store.index['originals'],'REGISTRY_REQUIRED_FOR_ORIGINALS')
     if registry is not None:
         need(set(store.index['originals'])<=set(registry['registered_race_ids']),'REGISTRY_LOST_ORIGINAL')
         checked_states(list(states.values()),registry['registered_race_ids'])
-    return dict(day_jst=day,registry=registry,records=originals,
+    result=dict(day_jst=day,registry=registry,records=originals,
                 states=sorted(states.values(),key=lambda r:r['race_id']),observed_at=observed)
+    if include_starters:
+        result.update(starter_rows=starter_rows,starter_source_holds=starter_source_holds)
+    return result
 
 
 def discover_days(repo, *, retry_archive_timeout=False):
