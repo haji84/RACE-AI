@@ -133,6 +133,7 @@ jobs:
             tests.test_keirin_official_nationwide_records \
             tests.test_keirin_official_continuation_workflow \
             tests.test_keirin_nationwide_forecast_view \
+            tests.test_keirin_public_forecast_updates \
             tests.test_keirin_result_unread_racecard \
             tests.test_keirin_official_form_canary \
             tests.test_keirin_nationwide_auto_storage \

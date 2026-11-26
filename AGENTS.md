@@ -54,3 +54,9 @@ The owner explicitly instructed after the Cloudflare shutdown: 「GitHubで出�
 - Reuse that owned Site's presentation, allocation functions, and preserved data formats inside this repository. Kdreams and netkeirin are approved input sources for this import, in addition to the prior WINTICKET/KEIRIN.JP paths. This explicit instruction supersedes the older two-provider restriction for this work.
 - Keep the distinct sources and the original analysis, flexible revision and existing A/B research output identifiable. Do not turn these into an authenticated PR71 full-model forecast, invent C, overwrite original predictions, or promote weights.
 - GitHub-only, encryption of private originals, no betting, no new charges and existing protected-review requirements still apply. The Site's Cloudflare Worker is not an approved new RACE-AI backend; port its needed functions to the existing GitHub path.
+
+## Public forecast edits requested in chat
+
+- For an explicit chat request to add or edit a public trifecta, resolve the date, venue, race number, and A/B selection. Inspect the registered race with `python -m scripts.keirin_chat_forecast --repo . inspect --race-id RACE_ID`.
+- Use `register --race-id RACE_ID --a 1-2-3,1-3-2 --publish` on the same command to register the requested public A selection. `--b` edits B and an omitted arm is retained. For a race without a verified public starter list, supply the preserved official race-day schedule using `--schedule`. Provide details from the chat as separate command arguments.
+- Report the registered race and visible selection after reading the public update back. Keep chat additions distinct from saved originals, results, wager records and independent accuracy counts. Never open an owner-only link for a public edit.
