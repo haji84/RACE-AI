@@ -46,6 +46,10 @@
 
 11月26日の公式結果と払戻を保護runnerで23件再認証。84レース中28件に公式SPの事前原本がなく、保存した56件のうち33件は再認証保留。23件の同じ三連単4点で既存Aは7/23（30.43%）、既存Bは4/23（17.39%）、B−Aの暫定95%区間は−42.93〜+21.52ポイント。一点100円の仮想集計では各9,200円に対してAは10,590円、Bは1,600円で、回収率115.11%と17.39%。11月25日の10レースの事前保存研究版も独立再採点した。カルテ補正試験開始前の保存B→比較Bは三連単Top4が3/10→4/10、二車単Top2は両方3/10。1着Brierは0.07629→0.07653、3着以内は0.17021→0.16879で、各70出走。新しい開催条件補正の採用判定は保留。[公式集計の実行](https://github.com/haji84/RACE-AI/actions/runs/45858773705) · [公式の固定集計](https://github.com/haji84/RACE-AI/blob/5f3c5cc03de6ec40a625e080ebb4bcc20033a739/measurements/2026-11-26.json) · [11月25日の再採点](https://github.com/haji84/RACE-AI/actions/runs/45858346524) · [公開成績](https://keirin-20261119-race-note.chankuma.chatgpt.site/#keirin-progress)。
 
+再実行で33件すべてが保存採点の再現条件で停止した。11月26日の固定台帳に調子補正の暗号原本が33件あり、先祖のない読戻しで同じ停止を既存テストから再現。公式採点でも、カルテ日次更新と同じ履歴付きの取得に切り替え、暗号原本の先祖確認を保ったまま再採点する。[診断](https://github.com/haji84/RACE-AI/actions/runs/45860829575) · [固定暗号台帳](https://github.com/haji84/RACE-AI/tree/6f13601d237088877c01653aae984a27af12fd55/state/keirin/ab/v1/2026-11-26)。
+
+11月27日平塚4Rは、開催格・ラウンドを使う比較の初回。原本の保存は01:42:52 JST、別runnerの確認完了は01:43:52 JST、公式締切は12:27 JST。暗号化された比較原本を別runnerで照合し、同レースの既存A/Bが公開された。採否は公式結果と事前登録した母数の到達後に評価する。同じ実行は履歴取得にHTTP 502を受け、残る66件の取得を保留した。[初回の事前固定・読戻し](https://github.com/haji84/RACE-AI/actions/runs/45860470352) · [予想公開の確認](https://github.com/haji84/RACE-AI/blob/3db8114fc4f87f3caa4c4bb5dcc1569311fa7802/forecasts/2026-11-27.json)。
+
 ## 小松島1R
 
 締切前に固定した原本を復元し、2媒体で一致した着順1–5–7と照合した。保存Bと比較Bは共に三連単Top4と二車単Top2が不的中。公式取得の保存証跡は照合時に別途確認し、今回の結果採点は2媒体の一致に基づく。[公開結果の固定版](https://github.com/haji84/RACE-AI/blob/92b75bd60f174202663cefbced067e80f9b8572d/results/2026-11-26.json) · [公式取得ジョブ](https://github.com/haji84/RACE-AI/actions/runs/45728403147)。

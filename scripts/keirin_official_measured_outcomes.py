@@ -35,7 +35,10 @@ def main(argv=None):
             archive._cmd(reader, 'remote', 'add', 'origin', f'https://github.com/{archive.REPO}.git')
             archive._cmd(reader, 'config', '--local', 'remote.origin.promisor', 'true')
             archive._cmd(reader, 'config', '--local', 'remote.origin.partialclonefilter', 'blob:none')
-            store = records.RecordStore(reader, day, partial_read=True)
+            # Conditional originals prove lineage against an earlier archive
+            # commit. Retain its ancestry without downloading unrelated blobs.
+            head = records.fetch_partial_head(reader, with_ancestry=True)
+            store = records.RecordStore(reader, day, index_commit=head)
             admit_pair = partial(records.admit_saved_pair, history_cache={})
             report = measure_day(store, private, admit_condition_pair=admit_pair)
             index_sha = model.digest(store.index)
