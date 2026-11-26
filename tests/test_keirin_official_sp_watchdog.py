@@ -386,16 +386,16 @@ class WatchdogTests(unittest.TestCase):
         self.assertNotIn("must not appear", json.dumps(report))
         self.assertNotIn(WRITE, gh.calls)
 
-    def test_verified_current_jst_backlog_uses_a_30_minute_recovery_delay(self):
-        for age, decision in ((29, "SKIP_RECENT_OFFICIAL_SP_CAPTURE"),
-                              (30, "SKIP_RECENT_OFFICIAL_SP_CAPTURE"),
-                              (31, "WOULD_DISPATCH_OFFICIAL_CONTINUE")):
+    def test_verified_current_jst_backlog_uses_a_20_minute_recovery_delay(self):
+        for age, decision in ((19, "SKIP_RECENT_OFFICIAL_SP_CAPTURE"),
+                              (20, "SKIP_RECENT_OFFICIAL_SP_CAPTURE"),
+                              (21, "WOULD_DISPATCH_OFFICIAL_CONTINUE")):
             with self.subTest(age=age):
                 gh = Github(age=age)
                 gh.receipt["statuses"]["SOURCE_CAPTURE_BUDGET_PENDING"] = 45
                 report = self.supervise(gh)
                 self.assertEqual(report["decision"], decision)
-                self.assertEqual(report.get("recovery_delay_minutes"), 30)
+                self.assertEqual(report.get("recovery_delay_minutes"), 20)
                 self.assertNotIn(WRITE, gh.calls)
 
     def test_missing_day_empty_backlog_and_prior_jst_receipts_keep_45_minutes(self):
@@ -493,7 +493,7 @@ class WatchdogTests(unittest.TestCase):
                 report = self.supervise(gh)
                 self.assertEqual(report["decision"], "WOULD_DISPATCH_OFFICIAL_CONTINUE")
                 self.assertTrue(report.get("publication_only_failure_verified"))
-                self.assertEqual(report.get("recovery_delay_minutes"), 30)
+                self.assertEqual(report.get("recovery_delay_minutes"), 20)
                 self.assertNotIn(WRITE, gh.calls)
 
     def test_publication_failure_never_causes_an_extra_recent_capture(self):
