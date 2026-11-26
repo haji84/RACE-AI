@@ -100,6 +100,23 @@ class DailyHistoryPublicationTests(unittest.TestCase):
                 self.publish({'c' * 40: change}, NOW.replace(minute=1))
             self.assertEqual(original, self.store.head())
 
+    def test_recent_view_keeps_updating_after_the_first_result_ages_out(self):
+        self.publish({'a' * 40: receipt(FIRST, 1), 'b' * 40: receipt(NEXT, 2)})
+        first_path = f'rider-history/{FIRST}.json'
+        first_raw = self.store.read_previous(self.store.head(), first_path)
+        later_day = '2027-12-28'
+        at = datetime(2027, 12, 28, tzinfo=timezone.utc)
+
+        self.publish({'c' * 40: receipt(later_day, 3)}, at)
+        self.assertEqual([row['day'] for row in self.latest()['days']], [NEXT, later_day])
+        self.assertEqual(self.latest()['riders'][0]['finish_counts'], [0, 1, 1, 0, 0, 0, 0, 0, 0])
+        self.assertEqual(self.store.read_previous(self.store.head(), first_path), first_raw)
+
+        self.assertIsNone(self.publish({'c' * 40: receipt(later_day, 3)}, at.replace(minute=1)))
+        self.publish({'d' * 40: receipt(NEXT, 4, 'e')}, at.replace(minute=2))
+        self.assertEqual(self.latest()['riders'][0]['finish_counts'], [0, 0, 1, 1, 0, 0, 0, 0, 0])
+        self.assertEqual(self.store.read_previous(self.store.head(), first_path), first_raw)
+
     def test_mismatched_previous_day_bytes_and_newer_snapshot_stop_the_write(self):
         self.publish({'a' * 40: receipt(FIRST, 1)})
         prior = self.latest()
@@ -132,8 +149,7 @@ class DailyHistoryPublicationTests(unittest.TestCase):
         pin = directory / 'docs/evidence/2026-11-18/keirin_owner_existing_rsa_public_spki3072.pem'
         with (patch.object(pipeline, 'check_owner_private_key', return_value=pin.read_bytes()),
               patch.object(records, 'fetch_partial_head', return_value='e' * 40),
-              patch.object(records, 'discover_days_at', return_value=days),
-              patch.object(dossier, '_archive_indexes', return_value=indexes),
+              patch.object(dossier, '_archive_indexes', return_value=indexes) as requested_indexes,
               patch.object(records, 'RecordStore', side_effect=open_day),
               patch.object(history, 'archive_signature', return_value='b' * 64),
               patch.object(history, 'project_rider_day', side_effect=replay)):
@@ -141,6 +157,7 @@ class DailyHistoryPublicationTests(unittest.TestCase):
                                      clock=lambda: datetime(2026, 11, 29, tzinfo=timezone.utc))
         self.assertEqual(checked, [days[2]])
         self.assertEqual(report['days_updated'], 1)
+        self.assertEqual(requested_indexes.call_args.args[2], {*days, '2026-11-29'})
 
     def test_unchanged_archive_still_checks_the_published_summary(self):
         self.publish({'a' * 40: receipt(FIRST, 1)})
@@ -151,7 +168,6 @@ class DailyHistoryPublicationTests(unittest.TestCase):
         pin = directory / 'docs/evidence/2026-11-18/keirin_owner_existing_rsa_public_spki3072.pem'
         with (patch.object(pipeline, 'check_owner_private_key', return_value=pin.read_bytes()),
               patch.object(records, 'fetch_partial_head', return_value='e' * 40),
-              patch.object(records, 'discover_days_at', return_value=[FIRST]),
               patch.object(dossier, '_archive_indexes', return_value={FIRST: 'a' * 40}),
               self.assertRaisesRegex(ValueError, 'PREVIOUS_AGGREGATE')):
             dossier.refresh(directory, 'synthetic', b'', store=self.store, clock=lambda: NOW)

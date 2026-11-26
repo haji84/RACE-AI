@@ -1,6 +1,7 @@
 """Publish daily numeric finish counts from the existing verified result archive."""
 import argparse
-from datetime import date, datetime, timezone
+from collections import Counter
+from datetime import date, datetime, timedelta, timezone
 from hashlib import sha256
 import json
 import os
@@ -40,6 +41,11 @@ def _day(value):
 
 def _path(day):
     return 'rider-history/' + _day(day) + '.json'
+
+
+def _window_start(instant):
+    today = instant.astimezone(JST).date()
+    return (today - timedelta(days=MAX_DAYS - 1)).isoformat()
 
 
 def _encode(doc):
@@ -89,13 +95,15 @@ def read_latest(store):
         'schema', 'base_sha256', 'base_history_end_day', 'published_at', 'days', 'riders',
     } and latest['schema'] == SCHEMA and latest['base_sha256'] == BASE_SHA256 and
          latest['base_history_end_day'] == BASE_DAY, 'BASELINE')
-    posted = public.when(latest['published_at']).astimezone(JST).date().isoformat()
+    published = public.when(latest['published_at'])
+    posted = published.astimezone(JST).date().isoformat()
+    first = _window_start(published)
     days = latest['days']
     need(type(days) is list and 1 <= len(days) <= MAX_DAYS and type(latest['riders']) is list, 'MANIFEST')
     for row in days:
         need(type(row) is dict and set(row) == {
             'day', 'archive_races', 'verified_races', 'observed_count', 'sha256', 'archive_index',
-        } and _day(row['day']) <= posted and HEX.fullmatch(row['sha256']) and
+        } and first <= _day(row['day']) <= posted and HEX.fullmatch(row['sha256']) and
              GIT_OID.fullmatch(row['archive_index']), 'MANIFEST_DAY')
     need(_ordered(row['day'] for row in days), 'DAY_ORDER')
     return parent, latest
@@ -127,7 +135,13 @@ def _read_days(store, parent, prior):
         paths.add(LATEST)
     found = set(store.run(['ls-tree', '-r', '--name-only', parent, '--', 'rider-history/'])
                 .decode().splitlines())
-    need(found == paths, 'PREVIOUS_PATHS')
+    unlisted = found - paths
+    need(paths <= found and (prior is not None or not unlisted), 'PREVIOUS_PATHS')
+    if unlisted:
+        first = _window_start(public.when(prior['published_at']))
+        for path in unlisted:
+            day = path.removeprefix('rider-history/').removesuffix('.json')
+            need(_path(day) == path and day < first, 'PREVIOUS_PATHS')
     days = {}
     for row in rows:
         day = row['day']
@@ -145,11 +159,13 @@ def publish_days(store, expected, updates, *, published_at):
     """Replace corrected days as units and commit them together with the cumulative view."""
     when = public.when(published_at.isoformat())
     today = when.astimezone(JST).date().isoformat()
+    first = _window_start(when)
     candidates = {}
     for oid, item in updates.items():
         day = checked_day(item)['day']
         need(day <= today and day not in candidates and GIT_OID.fullmatch(oid), 'UPDATE_DAY')
-        candidates[day] = (oid, _encode(item), item)
+        if first <= day:
+            candidates[day] = (oid, _encode(item), item)
 
     for attempt in range(2):
         parent, prior = read_latest(store)
@@ -168,7 +184,8 @@ def publish_days(store, expected, updates, *, published_at):
         if not files:
             return None
         need(prior is None or public.when(prior['published_at']) < when, 'PUBLICATION_CLOCK')
-        latest = _aggregate(days, when.isoformat())
+        # Earlier days stay on the public branch as separate dated archives.
+        latest = _aggregate({day: item for day, item in days.items() if first <= day}, when.isoformat())
         files[LATEST] = _encode(latest)
         commit = store.commit(files, parent)
         diff = store.run(['diff-tree', '--no-commit-id', '--name-only', '-r', parent, commit])
@@ -193,13 +210,12 @@ def _archive_indexes(reader, head, days, root):
     if not paths:
         return {}
     _, listing = archive._cmd(reader, '--no-replace-objects', 'ls-tree', '-z', '--full-tree',
-                              head, '--', *paths)
+                              head, '--', *sorted(paths))
     result = {}
     for record in filter(None, listing.split('\0')):
         match = re.fullmatch(r'100644 blob ([0-9a-f]{40})\t(.+)', record)
         need(match is not None and match[2] in paths and paths[match[2]] not in result, 'ARCHIVE_INDEX')
         result[paths[match[2]]] = match[1]
-    need(set(result) == set(days), 'MISSING_ARCHIVE_INDEX')
     return result
 
 
@@ -215,14 +231,19 @@ def refresh(repo, reader, owner_private_pem, *, clock=lambda: datetime.now(timez
     parent, prior = read_latest(store)
     known = {row['day']: row for row in prior['days']} if prior else {}
     as_of = clock()
-    today = as_of.astimezone(JST).date().isoformat()
-    head = records.fetch_partial_head(reader)
-    dated = [day for day in records.discover_days_at(reader, head) if BASE_DAY < day <= today]
+    today = as_of.astimezone(JST).date()
+    first = _window_start(as_of)
+    head = records.fetch_partial_head(reader, with_ancestry=True)
+    # Exact paths keep discovery bounded as prior seasons accumulate in Git.
+    elapsed_days = (today - date.fromisoformat(BASE_DAY)).days
+    dated = set(known) | {(today - timedelta(days=age)).isoformat()
+                          for age in range(min(MAX_DAYS, elapsed_days))}
     indexes = _archive_indexes(reader, head, dated, records.ROOT)
     need(known.keys() <= indexes.keys(), 'ARCHIVED_DAYS_MISSING')
-    dirty = sorted(day for day, oid in indexes.items() if known.get(day, {}).get('archive_index') != oid)
+    dirty = sorted(day for day, oid in indexes.items()
+                   if first <= day and known.get(day, {}).get('archive_index') != oid)
     ready = []
-    holds = 0
+    holds = Counter()
     for day in dirty:
         try:
             selected_store = records.RecordStore(reader, day, index_commit=head)
@@ -236,13 +257,13 @@ def refresh(repo, reader, owner_private_pem, *, clock=lambda: datetime.now(timez
                 continue
             ready.append((day, selected_store))
         except (ValueError, KeyError, TypeError, OSError, TimeoutExpired):
-            holds += 1
+            holds['archive_index'] += 1
     selected = ready
     if len(ready) > MAX_REPLAYS:
         # Earlier corrections rotate by JST day so held records cannot monopolize
         # every run. Leave two slots for the most recent changed dates.
         earlier, recent = ready[:-2], ready[-2:]
-        cursor = date.fromisoformat(today).toordinal() % len(earlier)
+        cursor = today.toordinal() % len(earlier)
         selected = recent + (earlier[cursor:] + earlier[:cursor])[:MAX_REPLAYS - 2]
     pending = {}
     for day, selected_store in selected:
@@ -250,7 +271,7 @@ def refresh(repo, reader, owner_private_pem, *, clock=lambda: datetime.now(timez
             pending[indexes[day]] = checked_day(history.project_rider_day(
                 selected_store, owner_private_pem, now=as_of))
         except (ValueError, KeyError, TypeError, OSError, TimeoutExpired):
-            holds += 1
+            holds['saved_result_replay'] += 1
     if pending:
         published = publish_days(store, prior, pending, published_at=clock())
     else:
@@ -262,7 +283,8 @@ def refresh(repo, reader, owner_private_pem, *, clock=lambda: datetime.now(timez
         'HOLD_PUBLIC_RIDER_HISTORY_SOURCE' if holds else 'PUBLIC_RIDER_HISTORY_CURRENT')
     return dict(state=state,
                 archive_commit=head, public_commit=published['commit'] if published else parent,
-                days_updated=published['updated_days'] if published else 0, days_held=holds,
+                days_updated=published['updated_days'] if published else 0,
+                days_held=sum(holds.values()), hold_reasons=dict(holds),
                 days_deferred=len(ready)-len(selected), result_days=len(rows),
                 verified_races=sum(row['verified_races'] for row in rows),
                 numeric_finishes=sum(row['observed_count'] for row in rows),

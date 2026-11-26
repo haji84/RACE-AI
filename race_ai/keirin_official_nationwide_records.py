@@ -233,17 +233,23 @@ def checked_index(doc, day):
 _TRACKING_REF = f'refs/remotes/origin/{archive.BRANCH}'
 
 
-def _fetch_partial_head(repo):
-    archive._cmd(repo,'fetch','--no-tags','--depth=1','--filter=blob:none',
-        '--no-recurse-submodules','origin',f'refs/heads/{archive.BRANCH}:{_TRACKING_REF}')
+def _fetch_partial_head(repo, *, with_ancestry=False):
+    depth = []
+    if not with_ancestry:
+        depth = ['--depth=1']
+    elif archive._cmd(repo, 'rev-parse', '--is-shallow-repository')[1] == 'true':
+        depth = ['--unshallow']
+    archive._cmd(repo, 'fetch', '--no-tags', *depth, '--filter=blob:none', '--no-recurse-submodules',
+                 'origin', f'refs/heads/{archive.BRANCH}:{_TRACKING_REF}')
     head=archive._cmd(repo,'--no-replace-objects','rev-parse','--verify',f'{_TRACKING_REF}^{{commit}}')[1]
     need(archive.COMMIT.fullmatch(head),'PARTIAL_ARCHIVE_HEAD')
     return head
 
 
-def fetch_partial_head(reader, *, synthetic_local=False):
-    """Fetch the canonical archive once for a dedicated blob-filtered reader."""
-    return _fetch_partial_head(archive._remote(reader,synthetic_local=synthetic_local))
+def fetch_partial_head(reader, *, synthetic_local=False, with_ancestry=False):
+    """Fetch the archive ref without blobs, keeping lineage for result replay when requested."""
+    repo = archive._remote(reader, synthetic_local=synthetic_local)
+    return _fetch_partial_head(repo, with_ancestry=with_ancestry)
 
 
 def _check_archive_commit(repo, head):
