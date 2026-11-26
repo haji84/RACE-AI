@@ -32,6 +32,8 @@ on:
       - 'tests/test_keirin_nationwide_forecast_view.py'
       - 'tests/test_keirin_public_forecast_*.py'
       - 'scripts/keirin_publish_forecast_*.py'
+      - 'scripts/keirin_publish_mac_operations.py'
+      - 'tests/test_keirin_publish_mac_operations.py'
       - 'race_ai/keirin_rider_form_evidence.py'
       - 'race_ai/keirin_form_fall_shadow.py'
       - 'race_ai/keirin_form_history_admission.py'
@@ -139,6 +141,7 @@ jobs:
             tests.test_keirin_official_public_card_details \
             tests.test_keirin_public_forecast_details \
             tests.test_keirin_public_forecast_odds \
+            tests.test_keirin_publish_mac_operations \
             tests.test_keirin_public_forecast_updates \
             tests.test_keirin_result_unread_racecard \
             tests.test_keirin_official_form_canary \
