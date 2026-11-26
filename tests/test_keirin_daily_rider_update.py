@@ -100,6 +100,23 @@ class DailyHistoryPublicationTests(unittest.TestCase):
                 self.publish({'c' * 40: change}, NOW.replace(minute=1))
             self.assertEqual(original, self.store.head())
 
+    def test_recent_view_keeps_updating_after_the_first_result_ages_out(self):
+        self.publish({'a' * 40: receipt(FIRST, 1), 'b' * 40: receipt(NEXT, 2)})
+        first_path = f'rider-history/{FIRST}.json'
+        first_raw = self.store.read_previous(self.store.head(), first_path)
+        later_day = '2027-12-28'
+        at = datetime(2027, 12, 28, tzinfo=timezone.utc)
+
+        self.publish({'c' * 40: receipt(later_day, 3)}, at)
+        self.assertEqual([row['day'] for row in self.latest()['days']], [NEXT, later_day])
+        self.assertEqual(self.latest()['riders'][0]['finish_counts'], [0, 1, 1, 0, 0, 0, 0, 0, 0])
+        self.assertEqual(self.store.read_previous(self.store.head(), first_path), first_raw)
+
+        self.assertIsNone(self.publish({'c' * 40: receipt(later_day, 3)}, at.replace(minute=1)))
+        self.publish({'d' * 40: receipt(NEXT, 4, 'e')}, at.replace(minute=2))
+        self.assertEqual(self.latest()['riders'][0]['finish_counts'], [0, 0, 1, 1, 0, 0, 0, 0, 0])
+        self.assertEqual(self.store.read_previous(self.store.head(), first_path), first_raw)
+
     def test_mismatched_previous_day_bytes_and_newer_snapshot_stop_the_write(self):
         self.publish({'a' * 40: receipt(FIRST, 1)})
         prior = self.latest()

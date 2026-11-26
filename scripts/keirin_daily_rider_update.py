@@ -1,6 +1,6 @@
 """Publish daily numeric finish counts from the existing verified result archive."""
 import argparse
-from datetime import date, datetime, timezone
+from datetime import date, datetime, timedelta, timezone
 from hashlib import sha256
 import json
 import os
@@ -40,6 +40,11 @@ def _day(value):
 
 def _path(day):
     return 'rider-history/' + _day(day) + '.json'
+
+
+def _window_start(instant):
+    today = instant.astimezone(JST).date()
+    return (today - timedelta(days=MAX_DAYS - 1)).isoformat()
 
 
 def _encode(doc):
@@ -89,13 +94,15 @@ def read_latest(store):
         'schema', 'base_sha256', 'base_history_end_day', 'published_at', 'days', 'riders',
     } and latest['schema'] == SCHEMA and latest['base_sha256'] == BASE_SHA256 and
          latest['base_history_end_day'] == BASE_DAY, 'BASELINE')
-    posted = public.when(latest['published_at']).astimezone(JST).date().isoformat()
+    published = public.when(latest['published_at'])
+    posted = published.astimezone(JST).date().isoformat()
+    first = _window_start(published)
     days = latest['days']
     need(type(days) is list and 1 <= len(days) <= MAX_DAYS and type(latest['riders']) is list, 'MANIFEST')
     for row in days:
         need(type(row) is dict and set(row) == {
             'day', 'archive_races', 'verified_races', 'observed_count', 'sha256', 'archive_index',
-        } and _day(row['day']) <= posted and HEX.fullmatch(row['sha256']) and
+        } and first <= _day(row['day']) <= posted and HEX.fullmatch(row['sha256']) and
              GIT_OID.fullmatch(row['archive_index']), 'MANIFEST_DAY')
     need(_ordered(row['day'] for row in days), 'DAY_ORDER')
     return parent, latest
@@ -127,7 +134,13 @@ def _read_days(store, parent, prior):
         paths.add(LATEST)
     found = set(store.run(['ls-tree', '-r', '--name-only', parent, '--', 'rider-history/'])
                 .decode().splitlines())
-    need(found == paths, 'PREVIOUS_PATHS')
+    unlisted = found - paths
+    need(paths <= found and (prior is not None or not unlisted), 'PREVIOUS_PATHS')
+    if unlisted:
+        first = _window_start(public.when(prior['published_at']))
+        for path in unlisted:
+            day = path.removeprefix('rider-history/').removesuffix('.json')
+            need(_path(day) == path and day < first, 'PREVIOUS_PATHS')
     days = {}
     for row in rows:
         day = row['day']
@@ -145,11 +158,13 @@ def publish_days(store, expected, updates, *, published_at):
     """Replace corrected days as units and commit them together with the cumulative view."""
     when = public.when(published_at.isoformat())
     today = when.astimezone(JST).date().isoformat()
+    first = _window_start(when)
     candidates = {}
     for oid, item in updates.items():
         day = checked_day(item)['day']
         need(day <= today and day not in candidates and GIT_OID.fullmatch(oid), 'UPDATE_DAY')
-        candidates[day] = (oid, _encode(item), item)
+        if first <= day:
+            candidates[day] = (oid, _encode(item), item)
 
     for attempt in range(2):
         parent, prior = read_latest(store)
@@ -168,7 +183,8 @@ def publish_days(store, expected, updates, *, published_at):
         if not files:
             return None
         need(prior is None or public.when(prior['published_at']) < when, 'PUBLICATION_CLOCK')
-        latest = _aggregate(days, when.isoformat())
+        # Earlier days stay on the public branch as separate dated archives.
+        latest = _aggregate({day: item for day, item in days.items() if first <= day}, when.isoformat())
         files[LATEST] = _encode(latest)
         commit = store.commit(files, parent)
         diff = store.run(['diff-tree', '--no-commit-id', '--name-only', '-r', parent, commit])
@@ -216,11 +232,14 @@ def refresh(repo, reader, owner_private_pem, *, clock=lambda: datetime.now(timez
     known = {row['day']: row for row in prior['days']} if prior else {}
     as_of = clock()
     today = as_of.astimezone(JST).date().isoformat()
+    first = _window_start(as_of)
     head = records.fetch_partial_head(reader)
-    dated = [day for day in records.discover_days_at(reader, head) if BASE_DAY < day <= today]
+    dated = [day for day in records.discover_days_at(reader, head)
+             if day in known or (BASE_DAY < day <= today and first <= day)]
     indexes = _archive_indexes(reader, head, dated, records.ROOT)
     need(known.keys() <= indexes.keys(), 'ARCHIVED_DAYS_MISSING')
-    dirty = sorted(day for day, oid in indexes.items() if known.get(day, {}).get('archive_index') != oid)
+    dirty = sorted(day for day, oid in indexes.items()
+                   if first <= day and known.get(day, {}).get('archive_index') != oid)
     ready = []
     holds = 0
     for day in dirty:
