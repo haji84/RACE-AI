@@ -347,8 +347,15 @@ def publish_day(repo, admitted, source_commit, owner_private_pem, *, clock=None,
     if public_doc is not None:
         from . import keirin_public_forecasts as public
         try:
-            body = public.project(public_doc, published_at=(clock or (lambda: datetime.now(timezone.utc)))())
+            published_at = (clock or (lambda: datetime.now(timezone.utc)))()
+            body = public.project(public_doc, published_at=published_at)
             report['public_forecasts'] = public.publish(repo,body)
         except (OSError,ValueError,TypeError,KeyError,OverflowError,TimeoutExpired):
             report['public_forecasts'] = {'state':'HOLD_PUBLIC_FORECASTS'}
+        else:
+            try:
+                from . import keirin_official_public_card_details as details
+                report['public_details'] = details.publish(repo, public_doc, published_at=published_at)
+            except (OSError, ValueError, TypeError, KeyError, OverflowError, TimeoutExpired, ImportError):
+                report['public_details'] = {'state': 'HOLD_PUBLIC_OFFICIAL_DETAILS'}
     return report

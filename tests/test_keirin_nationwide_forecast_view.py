@@ -220,6 +220,9 @@ class NationwideForecastViewTests(unittest.TestCase):
         with self.assertRaises(ValueError): api.from_admitted(admitted, b'not a key')
 
     def test_encrypted_publication_extends_condition_arms_without_replacing_baseline_or_denominator(self):
+        from race_ai import keirin_official_public_card_details as details
+        from race_ai import keirin_public_forecasts as public
+
         api = self.api()
         with TemporaryDirectory() as folder:
             root = Path(folder); root.chmod(0o700); repo, remote = root/'repo', root/'remote.git'
@@ -228,6 +231,10 @@ class NationwideForecastViewTests(unittest.TestCase):
             git('init','--bare',str(remote)); git('init',str(repo)); git('remote','add','origin',str(remote),cwd=repo)
             class LocalStore(feed.NoteFeedGit):
                 def _remote(self): return 'origin'
+
+            class LocalPublicStore(public.PublicForecastGit):
+                def _remote(self): return 'origin'
+
             store = LocalStore(repo); cap = feed.create_recipient(root/'owner'); recipient = cap['public']
             seed = dict(schema='RACE_AI_KEIRIN_NOTE_VIEW_V1', dates=[DAY], files={},
                 formal_model_admission=False, production_weight_switch=False,
@@ -247,6 +254,21 @@ class NationwideForecastViewTests(unittest.TestCase):
             replay = deepcopy(base); replay['observed_at']='2026-11-21T05:00:00Z'
             reused = api.publish_day(repo,replay,'b'*40,self.private,store=store,recipient=recipient,clock=lambda:NOW)
             self.assertEqual(reused['state'],'EXISTING_NATIONWIDE_DISPLAY_REUSED'); self.assertEqual(store.head(),first)
+            public_store = LocalPublicStore(repo)
+            publication_time = NOW + timedelta(hours=2)
+            with patch.object(public, 'PublicForecastGit', return_value=public_store):
+                published = api.publish_day(repo, replay, 'b'*40, self.private, store=store,
+                    recipient=recipient, clock=lambda: publication_time, public_view=True)
+                self.assertEqual(published['state'], 'EXISTING_NATIONWIDE_DISPLAY_REUSED')
+                self.assertEqual(published['public_forecasts']['state'], 'PUBLIC_FORECASTS_UPDATED')
+                self.assertEqual(published['public_details']['matched_official_races'], 1)
+                with patch.object(details, 'publish', side_effect=ValueError('fixture detail unavailable')):
+                    held = api.publish_day(repo, replay, 'b'*40, self.private, store=store,
+                        recipient=recipient, clock=lambda: publication_time, public_view=True)
+                self.assertEqual(held['state'], 'EXISTING_NATIONWIDE_DISPLAY_REUSED')
+                self.assertEqual(held['public_forecasts']['state'], 'PUBLIC_FORECASTS_CURRENT')
+                self.assertEqual(held['public_details'], {'state': 'HOLD_PUBLIC_OFFICIAL_DETAILS'})
+                self.assertEqual(store.head(), first)
             changed_status=deepcopy(base); changed_status['states'][1]['state']='SOURCE_CAPTURE_BUDGET_PENDING'
             changed_status['observed_at']='2026-11-21T05:00:00Z'
             with patch.object(feed,'seal_snapshot',wraps=feed.seal_snapshot) as seal:
