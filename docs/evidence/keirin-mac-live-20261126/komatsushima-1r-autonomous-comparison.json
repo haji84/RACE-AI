@@ -1,0 +1,45 @@
+{
+  "schema": "KEIRIN_KOMATSUSHIMA_1R_MAC_AUTONOMOUS_COMPARISON_V1",
+  "day_jst": "2026-11-26",
+  "race_id": "202611267301",
+  "launchd_label": "com.race-ai.keirin-mac",
+  "mac_code_commit": "82380b8a7f856f3914d8293af97914a7ff069fe2",
+  "cycle_started_at": "2026-11-26T08:59:51.386260+09:00",
+  "cycle_duration_ms": 125346,
+  "comparison_original_sha256": "0cc6b4c04c9c61cfbc73b2f44210500d045f6e681fe2d719b3f14461246e1300",
+  "comparison_original_archive_cipher_sha256": "c07954c44c461774d8d7eb479ec06a1940a0586a0b44edc88d119c14f05d647f",
+  "comparison_cutoff_at": "2026-11-26T08:45:00+09:00",
+  "official_cutoff_at": "2026-11-26T08:47:00+09:00",
+  "official_scheduled_start_at": "2026-11-26T08:50:00+09:00",
+  "result_scope": "TWO_SOURCE_MATCHED_PODIUM_ONLY",
+  "result_observed_at": "2026-11-26T08:59:57.888460+09:00",
+  "result_evidence_sha256": "abf46ff67c5b3a8bee61300ea9b39faccbdee891d01d99e548bf9a426071c9da",
+  "observed_top_three": [1, 5, 7],
+  "payout_per_100_yen": {
+    "exacta": 6020,
+    "trifecta": 11650
+  },
+  "scores": {
+    "exacta": {
+      "points": 2,
+      "saved_hit": false,
+      "challenger_hit": false
+    },
+    "trifecta": {
+      "points": 4,
+      "saved_hit": false,
+      "challenger_hit": false
+    }
+  },
+  "owner_feed_commit": "00897898795254c47aa0c42ec28990fd45f73592",
+  "owner_feed_entry_at": "2026-11-26T09:01:08.382511+09:00",
+  "owner_feed_index_http_sha256": "9524a4217f7cb819d3f0fb6c8e7bccaf3cad03e720bbc6689c86711fb5a7e265",
+  "owner_feed_cipher_http_sha256": "c02442b8d4504151ca35c894298734345c951b1e68fe349335dd9c9c7466a9bc",
+  "owner_feed_retained_ciphertexts_verified": 175,
+  "archive_forecast_entry_preserved": true,
+  "first_replay_attempt_observed_at": "2026-11-26T09:00:24.727492+09:00",
+  "first_replay_attempt_state": "WAITING_FOR_REPLAY_PUBLICATION",
+  "first_replay_attempt_reason": "race digest button unavailable",
+  "tracking_learning": "HELD",
+  "production_weights_promoted": false
+}
