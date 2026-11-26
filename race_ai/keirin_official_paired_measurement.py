@@ -17,6 +17,18 @@ COMPARISONS = {
     'baseline_B_vs_conditioned_B': ('B', 'conditioned_B'),
 }
 SCOPES = ('all_pre_cutoff', 'official_t15')
+REPLAY_CODES = {
+    'GIT_COMMAND_OR_REMOTE_UNAVAILABLE': 'ENCRYPTED_ARCHIVE_READ_HELD',
+    'OFFICIAL_SP_RECORD_EVIDENCE_CIPHER_SHA': 'ENCRYPTED_ARCHIVE_READ_HELD',
+    'OFFICIAL_SP_RECORD_BASELINE_ARCHIVE_LINEAGE': 'ORIGINAL_ARCHIVE_LINEAGE_HELD',
+    'OFFICIAL_SP_RECORD_ORIGINAL_SOURCE_OR_MODEL_CHANGED': 'ORIGINAL_INPUT_REPLAY_HELD',
+    'OFFICIAL_SP_RECORD_CONFIDENCE_PRESENCE_MISMATCH': 'ORIGINAL_INPUT_REPLAY_HELD',
+    'OFFICIAL_SP_RECORD_CONFIDENCE_SOURCE_CIPHER_MISMATCH': 'ORIGINAL_INPUT_REPLAY_HELD',
+    'OFFICIAL_SP_RECORD_SAVED_RESULT_NOT_REPRODUCIBLE': 'SAVED_SCORE_REPLAY_HELD',
+    'GITHUB_SERVER_PRE_CUTOFF_MARGIN_NOT_PROVEN': 'PRE_CUTOFF_PROOF_HELD',
+    'INDEPENDENT_REPORTS_DO_NOT_BIND_EXACT_CIPHER_SHA': 'INDEPENDENT_SHA_HELD',
+    'OFFICIAL_SP_RECORD_CONDITIONED_SERVER_BINDING': 'INDEPENDENT_SHA_HELD',
+}
 
 
 def _observation(race_id, cutoff, points, left, right, winners, monetary):
@@ -80,6 +92,7 @@ def measure_day(store, owner_private_pem, *, admit_condition_pair=None):
     group_rows = {key: defaultdict(lambda: defaultdict(list)) for key in COMPARISONS}
     holds = {key: {scope: defaultdict(int) for scope in SCOPES} for key in COMPARISONS}
     condition_rows = []
+    result_replay_holds = defaultdict(int)
     condition_coverage = dict(replayed_official_results=0, no_admitted_condition_pair=0,
                               attested_condition_pairs=0, pair_or_witness_held=0, official_premise_held=0)
     for rid in sorted(result_ids):
@@ -87,6 +100,12 @@ def measure_day(store, owner_private_pem, *, admit_condition_pair=None):
         result_meta = index['results'][rid][-1]
         try:
             original, scored, _ = records._replay_saved_result(store, original_meta, result_meta, owner_private_pem)
+        except (ValueError, KeyError, TypeError, OSError, TimeoutExpired) as error:
+            code = REPLAY_CODES.get(str(error), 'ARCHIVE_REPLAY_VALIDATION_HELD')
+            result_replay_holds[code] += 1
+            coverage['official_result_replay_held_races'] += 1
+            continue
+        try:
             extracted = _result_measurements(original, scored)
             if extracted is None:
                 coverage['cancelled_or_refunded_result_replays'] += 1
@@ -95,6 +114,7 @@ def measure_day(store, owner_private_pem, *, admit_condition_pair=None):
             late = {key: not _frozen_with_margin(original, scored, cutoff, use_conditioned=right.startswith('conditioned_'))
                     for key, (left, right) in COMPARISONS.items() if left in arms and right in arms}
         except (ValueError, KeyError, TypeError, OSError, TimeoutExpired):
+            result_replay_holds['FIXED_BUDGET_COMPARISON_VALIDATION_HELD'] += 1
             coverage['official_result_replay_held_races'] += 1
             continue
         coverage['official_order_replay_verified_races'] += 1
@@ -148,7 +168,7 @@ def measure_day(store, owner_private_pem, *, admit_condition_pair=None):
                           for axis, groups in group_rows[key].items()})
     report = dict(schema=SCHEMA, state='OFFICIAL_SP_RESULT_ARCHIVE_MEASURED',
                 day_jst=store.day, archive_commit=store.head, result_authority='KEIRIN_JP_OFFICIAL_SP_REPLAY',
-                coverage=coverage, comparisons=comparisons,
+                coverage=coverage, comparisons=comparisons, result_replay_holds=dict(result_replay_holds),
                 interval_scope='EXPLORATORY_NOMINAL_WILSON_RACES_UNCLUSTERED',
                 adoption_status='HOLD_OFFICIAL_PROSPECTIVE_PRODUCT_EVALUATION_INCOMPLETE',
                 unavailable=['PRE_REGISTERED_INDEPENDENT_TRIAL_ADOPTION', 'EXACTA_ORIGINALS',
