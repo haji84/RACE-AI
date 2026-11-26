@@ -70,18 +70,36 @@ def _result_measurements(original, scored):
     return cutoff, monetary, winners, arms, groups
 
 
-def measure_day(store, owner_private_pem, *, admit_condition_pair=None):
+def measure_day(store, owner_private_pem, *, admit_condition_pair=None, requested_race_ids=None):
     """Replay only the latest revision of each official result on one pinned day."""
+    cohort = None
+    if requested_race_ids is not None:
+        day_prefix = store.day.replace('-', '')
+        records.need(type(requested_race_ids) in (list, tuple) and bool(requested_race_ids) and
+                     all(type(rid) is str and model.VENUE.fullmatch(rid) and rid.startswith(day_prefix)
+                         for rid in requested_race_ids) and len(set(requested_race_ids)) == len(requested_race_ids),
+                     'MEASUREMENT_COHORT_IDS')
+        requested_race_ids = set(requested_race_ids)
+        cohort = dict(requested_races=len(requested_race_ids), not_registered=None,
+                      race_ids_sha256=model.digest(sorted(requested_race_ids)))
     index = store.index
     if index['registry'] is None:
-        return dict(schema=SCHEMA, day_jst=store.day, archive_commit=store.head,
+        held = dict(schema=SCHEMA, day_jst=store.day, archive_commit=store.head,
                     state='HOLD_OFFICIAL_CALENDAR_UNAVAILABLE', coverage={'official_registered_races': None})
+        if cohort is not None:
+            held['cohort'] = cohort
+        return held
     latest = records.replay_registry(store.read(index['registry'], owner_private_pem))
     race_ids = set(latest['registered_race_ids'])
     original_ids = set(index['originals'])
     result_ids = set(index['results'])
     records.need(latest['event_day'] == store.day and result_ids <= original_ids <= race_ids,
                  'MEASUREMENT_REGISTERED_COHORT')
+    if cohort is not None:
+        cohort['not_registered'] = len(requested_race_ids - race_ids)
+        race_ids &= requested_race_ids
+        original_ids &= race_ids
+        result_ids &= race_ids
     coverage = dict(official_registered_races=len(race_ids), archived_baseline_races=len(original_ids),
                     archived_result_races=len(result_ids), official_order_replay_verified_races=0,
                     official_payout_verified_races=0, official_result_replay_held_races=0,
@@ -151,7 +169,7 @@ def measure_day(store, owner_private_pem, *, admit_condition_pair=None):
                         holds[key][scope][f'{market}_not_enough_distinct_orders'] += 1
                         continue
                     observations[key][scope][market].append(row)
-                    if scope == 'official_t15' and market == 'trifecta_top4':
+                    if cohort is None and scope == 'official_t15' and market == 'trifecta_top4':
                         for axis, group in groups.items():
                             group_rows[key][axis][group].append(row)
 
@@ -177,4 +195,8 @@ def measure_day(store, owner_private_pem, *, admit_condition_pair=None):
     if admit_condition_pair is not None:
         report['meeting_condition_trial'] = condition_scoring.summarize_day(
             store.day, condition_rows, coverage=condition_coverage)
+        if cohort is not None:
+            report['meeting_condition_trial']['subgroups'] = {}
+    if cohort is not None:
+        report.update(state='OFFICIAL_SP_SELECTED_COHORT_MEASURED', cohort=cohort)
     return report
