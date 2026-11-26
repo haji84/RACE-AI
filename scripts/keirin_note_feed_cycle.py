@@ -18,6 +18,7 @@ from race_ai.keirin_note_view import import_site,attach_archive,MAX_VIEW
 
 _CONCURRENT_UPDATE = 'KEIRIN_NOTE_FEED_CONCURRENT_UPDATE'
 _MOVED_READBACK = 'KEIRIN_NOTE_FEED_REMOTE_READBACK'
+_MAX_PUBLISH_ATTEMPTS = 3
 _FAILURES = (ValueError, KeyError, TypeError, OSError, RuntimeError, subprocess.SubprocessError)
 _SAFE_REASONS = frozenset({
     'CAPTURE_REPORT', 'RESULT_REPORT',
@@ -55,61 +56,60 @@ def _phase(stage):
 
 def _publish_collected(store, recipient, snapshot, *, parent, prior, denied, result_checks=None):
     """Recover only a proven concurrent append, using already collected bytes."""
-    try:
-        return publish_snapshot(store, recipient, snapshot, expected_parent=parent,
-                                denied=denied, result_checks=result_checks)
-    except ValueError as error:
-        if type(error) is not ValueError:
-            raise
-        code = str(error)
-        if code not in (_CONCURRENT_UPDATE, _MOVED_READBACK):
-            raise
-        latest = store.head()
-        if latest is None or latest == parent:
-            raise
-
-        current = load_index(store, recipient, latest)
+    for attempt in range(1, _MAX_PUBLISH_ATTEMPTS + 1):
         try:
-            store.run(['merge-base', '--is-ancestor', parent, latest])
-        except ValueError:
-            raise ValueError('KEIRIN_NOTE_FEED_PARENT_NOT_FAST_FORWARD') from None
-        need(current['entries'][:len(prior['entries'])] == prior['entries'] and
-             (not prior['provider_denied'] or current['provider_denied']), 'RETAINED_HISTORY_CHANGED')
+            return publish_snapshot(store, recipient, snapshot, expected_parent=parent,
+                                    denied=denied, result_checks=result_checks)
+        except ValueError as error:
+            if type(error) is not ValueError:
+                raise
+            code = str(error)
+            if code not in (_CONCURRENT_UPDATE, _MOVED_READBACK):
+                raise
+            latest = store.head()
+            if latest is None or latest == parent:
+                raise
 
-        old_checks = prior.get('result_checks', {})
-        current_checks = current.get('result_checks', {})
-        need(all(rid in current_checks and (row == current_checks[rid] or
-                 result_clock(row['checked_at']) < result_clock(current_checks[rid]['checked_at']))
-                 for rid, row in old_checks.items()), 'RETAINED_HISTORY_CHANGED')
+            current = load_index(store, recipient, latest)
+            try:
+                store.run(['merge-base', '--is-ancestor', parent, latest])
+            except ValueError:
+                raise ValueError('KEIRIN_NOTE_FEED_PARENT_NOT_FAST_FORWARD') from None
+            need(current['entries'][:len(prior['entries'])] == prior['entries'] and
+                 (not prior['provider_denied'] or current['provider_denied']), 'RETAINED_HISTORY_CHANGED')
 
-        checks = result_checks or {}
-        if ((snapshot is None or snapshot['entry'] in current['entries'])
-                and all(current_checks.get(rid) == row for rid, row in checks.items())
-                and (not denied or current['provider_denied'])):
-            # A second write is unnecessary once the exact entry and its
-            # progress are verified against a descendant of the old head.
-            return dict(state='KEIRIN_NOTE_ENCRYPTED_GIT_READBACK_VERIFIED',
-                        source_commit=latest, entries=len(current['entries']),
-                        provider_denied=current['provider_denied'],
-                        covered_races=len(current['covered_race_ids']),
-                        priority_window_races=len(current['priority_window_race_ids']),
-                        private_plaintext_uploaded=False, production_state_key_used=False)
-        if code != _CONCURRENT_UPDATE:
-            raise
-        need(not current['provider_denied'], 'PREVIOUS_PROVIDER_DENIAL_NO_RETRY')
-        entry = snapshot['entry'] if snapshot is not None else None
-        if entry is not None and entry['kind'] == 'research':
-            added_entries = current['entries'][len(prior['entries']):]
-            captured = set(entry['captured_race_ids'])
-            days = set(entry['days'])
-            need(not any(other['kind'] == 'research' and
-                         (captured.intersection(other['captured_race_ids']) if captured else
-                          days.intersection(other['days'])) for other in added_entries),
-                 'FORECAST_COVERAGE_CHANGED')
-        need(all(current_checks.get(rid) == old_checks.get(rid) for rid in checks),
-             'RESULT_PREDECESSOR_CHANGED')
-        return publish_snapshot(store, recipient, snapshot, expected_parent=latest,
-                                denied=denied, result_checks=result_checks)
+            old_checks = prior.get('result_checks', {})
+            current_checks = current.get('result_checks', {})
+            need(all(rid in current_checks and (row == current_checks[rid] or
+                     result_clock(row['checked_at']) < result_clock(current_checks[rid]['checked_at']))
+                     for rid, row in old_checks.items()), 'RETAINED_HISTORY_CHANGED')
+
+            checks = result_checks or {}
+            if ((snapshot is None or snapshot['entry'] in current['entries'])
+                    and all(current_checks.get(rid) == row for rid, row in checks.items())
+                    and (not denied or current['provider_denied'])):
+                # The exact entry and its checks are already public on a descendant.
+                return dict(state='KEIRIN_NOTE_ENCRYPTED_GIT_READBACK_VERIFIED',
+                            source_commit=latest, entries=len(current['entries']),
+                            provider_denied=current['provider_denied'],
+                            covered_races=len(current['covered_race_ids']),
+                            priority_window_races=len(current['priority_window_race_ids']),
+                            private_plaintext_uploaded=False, production_state_key_used=False)
+            if code != _CONCURRENT_UPDATE or attempt == _MAX_PUBLISH_ATTEMPTS:
+                raise
+            need(not current['provider_denied'], 'PREVIOUS_PROVIDER_DENIAL_NO_RETRY')
+            entry = snapshot['entry'] if snapshot is not None else None
+            if entry is not None and entry['kind'] == 'research':
+                added_entries = current['entries'][len(prior['entries']):]
+                captured = set(entry['captured_race_ids'])
+                days = set(entry['days'])
+                need(not any(other['kind'] == 'research' and
+                             (captured.intersection(other['captured_race_ids']) if captured else
+                              days.intersection(other['days'])) for other in added_entries),
+                     'FORECAST_COVERAGE_CHANGED')
+            need(all(current_checks.get(rid) == old_checks.get(rid) for rid in checks),
+                 'RESULT_PREDECESSOR_CHANGED')
+            parent = latest
 
 
 def source_archive(root):
