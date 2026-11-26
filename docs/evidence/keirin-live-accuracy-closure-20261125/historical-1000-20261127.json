@@ -1,0 +1,873 @@
+{
+  "schema": "RACE_AI_KEIRIN_HISTORICAL_COMPARISON_1000_V1",
+  "origin": "RETROSPECTIVE_CHRONOLOGICAL_RECONSTRUCTION_NOT_FUTURE_INDEPENDENT",
+  "cohort": {
+    "selection_seed": "RACE_AI_KEIRIN_ARCHIVE_1000_20261127_V1",
+    "race_ids_sha256": "730c5b020a18c2d3556e7045e9724e48315753c784a860557ed0e339f4892f9b",
+    "races": 1000,
+    "first_day": "20261001",
+    "last_day": "20261122",
+    "days": 48,
+    "eligible_races": 3201,
+    "feature_holds": {}
+  },
+  "local_model_copy_sha256": "d393bbb129470e9d14aaac28bc79a5b7565035a5d1eaf7f832a56b89ccb13c02",
+  "runtime_research_commit": "6b30e6368216519cb55232f417462caffc6c57f6",
+  "database_sha256": [
+    "1bdad22b9744c9c5563f7bb1af31875170a3e6b7f4b0dd73fba8f98d645d8fc4",
+    "d915560877493816b90df8bcd5e7bdef45557f57100b4cd40a3d017cd959334d"
+  ],
+  "stage_sha256": [
+    "660f4420daccf3c152016c5a9c6677dca092d1994eeaf0dab3c1dca471adeaff",
+    "b28fa423694ca2f73bd3236bd4ff15b31c340cb410583465ed1d1921a21275e9",
+    "2fd5e2599f1879e7fcb585c9ffb52b05c5d0c9b7bb85c54ee4f8ead9df03db33"
+  ],
+  "base_configuration_sha256": "60e88f53496f934cb968706e38291d8d68fc664429a3356de617cc0e634c9a47",
+  "training_end": "20260731",
+  "tuning_end": "20260930",
+  "selected_comparison": "all_96",
+  "metrics": {
+    "saved": {
+      "n": 1000,
+      "top1_3t": 117,
+      "top4_3t": 269,
+      "top8_3t": 385,
+      "top1_2t": 219,
+      "top2_2t": 376,
+      "logloss_3t": 4.179605990768461,
+      "logloss_2t": 2.835986541854675,
+      "brier_3t": 0.9622622765552875,
+      "brier_2t": 0.8957411861362435,
+      "top4_mass_3t": 0.28000648083562785,
+      "top8_mass_3t": 0.40099266772450426,
+      "top2_mass_2t": 0.3912138914000599,
+      "rates": {
+        "top1_3t": 0.117,
+        "top4_3t": 0.269,
+        "top8_3t": 0.385,
+        "top1_2t": 0.219,
+        "top2_2t": 0.376
+      },
+      "virtual_returns": {
+        "top4_3t": {
+          "races": 1000,
+          "stake_yen": 400000,
+          "payout_yen": 277810,
+          "return_rate": 0.694525
+        },
+        "top2_2t": {
+          "races": 1000,
+          "stake_yen": 200000,
+          "payout_yen": 149140,
+          "return_rate": 0.7457
+        }
+      },
+      "top4_probability_bins": [
+        {
+          "bin_low": 0.0,
+          "bin_high": 0.1,
+          "n": 10,
+          "registered_probability_mean": 0.08788772146239743,
+          "observed_hit_rate": 0.1
+        },
+        {
+          "bin_low": 0.1,
+          "bin_high": 0.2,
+          "n": 234,
+          "registered_probability_mean": 0.1580435564246381,
+          "observed_hit_rate": 0.13247863247863248
+        },
+        {
+          "bin_low": 0.2,
+          "bin_high": 0.3,
+          "n": 374,
+          "registered_probability_mean": 0.24843992549539634,
+          "observed_hit_rate": 0.2647058823529412
+        },
+        {
+          "bin_low": 0.3,
+          "bin_high": 0.4,
+          "n": 232,
+          "registered_probability_mean": 0.34230839125327667,
+          "observed_hit_rate": 0.3232758620689655
+        },
+        {
+          "bin_low": 0.4,
+          "bin_high": 0.5,
+          "n": 118,
+          "registered_probability_mean": 0.4455749817210029,
+          "observed_hit_rate": 0.3644067796610169
+        },
+        {
+          "bin_low": 0.5,
+          "bin_high": 0.6,
+          "n": 30,
+          "registered_probability_mean": 0.5332803257874507,
+          "observed_hit_rate": 0.6333333333333333
+        },
+        {
+          "bin_low": 0.6,
+          "bin_high": 0.7,
+          "n": 2,
+          "registered_probability_mean": 0.6185374474491994,
+          "observed_hit_rate": 0.5
+        }
+      ]
+    },
+    "first_two_24": {
+      "n": 1000,
+      "top1_3t": 120,
+      "top4_3t": 266,
+      "top8_3t": 385,
+      "top1_2t": 226,
+      "top2_2t": 371,
+      "logloss_3t": 4.168818146591516,
+      "logloss_2t": 2.8251986976777292,
+      "brier_3t": 0.9615691473823574,
+      "brier_2t": 0.893963271750667,
+      "top4_mass_3t": 0.2881883446905312,
+      "top8_mass_3t": 0.41242845584392507,
+      "top2_mass_2t": 0.40296154003704243,
+      "rates": {
+        "top1_3t": 0.12,
+        "top4_3t": 0.266,
+        "top8_3t": 0.385,
+        "top1_2t": 0.226,
+        "top2_2t": 0.371
+      },
+      "virtual_returns": {
+        "top4_3t": {
+          "races": 1000,
+          "stake_yen": 400000,
+          "payout_yen": 259750,
+          "return_rate": 0.649375
+        },
+        "top2_2t": {
+          "races": 1000,
+          "stake_yen": 200000,
+          "payout_yen": 145640,
+          "return_rate": 0.7282
+        }
+      },
+      "top4_probability_bins": [
+        {
+          "bin_low": 0.0,
+          "bin_high": 0.1,
+          "n": 10,
+          "registered_probability_mean": 0.0893995107250979,
+          "observed_hit_rate": 0.1
+        },
+        {
+          "bin_low": 0.1,
+          "bin_high": 0.2,
+          "n": 223,
+          "registered_probability_mean": 0.1588796147040773,
+          "observed_hit_rate": 0.1210762331838565
+        },
+        {
+          "bin_low": 0.2,
+          "bin_high": 0.3,
+          "n": 356,
+          "registered_probability_mean": 0.24906994007843172,
+          "observed_hit_rate": 0.2556179775280899
+        },
+        {
+          "bin_low": 0.3,
+          "bin_high": 0.4,
+          "n": 236,
+          "registered_probability_mean": 0.34281891992496727,
+          "observed_hit_rate": 0.3177966101694915
+        },
+        {
+          "bin_low": 0.4,
+          "bin_high": 0.5,
+          "n": 135,
+          "registered_probability_mean": 0.44571149836590207,
+          "observed_hit_rate": 0.3333333333333333
+        },
+        {
+          "bin_low": 0.5,
+          "bin_high": 0.6,
+          "n": 33,
+          "registered_probability_mean": 0.5381445332325919,
+          "observed_hit_rate": 0.7575757575757576
+        },
+        {
+          "bin_low": 0.6,
+          "bin_high": 0.7,
+          "n": 7,
+          "registered_probability_mean": 0.6228871225692075,
+          "observed_hit_rate": 0.2857142857142857
+        }
+      ]
+    },
+    "first_two_56": {
+      "n": 1000,
+      "top1_3t": 121,
+      "top4_3t": 270,
+      "top8_3t": 386,
+      "top1_2t": 226,
+      "top2_2t": 371,
+      "logloss_3t": 4.162248762019046,
+      "logloss_2t": 2.8186293131052467,
+      "brier_3t": 0.9611153228308186,
+      "brier_2t": 0.8928367490981576,
+      "top4_mass_3t": 0.2907583366325993,
+      "top8_mass_3t": 0.4165930880737391,
+      "top2_mass_2t": 0.4069292653955123,
+      "rates": {
+        "top1_3t": 0.121,
+        "top4_3t": 0.27,
+        "top8_3t": 0.386,
+        "top1_2t": 0.226,
+        "top2_2t": 0.371
+      },
+      "virtual_returns": {
+        "top4_3t": {
+          "races": 1000,
+          "stake_yen": 400000,
+          "payout_yen": 264000,
+          "return_rate": 0.66
+        },
+        "top2_2t": {
+          "races": 1000,
+          "stake_yen": 200000,
+          "payout_yen": 144350,
+          "return_rate": 0.72175
+        }
+      },
+      "top4_probability_bins": [
+        {
+          "bin_low": 0.0,
+          "bin_high": 0.1,
+          "n": 7,
+          "registered_probability_mean": 0.08541548020102363,
+          "observed_hit_rate": 0.14285714285714285
+        },
+        {
+          "bin_low": 0.1,
+          "bin_high": 0.2,
+          "n": 227,
+          "registered_probability_mean": 0.1587195080123378,
+          "observed_hit_rate": 0.11013215859030837
+        },
+        {
+          "bin_low": 0.2,
+          "bin_high": 0.3,
+          "n": 343,
+          "registered_probability_mean": 0.24891321261645782,
+          "observed_hit_rate": 0.27113702623906705
+        },
+        {
+          "bin_low": 0.3,
+          "bin_high": 0.4,
+          "n": 240,
+          "registered_probability_mean": 0.34216070011379557,
+          "observed_hit_rate": 0.30833333333333335
+        },
+        {
+          "bin_low": 0.4,
+          "bin_high": 0.5,
+          "n": 139,
+          "registered_probability_mean": 0.44684194857579373,
+          "observed_hit_rate": 0.34532374100719426
+        },
+        {
+          "bin_low": 0.5,
+          "bin_high": 0.6,
+          "n": 35,
+          "registered_probability_mean": 0.5389268646298091,
+          "observed_hit_rate": 0.7142857142857143
+        },
+        {
+          "bin_low": 0.6,
+          "bin_high": 0.7,
+          "n": 9,
+          "registered_probability_mean": 0.6290920981729858,
+          "observed_hit_rate": 0.4444444444444444
+        }
+      ]
+    },
+    "third_56": {
+      "n": 1000,
+      "top1_3t": 119,
+      "top4_3t": 271,
+      "top8_3t": 389,
+      "top1_2t": 219,
+      "top2_2t": 376,
+      "logloss_3t": 4.165747335217844,
+      "logloss_2t": 2.835986541854675,
+      "brier_3t": 0.9616364818418203,
+      "brier_2t": 0.8957411861362434,
+      "top4_mass_3t": 0.290424919439299,
+      "top8_mass_3t": 0.41092295031541937,
+      "top2_mass_2t": 0.3912138914000599,
+      "rates": {
+        "top1_3t": 0.119,
+        "top4_3t": 0.271,
+        "top8_3t": 0.389,
+        "top1_2t": 0.219,
+        "top2_2t": 0.376
+      },
+      "virtual_returns": {
+        "top4_3t": {
+          "races": 1000,
+          "stake_yen": 400000,
+          "payout_yen": 278370,
+          "return_rate": 0.695925
+        },
+        "top2_2t": {
+          "races": 1000,
+          "stake_yen": 200000,
+          "payout_yen": 149140,
+          "return_rate": 0.7457
+        }
+      },
+      "top4_probability_bins": [
+        {
+          "bin_low": 0.0,
+          "bin_high": 0.1,
+          "n": 9,
+          "registered_probability_mean": 0.08958055187934062,
+          "observed_hit_rate": 0.1111111111111111
+        },
+        {
+          "bin_low": 0.1,
+          "bin_high": 0.2,
+          "n": 213,
+          "registered_probability_mean": 0.1591076448167599,
+          "observed_hit_rate": 0.1267605633802817
+        },
+        {
+          "bin_low": 0.2,
+          "bin_high": 0.3,
+          "n": 356,
+          "registered_probability_mean": 0.24956957070542832,
+          "observed_hit_rate": 0.2640449438202247
+        },
+        {
+          "bin_low": 0.3,
+          "bin_high": 0.4,
+          "n": 247,
+          "registered_probability_mean": 0.34194032662385954,
+          "observed_hit_rate": 0.3157894736842105
+        },
+        {
+          "bin_low": 0.4,
+          "bin_high": 0.5,
+          "n": 136,
+          "registered_probability_mean": 0.44776965407312247,
+          "observed_hit_rate": 0.34558823529411764
+        },
+        {
+          "bin_low": 0.5,
+          "bin_high": 0.6,
+          "n": 35,
+          "registered_probability_mean": 0.5427680560595569,
+          "observed_hit_rate": 0.6571428571428571
+        },
+        {
+          "bin_low": 0.6,
+          "bin_high": 0.7,
+          "n": 4,
+          "registered_probability_mean": 0.6322958407900485,
+          "observed_hit_rate": 0.25
+        }
+      ]
+    },
+    "all_24": {
+      "n": 1000,
+      "top1_3t": 121,
+      "top4_3t": 275,
+      "top8_3t": 387,
+      "top1_2t": 226,
+      "top2_2t": 371,
+      "logloss_3t": 4.159113958705336,
+      "logloss_2t": 2.8251986976777292,
+      "brier_3t": 0.9611904276122614,
+      "brier_2t": 0.893963271750667,
+      "top4_mass_3t": 0.29521070640562935,
+      "top8_mass_3t": 0.4190735357157369,
+      "top2_mass_2t": 0.40296154003704243,
+      "rates": {
+        "top1_3t": 0.121,
+        "top4_3t": 0.275,
+        "top8_3t": 0.387,
+        "top1_2t": 0.226,
+        "top2_2t": 0.371
+      },
+      "virtual_returns": {
+        "top4_3t": {
+          "races": 1000,
+          "stake_yen": 400000,
+          "payout_yen": 280370,
+          "return_rate": 0.700925
+        },
+        "top2_2t": {
+          "races": 1000,
+          "stake_yen": 200000,
+          "payout_yen": 145640,
+          "return_rate": 0.7282
+        }
+      },
+      "top4_probability_bins": [
+        {
+          "bin_low": 0.0,
+          "bin_high": 0.1,
+          "n": 7,
+          "registered_probability_mean": 0.08713976658101445,
+          "observed_hit_rate": 0.2857142857142857
+        },
+        {
+          "bin_low": 0.1,
+          "bin_high": 0.2,
+          "n": 211,
+          "registered_probability_mean": 0.15880784441877593,
+          "observed_hit_rate": 0.11374407582938388
+        },
+        {
+          "bin_low": 0.2,
+          "bin_high": 0.3,
+          "n": 345,
+          "registered_probability_mean": 0.24941536328036265,
+          "observed_hit_rate": 0.26666666666666666
+        },
+        {
+          "bin_low": 0.3,
+          "bin_high": 0.4,
+          "n": 247,
+          "registered_probability_mean": 0.3435485660441309,
+          "observed_hit_rate": 0.30364372469635625
+        },
+        {
+          "bin_low": 0.4,
+          "bin_high": 0.5,
+          "n": 143,
+          "registered_probability_mean": 0.44799628807459196,
+          "observed_hit_rate": 0.35664335664335667
+        },
+        {
+          "bin_low": 0.5,
+          "bin_high": 0.6,
+          "n": 39,
+          "registered_probability_mean": 0.5402400860338694,
+          "observed_hit_rate": 0.717948717948718
+        },
+        {
+          "bin_low": 0.6,
+          "bin_high": 0.7,
+          "n": 8,
+          "registered_probability_mean": 0.631830521573354,
+          "observed_hit_rate": 0.375
+        }
+      ]
+    },
+    "all_56": {
+      "n": 1000,
+      "top1_3t": 121,
+      "top4_3t": 276,
+      "top8_3t": 389,
+      "top1_2t": 226,
+      "top2_2t": 371,
+      "logloss_3t": 4.148390106468428,
+      "logloss_2t": 2.8186293131052467,
+      "brier_3t": 0.9606011763935289,
+      "brier_2t": 0.8928367490981577,
+      "top4_mass_3t": 0.30199374805900225,
+      "top8_mass_3t": 0.42698491037903985,
+      "top2_mass_2t": 0.4069292653955123,
+      "rates": {
+        "top1_3t": 0.121,
+        "top4_3t": 0.276,
+        "top8_3t": 0.389,
+        "top1_2t": 0.226,
+        "top2_2t": 0.371
+      },
+      "virtual_returns": {
+        "top4_3t": {
+          "races": 1000,
+          "stake_yen": 400000,
+          "payout_yen": 281840,
+          "return_rate": 0.7046
+        },
+        "top2_2t": {
+          "races": 1000,
+          "stake_yen": 200000,
+          "payout_yen": 144350,
+          "return_rate": 0.72175
+        }
+      },
+      "top4_probability_bins": [
+        {
+          "bin_low": 0.0,
+          "bin_high": 0.1,
+          "n": 6,
+          "registered_probability_mean": 0.08442972252680625,
+          "observed_hit_rate": 0.16666666666666666
+        },
+        {
+          "bin_low": 0.1,
+          "bin_high": 0.2,
+          "n": 210,
+          "registered_probability_mean": 0.15979613793528177,
+          "observed_hit_rate": 0.11904761904761904
+        },
+        {
+          "bin_low": 0.2,
+          "bin_high": 0.3,
+          "n": 326,
+          "registered_probability_mean": 0.2493896606226106,
+          "observed_hit_rate": 0.2607361963190184
+        },
+        {
+          "bin_low": 0.3,
+          "bin_high": 0.4,
+          "n": 249,
+          "registered_probability_mean": 0.3444952282681532,
+          "observed_hit_rate": 0.2891566265060241
+        },
+        {
+          "bin_low": 0.4,
+          "bin_high": 0.5,
+          "n": 141,
+          "registered_probability_mean": 0.44755456435272334,
+          "observed_hit_rate": 0.3829787234042553
+        },
+        {
+          "bin_low": 0.5,
+          "bin_high": 0.6,
+          "n": 55,
+          "registered_probability_mean": 0.5360584331765438,
+          "observed_hit_rate": 0.5818181818181818
+        },
+        {
+          "bin_low": 0.6,
+          "bin_high": 0.7,
+          "n": 13,
+          "registered_probability_mean": 0.6354793967113093,
+          "observed_hit_rate": 0.5384615384615384
+        }
+      ]
+    },
+    "all_96": {
+      "n": 1000,
+      "top1_3t": 128,
+      "top4_3t": 280,
+      "top8_3t": 392,
+      "top1_2t": 224,
+      "top2_2t": 370,
+      "logloss_3t": 4.142726105311562,
+      "logloss_2t": 2.8153230312932003,
+      "brier_3t": 0.9603839914377822,
+      "brier_2t": 0.8922123534866345,
+      "top4_mass_3t": 0.3038912698481299,
+      "top8_mass_3t": 0.42871143294901265,
+      "top2_mass_2t": 0.4064355496552686,
+      "rates": {
+        "top1_3t": 0.128,
+        "top4_3t": 0.28,
+        "top8_3t": 0.392,
+        "top1_2t": 0.224,
+        "top2_2t": 0.37
+      },
+      "virtual_returns": {
+        "top4_3t": {
+          "races": 1000,
+          "stake_yen": 400000,
+          "payout_yen": 287600,
+          "return_rate": 0.719
+        },
+        "top2_2t": {
+          "races": 1000,
+          "stake_yen": 200000,
+          "payout_yen": 142730,
+          "return_rate": 0.71365
+        }
+      },
+      "top4_probability_bins": [
+        {
+          "bin_low": 0.0,
+          "bin_high": 0.1,
+          "n": 5,
+          "registered_probability_mean": 0.08088469536083003,
+          "observed_hit_rate": 0.2
+        },
+        {
+          "bin_low": 0.1,
+          "bin_high": 0.2,
+          "n": 210,
+          "registered_probability_mean": 0.15886853714649632,
+          "observed_hit_rate": 0.11904761904761904
+        },
+        {
+          "bin_low": 0.2,
+          "bin_high": 0.3,
+          "n": 330,
+          "registered_probability_mean": 0.24891223360316275,
+          "observed_hit_rate": 0.2606060606060606
+        },
+        {
+          "bin_low": 0.3,
+          "bin_high": 0.4,
+          "n": 238,
+          "registered_probability_mean": 0.34554767262038977,
+          "observed_hit_rate": 0.31092436974789917
+        },
+        {
+          "bin_low": 0.4,
+          "bin_high": 0.5,
+          "n": 142,
+          "registered_probability_mean": 0.44810583754602357,
+          "observed_hit_rate": 0.38028169014084506
+        },
+        {
+          "bin_low": 0.5,
+          "bin_high": 0.6,
+          "n": 58,
+          "registered_probability_mean": 0.5384497336506958,
+          "observed_hit_rate": 0.5
+        },
+        {
+          "bin_low": 0.6,
+          "bin_high": 0.7,
+          "n": 17,
+          "registered_probability_mean": 0.6401151126228941,
+          "observed_hit_rate": 0.6470588235294118
+        }
+      ]
+    },
+    "all_96_half": {
+      "n": 1000,
+      "top1_3t": 122,
+      "top4_3t": 274,
+      "top8_3t": 393,
+      "top1_2t": 226,
+      "top2_2t": 374,
+      "logloss_3t": 4.153484209155074,
+      "logloss_2t": 2.8208073156950713,
+      "brier_3t": 0.9609408906560081,
+      "brier_2t": 0.8934644947820847,
+      "top4_mass_3t": 0.29226084155623944,
+      "top8_mass_3t": 0.41528283574995994,
+      "top2_mass_2t": 0.3994863020330813,
+      "rates": {
+        "top1_3t": 0.122,
+        "top4_3t": 0.274,
+        "top8_3t": 0.393,
+        "top1_2t": 0.226,
+        "top2_2t": 0.374
+      },
+      "virtual_returns": {
+        "top4_3t": {
+          "races": 1000,
+          "stake_yen": 400000,
+          "payout_yen": 282700,
+          "return_rate": 0.70675
+        },
+        "top2_2t": {
+          "races": 1000,
+          "stake_yen": 200000,
+          "payout_yen": 146910,
+          "return_rate": 0.73455
+        }
+      },
+      "top4_probability_bins": [
+        {
+          "bin_low": 0.0,
+          "bin_high": 0.1,
+          "n": 7,
+          "registered_probability_mean": 0.08595166964679138,
+          "observed_hit_rate": 0.14285714285714285
+        },
+        {
+          "bin_low": 0.1,
+          "bin_high": 0.2,
+          "n": 218,
+          "registered_probability_mean": 0.15802349289795173,
+          "observed_hit_rate": 0.11009174311926606
+        },
+        {
+          "bin_low": 0.2,
+          "bin_high": 0.3,
+          "n": 345,
+          "registered_probability_mean": 0.24812336497094858,
+          "observed_hit_rate": 0.2753623188405797
+        },
+        {
+          "bin_low": 0.3,
+          "bin_high": 0.4,
+          "n": 245,
+          "registered_probability_mean": 0.3423053373064173,
+          "observed_hit_rate": 0.31020408163265306
+        },
+        {
+          "bin_low": 0.4,
+          "bin_high": 0.5,
+          "n": 143,
+          "registered_probability_mean": 0.4488720472842566,
+          "observed_hit_rate": 0.36363636363636365
+        },
+        {
+          "bin_low": 0.5,
+          "bin_high": 0.6,
+          "n": 33,
+          "registered_probability_mean": 0.5430559984890768,
+          "observed_hit_rate": 0.6666666666666666
+        },
+        {
+          "bin_low": 0.6,
+          "bin_high": 0.7,
+          "n": 9,
+          "registered_probability_mean": 0.6259043500134118,
+          "observed_hit_rate": 0.4444444444444444
+        }
+      ]
+    }
+  },
+  "paired_day_bootstrap_95": {
+    "top4_3t": [
+      0.0010162086281106219,
+      0.02096472709680257
+    ],
+    "top4_3t_return_rate": [
+      -0.03227697788768214,
+      0.07806696225020829
+    ],
+    "top2_2t": [
+      -0.017752796165259075,
+      0.0053263571286537685
+    ],
+    "top2_2t_return_rate": [
+      -0.08229046662710911,
+      0.016270320171039392
+    ]
+  },
+  "paired_difference": {
+    "top4_3t": 0.011,
+    "top4_3t_return_rate": 0.024474999999999997,
+    "top2_2t": -0.006,
+    "top2_2t_return_rate": -0.032049999999999995
+  },
+  "subgroups": {
+    "field_size:5": {
+      "saved": {
+        "n": 11,
+        "top4_3t": 3,
+        "top2_2t": 3
+      },
+      "all_96": {
+        "n": 11,
+        "top4_3t": 3,
+        "top2_2t": 3
+      }
+    },
+    "field_size:6": {
+      "saved": {
+        "n": 29,
+        "top4_3t": 7,
+        "top2_2t": 9
+      },
+      "all_96": {
+        "n": 29,
+        "top4_3t": 7,
+        "top2_2t": 9
+      }
+    },
+    "field_size:7": {
+      "saved": {
+        "n": 873,
+        "top4_3t": 234,
+        "top2_2t": 326
+      },
+      "all_96": {
+        "n": 873,
+        "top4_3t": 247,
+        "top2_2t": 323
+      }
+    },
+    "field_size:8": {
+      "saved": {
+        "n": 4,
+        "top4_3t": 0,
+        "top2_2t": 1
+      },
+      "all_96": {
+        "n": 4,
+        "top4_3t": 0,
+        "top2_2t": 1
+      }
+    },
+    "field_size:9": {
+      "saved": {
+        "n": 83,
+        "top4_3t": 25,
+        "top2_2t": 37
+      },
+      "all_96": {
+        "n": 83,
+        "top4_3t": 23,
+        "top2_2t": 34
+      }
+    },
+    "meeting_grade:F1": {
+      "saved": {
+        "n": 326,
+        "top4_3t": 77,
+        "top2_2t": 120
+      },
+      "all_96": {
+        "n": 326,
+        "top4_3t": 81,
+        "top2_2t": 119
+      }
+    },
+    "meeting_grade:F2": {
+      "saved": {
+        "n": 581,
+        "top4_3t": 167,
+        "top2_2t": 217
+      },
+      "all_96": {
+        "n": 581,
+        "top4_3t": 176,
+        "top2_2t": 216
+      }
+    },
+    "meeting_grade:G1": {
+      "saved": {
+        "n": 27,
+        "top4_3t": 6,
+        "top2_2t": 10
+      },
+      "all_96": {
+        "n": 27,
+        "top4_3t": 5,
+        "top2_2t": 9
+      }
+    },
+    "meeting_grade:G3": {
+      "saved": {
+        "n": 66,
+        "top4_3t": 19,
+        "top2_2t": 29
+      },
+      "all_96": {
+        "n": 66,
+        "top4_3t": 18,
+        "top2_2t": 26
+      }
+    }
+  },
+  "independent_readback": {
+    "receipt_sha256": "6da8f1ca6cda35c3fb3869d21eccc2f023ae24913cf0657fba6f29eddd40fe08",
+    "cohort_selection_reproduced": true,
+    "arms_with_hit_and_payout_totals_reproduced": 8,
+    "winning_payout_records_rechecked": 2000,
+    "full_score_rerun_sha256": "1e8a4a60afc934e6b577e5509f986099190384d94aa072b8d3a25a93dca11ee6"
+  },
+  "archives_rechecked": true,
+  "matching_frozen_input_rows": 3201,
+  "model_refitted": false,
+  "pre_cutoff_originals_created": false,
+  "production_weights_promoted": false
+}
