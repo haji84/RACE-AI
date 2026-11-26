@@ -36,6 +36,15 @@
   "owner_feed_index_http_sha256": "9524a4217f7cb819d3f0fb6c8e7bccaf3cad03e720bbc6689c86711fb5a7e265",
   "owner_feed_cipher_http_sha256": "c02442b8d4504151ca35c894298734345c951b1e68fe349335dd9c9c7466a9bc",
   "owner_feed_retained_ciphertexts_verified": 175,
+  "owner_feed_live_chrome": {
+    "site_http_status": 200,
+    "index_http_status": 200,
+    "cipher_http_status": 200,
+    "matching_entries": 1,
+    "cipher_sha256_verified": true,
+    "page_errors": 0,
+    "owner_capability_used": false
+  },
   "archive_forecast_entry_preserved": true,
   "first_replay_attempt_observed_at": "2026-11-26T09:00:24.727492+09:00",
   "first_replay_attempt_state": "WAITING_FOR_REPLAY_PUBLICATION",
