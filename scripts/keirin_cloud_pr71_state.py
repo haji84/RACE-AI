@@ -54,6 +54,28 @@ LICENSED_SOURCE_REQUIRED_KEYS=(
     "RACE_AI_KEIRIN_LICENSE_MANIFEST_B64",
     "RACE_AI_KEIRIN_LICENSE_DOCUMENT_B64",
 )
+SAFE_HOLD_REASONS = frozenset({
+    "TRUSTED_GITHUB_MAIN_SCHEDULE_REQUIRED",
+    "OWNER_PUBLIC_CIPHERTEXT_CONSENT_MISSING",
+    "OWNER_CIPHER_CONSENT_INVALID",
+    "GITHUB_CHECKOUT_REQUIRED",
+    "UNEXPECTED_GIT_REMOTE",
+    "GIT_OR_CHECKPOINT_COMMAND_FAILED",
+    "PRODUCTION_STATE_KEY_NOT_CONFIGURED",
+    "PRODUCTION_HISTORY_HEAD_INVALID",
+    "CIPHER_HISTORY_FILE_MISSING",
+    "CIPHER_SCOPE_CHAIN_MISMATCH",
+    "CIPHER_BYTES_SHA_MISMATCH",
+    "EXISTING_AES_GCM_CODEC_REQUIRED",
+    "PRIVATE_RESTORE_CREATE_ONCE_REQUIRED",
+    "SQLITE_INTEGRITY_FAILED",
+    "INDEPENDENT_AES_SQLITE_MODEL_READBACK_MISMATCH",
+    "STATE_BRANCH_CHANGED_SINCE_LAST_RESTORE",
+    "REMOTE_ENCRYPTED_COMMIT_READBACK_MISMATCH",
+    "REMOTE_ENCRYPTED_FILE_READBACK_MISMATCH",
+    "LICENSED_CLOUD_SOURCE_NOT_ADMITTED",
+    "PRODUCTION_PR71_CHECKPOINT_NOT_YET_CREATED",
+})
 
 
 def missing_source_configuration(environ=None, *, source_state=None):
@@ -539,9 +561,12 @@ def main(argv=None):
     p.add_argument("--repo",required=True)
     p.add_argument("--source-root",required=True)
     args=p.parse_args(argv)
+    stage="MAIN_EVENT"
     try:
         require_main_event()
+        stage="OWNER_CONSENT"
         check_owner_cipher_consent(args.source_root)
+        stage=args.mode.upper()
         if args.mode=="cycle":
             report=cycle(args.repo,args.source_root)
         else:
@@ -558,8 +583,16 @@ def main(argv=None):
                         "plaintext_public":False}
         print(json.dumps(report,sort_keys=True))
         return 0
-    except (ArchiveError,OSError,ValueError,TypeError,KeyError,sqlite3.Error):
+    except (ArchiveError,OSError,ValueError,TypeError,KeyError,sqlite3.Error) as error:
         print('{"state":"HOLD_PR71_CLOUD_GATE_NOT_VERIFIED","real_forecasts_claimed":false}')
+        # Actions keeps stdout in the runner's private report when this exits 2.
+        # Expose known contract codes only. External errors may carry raw data.
+        reason=str(error) if type(error) is ArchiveError else ""
+        print(json.dumps({
+            "state":"HOLD_PR71_CLOUD_GATE_NOT_VERIFIED",
+            "stage":stage,
+            "reason":reason if reason in SAFE_HOLD_REASONS else "PRIVATE_GATE_UNVERIFIED",
+        },sort_keys=True),file=sys.stderr)
         return 2
 
 
