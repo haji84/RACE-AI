@@ -232,7 +232,7 @@ def checked_index(doc, day):
 
 class RecordStore:
     """Select bounded encrypted records without scanning all historical bytes."""
-    def __init__(self, repo, day, *, synthetic_local=False, partial_read=False):
+    def __init__(self, repo, day, *, synthetic_local=False, partial_read=False, retry_archive_timeout=False):
         self.repo=archive._remote(repo,synthetic_local=synthetic_local)
         self.day=history._day(day);self.path=ROOT+'/'+day+'/index.json'
         if partial_read:
@@ -243,6 +243,8 @@ class RecordStore:
             head=archive._cmd(self.repo,'rev-parse','--verify',f'{tracking}^{{commit}}')[1]
             need(archive.COMMIT.fullmatch(head),'PARTIAL_ARCHIVE_HEAD')
             self._load_index(head)
+        elif retry_archive_timeout:
+            self._load_index(archive._refresh(self.repo, retry_on_timeout=True))
         else:
             self.refresh()
 
@@ -416,9 +418,11 @@ def load_admitted_day(repo, owner_private_pem, day, *, origin_client=None, clock
                 states=sorted(states.values(),key=lambda r:r['race_id']),observed_at=observed)
 
 
-def discover_days(repo):
+def discover_days(repo, *, retry_archive_timeout=False):
     """Only the bounded, already existing official-SP namespace is enumerated."""
-    repo=archive._remote(repo,synthetic_local=False);head=archive._refresh(repo)
+    repo=archive._remote(repo,synthetic_local=False)
+    head = (archive._refresh(repo, retry_on_timeout=True)
+            if retry_archive_timeout else archive._refresh(repo))
     code,size=archive._cmd(repo,'--no-replace-objects','cat-file','-s',head+':'+ROOT,okay=True)
     if code!=0:return []
     need(size.isascii() and size.isdecimal() and len(size)<8 and int(size)<=32_000,'DAY_DIRECTORY_BOUND')

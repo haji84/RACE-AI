@@ -24,6 +24,31 @@ def git(path, *args):
         stdout=subprocess.PIPE,stderr=subprocess.PIPE,text=True).stdout.strip()
 
 
+class ArchiveFetchRetryTest(unittest.TestCase):
+    def test_opted_in_archive_refresh_retries_only_the_same_timed_out_fetch(self):
+        head = 'a' * 40
+        with patch.object(ledger.subprocess, 'run', side_effect=[
+                subprocess.TimeoutExpired('git fetch', 35),
+                subprocess.CompletedProcess([], 0, ''),
+                subprocess.CompletedProcess([], 0, head+'\n'),
+        ]) as run:
+            self.assertEqual(ledger._refresh('/fixture', retry_on_timeout=True), head)
+        first, second, rev = run.call_args_list
+        self.assertEqual(first.args, second.args)
+        self.assertEqual(first.kwargs['timeout'], 35)
+        self.assertEqual(second.kwargs['timeout'], 90)
+        self.assertIn('rev-parse', rev.args[0])
+        self.assertNotIn('--depth=1', first.args[0])
+        self.assertNotIn('--filter=blob:none', first.args[0])
+
+    def test_git_rejection_without_timeout_never_retries(self):
+        with patch.object(ledger.subprocess, 'run',
+                          return_value=subprocess.CompletedProcess([], 1, '')) as run:
+            with self.assertRaisesRegex(ledger.GitCipherArchiveError, 'GIT_COMMAND_OR_REMOTE_UNAVAILABLE'):
+                ledger._refresh('/fixture', retry_on_timeout=True)
+        run.assert_called_once()
+
+
 class SyntheticGitHubOnlyCipherHistory(unittest.TestCase):
     def setUp(self):
         self.d=TemporaryDirectory()
