@@ -119,6 +119,10 @@ on:
         type: string
         description: JST day for source-free dossier replay or measurement
         required: false
+      measurement_race_ids:
+        type: string
+        description: Optional comma-separated race IDs for an aggregate-only measurement of the specified day
+        required: false
   schedule:
     # Start/recover the bounded observer during 08:00-23:59 JST.
     # GitHub may delay starts; this is not a push or wall-clock latency SLA.
@@ -363,13 +367,22 @@ jobs:
             [[ "$MEASUREMENT_DAY" =~ ^20[0-9]{2}-[0-9]{2}-[0-9]{2}$ ]]
             days=("$MEASUREMENT_DAY")
           fi
+          # Runner diagnostics print step environment values. Read the cohort
+          # within this shell so only its digest and counts reach the report.
+          measurement_race_ids=$(jq -r '.inputs.measurement_race_ids // empty' "$GITHUB_EVENT_PATH")
+          scope=(--publish)
+          if [ -n "$measurement_race_ids" ]; then
+            [[ -n "$MEASUREMENT_DAY" ]]
+            scope=(--race-ids "$measurement_race_ids")
+          fi
           status=0
           for day in "${days[@]}"; do
             python -m scripts.keirin_official_measured_outcomes --repo "$GITHUB_WORKSPACE" \
-              --private-root "$root/private" --day "$day" --publish \
+              --private-root "$root/private" --day "$day" "${scope[@]}" \
               --owner-public-pem "$GITHUB_WORKSPACE/docs/evidence/2026-11-18/keirin_owner_existing_rsa_public_spki3072.pem" \
               > "$root/safe/$day.json" || status=$?
-            jq -c '{day_jst,state,coverage,publication}' "$root/safe/$day.json" | tee -a "$GITHUB_STEP_SUMMARY"
+            jq -c '{day_jst,state,cohort,coverage,publication}|with_entries(select(.value != null))' \
+              "$root/safe/$day.json" | tee -a "$GITHUB_STEP_SUMMARY"
           done
           exit "$status"
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02

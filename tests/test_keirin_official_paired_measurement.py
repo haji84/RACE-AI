@@ -84,6 +84,28 @@ class OfficialPairedMeasurementTests(TestCase):
         self.assertEqual(report['state'], 'HOLD_OFFICIAL_CALENDAR_UNAVAILABLE')
         self.assertIsNone(report['coverage']['official_registered_races'])
 
+    def test_scores_only_requested_registered_races_and_counts_unregistered_requests(self):
+        unregistered = '202611273106'
+        requested = [RACES[4], unregistered, RACES[0]]
+        report = self.score(requested_race_ids=requested)
+        self.assertEqual(report['state'], 'OFFICIAL_SP_SELECTED_COHORT_MEASURED')
+        self.assertEqual(report['cohort'], {'requested_races': 3, 'not_registered': 1,
+            'race_ids_sha256': measurement.model.digest(sorted(requested))})
+        self.assertEqual(report['coverage']['official_registered_races'], 2)
+        self.assertEqual(report['coverage']['archived_baseline_races'], 1)
+        self.assertEqual(report['coverage']['official_order_replay_verified_races'], 1)
+        self.assertEqual(report['coverage']['official_result_replay_held_races'], 0)
+        comparison = report['comparisons']['baseline_A_vs_baseline_B']
+        self.assertEqual(comparison['official_t15']['trifecta_top4']['paired_races'], 1)
+        self.assertEqual(comparison['subgroups_t15'], {})
+        for rid in requested:
+            self.assertNotIn(rid, str(report))
+
+    def test_requested_cohort_must_have_unique_ids_from_the_measured_day(self):
+        for requested in ([], [RACES[0], RACES[0]], ['202611283101']):
+            with self.subTest(requested=requested), self.assertRaisesRegex(ValueError, 'MEASUREMENT_COHORT_IDS'):
+                self.score(requested_race_ids=requested)
+
     def test_no_condition_attestation_cannot_promote_a_baseline_result(self):
         calls = []
         def admit(store, original_meta, result_meta, key):

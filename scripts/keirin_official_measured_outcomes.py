@@ -21,8 +21,12 @@ def main(argv=None):
     parser.add_argument('--private-root', required=True)
     parser.add_argument('--owner-public-pem', required=True)
     parser.add_argument('--day', required=True)
+    parser.add_argument('--race-ids', help='Comma-separated race IDs for a private replay and aggregate report')
     parser.add_argument('--publish', action='store_true')
     args = parser.parse_args(argv)
+    if args.race_ids is not None and args.publish:
+        parser.error('A selected cohort cannot replace the published day report')
+    requested = args.race_ids.split(',') if args.race_ids is not None else None
     private = os.environ.pop('RACE_AI_KEIRIN_PRIVATE_RSA_PEM', '').encode()
     try:
         repo, root, day, _, code_commit = continuation._runtime(
@@ -40,7 +44,8 @@ def main(argv=None):
             head = records.fetch_partial_head(reader, with_ancestry=True)
             store = records.RecordStore(reader, day, index_commit=head)
             admit_pair = partial(records.admit_saved_pair, history_cache={})
-            report = measure_day(store, private, admit_condition_pair=admit_pair)
+            report = measure_day(store, private, admit_condition_pair=admit_pair,
+                                 requested_race_ids=requested)
             index_sha = model.digest(store.index)
         report.update(scoring_code_commit=code_commit, scoring_action_run_id=os.environ['GITHUB_RUN_ID'])
         if args.publish:
