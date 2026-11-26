@@ -1,0 +1,98 @@
+{
+  "schema": "RACE_AI_KEIRIN_OLDER_HISTORY_BINDING_AUDIT_V1",
+  "checked_at": "2026-11-26T20:05:23+09:00",
+  "scope_jst": {
+    "first_race_day": "2024-11-26",
+    "last_race_day": "2025-09-30"
+  },
+  "state": "HOLD_OLDER_PRE_CUTOFF_SOURCE_BINDING",
+  "monthly_csv_verification": {
+    "files_sha256_and_size_verified": 11,
+    "manifest_sha256": "27710ef5a39072e58faaa77e86097049ef9d1c40bed9efc9fe78692b5886eafb",
+    "complete_candidate_index_sha256": "628554cd46e91279cbcfac90545768429f08cdcc78072626db1f8532e61c71b2",
+    "normalizer": "scripts.keirin_video_census.monthly_key",
+    "monthly_layouts": 1,
+    "rows": 165595,
+    "races": 23327,
+    "rows_with_meeting_date_different_from_race_date": 111628,
+    "in_scope_rows_missed_by_filtering_stated_date_first": 809,
+    "numeric_finishes": 163057,
+    "races_with_complete_unique_numeric_order_verified": 21576,
+    "numeric_finishes_in_complete_fields": 152925,
+    "numeric_finishes_outside_complete_fields": 10132,
+    "official_registration_column_present": false,
+    "publication_capture_or_cutoff_columns_present": false
+  },
+  "retained_result_only_projection": {
+    "safe_receipt_sha256": "002fbf5cc4a60f01e18b5df4a1093cf3b8001a52488ff6c62b70458e02b6854d",
+    "prior_context_receipt_sha256": "9f04730b0c9320b766101ce6d5904ad8c598cc64714aa36d49d3328f60ce5d3a",
+    "numeric_finishes_with_later_identity_witness": 29467,
+    "riders_with_later_identity_witness": 452,
+    "unbound_finishes_in_complete_fields": 123458,
+    "prior_context_state": "HOLD_RETROSPECTIVE_PRIOR_CONTEXT_ADMISSION"
+  },
+  "pinned_sqlite_verification": {
+    "repository": "sumidatadayoshi/keirin-data",
+    "commit": "2a1260fb0940ad11160b56a36f9c24cc4fb2f6d2",
+    "datasets": [
+      {
+        "path": "data/keirin.db",
+        "sha256": "1bdad22b9744c9c5563f7bb1af31875170a3d6b7f4b0dd73fba8f98d645d8fc4",
+        "first_race_day": "2025-10-01",
+        "last_race_day": "2026-09-29",
+        "races": 27081,
+        "races_in_older_scope": 0
+      },
+      {
+        "path": "data/keirin_2026q4.db",
+        "sha256": "d915560877493816b90df8bcd5e7bdef45557f57100b4cd40a3d017cd959334d",
+        "first_race_day": "2026-09-23",
+        "last_race_day": "2026-11-22",
+        "races": 3632,
+        "races_in_older_scope": 0
+      }
+    ]
+  },
+  "public_archive_path_inventory": {
+    "dated_path_trees": [
+      {
+        "repository": "kurinaka12-afk/keirin-app-data",
+        "commit": "a8c7851a062e36da1e10101dcbbe1aad278fe168",
+        "first_filename_date": "2026-08-26",
+        "last_filename_date": "2026-11-24",
+        "filename_dates_in_older_scope": 0
+      },
+      {
+        "repository": "mitiki0720-oss/keirin-datalavo",
+        "commit": "c2dd29784525ec357906eea8962c73174bb69260",
+        "first_filename_date": "2026-05-01",
+        "last_filename_date": "2026-11-23",
+        "filename_dates_in_older_scope": 0
+      }
+    ],
+    "official_encrypted_archive_commit": "20cffa3d60e8966023be4d86c1a8d176f08d86d2",
+    "earliest_official_sp_path_day": "2026-11-21",
+    "older_official_archive_paths": 0
+  },
+  "draft_research_receipt_audit": {
+    "draft_head": "e44c376ae70d7cb8d66f6d7ea48d73bceedf77b2",
+    "programme_and_result_receipts_with_same_older_race_id": 10,
+    "listed_profile_links_in_those_races": 70,
+    "matches_against_later_official_derived_registry": 55,
+    "complete_fields_using_later_registry_matches": 1,
+    "programme_captures_after_race_day": 10,
+    "prior_reported_early_official_checkpoints": 14,
+    "prior_report_checkpoint_overlap_independently_recovered": false,
+    "prior_private_recovery_cipher_sha256": "f75b1a2b682063945d38ad1440c15abd3e6bef394c170329edc33106ff20e633",
+    "prior_private_recovery_cipher_located_in_checked_local_project_paths": false
+  },
+  "new_exact_older_race_rosters": 0,
+  "new_same_model_training_races": 0,
+  "live_provider_requests": 0,
+  "production_model_changed": false,
+  "required_source_evidence": [
+    "An archived programme or equivalent official record with exact race ID, car number and registration ID for each starter.",
+    "Source bytes, authorized usage, and actual publication, capture and organizer cutoff times for historical pre-cutoff use.",
+    "The racecard feature fields expected by the existing model and an independently checked official result for evaluation."
+  ]
+}
