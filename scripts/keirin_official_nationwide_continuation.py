@@ -248,6 +248,63 @@ def _prioritize_capture_races(races, source_attempts, saved_cutoffs, fresh_cutof
     return sorted(races, key=priority)
 
 
+_REPORTABLE_BASELINE_HOLDS = {
+    sources.SourceError: frozenset({
+        'OFFICIAL_CONTINUATION_CAPTURE_START_MARGIN_REQUIRED',
+        'OFFICIAL_CONTINUATION_CLASS_OR_ROUND_NOT_OBSERVED',
+        'OFFICIAL_CONTINUATION_FUTURE_REFERENCE_REQUIRED',
+        'OFFICIAL_CONTINUATION_LINE_VIEW_NOT_LINKED',
+        'OFFICIAL_CONTINUATION_LIST_SCRIPT_CHANGED',
+        'OFFICIAL_CONTINUATION_LIST_SCRIPT_NOT_LINKED',
+        'OFFICIAL_CONTINUATION_MARKS_SCRIPTS_NOT_LINKED',
+    }),
+    extension.OfficialExtensionError: frozenset({
+        'OFFICIAL_EXTENSION_CARD_CLASS_DISAGREEMENT',
+        'OFFICIAL_EXTENSION_CLASS_OR_ROUND_NOT_YET_OBSERVED',
+        'OFFICIAL_EXTENSION_CONTESTED_OR_MULTILEVEL_LINE_UNSUPPORTED',
+        'OFFICIAL_EXTENSION_CURRENT_RACE_CLASS_MISSING',
+        'OFFICIAL_EXTENSION_FUTURE_CARD_REFERENCE_REQUIRED',
+        'OFFICIAL_EXTENSION_FUTURE_CLOCK_MARGIN_REQUIRED',
+        'OFFICIAL_EXTENSION_GIRLS_LINE_NOT_EXPLICIT',
+        'OFFICIAL_EXTENSION_LINE_GROUP_COUNT_OR_LABEL_UNKNOWN',
+        'OFFICIAL_EXTENSION_LINE_NOT_PUBLISHED',
+        'OFFICIAL_EXTENSION_LINE_PARENTHESIS_OR_ROSTER_UNSUPPORTED',
+        'OFFICIAL_EXTENSION_LINE_POSITION_DUPLICATED',
+        'OFFICIAL_EXTENSION_LINE_POSITION_UNSUPPORTED',
+        'OFFICIAL_EXTENSION_LINE_ROSTER_MISMATCH',
+        'OFFICIAL_EXTENSION_LINE_VIEW_AFTER_INPUT',
+        'OFFICIAL_EXTENSION_LINE_VIEW_CHANGED',
+        'OFFICIAL_EXTENSION_LINE_VIEW_NOT_BOUND',
+        'OFFICIAL_EXTENSION_PROFILE_CARD_DISAGREEMENT',
+        'OFFICIAL_EXTENSION_PROFILE_REGISTRATION_MISMATCH',
+        'OFFICIAL_EXTENSION_PROFILE_ROSTER_INCOMPLETE',
+        'OFFICIAL_EXTENSION_PROFILE_SOURCE_OR_CLOCK_INVALID',
+        'OFFICIAL_EXTENSION_WITHDRAWAL_OR_ROSTER_UNRESOLVED',
+    }),
+    sources.cards.receipt.OfficialSPReceiptError: frozenset({
+        'KEIRIN_OFFICIAL_SP_CALENDAR_BINDING_INVALID',
+        'KEIRIN_OFFICIAL_SP_CUTOFF_NOT_BEFORE_START',
+        'KEIRIN_OFFICIAL_SP_DETAIL_DAY_OR_RACE_MISMATCH',
+        'KEIRIN_OFFICIAL_SP_OFFICIAL_CUTOFF_DATE_MISMATCH',
+        'KEIRIN_OFFICIAL_SP_RIDER_IDENTITY_INVALID',
+        'KEIRIN_OFFICIAL_SP_ROSTER_ROW_SCHEMA',
+        'KEIRIN_OFFICIAL_SP_ROSTER_UNAVAILABLE',
+    }),
+    sources.cards.CanaryCardError: frozenset({
+        'PUBLIC_PREDICTION_MODE_NOT_OBSERVED',
+        'PUBLIC_PREDICTION_TAB_NOT_OBSERVED',
+        'PUBLIC_TAB_SCRIPTS_NOT_LINKED',
+    }),
+}
+
+
+def _baseline_hold_reason(error):
+    code = str(error)
+    if code in _REPORTABLE_BASELINE_HOLDS.get(type(error), ()):
+        return code
+    return 'BASELINE_VALIDATION_OR_OPERATION_HELD'
+
+
 def run_capture(*,repo,private_root,owner_public_pem,owner_private_pem,day=None,clock=now_utc,max_races=4):
     repo,root,day,public,commit=_runtime(repo=repo,private_root=private_root,owner_public_pem=owner_public_pem,
         owner_private_pem=owner_private_pem,day=day,clock=clock,mode='capture')
@@ -298,6 +355,7 @@ def run_capture(*,repo,private_root,owner_public_pem,owner_private_pem,day=None,
         now = form._aware(clock())
         saved_cutoffs = replay_cutoff_hints(previous, inventory, now=now)
         ordered = _prioritize_capture_races(registry['races'], source_attempts, saved_cutoffs, fresh_cutoffs, now)
+        baseline_holds = Counter()
         for index, race in enumerate(ordered):
             rid=race['race_id'];row=states[rid]
             if _baseline_already_exists(store,rid):row['state']='FROZEN_ORIGINAL_PRESERVED';continue
@@ -324,6 +382,8 @@ def run_capture(*,repo,private_root,owner_public_pem,owner_private_pem,day=None,
             except (ValueError,KeyError,TypeError,OSError) as exc:
                 row['state']=('PROVIDER_STOPPED' if session.provider_denied else 'SOURCE_UNAVAILABLE' if session.halted else
                     'CUTOFF_MARGIN_INSUFFICIENT' if 'MARGIN' in str(exc) else 'BASELINE_SOURCE_UNVERIFIED')
+                if row['state'] in ('CUTOFF_MARGIN_INSUFFICIENT', 'BASELINE_SOURCE_UNVERIFIED'):
+                    baseline_holds[_baseline_hold_reason(exc)] += 1
                 continue
             joined=manifest=None;condition_state='HISTORY_NOT_COLLECTED'
             remaining_baselines = min(max_races - attempted, len(ordered) - index - 1)
@@ -384,6 +444,7 @@ def run_capture(*,repo,private_root,owner_public_pem,owner_private_pem,day=None,
             classes.setdefault(label,Counter())[states[race['race_id']]['state']]+=1
         report['class_statuses']=[dict(class_label=label,statuses=dict(sorted(counts.items())))
                                   for label,counts in sorted(classes.items())]
+        report['baseline_hold_reasons'] = dict(sorted(baseline_holds.items()))
         _save_registry(store,inventory,states,source_attempts,prior,public,clock)
         count=len(report['new_encrypted_originals'])
         report.update(new_A_B_sealed=count,new_A_B_git_archived=count,
