@@ -17,6 +17,11 @@ on:
       - 'tests/test_keirin_authored_confidence.py'
       - 'race_ai/keirin_official_source_continuation.py'
       - 'race_ai/keirin_official_nationwide_*.py'
+      - 'race_ai/keirin_official_rider_history.py'
+      - 'race_ai/keirin_public_forecasts.py'
+      - 'scripts/keirin_daily_rider_update.py'
+      - 'tests/test_keirin_daily_rider_update.py'
+      - 'tests/test_keirin_official_rider_history.py'
       - 'race_ai/keirin_official_class_evidence.py'
       - 'tests/test_keirin_official_class_evidence.py'
       - 'race_ai/keirin_nationwide_forecast_view.py'
@@ -51,6 +56,11 @@ on:
       - 'tests/test_keirin_authored_confidence.py'
       - 'race_ai/keirin_official_source_continuation.py'
       - 'race_ai/keirin_official_nationwide_*.py'
+      - 'race_ai/keirin_official_rider_history.py'
+      - 'race_ai/keirin_public_forecasts.py'
+      - 'scripts/keirin_daily_rider_update.py'
+      - 'tests/test_keirin_daily_rider_update.py'
+      - 'tests/test_keirin_official_rider_history.py'
       - 'race_ai/keirin_official_class_evidence.py'
       - 'tests/test_keirin_official_class_evidence.py'
       - 'race_ai/keirin_nationwide_forecast_view.py'
@@ -78,7 +88,7 @@ on:
         type: choice
         required: true
         default: test
-        options: [test, saved-only, observe]
+        options: [test, saved-only, observe, rider-dossiers]
   schedule:
     # Start/recover the bounded observer during 08:00-23:59 JST.
     # GitHub may delay starts; this is not a push or wall-clock latency SLA.
@@ -128,6 +138,8 @@ jobs:
             tests.test_keirin_official_nationwide_continuation \
             tests.test_keirin_official_nationwide_sources \
             tests.test_keirin_official_nationwide_records \
+            tests.test_keirin_daily_rider_update \
+            tests.test_keirin_official_rider_history \
             tests.test_keirin_official_continuation_workflow \
             tests.test_keirin_nationwide_forecast_view \
             tests.test_keirin_result_live_workflow \
@@ -233,3 +245,37 @@ jobs:
           if [ -d "$root" ] && [[ "$root" == "$RUNNER_TEMP"/keirin-result-live-* ]]; then
             rm -rf -- "$root"
           fi
+
+  publish-rider-dossiers:
+    # A stopped observer may still have verified saved results available.
+    needs: [tests, observe-results]
+    if: >-
+      always() && !cancelled() &&
+      github.repository == 'haji84/RACE-AI' &&
+      github.repository_id == '1416489937' &&
+      github.ref == 'refs/heads/main' &&
+      vars.RACE_AI_AB_SOURCE_S3_PREFIX == '' &&
+      (github.event_name == 'schedule' ||
+       (github.event_name == 'workflow_dispatch' && needs.tests.result == 'success' &&
+        inputs.mode == 'rider-dossiers'))
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          fetch-depth: 1
+          persist-credentials: true
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
+        with:
+          python-version: '3.11'
+      - name: Publish numeric rider histories from the verified Git archive
+        shell: bash
+        env:
+          RACE_AI_KEIRIN_AB_GIT_STORE_ENABLED: 'true'
+          RACE_AI_KEIRIN_PRIVATE_RSA_PEM: ${{ secrets.RACE_AI_KEIRIN_PRIVATE_RSA_PEM }}
+        run: |
+          set -euo pipefail
+          python -m pip install --disable-pip-version-check 'cryptography>=44,<48' 'beautifulsoup4>=4.12,<5'
+          python -m scripts.keirin_daily_rider_update --repo "$GITHUB_WORKSPACE" | tee -a "$GITHUB_STEP_SUMMARY"
