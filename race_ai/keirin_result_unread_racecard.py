@@ -2,11 +2,12 @@
 
 from __future__ import annotations
 
+from itertools import product
 import re
 from unicodedata import normalize
 from urllib.parse import urlsplit
 
-from .keirin_nationwide_auto_generator import VENUE
+from .keirin_nationwide_auto_generator import VENUE, generate_evidence_analysis
 from .keirin_public_two_source_normalizer import (
     PublicPageNormalizeError, _float, _mark, _selected_net_link, _style, _url_role, need,
 )
@@ -145,7 +146,7 @@ def _netkeirin_riders(document, url, race_id):
     return names, scratches
 
 
-def _predicted_lines(content, cars):
+def _predicted_layout(content):
     labels = [dt for dt in content.select(':scope > dl.racecard_footer-contents > dt')
               if _compact(_text(dt)) == '並び予想']
     if len(labels) != 1:
@@ -160,8 +161,10 @@ def _predicted_lines(content, cars):
     inner = layout.select(':scope > div.line_position_inner')
     if len(inner) > 1:
         return None, [LINE_CONFLICT]
-    if inner:
-        layout = inner[0]
+    return inner[0] if inner else layout, []
+
+
+def _predicted_lines(layout, cars):
     icons = layout.select(':scope > span.icon_p')
     if layout.select(':scope > span.bracket_open, :scope > span.bracket_close'):
         return None, [LINE_CONTEST]
@@ -189,13 +192,7 @@ def _predicted_lines(content, cars):
     return groups, []
 
 
-def snapshot_from_cards(*, race_id, kdreams_raw, kdreams_url, netkeirin_raw=None, netkeirin_url=None):
-    """Build the existing evidence model's limited snapshot from selected racecards.
-
-    The ordinary netkeirin card can cross-check car/name and published
-    withdrawals. Kdreams supplies the displayed score, mark, style and line
-    hypothesis. Time and source-byte receipts belong to the caller.
-    """
+def _snapshot_and_layout(*, race_id, kdreams_raw, kdreams_url, netkeirin_raw, netkeirin_url):
     need(type(race_id) is str and VENUE.fullmatch(race_id), 'RACECARD_RACE_ID_REQUIRED')
     _url_role(kdreams_url, 'k', race_id)
     expected = 'https://keirin.kdreams.jp' + urlsplit(kdreams_url).path
@@ -223,7 +220,10 @@ def snapshot_from_cards(*, race_id, kdreams_raw, kdreams_url, netkeirin_raw=None
     need(5 <= len(cars) <= 9, 'RACECARD_FIVE_TO_NINE_STARTER_ROSTER_REQUIRED')
     starters = [riders[car] for car in sorted(cars)]
     need(any(rider['competition_points'] for rider in starters), 'RACECARD_COMPETITION_POINTS_REQUIRED')
-    groups, warnings = _predicted_lines(content, cars)
+    layout, warnings = _predicted_layout(content)
+    groups = None
+    if layout is not None:
+        groups, warnings = _predicted_lines(layout, cars)
     if competition == 'GIRLS':
         if groups is None:
             groups = [[car] for car in sorted(cars)]
@@ -231,4 +231,93 @@ def snapshot_from_cards(*, race_id, kdreams_raw, kdreams_url, netkeirin_raw=None
         else:
             groups = [[car] for group in groups for car in group]
     return dict(race_id=race_id, riders=starters, competition=competition,
-                line_groups=groups, line_warnings=warnings)
+                line_groups=groups, line_warnings=warnings), layout
+
+
+def snapshot_from_cards(*, race_id, kdreams_raw, kdreams_url, netkeirin_raw=None, netkeirin_url=None):
+    """Build the existing evidence model's limited snapshot from selected racecards.
+
+    The ordinary netkeirin card can cross-check car/name and published
+    withdrawals. Kdreams supplies the displayed score, mark, style and line
+    hypothesis. Time and source-byte receipts belong to the caller.
+    """
+    snapshot, _ = _snapshot_and_layout(race_id=race_id, kdreams_raw=kdreams_raw, kdreams_url=kdreams_url,
+                                      netkeirin_raw=netkeirin_raw, netkeirin_url=netkeirin_url)
+    return snapshot
+
+
+def _contest_slots(layout, cars):
+    need(layout is not None, 'RACECARD_CONTEST_BRACKET_REQUIRED')
+    groups, contests, displayed_cars = [[]], [], []
+    bracket = None
+    malformed = 'RACECARD_CONTEST_BRACKET_UNSUPPORTED'
+    for icon in layout.select(':scope > span.icon_p'):
+        markers = {'space', 'bracket_open', 'bracket_close'}.intersection(icon.get('class', []))
+        need(len(markers) <= 1, malformed)
+        if 'space' in markers:
+            need(bracket is None, malformed)
+            if groups[-1]:
+                groups.append([])
+            continue
+        if 'bracket_open' in markers:
+            need(bracket is None and bool(groups[-1]), malformed)
+            bracket = []
+            continue
+        if 'bracket_close' in markers:
+            need(bracket is not None and len(bracket) == 2, malformed)
+            slot = tuple(bracket)
+            groups[-1].append(slot)
+            contests.append(slot)
+            bracket = None
+            continue
+        if icon.select_one(':scope > span.p000'):
+            need(bracket is None, malformed)
+            continue
+        parts = icon.find_all('span', recursive=False)
+        number = _text(parts[0]) if parts else ''
+        contest_role = len(parts) == 2 and _text(parts[1]) == '競り'
+        need(CAR.fullmatch(number) and contest_role == (bracket is not None), malformed)
+        car = int(number)
+        displayed_cars.append(car)
+        if bracket is None:
+            groups[-1].append(car)
+        else:
+            bracket.append(car)
+    need(bracket is None, malformed)
+    need(contests, 'RACECARD_CONTEST_BRACKET_REQUIRED')
+    need(len(contests) <= 2, 'RACECARD_CONTEST_COUNT_UNSUPPORTED')
+    need(len(displayed_cars) == len(cars) and set(displayed_cars) == cars, 'RACECARD_CONTEST_ROSTER_CONFLICT')
+    return [group for group in groups if group], contests
+
+
+def contested_hypotheses_from_card(*, race_id, kdreams_raw, kdreams_url, netkeirin_raw=None, netkeirin_url=None):
+    """Run evidence-model B for each assignment of explicit two-car contest slots.
+
+    Every assignment keeps the rest of the posted lines and assumes the other
+    contestants ride independently behind them. The caller verifies receipts.
+    """
+    snapshot, layout = _snapshot_and_layout(race_id=race_id, kdreams_raw=kdreams_raw, kdreams_url=kdreams_url,
+                                           netkeirin_raw=netkeirin_raw, netkeirin_url=netkeirin_url)
+    need(snapshot['competition'] != 'GIRLS', 'RACECARD_CONTEST_REQUIRES_LINE_COMPETITION')
+    cars = {rider['car'] for rider in snapshot['riders']}
+    published, slots = _contest_slots(layout, cars)
+
+    cases = []
+    for assigned in product(*slots):
+        occupants = dict(zip(slots, assigned))
+        others = [second if occupant == first else first for (first, second), occupant in occupants.items()]
+        groups = [[occupants.get(position, position) for position in group] for group in published]
+        groups.extend([car] for car in others)
+        who = '、'.join(f'{car}番' for car in others)
+        if len(slots) == 1:
+            occupancy = f'{assigned[0]}番が競り位置に入る'
+        else:
+            occupancy = '、'.join(f'{car}番が{index}か所目の競り位置に入る'
+                                 for index, car in enumerate(assigned, 1))
+        condition = f'{occupancy}とし、{who}は掲載ラインの後ろにそれぞれ単独で置く仮定。'
+        arm = generate_evidence_analysis(dict(snapshot, line_groups=groups, line_warnings=[]))['B']
+        need(arm['state'] == 'GENERATED_RESEARCH_ONLY', 'RACECARD_CONTEST_MODEL_UNAVAILABLE')
+        cases.append(dict(cars=list(assigned), independent_cars=others, condition=condition, line_groups=groups,
+                          tickets={'3t': arm['ranked_tickets'], '2t': arm['ranked_2ren_tan']}))
+    need(any(case['tickets']['3t'] for case in cases), 'RACECARD_CONTEST_NO_TRIFECTA_SELECTION')
+    return cases

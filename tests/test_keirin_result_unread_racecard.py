@@ -27,7 +27,7 @@ def line_cars(cars):
 
 
 def kdreams_card(*, cars=(1, 2, 3, 4, 5), scratch=(), class_label="Ａ級予選",
-                 formation=(1, 2, "space", 3, 4, 5), misleading_dom=""):
+                 formation=(1, 2, "space", 3, 4, 5), misleading_dom="", points=None):
     header = ''.join(f'<th rowspan="2">{text}</th>' for text in
                      ('予 想', '好 気 合', '総 評', '枠 番', '車 番',
                       '選手名<br>府県/年齢/期別', '級 班', '脚 質', 'ギヤ 倍数'))
@@ -35,13 +35,14 @@ def kdreams_card(*, cars=(1, 2, 3, 4, 5), scratch=(), class_label="Ａ級予選"
     rows = [f'<tr>{header}</tr>', '<tr><th>競走得点</th>' + '<th>例</th>' * 13 + '</tr>']
     for car in cars:
         notice = '<span class="absence">欠場</span>' if car in scratch else ''
+        score = points[car] if points is not None else 91.25 - car
         rows.append(
             f'<tr class="n{car}"><td class="tip">{"◎" if car == 1 else ""}</td>'
             '<td class="kiai"></td><td class="evaluation bdr_r"></td>'
             f'<td class="bracket">{car}</td><td class="num">{car}</td>'
             f'<td class="rider bdr_r">例示選手{car}<br><span class="home">例県</span>'
             f'/26/100{notice}</td><td>A2</td><td class="bdr_r">{"逃" if car == 1 else "追"}</td>'
-            f'<td>3.92</td><td class="bdr_r">{91 - car}.25</td>'
+            f'<td>3.92</td><td class="bdr_r">{score}</td>'
             + '<td>99</td>' * 13 + '</tr>'
         )
     predicted = f'<dt>並び予想</dt><dd>{line_cars(formation)}</dd>' if formation else ''
@@ -65,6 +66,13 @@ def kdreams_card(*, cars=(1, 2, 3, 4, 5), scratch=(), class_label="Ａ級予選"
 def snapshot(raw, **kwargs):
     return snapshot_from_cards(race_id=RACE_ID, kdreams_raw=raw,
                                kdreams_url=KDREAMS_URL, **kwargs)
+
+
+def conditional_b(raw, **kwargs):
+    from race_ai.keirin_result_unread_racecard import contested_hypotheses_from_card
+
+    return contested_hypotheses_from_card(race_id=RACE_ID, kdreams_raw=raw,
+                                         kdreams_url=KDREAMS_URL, **kwargs)
 
 
 def netkeirin_card(*, cars=(1, 2, 3, 4, 5), scratch=(), conflicting_name=None):
@@ -186,3 +194,66 @@ class ResultUnreadRacecardTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, 'KDREAMS_ORDINARY_RACECARD'):
             snapshot_from_cards(race_id=RACE_ID, kdreams_raw=kdreams_card(),
                                 kdreams_url=KDREAMS_URL + '?pageType=showResult')
+
+    def test_single_contest_generates_two_hypothetical_b_candidate_lists(self):
+        points = {1: 103, 2: 101, 3: 91, 4: 92, 5: 89, 6: 72, 7: 72}
+        raw = kdreams_card(cars=tuple(points), points=points, formation=(
+            1, 'bracket_open', (2, '競り'), (3, '競り'), 'bracket_close', 4, 'space', 5, 6, 'space', 7,
+        ))
+        base = snapshot(raw)
+        self.assertIsNone(base['line_groups'])
+        hypotheses = conditional_b(raw)
+        self.assertEqual([(case['cars'], case['independent_cars'], case['line_groups']) for case in hypotheses], [
+            ([2], [3], [[1, 2, 4], [5, 6], [7], [3]]),
+            ([3], [2], [[1, 3, 4], [5, 6], [7], [2]]),
+        ])
+        for case, groups in zip(hypotheses, ([[1, 2, 4], [5, 6], [7], [3]], [[1, 3, 4], [5, 6], [7], [2]])):
+            self.assertIn('単独', case['condition'])
+            self.assertIn('仮定', case['condition'])
+            model = generate_evidence_analysis(dict(base, line_groups=groups))['B']
+            self.assertTrue(model['ranked_tickets'])
+            self.assertEqual(case['tickets'], {'3t': model['ranked_tickets'], '2t': model['ranked_2ren_tan']})
+        self.assertFalse(hypotheses[1]['tickets']['2t'])
+
+    def test_two_contests_generate_the_four_joint_full_roster_partitions(self):
+        points = {1: 103, 2: 101, 3: 91, 4: 92, 5: 89, 6: 72, 7: 72}
+        raw = kdreams_card(cars=tuple(points), points=points, formation=(
+            1, 'bracket_open', (2, '競り'), (3, '競り'), 'bracket_close',
+            'bracket_open', (4, '競り'), (5, '競り'), 'bracket_close', 'space', 6, 7,
+        ))
+        hypotheses = conditional_b(raw)
+        self.assertEqual([(case['cars'], case['independent_cars'], case['line_groups']) for case in hypotheses], [
+            ([2, 4], [3, 5], [[1, 2, 4], [6, 7], [3], [5]]),
+            ([2, 5], [3, 4], [[1, 2, 5], [6, 7], [3], [4]]),
+            ([3, 4], [2, 5], [[1, 3, 4], [6, 7], [2], [5]]),
+            ([3, 5], [2, 4], [[1, 3, 5], [6, 7], [2], [4]]),
+        ])
+        self.assertTrue(all('1か所目' in case['condition'] and '2か所目' in case['condition'] for case in hypotheses))
+        self.assertFalse(hypotheses[1]['tickets']['3t'])
+        self.assertTrue(hypotheses[1]['tickets']['2t'])
+
+    def test_conditional_card_holds_when_every_trifecta_branch_abstains(self):
+        raw = kdreams_card(cars=(1, 2, 3, 4, 5, 6, 7), formation=(
+            1, 'bracket_open', (2, '競り'), (3, '競り'), 'bracket_close', 4, 'space', 5, 6, 'space', 7,
+        ))
+        with self.assertRaisesRegex(ValueError, 'RACECARD_CONTEST_NO_TRIFECTA_SELECTION'):
+            conditional_b(raw)
+
+    def test_conditional_path_requires_explicit_two_rider_brackets_and_exact_car_set(self):
+        for formation, error in (
+            ((1, 'bracket_open', (2, '競り'), 3, 'bracket_close', 'space', 4, 5),
+             'RACECARD_CONTEST_BRACKET_UNSUPPORTED'),
+            ((1, (2, '競り'), (3, '競り'), 'space', 4, 5), 'RACECARD_CONTEST_BRACKET_UNSUPPORTED'),
+            ((1, 'bracket_open', (2, '競り'), (3, '競り'), (4, '競り'), 'bracket_close', 5),
+             'RACECARD_CONTEST_BRACKET_UNSUPPORTED'),
+            ((1, 'bracket_open', (2, '競り'), (3, '競り'), 'bracket_close', 'space', 2, 5),
+             'RACECARD_CONTEST_ROSTER_CONFLICT'),
+        ):
+            with self.subTest(formation=formation), self.assertRaisesRegex(ValueError, error):
+                conditional_b(kdreams_card(formation=formation))
+
+        off_scope = ('<dl class="racecard_footer-contents"><dt>並び予想</dt><dd>'
+                     + line_cars((1, 'bracket_open', (2, '競り'), (3, '競り'), 'bracket_close', 4, 5))
+                     + '</dd></dl>')
+        with self.assertRaisesRegex(ValueError, 'RACECARD_CONTEST_BRACKET_REQUIRED'):
+            conditional_b(kdreams_card(formation=(), misleading_dom=off_scope))
