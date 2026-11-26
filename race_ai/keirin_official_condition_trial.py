@@ -52,18 +52,22 @@ class HistoryPacket:
                     if cell['meeting_grade'] is not None and cell['round_stage'] is not None})
 
     @classmethod
-    def from_repository(cls, repo, day, *, pinned_commit=None):
+    def from_repository(cls, repo, day, *, pinned_commit=None, allow_previous=False):
         store = public.PublicForecastGit(repo)
         head = pinned_commit or store.head()
         if head is None:
             return None
         store.fetch(head)
-        raw = store.read_previous(head, f'rider-conditions/{day}.json')
-        if raw is None:
-            return None
-        packet = cls.read(head, raw)
-        _need(packet.day == day, 'HISTORY_DAY')
-        return packet
+        recent = [day]
+        if allow_previous:
+            recent.append((date.fromisoformat(day) - timedelta(days=1)).isoformat())
+        for dated in recent:
+            raw = store.read_previous(head, f'rider-conditions/{dated}.json')
+            if raw is not None:
+                packet = cls.read(head, raw)
+                _need(packet.day == dated, 'HISTORY_DAY')
+                return packet
+        return None
 
 
 def build_from_official_card(snapshot, baseline, arguments, history):
@@ -103,14 +107,19 @@ def build_pair(snapshot, baseline, condition, roster, history):
     observed = model.when(generated)
     if history is None or cutoff - observed < WITNESS_MARGIN or model.when(history.published_at) > observed:
         return None
-    previous_card = history.races.get(rid)
-    if previous_card is None or condition['race_id'] != rid or condition['round_label'] != snapshot['round_stage']:
+    race_day = date.fromisoformat(f'{rid[:4]}-{rid[4:6]}-{rid[6:8]}')
+    days_behind = (race_day - date.fromisoformat(history.day)).days
+    if (days_behind not in (0, 1) or condition['race_id'] != rid or
+            condition['round_label'] != snapshot['round_stage']):
         return None
     grade, stage = condition['meeting_grade'], condition['round_stage']
-    if (grade is None or stage is None or (grade, stage, condition['round_label']) !=
-            (previous_card['meeting_grade'], previous_card['round_stage'], previous_card['round_label']) or
-            model.when(condition['source_at']) > observed):
+    if grade is None or stage is None or model.when(condition['source_at']) > observed:
         return None
+    if days_behind == 0:
+        previous_card = history.races.get(rid)
+        fields = ('meeting_grade', 'round_stage', 'round_label')
+        if previous_card is None or any(condition[key] != previous_card[key] for key in fields):
+            return None
     bindings = {row['car']: row['athlete_id'] for row in snapshot['riders']}
     _need(len(roster) == len(bindings) and {r['car']: r['registration'] for r in roster} == bindings, 'ROSTER')
     corrections = {}
@@ -142,5 +151,6 @@ def build_pair(snapshot, baseline, condition, roster, history):
                                               model_id=CHALLENGER, **identification)
     return dict(schema=SCHEMA, race_id=rid, baseline_prediction_sha256=baseline['prediction_sha256'],
                 historical_release=history.commit, historical_packet_sha256=history.sha256,
+                historical_packet_day=history.day,
                 meeting_grade=grade, round_stage=stage, covered_riders=len(corrections),
                 baseline=original, challenger=candidate)

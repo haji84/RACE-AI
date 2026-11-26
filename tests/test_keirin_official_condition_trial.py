@@ -1,5 +1,6 @@
 """Synthetic checks for the paired model. Real races are scored after settlement."""
 from copy import deepcopy
+from dataclasses import replace
 import json
 from types import SimpleNamespace
 import unittest
@@ -52,6 +53,14 @@ class ConditionTrialTests(unittest.TestCase):
         self.assertIsNone(trial.build_pair(*self.inputs(depth=9)))
         self.assertIsNone(trial.build_pair(*self.inputs(published_at='2026-11-18T09:02:00+09:00')))
 
+    def test_previous_day_history_uses_only_the_current_official_card_for_conditions(self):
+        snapshot, baseline, condition, names, source = self.inputs()
+        frozen = replace(source, day='2026-11-17', published_at='2026-11-17T09:00:00+09:00', races={})
+        pair = trial.build_pair(snapshot, baseline, condition, names, frozen)
+        self.assertEqual(pair['historical_packet_day'], '2026-11-17')
+        stale = replace(frozen, day='2026-11-16')
+        self.assertIsNone(trial.build_pair(snapshot, baseline, condition, names, stale))
+
     def test_source_grade_and_registration_must_reconcile(self):
         snapshot, baseline, condition, names, source = self.inputs()
         wrong_grade = dict(condition, meeting_grade='F2')
@@ -84,7 +93,7 @@ class ConditionTrialTests(unittest.TestCase):
               patch.object(records.origin, '_bundle', side_effect=packets),
               patch.object(trial, 'build_from_official_card', return_value=pair)):
             self.assertEqual(records.admit_saved_pair(reader, meta, object(), b'private key',
-                history_cache={source.commit:source})[0], pair)
+                history_cache={(source.commit, source.day):source})[0], pair)
         with (patch.object(records, 'archived_original', return_value=(b'checked', None)),
               patch.object(records, 'verify_origins', return_value=({'latest_server_evidence_at':
                            '2026-11-18T11:45:01+09:00'}, None))):

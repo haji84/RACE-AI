@@ -347,7 +347,7 @@ def run_capture(*,repo,private_root,owner_public_pem,owner_private_pem,day=None,
 
     try:
         study_open = study_is_open(day)
-        condition_history = HistoryPacket.from_repository(repo, day) if study_open else None
+        condition_history = HistoryPacket.from_repository(repo, day, allow_previous=True) if study_open else None
         report['condition_history_state'] = ('STUDY_INACTIVE' if not study_open else
                                              'AVAILABLE' if condition_history else 'NOT_PUBLISHED')
     except (ValueError, KeyError, TypeError, OSError, TimeoutExpired):

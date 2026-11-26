@@ -638,10 +638,12 @@ def admit_saved_pair(store, original_meta, result_meta, owner_private_pem, *, hi
     need(_trial_receipt_fields(producer) == _trial_receipt_fields(reader) == fields,
          'CONDITION_TRIAL_EXACT_ARCHIVE')
     commit = pair['historical_release']
+    packet_day = pair['historical_packet_day']
+    cache_key = (commit, packet_day)
     cache = {} if history_cache is None else history_cache
-    if commit not in cache:
-        cache[commit] = trial.HistoryPacket.from_repository(store.repo, store.day, pinned_commit=commit)
-    history_packet = cache[commit]
+    if cache_key not in cache:
+        cache[cache_key] = trial.HistoryPacket.from_repository(store.repo, packet_day, pinned_commit=commit)
+    history_packet = cache[cache_key]
     need(history_packet is not None and history_packet.sha256 == pair['historical_packet_sha256'],
          'CONDITION_TRIAL_HISTORY_BINDING')
     rebuilt = trial.build_from_official_card(payload['snapshot'], payload['baseline'],
