@@ -167,7 +167,7 @@ jobs:
             cd "$GITHUB_WORKSPACE"
             export PYTHONPATH="$GITHUB_WORKSPACE"
             python -m pip install --disable-pip-version-check 'beautifulsoup4>=4.12,<5'
-            python -m unittest -v tests.test_keirin_note_view tests.test_keirin_note_feed tests.test_keirin_note_feed_cycle tests.test_keirin_note_collect_inputs tests.test_keirin_note_collect_results tests.test_keirin_secondary_result_consensus tests.test_keirin_nationwide_forecast_view
+            python -m unittest -v tests.test_keirin_note_view tests.test_keirin_note_feed tests.test_keirin_note_feed_cycle tests.test_keirin_note_collect_inputs tests.test_keirin_note_collect_results tests.test_keirin_secondary_result_consensus tests.test_keirin_nationwide_forecast_view tests.test_keirin_public_forecast_odds
             node --test tests/keirin_note_feed.test.cjs
             node --test tests/keirin_note_assets.test.cjs
             python -m py_compile race_ai/keirin_note_feed.py scripts/keirin_note_feed_cycle.py scripts/keirin_note_collect_inputs.py scripts/keirin_note_collect_results.py
@@ -403,13 +403,38 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
+          odds_dir="$RUNNER_TEMP/keirin-note-odds-$GITHUB_RUN_ID-$GITHUB_RUN_ATTEMPT"
+          finish_public_odds() {
+            local archive_status="$1"
+            trap - EXIT
+            if [[ -d "$odds_dir" && ! -L "$odds_dir" ]]; then
+              if (( archive_status < 128 )) && [[ -f "$odds_dir/admitted-cards.json" ]]; then
+                if ! (cd "$GITHUB_WORKSPACE" && env -u RACE_AI_STATE_KEY -u RACE_AI_KEIRIN_FEED_ENDPOINT \
+                    -u RACE_AI_KEIRIN_FEED_RIGHTS_REF -u RACE_AI_KEIRIN_LICENSE_MANIFEST_B64 \
+                    -u RACE_AI_KEIRIN_LICENSE_DOCUMENT_B64 -u RACE_AI_KEIRIN_FEED_TOKEN \
+                    PYTHONPATH="$GITHUB_WORKSPACE" python -m scripts.keirin_publish_forecast_odds \
+                    --repo "$GITHUB_WORKSPACE" --handoff "$odds_dir" --publish) >> "$GITHUB_STEP_SUMMARY"; then
+                  echo 'HOLD_PUBLIC_ODDS_PUBLICATION' >> "$GITHUB_STEP_SUMMARY" || :
+                fi
+              fi
+              rm -rf -- "$odds_dir" || :
+            fi
+            exit "$archive_status"
+          }
+          odds_args=()
+          if mkdir -m 700 -- "$odds_dir"; then
+            odds_args+=(--odds-handoff "$odds_dir")
+            # Run display publication after the archive attempt, preserving its status.
+            trap 'finish_public_odds "$?"' EXIT
+          fi
           # The owner-imported display profile uses only its public recipient.
           # Preserve the original PR71 cycle even if this independent view holds.
           if ! (
             set -euo pipefail
             cd "$GITHUB_WORKSPACE"
             python -m pip install --disable-pip-version-check 'cryptography>=44,<48' 'beautifulsoup4>=4.12,<5'
-            env -u RACE_AI_STATE_KEY PYTHONPATH="$GITHUB_WORKSPACE" python -m scripts.keirin_note_feed_cycle --repo "$GITHUB_WORKSPACE" --publish-reference
+            env -u RACE_AI_STATE_KEY PYTHONPATH="$GITHUB_WORKSPACE" python -m scripts.keirin_note_feed_cycle \
+              --repo "$GITHUB_WORKSPACE" --publish-reference "${odds_args[@]}"
           ); then
             echo 'NOTE_SOURCE_OR_ENCRYPTED_DISPLAY_HOLD; original PR71 cycle continues.' >> "$GITHUB_STEP_SUMMARY"
           fi

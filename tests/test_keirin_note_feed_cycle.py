@@ -106,6 +106,22 @@ class FeedCycleTests(unittest.TestCase):
             with self.assertRaisesRegex(ValueError,'GIT_OPERATION_FAILED'):
                 self.cycle(reference_publisher=lambda *args,**kwargs:self.fail('pre-readback public release'))
 
+    def test_failed_odds_handoff_cannot_interfere_with_forecast_or_history(self):
+        self.seed()
+        callbacks=[]
+
+        def stage(source, note, entry):
+            self.assertTrue((source/'raw/original.html').is_file())
+            self.assertIn(entry, feed.load_index(self.store,self.recipient,self.store.head())['entries'])
+            callbacks.append(entry['captured_race_ids'])
+            raise OSError('private detail deliberately excluded from receipt')
+
+        result=self.cycle(odds_stager=stage)
+        self.assertEqual(callbacks,[['203001159801']])
+        self.assertEqual(result['state'],'KEIRIN_NOTE_ENCRYPTED_GIT_READBACK_VERIFIED')
+        self.assertEqual(result['public_odds_handoff'],{'state':'HOLD_PUBLIC_ODDS_HANDOFF'})
+        self.assertEqual(len(self.result_calls),1)
+
     def test_publication_is_opt_in_only_in_the_existing_main_actions_job(self):
         from scripts import keirin_note_feed_cycle as cycle
         env={

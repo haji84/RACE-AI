@@ -144,7 +144,7 @@ def _publish_reference_projection(repo,note,entry,*,published_at):
 
 
 def cycle(repo,*,recipient=None,store=None,collector=None,result_collector=None,clock=None,source_commit=None,
-          reference_publisher=None):
+          reference_publisher=None,odds_stager=None):
     with _phase('OWNER_FEED_READ'):
         repo=Path(repo).resolve();store=store or NoteFeedGit(repo)
         recipient=checked_recipient(recipient or json.loads(
@@ -192,9 +192,15 @@ def cycle(repo,*,recipient=None,store=None,collector=None,result_collector=None,
                     result=_publish_collected(store,recipient,sealed,parent=parent,prior=prior,
                                               denied=safe['provider_denied'])
                 result['acquisition']=safe
-                if (reference_publisher is not None and safe['captured_race_ids'] and
-                        not safe['provider_denied'] and result['state']=='KEIRIN_NOTE_ENCRYPTED_GIT_READBACK_VERIFIED'):
+                verified_capture = (safe['captured_race_ids'] and not safe['provider_denied'] and
+                                    result['state']=='KEIRIN_NOTE_ENCRYPTED_GIT_READBACK_VERIFIED')
+                if reference_publisher is not None and verified_capture:
                     result['public_reference']=reference_publisher(repo,note,sealed['entry'],published_at=clock())
+                if odds_stager is not None and verified_capture:
+                    try:
+                        result['public_odds_handoff']=odds_stager(root,note,sealed['entry'])
+                    except (_FAILURES + (ImportError,)):
+                        result['public_odds_handoff']={'state':'HOLD_PUBLIC_ODDS_HANDOFF'}
         except Exception:
             with _phase('PROVIDER_STOP_PERSISTENCE'):
                 if private_denial(root,safe):latch_denial(store,recipient)
@@ -296,11 +302,13 @@ def latch_denial(store,recipient):
 def main(argv=None):
     parser=argparse.ArgumentParser(description=__doc__);parser.add_argument('--repo',required=True)
     parser.add_argument('--publish-reference',action='store_true')
+    parser.add_argument('--odds-handoff',type=Path)
     args=parser.parse_args(argv)
     # This new source profile never grants production-state access or executes
     # code from untrusted PRs. No new workflow trigger/permission is required.
     need(os.getenv('GITHUB_REPOSITORY')==REPO and os.getenv('GITHUB_REF')=='refs/heads/main'
          and os.getenv('GITHUB_EVENT_NAME') in {'schedule','workflow_dispatch'},'TRUSTED_MAIN_EVENT')
+    need(args.odds_handoff is None or args.publish_reference,'PUBLIC_ODDS_TRUSTED_REFERENCE_RUN_REQUIRED')
     if args.publish_reference:
         need(os.getenv('GITHUB_ACTIONS')=='true' and
              os.getenv('GITHUB_REPOSITORY_ID')=='1416489937' and
@@ -310,7 +318,16 @@ def main(argv=None):
         need(os.getenv('GITHUB_SHA')==checked_out,'PUBLIC_REFERENCE_TRUSTED_CHECKOUT')
     try:
         with _phase('RUN_CONTEXT'):
-            result=cycle(args.repo,reference_publisher=_publish_reference_projection) if args.publish_reference else cycle(args.repo)
+            callbacks={}
+            if args.publish_reference:
+                callbacks['reference_publisher']=_publish_reference_projection
+            if args.odds_handoff is not None:
+                def stage(root,note,entry):
+                    from scripts.keirin_publish_forecast_odds import stage_reference_handoff
+
+                    return stage_reference_handoff(root,note,entry,args.odds_handoff)
+                callbacks['odds_stager']=stage
+            result=cycle(args.repo,**callbacks)
             print(json.dumps(result,ensure_ascii=False,sort_keys=True))
     except FeedCycleFailure as error:
         print(json.dumps(dict(state='HOLD_NOTE_SOURCE_OR_ENCRYPTED_PUBLICATION',
