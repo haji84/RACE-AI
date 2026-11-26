@@ -278,6 +278,7 @@ def append_index(previous,recipient,*,entry=None,denied=False,result_checks=None
 class NoteFeedGit:
     """Fixed canonical display branch; normal FF CAS, isolated temporary index."""
     ref=BRANCH
+    commit_message=b'Retain owner-only encrypted KEIRIN display snapshot\n'
     def __init__(self,repo):self.repo=Path(repo);self.remote=self._remote()
 
     def run(self,args,*,body=None,env=None):
@@ -324,7 +325,7 @@ class NoteFeedGit:
             args=['-c','user.name=RACE-AI encrypted display','-c','user.email=race-ai-state@users.noreply.github.com',
                   '-c','commit.gpgSign=false','commit-tree',tree]
             if parent:args+=['-p',parent]
-            return self.run(args,body=b'Retain owner-only encrypted KEIRIN display snapshot\n',env=env).decode().strip()
+            return self.run(args,body=self.commit_message,env=env).decode().strip()
 
     def push(self,commit,parent):
         need(self._remote()==self.remote,'REMOTE_CHANGED')

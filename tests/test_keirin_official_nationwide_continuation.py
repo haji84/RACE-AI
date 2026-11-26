@@ -515,6 +515,7 @@ class RunnerTests(unittest.TestCase):
             self.assertFalse(views[0].exists())
             self.assertEqual(publish.call_args.args[0],checked_out)
             self.assertEqual(publish.call_args.args[1]['registry'],registry)
+            self.assertTrue(publish.call_args.kwargs['public_view'])
             self.assertEqual(report['source_requests'],0)
 
     def test_settlement_archive_timeout_reports_a_hold_before_any_provider_call(self):

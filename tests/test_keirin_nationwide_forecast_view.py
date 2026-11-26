@@ -88,6 +88,54 @@ class NationwideForecastViewTests(unittest.TestCase):
     def api(self):
         return importlib.import_module('race_ai.keirin_nationwide_forecast_view')
 
+    def test_public_forecasts_use_frozen_top_eight_without_private_parts(self):
+        from race_ai import keirin_public_forecasts as public
+        doc = nationwide_document(conditioned=True)
+        body = public.project(doc, published_at=NOW)
+        first, pending, _ = body['races']
+        original = doc['races'][0]['original']
+        self.assertEqual(first['a'], original['baseline']['A']['ranked_tickets'][:8])
+        self.assertEqual(first['b'], original['baseline']['B']['ranked_tickets'][:8])
+        self.assertEqual(first['saved_at'], original['baseline_sealed_at'])
+        self.assertEqual(body['published_at'], NOW.isoformat())
+        self.assertEqual(set(first), {'race_id', 'cutoff_at', 'status', 'saved_at', 'a', 'b'})
+        self.assertEqual(pending, dict(race_id=DAY.replace('-', '')+'9902', cutoff_at=None,
+                                      status='pending', saved_at=None, a=[], b=[]))
+        self.assertEqual(len(body['races']), len(doc['races']))
+        for field in ('conditioned', 'source_facts_sha256', 'line_groups', 'six_phase_scenarios'):
+            self.assertNotIn(field,json.dumps(body))
+
+    def test_public_forecast_git_update_preserves_existing_results_and_picks(self):
+        from race_ai import keirin_public_forecasts as public
+        with TemporaryDirectory() as folder:
+            root=Path(folder); repo,remote=root/'repo',root/'remote.git'
+            def git(*args,cwd=None):
+                return subprocess.check_output(['git',*args],cwd=cwd,stderr=subprocess.DEVNULL)
+            git('init','--bare',str(remote)); git('init',str(repo))
+            git('remote','add','origin',str(remote),cwd=repo)
+            class LocalStore(public.PublicForecastGit):
+                def _remote(self): return 'origin'
+            store=LocalStore(repo)
+            result_path='results/'+DAY+'.json'
+            previous_result=b'{"fixture":"public-result"}\n'
+            start=store.commit({result_path:previous_result},None)
+            result_ref='refs/heads/state/keirin-public-results'
+            git('push','origin',start+':'+result_ref,cwd=repo)
+            body=public.project(nationwide_document(),published_at=NOW)
+            receipt=public.publish(repo,body,store=store)
+            head=store.head()
+            self.assertEqual(receipt['state'],'PUBLIC_FORECASTS_UPDATED')
+            self.assertEqual(receipt['published_races'],1)
+            self.assertTrue(git('ls-remote','origin',result_ref,cwd=repo).decode().startswith(start+'\t'))
+            self.assertEqual(git('show',start+':'+result_path,cwd=repo),previous_result)
+            self.assertNotIn('ranked_tickets',json.dumps(receipt))
+            later = public.project(nationwide_document(),published_at=NOW)
+            later['races'][0]['a']=list(reversed(later['races'][0]['a']))
+            with self.assertRaisesRegex(ValueError,'SAVED_PUBLIC_FORECAST_CHANGED'):
+                public.publish(repo,later,store=store)
+            self.assertEqual(store.head(),head)
+            self.assertEqual(public.publish(repo,body,store=store)['state'],'PUBLIC_FORECASTS_CURRENT')
+
     def test_baseline_only_keeps_all_registered_races_without_regenerating_or_inventing_arms(self):
         admitted = admitted_fixture(); original = deepcopy(admitted)
         with patch.object(model, 'generate_A_B', side_effect=AssertionError('no regeneration')), \
