@@ -17,7 +17,7 @@ SCHEMA = 'RACE_AI_KEIRIN_PUBLIC_FORECASTS_V1'
 REFERENCE_SCHEMA = 'RACE_AI_KEIRIN_PUBLIC_REFERENCE_FORECASTS_V1'
 RESEARCH_SCHEMA = 'RACE_AI_KEIRIN_PUBLIC_RESULT_UNREAD_AB_V1'
 REF = 'state/keirin-public-forecasts'
-PATH = re.compile(r'(?:forecasts|references|research|updates|details|odds|operations)/20[0-9]{2}-[0-9]{2}-[0-9]{2}\.json')
+PATH = re.compile(r'(?:forecasts|references|research|updates|details|odds|operations|starters)/20[0-9]{2}-[0-9]{2}-[0-9]{2}\.json')
 LIMIT = 8
 MAX_BYTES = 512 * 1024
 
