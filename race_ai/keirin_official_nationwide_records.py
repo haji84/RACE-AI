@@ -230,25 +230,50 @@ def checked_index(doc, day):
     return doc
 
 
+_TRACKING_REF = f'refs/remotes/origin/{archive.BRANCH}'
+
+
+def _fetch_partial_head(repo):
+    archive._cmd(repo,'fetch','--no-tags','--depth=1','--filter=blob:none',
+        '--no-recurse-submodules','origin',f'refs/heads/{archive.BRANCH}:{_TRACKING_REF}')
+    head=archive._cmd(repo,'--no-replace-objects','rev-parse','--verify',f'{_TRACKING_REF}^{{commit}}')[1]
+    need(archive.COMMIT.fullmatch(head),'PARTIAL_ARCHIVE_HEAD')
+    return head
+
+
+def fetch_partial_head(reader, *, synthetic_local=False):
+    """Fetch the canonical archive once for a dedicated blob-filtered reader."""
+    return _fetch_partial_head(archive._remote(reader,synthetic_local=synthetic_local))
+
+
+def _check_archive_commit(repo, head):
+    need(type(head) is str and archive.COMMIT.fullmatch(head),'INDEX_COMMIT_INVALID')
+    tip=archive._cmd(repo,'--no-replace-objects','rev-parse','--verify',f'{_TRACKING_REF}^{{commit}}')[1]
+    if head!=tip:
+        status,_=archive._cmd(repo,'--no-replace-objects','merge-base','--is-ancestor',head,tip,okay=True)
+        need(status==0,'INDEX_COMMIT_OUTSIDE_OFFICIAL_ARCHIVE')
+
+
 class RecordStore:
     """Select bounded encrypted records without scanning all historical bytes."""
-    def __init__(self, repo, day, *, synthetic_local=False, partial_read=False, retry_archive_timeout=False):
+    def __init__(self, repo, day, *, synthetic_local=False, partial_read=False,
+                 retry_archive_timeout=False, index_commit=None):
         self.repo=archive._remote(repo,synthetic_local=synthetic_local)
         self.day=history._day(day);self.path=ROOT+'/'+day+'/index.json'
-        if partial_read:
-            branch=archive.BRANCH
-            tracking=f'refs/remotes/origin/{branch}'
-            archive._cmd(self.repo,'fetch','--no-tags','--depth=1','--filter=blob:none',
-                '--no-recurse-submodules','origin',f'refs/heads/{branch}:{tracking}')
-            head=archive._cmd(self.repo,'rev-parse','--verify',f'{tracking}^{{commit}}')[1]
-            need(archive.COMMIT.fullmatch(head),'PARTIAL_ARCHIVE_HEAD')
-            self._load_index(head)
+        self.index_commit=index_commit
+        if index_commit is not None:
+            _check_archive_commit(self.repo,index_commit)
+            self.refresh()
+        elif partial_read:
+            self._load_index(_fetch_partial_head(self.repo))
         elif retry_archive_timeout:
             self._load_index(archive._refresh(self.repo, retry_on_timeout=True))
         else:
             self.refresh()
 
     def refresh(self):
+        if self.index_commit is not None:
+            return self._load_index(self.index_commit)
         return self._load_index(archive._refresh(self.repo))
 
     def _load_index(self, head):
@@ -278,6 +303,7 @@ class RecordStore:
         return payload
 
     def append(self, *, kind, payload, public_pem, observed_at, race_id=None, monetary_complete=False):
+        need(self.index_commit is None,'PINNED_INDEX_READ_ONLY')
         need(kind in ('registry','original','result') and payload.get('day_jst')==self.day and
              payload.get('producer_run_id')==os.environ['GITHUB_RUN_ID'] and
              payload.get('producer_commit')==os.environ['GITHUB_SHA'],'APPEND_SCOPE')
@@ -437,6 +463,17 @@ def discover_days(repo, *, retry_archive_timeout=False):
     repo=archive._remote(repo,synthetic_local=False)
     head = (archive._refresh(repo, retry_on_timeout=True)
             if retry_archive_timeout else archive._refresh(repo))
+    return _discover_days_at(repo,head)
+
+
+def discover_days_at(reader, head, *, synthetic_local=False):
+    """Enumerate official archive days at an already fetched archive commit."""
+    repo=archive._remote(reader,synthetic_local=synthetic_local)
+    _check_archive_commit(repo,head)
+    return _discover_days_at(repo,head)
+
+
+def _discover_days_at(repo, head):
     code,size=archive._cmd(repo,'--no-replace-objects','cat-file','-s',head+':'+ROOT,okay=True)
     if code!=0:return []
     need(size.isascii() and size.isdecimal() and len(size)<8 and int(size)<=32_000,'DAY_DIRECTORY_BOUND')
@@ -504,8 +541,8 @@ def result_updates(original,scored,final_capture):
     return updates.checked_updates(dict(schema=updates.SCHEMA,observed_at=at.isoformat(),races=[updates._finish(row)]))
 
 
-def replay_saved_result(store,original_meta,result_meta,owner_private_pem):
-    """Source-free reconstruction from archived original and source witnesses."""
+def _replay_saved_result(store,original_meta,result_meta,owner_private_pem):
+    """Authenticate original and final source witnesses without provider access."""
     original_payload=store.read(original_meta,owner_private_pem);saved=store.read(result_meta,owner_private_pem)
     need(saved['schema']==RESULT_SCHEMA and saved['race_id']==original_payload['race_id'] and
          saved['original_evidence_sha256']==original_meta['evidence_sha256'],'RESULT_ORIGINAL_BINDING')
@@ -524,4 +561,9 @@ def replay_saved_result(store,original_meta,result_meta,owner_private_pem):
         packets=saved['origin_packets'],final_capture=saved['final_capture'])
     need(replay==saved['scored'] and replay['monetary_comparison_eligible'] is result_meta['monetary_complete'],
          'SAVED_RESULT_NOT_REPRODUCIBLE')
-    return result_updates(original,replay,saved['final_capture'])
+    return original,replay,saved['final_capture']
+
+
+def replay_saved_result(store,original_meta,result_meta,owner_private_pem):
+    """Source-free reconstruction of the existing public result update."""
+    return result_updates(*_replay_saved_result(store,original_meta,result_meta,owner_private_pem))
