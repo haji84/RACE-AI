@@ -113,9 +113,10 @@ class CloudPr71GitHistoryTests(unittest.TestCase):
         def concurrent(repo, *args):
             nonlocal appended
             result = underlying_git(repo, *args)
-            if not appended and args == ("push", "origin", "HEAD:refs/heads/" + cloud.STATE_BRANCH):
+            if not appended and args[:2] == ("push", "origin") and args[2].endswith(
+                    ":refs/heads/" + cloud.STATE_BRANCH):
                 appended = True
-                self.first_commit = underlying_git(repo, "rev-parse", "HEAD")
+                self.first_commit = args[2].split(":", 1)[0]
                 self.other = self.root / "concurrent-runner"
                 sh("git", "clone", str(self.remote), str(self.other))
                 sh("git", "checkout", cloud.STATE_BRANCH, cwd=self.other)
@@ -180,6 +181,41 @@ class CloudPr71GitHistoryTests(unittest.TestCase):
         with self.concurrent_append_after_push(remove_scope):
             with self.assertRaisesRegex(cloud.ArchiveError, "REMOTE_ENCRYPTED_FILE_READBACK_MISMATCH"):
                 cloud.commit(self.repo, self.source, self.db, None)
+
+    def test_fresh_shallow_runner_only_materializes_its_checkpoint(self):
+        sh("git", "config", "uploadpack.allowFilter", "true", cwd=self.remote)
+        sh("git", "config", "uploadpack.allowAnySHA1InWant", "true", cwd=self.remote)
+        self.frozen()
+        archived = cloud.commit(self.repo, self.source, self.db, None)
+        path = "state/keirin/v1/README.md"
+        unrelated = sh("git", "rev-parse", cloud.STATE_BRANCH + ":" + path, cwd=self.remote)
+        checkout = self.root / "fresh-runner"
+        sh("git", "clone", "--depth=1", "--branch", "main", self.remote.as_uri(), str(checkout))
+        target = self.root / "filtered-readback.sqlite3"
+        head, inventory = cloud.restore(checkout, self.source, target)
+        self.assertEqual(archived["cipher_sha256"], head["cipher_sha256"])
+        self.assertEqual(1, inventory["frozen"])
+        def append_concurrently(tree):
+            (tree / "other-writer.txt").write_text("another synthetic writer")
+        with self.concurrent_append_after_push(append_concurrently):
+            advanced = cloud.commit(checkout, self.source, target, head)
+        self.assertEqual(2, advanced["generation"])
+        self.assertEqual("another synthetic writer", sh(
+            "git", "show", cloud.STATE_BRANCH + ":other-writer.txt", cwd=self.remote))
+        objects = sh("git", "rev-list", "--objects", "--all", "--missing=print", cwd=checkout).splitlines()
+        self.assertIn("?" + unrelated, objects)
+
+    def test_deleted_pointer_in_existing_lineage_is_not_treated_as_genesis(self):
+        self.frozen()
+        cloud.commit(self.repo, self.source, self.db, None)
+        sh("git", "checkout", cloud.STATE_BRANCH, cwd=self.repo)
+        sh("git", "pull", "--ff-only", "origin", cloud.STATE_BRANCH, cwd=self.repo)
+        sh("git", "rm", str(cloud.HEAD), cwd=self.repo)
+        self.commit("synthetic damage to an existing pointer")
+        sh("git", "push", "origin", cloud.STATE_BRANCH, cwd=self.repo)
+        sh("git", "checkout", "main", cwd=self.repo)
+        with self.assertRaisesRegex(cloud.ArchiveError, "PRODUCTION_HISTORY_HEAD_INVALID"):
+            cloud.restore(self.repo, self.source, self.root/"missing-pointer.sqlite3")
 
     def test_selected_ab_stops_new_pr71_cycle_before_source_or_archive_access(self):
         env = {

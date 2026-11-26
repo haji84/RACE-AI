@@ -12,7 +12,7 @@ historical plaintext: the owner must approve that risk explicitly.
 """
 from __future__ import annotations
 
-from contextlib import redirect_stdout
+from contextlib import contextmanager, redirect_stdout
 from datetime import datetime, timezone
 from hashlib import sha256
 from pathlib import Path
@@ -44,6 +44,7 @@ from scripts.keirin_runtime_selection import nationwide_ab_selected
 
 BASE=Path("state/keirin/pr71-production/v1")
 HEAD=BASE/"latest.json"
+STATE_TRACKING_REF="refs/remotes/origin/"+STATE_BRANCH
 SCHEMA="RACE_AI_KEIRIN_PR71_GITHUB_CLOUD_STATE_V1"
 PROOF="RACE_AI_KEIRIN_PR71_CLOUD_CIPHER_PROOF_V1"
 SHA=re.compile(r"^[0-9a-f]{64}$")
@@ -138,17 +139,47 @@ def _git_worktree(repo):
                     "https://github.com/"+REPO+".git",
                     "git@github.com:"+REPO+".git"),
          "UNEXPECTED_GIT_REMOTE")
-    git(repo,"fetch","--no-tags","origin",
-        "refs/heads/"+STATE_BRANCH+":refs/remotes/origin/"+STATE_BRANCH)
+    git(repo,"config","--local","remote.origin.promisor","true")
+    git(repo,"config","--local","remote.origin.partialclonefilter","blob:none")
+    _fetch_checkpoint_branch(repo)
     return repo
 
 
-def _read_head(tree):
-    pointer=tree/HEAD
-    if not pointer.is_file():
+def _fetch_checkpoint_branch(repo):
+    git(repo,"fetch","--no-tags","--filter=blob:none","origin",
+        "refs/heads/"+STATE_BRANCH+":"+STATE_TRACKING_REF)
+
+
+@contextmanager
+def _checkpoint_worktree(repo, tree):
+    # Keep the full tree in the index for a faithful append. Materialize only
+    # the four PR71 paths, never the other state writers' archived blobs.
+    git(repo,"worktree","add","--detach","--no-checkout",str(tree),STATE_TRACKING_REF)
+    try:
+        git(tree,"read-tree","HEAD")
+        yield tree
+    finally:
+        git(repo,"worktree","remove","--force",str(tree))
+
+
+def _checkout_checkpoint_path(tree, relative, *, optional=False):
+    mode=git(tree,"ls-tree","--format=%(objectmode)","HEAD","--",str(relative))
+    if optional and not mode:
         return None
-    need(not pointer.is_symlink() and pointer.stat().st_size<=3072,
-         "CIPHER_HEAD_UNSAFE")
+    need(mode=="100644","CIPHER_HISTORY_FILE_MISSING")
+    git(tree,"checkout-index","--",str(relative))
+    path=tree/relative
+    need(path.is_file() and not path.is_symlink(),"CIPHER_HISTORY_FILE_MISSING")
+    return path
+
+
+def _read_head(tree):
+    pointer=_checkout_checkpoint_path(tree,HEAD,optional=True)
+    if pointer is None:
+        need(not git(tree,"ls-tree","HEAD","--",str(BASE)),
+             "PRODUCTION_HISTORY_HEAD_INVALID")
+        return None
+    need(pointer.stat().st_size<=3072,"CIPHER_HEAD_UNSAFE")
     try:head=json.loads(pointer.read_text(encoding="utf-8"))
     except (OSError,ValueError):
         raise ArchiveError("CIPHER_HEAD_BAD_JSON") from None
@@ -179,9 +210,7 @@ def _read_head(tree):
                     ("proof_file",".proof.json")):
         need(head[key]==(str(prefix)+ext),
              "CIPHER_PATH_NOT_BOUND_TO_SHA_AND_GENERATION")
-        path=tree/head[key]
-        need(path.is_file() and not path.is_symlink(),
-             "CIPHER_HISTORY_FILE_MISSING")
+        _checkout_checkpoint_path(tree,head[key])
     file_scope=json.loads((tree/head["scope_file"]).read_text())
     need(file_scope==scope,"CIPHER_SCOPE_CHAIN_MISMATCH")
     file_proof=json.loads((tree/head["proof_file"]).read_text())
@@ -269,10 +298,7 @@ def restore(repo,source_root,target):
     need(target.is_absolute() and not target.exists() and
          target.parent.is_dir(),"PRIVATE_RESTORE_CREATE_ONCE_REQUIRED")
     with TemporaryDirectory(prefix="pr71-state-read-") as temp:
-        tree=Path(temp)/"state"
-        git(repo,"worktree","add","--detach",str(tree),
-            "refs/remotes/origin/"+STATE_BRANCH)
-        try:
+        with _checkpoint_worktree(repo,Path(temp)/"state") as tree:
             head=_read_head(tree)
             if head is None:return None,None
             _node(source_root,"unseal",tree/head["snapshot_file"],
@@ -280,8 +306,6 @@ def restore(repo,source_root,target):
                   extra_env={"RACE_AI_EXPECTED_CIPHER_SHA256":head["cipher_sha256"]})
             verified=_pr71_inventory(target)
             return head,verified
-        finally:
-            git(repo,"worktree","remove","--force",str(tree))
 
 
 def commit(repo,source_root,db,prior):
@@ -309,10 +333,7 @@ def commit(repo,source_root,db,prior):
         again=_pr71_inventory(readback)
         need(again==inventory,
              "INDEPENDENT_AES_SQLITE_MODEL_READBACK_MISMATCH")
-        tree=tmp/"state"
-        git(repo,"worktree","add","--detach",str(tree),
-            "refs/remotes/origin/"+STATE_BRANCH)
-        try:
+        with _checkpoint_worktree(repo,tmp/"state") as tree:
             latest=_read_head(tree)
             need((latest is None and prior is None) or
                  (latest is not None and prior is not None and
@@ -339,14 +360,17 @@ def commit(repo,source_root,db,prior):
             (tree/HEAD).write_bytes(canonical(head)+b"\n")
             git(tree,"add","--",str(rel)+".enc",
                 str(rel)+".scope.json",str(rel)+".proof.json",str(HEAD))
-            git(tree,"-c","user.name=github-actions[bot]",
-                "-c","user.email=41898282+github-actions[bot]@users.noreply.github.com",
-                "commit","-m",f"archive(keirin): AES-GCM PR71 production g{generation:06d}")
-            sent=git(tree,"rev-parse","HEAD")
-            git(tree,"push","origin","HEAD:refs/heads/"+STATE_BRANCH)
-            git(repo,"fetch","--no-tags","origin",
-                "refs/heads/"+STATE_BRANCH+":refs/remotes/origin/"+STATE_BRANCH)
-            observed=git(repo,"rev-parse","refs/remotes/origin/"+STATE_BRANCH)
+            # Reuse the verified parent entries without fetching their blobs.
+            # The four newly added paths are present from the local index update.
+            parent=git(tree,"rev-parse","HEAD")
+            updated_tree=git(tree,"write-tree","--missing-ok")
+            sent=git(tree,"-c","user.name=github-actions[bot]",
+                     "-c","user.email=41898282+github-actions[bot]@users.noreply.github.com",
+                     "commit-tree",updated_tree,"-p",parent,
+                     "-m",f"archive(keirin): AES-GCM PR71 production g{generation:06d}")
+            git(tree,"push","origin",sent+":refs/heads/"+STATE_BRANCH)
+            _fetch_checkpoint_branch(repo)
+            observed=git(repo,"rev-parse",STATE_TRACKING_REF)
             # Other state lineages may append after our successful push. Bind
             # readback to this observed commit and our immutable blobs, not to
             # an exact branch tip or a later writer's mutable latest pointer.
@@ -365,8 +389,6 @@ def commit(repo,source_root,db,prior):
                     "cipher_sha256":digest,
                     "owner_plaintext_public":False,
                     "all_four_original_models_verified":True}
-        finally:
-            git(repo,"worktree","remove","--force",str(tree))
 
 
 def _licensed_inputs(inbox,source_root):
