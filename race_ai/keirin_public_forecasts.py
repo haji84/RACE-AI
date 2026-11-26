@@ -15,8 +15,9 @@ from .keirin_note_view import MAX_FILE, SCHEMA as NOTE_SCHEMA, _pairs, canonical
 
 SCHEMA = 'RACE_AI_KEIRIN_PUBLIC_FORECASTS_V1'
 REFERENCE_SCHEMA = 'RACE_AI_KEIRIN_PUBLIC_REFERENCE_FORECASTS_V1'
+RESEARCH_SCHEMA = 'RACE_AI_KEIRIN_PUBLIC_RESULT_UNREAD_AB_V1'
 REF = 'state/keirin-public-forecasts'
-PATH = re.compile(r'(?:forecasts|references)/20[0-9]{2}-[0-9]{2}-[0-9]{2}\.json')
+PATH = re.compile(r'(?:forecasts|references|research)/20[0-9]{2}-[0-9]{2}-[0-9]{2}\.json')
 LIMIT = 8
 MAX_BYTES = 512 * 1024
 
@@ -103,6 +104,48 @@ def checked_reference(body):
              'REFERENCE_RACE')
     official._ids([row['race_id'] for row in races], day)
     return body
+
+
+def checked_research(body):
+    need(type(body) is dict and set(body) == {'schema','day','published_at','races'} and
+         body['schema'] == RESEARCH_SCHEMA, 'RESEARCH_SCHEMA')
+    day = official._day(body['day'])
+    posted = when(body['published_at'])
+    races = body['races']
+    need(type(races) is list and len(races) <= official.MAX_RACES, 'RESEARCH_RACES')
+    for row in races:
+        need(type(row) is dict and set(row) == {'race_id','cutoff_at','generated_at','starter_cars','a','b'},
+             'RESEARCH_ROW')
+        cutoff, generated = when(row['cutoff_at']), when(row['generated_at'])
+        need(cutoff.astimezone(official.JST).date().isoformat() == day and generated <= posted, 'RESEARCH_CLOCK')
+        cars = row['starter_cars']
+        need(type(cars) is list and 5 <= len(cars) <= 9 and
+             all(type(c) is int and 1 <= c <= 9 for c in cars) and cars == sorted(set(cars)), 'RESEARCH_STARTER_ROSTER')
+        need((row['a'] or row['b']) and all(arm == [] or (_tickets(arm) and
+             all(set(ticket) <= set(cars) for ticket in arm)) for arm in (row['a'], row['b'])), 'RESEARCH_TICKETS')
+    official._ids([row['race_id'] for row in races], day)
+    return body
+
+
+def project_research_race(snapshot, scheduled, *, generated_at):
+    """Use scoped racecard features and the independently observed starter set."""
+    need(isinstance(generated_at, datetime) and generated_at.utcoffset() is not None, 'RESEARCH_CLOCK')
+    need(type(snapshot) is dict and set(snapshot) == {'race_id','competition','line_groups','line_warnings','riders'} and
+         snapshot['race_id'] == scheduled['race_id'] and snapshot['competition'] in model.CLASSES and
+         type(snapshot['riders']) is list, 'RESULT_UNREAD_INPUT')
+    fields = {'car','name','competition_points','mark_rank','style'}
+    need(all(type(rider) is dict and set(rider) == fields for rider in snapshot['riders']), 'RESULT_UNREAD_INPUT')
+    cars = sorted(rider['car'] for rider in snapshot['riders'])
+    need(cars == sorted(rider['car'] for rider in scheduled['starters']) and
+         5 <= len(cars) <= 9 and len(set(cars)) == len(cars), 'RESEARCH_STARTER_ROSTER')
+    at = generated_at.isoformat()
+    need(when(scheduled['source_observed_at']) <= when(at), 'RESEARCH_CLOCK')
+    cutoff = scheduled['official_cutoff_at']
+    need(cutoff is not None, 'RESEARCH_CUTOFF_UNKNOWN')
+    forecast = model.generate_evidence_analysis(snapshot)
+    a, b = (forecast[arm]['ranked_tickets'][:LIMIT] for arm in ('A','B'))
+    need(a or b, 'RESEARCH_NO_SEPARATED_TICKETS')
+    return dict(race_id=scheduled['race_id'], cutoff_at=cutoff, generated_at=at, starter_cars=cars, a=a, b=b)
 
 
 def _captured_references(note, day, ids):
@@ -232,45 +275,70 @@ def _push_projection(store, parent, path, commit, raw):
     need(store.read_previous(commit,path) == raw, 'PUBLICATION_READBACK')
 
 
-def _previous_reference(store, head, path, day):
+def _previous_candidates(store, head, path, day, check):
     if head is None:
         return None
     store.fetch(head)
     raw = store.read_previous(head,path)
     if raw is None:
         return None
-    prior = checked_reference(_json(raw))
+    prior = check(_json(raw))
     need(prior['day'] == day, 'PREVIOUS_DAY')
     return prior
 
 
-def _reference_receipt(state, body, commit):
+def _candidates_receipt(state, body, commit):
     return dict(state=state, day_jst=body['day'], published_races=len(body['races']),
                 published_at=body['published_at'], commit=commit)
 
 
 def publish_reference(repo, body, *, store=None):
     """Append newly observed race IDs while retaining the first public candidates."""
-    checked_reference(body)
+    return _append_candidates(repo, checked_reference(body), 'references', checked_reference,
+                              'PUBLIC_REFERENCE_FORECASTS', store)
+
+
+def publish_research(repo, body, *, store=None):
+    """Publish distinct result-unread candidates for registered gaps."""
+    return _append_candidates(repo, checked_research(body), 'research', checked_research,
+                              'PUBLIC_RESULT_UNREAD_FORECASTS', store)
+
+
+def _append_candidates(repo, body, lane, check, state, store):
     if not body['races']:
-        return _reference_receipt('PUBLIC_REFERENCE_FORECASTS_NO_ELIGIBLE_RACES', body, None)
+        return _candidates_receipt(state+'_NO_ELIGIBLE_RACES', body, None)
     store = store or PublicForecastGit(repo)
     day = body['day']
-    path = f'references/{day}.json'
+    path = f'{lane}/{day}.json'
     parent = store.head()
-    previous = _previous_reference(store, parent, path, day)
+    previous = _previous_candidates(store, parent, path, day, check)
     posted = when(body['published_at'])
     for attempt in range(2):
         prior = {row['race_id']:row for row in previous['races']} if previous else {}
         additions = {row['race_id']:row for row in body['races'] if row['race_id'] not in prior}
+        if lane == 'research':
+            registry_bytes = store.read_previous(parent, f'forecasts/{day}.json') if parent else None
+            need(registry_bytes is not None, 'RESEARCH_REGISTRY_REQUIRED')
+            registry = checked(_json(registry_bytes))
+            registered = {row['race_id']:row for row in registry['races']}
+            need(registry['day'] == day and (prior.keys() | additions.keys()) <= registered.keys(),
+                 'RESEARCH_UNREGISTERED_RACE')
+            reference_bytes = store.read_previous(parent, f'references/{day}.json')
+            reference = checked_reference(_json(reference_bytes)) if reference_bytes else None
+            need(reference is None or reference['day'] == day, 'PREVIOUS_DAY')
+            backed = {row['race_id'] for row in reference['races']} if reference else set()
+            additions = {rid:row for rid,row in additions.items() if rid not in backed and
+                         registered[rid]['status'] == 'pending'}
+        else:
+            need(all(posted < when(row['cutoff_at']) for row in additions.values()), 'REFERENCE_READBACK_AFTER_CUTOFF')
         if not additions:
-            return _reference_receipt('PUBLIC_REFERENCE_FORECASTS_CURRENT', previous, parent)
-        need(all(posted < when(row['cutoff_at']) for row in additions.values()), 'REFERENCE_READBACK_AFTER_CUTOFF')
+            return (_candidates_receipt(state+'_CURRENT', previous, parent) if previous else
+                    _candidates_receipt(state+'_NO_ELIGIBLE_RACES', dict(body, races=[]), parent))
         by_race = {**prior, **additions}
         publication_at = body['published_at']
         if previous is not None and when(previous['published_at']) > posted:
             publication_at = previous['published_at']
-        merged = checked_reference(dict(body, published_at=publication_at,
+        merged = check(dict(body, published_at=publication_at,
             races=[by_race[rid] for rid in sorted(by_race)]))
         commit, raw = _commit_projection(store, parent, path, merged)
         try:
@@ -282,7 +350,7 @@ def publish_reference(repo, body, *, store=None):
             latest = store.head()
             if latest is None or latest == parent:
                 raise
-            previous = _previous_reference(store, latest, path, day)
+            previous = _previous_candidates(store, latest, path, day, check)
             pushed = code == 'KEIRIN_NOTE_FEED_REMOTE_READBACK'
             ancestor = commit if pushed else parent
             if ancestor is not None:
@@ -292,7 +360,7 @@ def publish_reference(repo, body, *, store=None):
             need(all(retained.get(rid) == row for rid,row in required.items()), 'REFERENCE_HISTORY_CHANGED')
             parent = latest
         else:
-            return _reference_receipt('PUBLIC_REFERENCE_FORECASTS_UPDATED', merged, commit)
+            return _candidates_receipt(state+'_UPDATED', merged, commit)
 
 
 def _receipt(state, body, commit):

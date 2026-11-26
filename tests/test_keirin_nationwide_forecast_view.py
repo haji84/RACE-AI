@@ -478,3 +478,63 @@ class PublicReferenceForecastTests(unittest.TestCase):
         self.assertEqual(saved['published_at'], later)
         self.assertEqual(store.run(['rev-list','--parents','-n','1',saved['commit']]).decode().split(),
             [saved['commit'],concurrent_revisions[0]])
+
+
+class PublicResultUnreadForecastTests(unittest.TestCase):
+    def test_real_model_uses_only_five_registered_cars_after_cutoff(self):
+        from race_ai import keirin_public_forecasts as public
+
+        cars = [1, 3, 4, 6, 7]
+        scheduled = dict(race_id=RACE, official_cutoff_at=DAY+'T17:00:00+09:00',
+            source_observed_at=DAY+'T09:00:00+09:00', starters=[{'car':car} for car in cars])
+        snapshot = dict(race_id=RACE, competition='S', line_groups=[[1,3],[4,6],[7]], line_warnings=[],
+            riders=[dict(car=car, name='架空選手', competition_points=points, style=style, mark_rank=rank)
+                for car,points,style,rank in zip(cars,[112,102,95,88,82],
+                    ['NIGE','ALLROUND','NIGE','MARK','MARK'], [1,2,3,4,'UNMARKED'])])
+        row = public.project_research_race(snapshot, scheduled, generated_at=NOW)
+        self.assertEqual(row['starter_cars'], cars)
+        self.assertEqual(row['cutoff_at'], scheduled['official_cutoff_at'])
+        self.assertGreater(model.when(row['generated_at']), model.when(row['cutoff_at']))
+        self.assertTrue(row['a']); self.assertTrue(row['b'])
+        self.assertTrue(all(set(ticket) <= set(cars) for ticket in row['a'] + row['b']))
+        with self.assertRaisesRegex(ValueError, 'RESULT_UNREAD_INPUT'):
+            public.project_research_race(dict(snapshot, result=[1,3,4]), scheduled, generated_at=NOW)
+        with self.assertRaisesRegex(ValueError, 'RESEARCH_STARTER_ROSTER'):
+            public.project_research_race(snapshot, dict(scheduled, starters=[{'car':c} for c in (1,2,3,4,5)]),
+                                        generated_at=NOW)
+
+    def test_research_publication_requires_registered_races_and_preserves_existing_files(self):
+        from race_ai import keirin_public_forecasts as public
+
+        class LocalStore(public.PublicForecastGit):
+            def _remote(self):
+                return 'origin'
+
+        with TemporaryDirectory() as folder:
+            root = Path(folder)
+            repo, remote = root/'research-repo', root/'research.git'
+            for args, cwd in ((['init','--bare',str(remote)],None), (['init',str(repo)],None),
+                              (['remote','add','origin',str(remote)],repo)):
+                subprocess.check_output(['git',*args], cwd=cwd, stderr=subprocess.DEVNULL)
+            store = LocalStore(repo)
+            registry = dict(schema=public.SCHEMA, day=DAY, published_at=NOW.isoformat(), races=[
+                dict(race_id=RACE, cutoff_at=None, status='pending', saved_at=None, a=[], b=[])])
+            original = public.publish(repo, registry, store=store)['commit']
+            row = dict(race_id=RACE, cutoff_at=DAY+'T17:00:00+09:00', generated_at=NOW.isoformat(),
+                       starter_cars=[1,3,4,6,7], a=[[1,4,3]], b=[])
+            body = dict(schema='RACE_AI_KEIRIN_PUBLIC_RESULT_UNREAD_AB_V1', day=DAY,
+                        published_at=NOW.isoformat(), races=[row])
+            for bad in [dict(row, starter_cars=[1,3,3,6,7]), dict(row, a=[[1,2,4]]),
+                        dict(row, a=[]), dict(row, payout=100),
+                        dict(row, generated_at=(NOW+timedelta(seconds=1)).isoformat())]:
+                with self.assertRaises(ValueError):
+                    public.checked_research(dict(body, races=[bad]))
+            with self.assertRaisesRegex(ValueError, 'RESEARCH_UNREGISTERED_RACE'):
+                public.publish_research(repo, dict(body, races=[dict(row, race_id='202611209902')]), store=store)
+            first = public.publish_research(repo, body, store=store)
+            repeat = public.publish_research(repo, dict(body, races=[dict(row, a=[[4,1,3]])]), store=store)
+            self.assertEqual(first['published_races'], 1)
+            self.assertEqual(repeat['commit'], first['commit'])
+            self.assertEqual(json.loads(store.read_previous(first['commit'], f'research/{DAY}.json')), body)
+            self.assertEqual(store.read_previous(first['commit'], f'forecasts/{DAY}.json'),
+                             store.read_previous(original, f'forecasts/{DAY}.json'))

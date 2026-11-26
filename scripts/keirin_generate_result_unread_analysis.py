@@ -349,8 +349,44 @@ def check_tickets(tickets, cars, length):
         physical_max *= len(cars) - offset
     need(isinstance(tickets, list) and 1 <= len(tickets) <= physical_max and
          all(isinstance(ticket, list) and len(ticket) == length and
-             len(set(ticket)) == length and all(car in cars for car in ticket) for ticket in tickets)
+             all(type(car) is int and car in cars for car in ticket) and
+             len(set(ticket)) == length for ticket in tickets)
          and len({tuple(ticket) for ticket in tickets}) == len(tickets), 'INVALID_ANALYSIS_TICKETS')
+
+
+def check_market(arm, cars, market, ranked_key, length):
+    tickets = arm[ranked_key]
+    if tickets != []:
+        check_tickets(tickets, cars, length)
+    candidates = arm['candidate_tickets'][market]
+    check_tickets(candidates, cars, length)
+    market_row = arm['markets'][market]
+    selection = arm['selection'][market]
+    need(isinstance(market_row, dict) and isinstance(selection, dict),
+         'INVALID_ANALYSIS_MARKET_SELECTION')
+    point_counts = (arm.get(f'point_count_{market}'), market_row.get('point_count'),
+                    selection.get('point_count'))
+    candidate_count = selection.get('candidate_count')
+    need(market_row.get('tickets') == tickets and
+         all(type(count) is int and count == len(tickets) for count in point_counts) and
+         type(candidate_count) is int and candidate_count == len(candidates) and
+         {tuple(ticket) for ticket in tickets} <= {tuple(ticket) for ticket in candidates},
+         'INVALID_ANALYSIS_MARKET_SELECTION')
+
+    held, excluded = selection.get('held_count'), selection.get('excluded_count')
+    code = selection.get('abstention_code')
+    recommendation = selection.get('recommendation')
+    need(type(held) is int and type(excluded) is int, 'INVALID_ANALYSIS_MARKET_SELECTION')
+    if tickets:
+        need(held == 0 and excluded == candidate_count - len(tickets) and code is None and
+             recommendation in ('CONDITIONAL_CANDIDATES', 'REVIEW_WIDE_CANDIDATES'),
+             'INVALID_ANALYSIS_MARKET_SELECTION')
+    else:
+        need(held == candidate_count and excluded == 0 and
+             recommendation == 'ABSTAIN_INSUFFICIENT_SEPARATION' and
+             (code == 'INDISTINGUISHABLE_RIDER_EVIDENCE' or
+              (code == 'ALL_CANDIDATES_WITHIN_SUPPORT_WINDOW' and candidate_count > 1)),
+             'INVALID_ANALYSIS_MARKET_ABSTENTION')
 
 
 def analyze(row, model, generated_at, observations=None):
@@ -406,8 +442,8 @@ def analyze(row, model, generated_at, observations=None):
     A, B = revised['A'], revised['B']
     for arm in (A, B):
         if arm.get('state') == 'GENERATED_RESEARCH_ONLY':
-            check_tickets(arm['ranked_tickets'], cars, 3)
-            check_tickets(arm['ranked_2ren_tan'], cars, 2)
+            check_market(arm, cars, '3t', 'ranked_tickets', 3)
+            check_market(arm, cars, '2t', 'ranked_2ren_tan', 2)
         for scenario in arm.get('six_phase_scenarios', []):
             need([phase['phase'] for phase in scenario['six_phases']] == list(model.PHASES),
                  'SIX_PHASES_MISSING')
