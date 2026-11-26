@@ -250,7 +250,7 @@ class NationwideExtensionTests(unittest.TestCase):
             ext.build_baseline_candidate(**args)
 
     def test_unobserved_a_class_remains_held(self):
-        args=self.labelled_arguments('A級選抜','A1_A2',('A1','A2'))
+        args=self.labelled_arguments('A級特別新人','A1_A2',('A1','A2'))
         with self.assertRaisesRegex(ValueError,'CLASS_OR_ROUND_NOT_YET_OBSERVED'):
             ext.build_baseline_candidate(**args)
 
@@ -295,9 +295,21 @@ class NationwideExtensionTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, 'CARD_CLASS_DISAGREEMENT'):
             ext.build_baseline_candidate(**args)
 
-    def test_girls_second_heat_stays_held_until_observed(self):
-        args = self.labelled_arguments('L級ガールズ予選(第2走)', 'GIRLS')
-        with self.assertRaisesRegex(ValueError, 'CLASS_OR_ROUND_NOT_YET_OBSERVED'):
+    def test_observed_girls_second_heat_uses_the_existing_girls_baseline(self):
+        args = self.labelled_arguments('Ｌ級ガールズ予選（第２走）', 'GIRLS')
+        snapshot = ext.build_baseline_candidate(**args)['snapshot']
+        self.assertEqual(snapshot['competition'], 'GIRLS')
+        self.assertEqual(snapshot['round_stage'], 'L級ガールズ予選(第2走)')
+        self.assertIsNone(snapshot['round_rule'])
+        self.assertEqual(snapshot['line_groups'], [[car] for car in range(1, 8)])
+        forecast = ext.core.generate_A_B(snapshot, generated_at=args['now'].isoformat())
+        self.assertTrue(forecast['A']['ranked_tickets'])
+        self.assertTrue(forecast['B']['ranked_tickets'])
+
+        card = args['card_arguments']
+        card['detail_raw'] = card['detail_raw'].replace(b'"kyuhan": "L1"', b'"kyuhan": "A2"', 1)
+        card['detail_sha256'] = sha256(card['detail_raw']).hexdigest()
+        with self.assertRaisesRegex(ValueError, 'CARD_CLASS_DISAGREEMENT'):
             ext.build_baseline_candidate(**args)
 
     def test_observed_a_rounds_feed_the_existing_baseline_a_and_b(self):
@@ -309,8 +321,10 @@ class NationwideExtensionTests(unittest.TestCase):
                ('A級初日特選','A1_A2',('A1',)),
                ('A級チャレンジ一般','CHALLENGE',('A3',)),
                ('A級チャレンジ選抜','CHALLENGE',('A3',)),
+               ('A級チャレンジ準決勝','CHALLENGE',('A3',)),
                ('A級チャレンジ決勝','CHALLENGE',('A3',)),
                ('A級特一般','A1_A2',('A1','A2')),
+               ('A級選抜','A1_A2',('A1','A2')),
                ('A級特選','A1_A2',('A1','A2')),
                ('A級決勝','A1_A2',('A1',)))
         for label,competition,grades in cases:
@@ -334,6 +348,8 @@ class NationwideExtensionTests(unittest.TestCase):
                 ('A級準決勝','A1_A2',('A1','A3')),
                 ('A級初日特選','A1_A2',('A1','S2')),
                 ('A級特選','A1_A2',('A1','A3')),
+                ('A級選抜','A1_A2',('A1','A3')),
+                ('A級チャレンジ準決勝','CHALLENGE',('A3','A2')),
                 ('A級チャレンジ選抜','CHALLENGE',('A3','A2'))):
             with self.subTest(label=label):
                 with self.assertRaisesRegex(ValueError,'CARD_CLASS_DISAGREEMENT'):

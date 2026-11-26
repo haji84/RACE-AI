@@ -52,11 +52,14 @@ def _source(raw, expected):
 # (S2) and first-day special selection (S1).
 # Run 45718096969 verified the exact Girls first-heat label and a seven-rider
 # L1 card for Matsudo 1R.
+# Run 45850765633 verified Girls second heat (L1), Challenge semifinal (A3),
+# and A selection (A1/A2) against three matching official seven-rider cards.
 # A label never supplies a qualification rule or any missing card input.
 OBSERVED_CLASSES = {
     'A級チャレンジ予選': 'CHALLENGE',
     'A級チャレンジ一般': 'CHALLENGE',
     'A級チャレンジ選抜': 'CHALLENGE',
+    'A級チャレンジ準決勝': 'CHALLENGE',
     'A級チャレンジ決勝': 'CHALLENGE',
     'A級予選': 'A1_A2',
     'A級特予選': 'A1_A2',
@@ -64,6 +67,7 @@ OBSERVED_CLASSES = {
     'A級初日特選': 'A1_A2',
     'A級一般': 'A1_A2',
     'A級特一般': 'A1_A2',
+    'A級選抜': 'A1_A2',
     'A級特選': 'A1_A2',
     'A級決勝': 'A1_A2',
     'S級予選': 'S',
@@ -81,6 +85,7 @@ OBSERVED_CLASSES = {
     'S級決勝': 'S',
     'L級ガールズ予選': 'GIRLS',
     'L級ガールズ予選(第1走)': 'GIRLS',
+    'L級ガールズ予選(第2走)': 'GIRLS',
     'L級ガールズ準決勝': 'GIRLS',
     'L級ガールズ選抜': 'GIRLS',
     'L級ガールズ特選': 'GIRLS',
