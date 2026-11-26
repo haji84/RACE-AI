@@ -38,10 +38,12 @@ KOMATSUSHIMA_REPLAY_RACE = '20261126-73-01'
 KOMATSUSHIMA_REPLAY_KEY = KOMATSUSHIMA_REPLAY_RACE.replace('-', '')
 KOMATSUSHIMA_DIALOG = '[role="dialog"][aria-modal="true"]'
 REPLAY_FRAME_MODE = 'settled_replay_frames'
+FORWARD_REPLAY_SAMPLING = 'ordinary_playback'
 MAX_REPLAY_FRAME_SAMPLES = 24
 RESULT_PAGE_UNPUBLISHED = 'replay result page not yet published'
 DIGEST_BUTTON_UNAVAILABLE = 'race digest button unavailable'
 AMBIGUOUS_PLAYER = 'visible player is ambiguous'
+PLAYER_SEEK_UNAVAILABLE = 'decoded player seek unavailable'
 RACE = re.compile(r'([0-9]{8})-([0-9]{2})-(0[1-9]|1[0-2])')
 DETAIL = re.compile(r'/[a-z0-9-]+/racedetail/([0-9]{2})([0-9]{8})[0-9]{4}([0-9]{2})/')
 WINTICKET_DETAIL = re.compile(r'/keirin/([a-z0-9-]+)/raceresult/([0-9]{8})([0-9]{2})/([1-7])/(1[0-2]|[1-9])')
@@ -81,25 +83,32 @@ SEEK = """async (video, target) => {
     await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
     return video.currentTime;
 }"""
-SEEK_RENDERED_REPLAY = """async (video, target) => {
+PLAY_RENDERED_REPLAY = """async (video, target) => {
     if (!video.isConnected || video.mediaKeys || window.__raceEncrypted) return null;
-    video.pause();
     const actual = await new Promise(resolve => {
         let frame;
-        const timer = setTimeout(() => {
+        let finished = false;
+        const stop = seconds => {
+            if (finished) return;
+            finished = true;
+            clearTimeout(timer);
             video.cancelVideoFrameCallback(frame);
-            resolve(null);
-        }, 7000);
+            video.pause();
+            resolve(seconds);
+        };
+        const secondsUntilTarget = Math.max(0, target - video.currentTime);
+        const timer = setTimeout(() => stop(null), (secondsUntilTarget + 12) * 1000);
         const check = (_, sample) => {
-            if (Math.abs(sample.mediaTime - target) <= 0.1) {
-                clearTimeout(timer);
-                resolve(sample.mediaTime);
+            if (video.mediaKeys || window.__raceEncrypted || video.error || !video.isConnected) {
+                stop(null);
+            } else if (sample.mediaTime >= target - .04) {
+                stop(sample.mediaTime);
             } else {
                 frame = video.requestVideoFrameCallback(check);
             }
         };
         frame = video.requestVideoFrameCallback(check);
-        video.currentTime = target;
+        video.play().catch(() => stop(null));
     });
     if (actual === null || video.readyState < 2 || !video.videoWidth) return null;
     await new Promise(resolve => requestAnimationFrame(resolve));
@@ -182,10 +191,13 @@ def validate_receipt(folder, key, url):
                 or not math.isfinite(interval) or interval < duration / (MAX_REPLAY_FRAME_SAMPLES - 1)):
             raise ValueError('stored stills exceed the approved replay bounds')
         targets = timeline(duration, interval)
-        if (len(clocks) != len(targets) or not 0 <= clocks[0] <= .35
+        forward = proof.get('sampling') == FORWARD_REPLAY_SAMPLING
+        if (len(clocks) != len(targets) or not 0 <= clocks[0] <= (.6 if forward else .35)
+                or forward and proof.get('browser_player_ended') is not True
                 or not duration - .4 <= clocks[-1] <= duration
                 or any(first >= second for first, second in zip(clocks, clocks[1:]))
-                or any(abs(observed - target) > .1 for observed, target in zip(clocks, targets, strict=True))
+                or any(abs(observed - target) > (.4 if forward and i == 0 else .1)
+                       for i, (observed, target) in enumerate(zip(clocks, targets, strict=True)))
                 or len({frame['frame_sha256'] for frame in proof['frames']}) < 2):
             raise ValueError('stored stills did not cover the approved replay clock')
     for item in proof['frames']:
@@ -267,18 +279,23 @@ def capture(page, key, url, directory, interval, *, approval=None):
             interval = max(interval, duration / (MAX_REPLAY_FRAME_SAMPLES - 1))
         video.evaluate("""(v, keepLayout) => {
             v.pause(); v.controls = false;
+            if (keepLayout) v.muted = true;
             if (!keepLayout) {
                 Object.assign(v.style,{position:'fixed',left:'0',top:'0',width:'1280px',height:'720px',
                                        margin:'0',zIndex:2147483647});
             }
         }""", exact_winticket)
         frames = []
-        for when in timeline(duration, interval):
-            actual = video.evaluate(SEEK_RENDERED_REPLAY if exact_winticket else SEEK, when)
+        for index, when in enumerate(timeline(duration, interval)):
+            actual = video.evaluate(PLAY_RENDERED_REPLAY if exact_winticket else SEEK, when)
             if refused_media:
                 raise AccessDenied(f'source HTTP {refused_media[0]}')
-            if actual is None or abs(actual - when) > 0.1:
-                raise PlayerUnavailable('decoded player seek unavailable')
+            if exact_winticket and video.evaluate('v => !!(v.mediaKeys || window.__raceEncrypted)'):
+                raise AccessDenied('protected player')
+            tolerance = .4 if exact_winticket and index == 0 else .1
+            if actual is None or abs(actual - when) > tolerance:
+                raise PlayerUnavailable('ordinary replay frame not observed' if exact_winticket
+                                        else PLAYER_SEEK_UNAVAILABLE)
             image = video.screenshot(animations='disabled', timeout=9000)
             if exact_winticket and video.evaluate('v => !!(v.mediaKeys || window.__raceEncrypted)'):
                 raise AccessDenied('protected player')
@@ -289,6 +306,14 @@ def capture(page, key, url, directory, interval, *, approval=None):
             with name.open('xb') as out:
                 out.write(image)
             frames.append({'video_seconds': actual, 'frame_sha256': sha256(image).hexdigest()})
+        if exact_winticket:
+            video.evaluate('v => v.play()')
+            page.wait_for_function('v => v.ended || v.error || v.mediaKeys || window.__raceEncrypted',
+                                   arg=video, timeout=10000)
+            if video.evaluate('v => !!(v.mediaKeys || window.__raceEncrypted)'):
+                raise AccessDenied('protected player')
+            if not video.evaluate('v => v.ended && !v.error') or page.url != url:
+                raise PlayerUnavailable('ordinary replay did not finish')
     finally:
         if refused_media:
             raise AccessDenied(f'source HTTP {refused_media[0]}')
@@ -297,6 +322,8 @@ def capture(page, key, url, directory, interval, *, approval=None):
              'frame_interval_seconds': interval, 'frames': frames}
     if exact_winticket:
         proof['capture_mode'] = REPLAY_FRAME_MODE
+        proof['sampling'] = FORWARD_REPLAY_SAMPLING
+        proof['browser_player_ended'] = True
     (directory / 'overview.json').write_text(json.dumps(proof, ensure_ascii=False) + '\n')
     return refused_media
 
@@ -682,6 +709,7 @@ def run(queue, output, *, interval, pause, limit, executable, retry_failed=False
                                    at_utc=datetime.now(timezone.utc).isoformat())
                     if approval.source_host == WINTICKET_HOST and not continuous:
                         attempt['capture_mode'] = REPLAY_FRAME_MODE
+                        attempt['sampling'] = FORWARD_REPLAY_SAMPLING
                     attempts.write(json.dumps(attempt) + '\n')
                     attempts.flush()
                     if source_refused(status):

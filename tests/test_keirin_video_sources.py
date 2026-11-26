@@ -237,7 +237,7 @@ class CaptureTests(unittest.TestCase):
             'owner_attestation', url)
         locator = Mock()
         video = locator.element_handle.return_value
-        video.evaluate.side_effect = [8.0, None, .2]
+        video.evaluate.side_effect = [8.0, None, .2, False]
         refusals = []
 
         def fail_read(**_):

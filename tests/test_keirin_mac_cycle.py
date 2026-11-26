@@ -296,6 +296,49 @@ class MacCycleTests(unittest.TestCase):
         recorder.assert_not_called()
         self.assertEqual(result.get('shadow_replay', {}).get('state'), 'HOLD_REPLAY_EVIDENCE_OR_RUNTIME')
 
+    def test_one_forward_playback_slot_after_the_older_frame_seek_failed(self):
+        from collections import Counter
+        from scripts import keirin_mac_cycle as cycle
+
+        request, approval = self.komatsushima_inputs()
+        calls = []
+        now = NOW
+        outcomes = [cycle.sources.DIGEST_BUTTON_UNAVAILABLE, cycle.sources.AMBIGUOUS_PLAYER,
+                    cycle.sources.PLAYER_SEEK_UNAVAILABLE, 'ordinary replay frame not observed']
+
+        def capture(queue, out, **options):
+            row = json.loads(queue.read_text())
+            status = outcomes[len(calls)]
+            calls.append((now, options['continuous']))
+            out.mkdir(mode=0o700, exist_ok=True)
+            attempt = dict(race_id=row['race_id'], source_ref=row['race_detail_url'],
+                           status=status, at_utc=now.isoformat())
+            if not options['continuous']:
+                attempt['capture_mode'] = cycle.sources.REPLAY_FRAME_MODE
+                if len(calls) == 4:
+                    attempt['sampling'] = cycle.sources.FORWARD_REPLAY_SAMPLING
+            with open(out/'attempts.jsonl', 'a', opener=cycle.sources.private_log_fd) as history:
+                history.write(json.dumps(attempt)+'\n')
+            return Counter({status: 1})
+
+        with (patch.dict('os.environ', {'RACE_AI_KEIRIN_OFFICIAL_SOURCE_ENABLED': 'false'}),
+              self.settled_shadow(NOW), patch.object(cycle.sources, 'run', side_effect=capture)):
+            for offset in (0, 30):
+                now = NOW+timedelta(minutes=offset)
+                self.run_cycle(shadow_request=request, now=now)
+            decision = json.loads(approval.read_bytes())
+            decision['allowed_uses'] = ['automated_fetch', 'private_retention', 'history_analysis', 'frame_capture']
+            self.write('komatsushima-frame-analysis-approval.json', decision).chmod(0o600)
+            for offset, expected in ((60, 'HOLD_REPLAY_SOURCE_UNVERIFIED'),
+                                     (75, 'WAITING_FOR_REPLAY_RETRY_INTERVAL'),
+                                     (90, 'HOLD_REPLAY_SOURCE_UNVERIFIED'),
+                                     (120, 'HOLD_REPLAY_SOURCE_UNVERIFIED')):
+                now = NOW+timedelta(minutes=offset)
+                result = self.run_cycle(shadow_request=request, now=now)
+                self.assertEqual(result['shadow_replay']['state'], expected)
+        self.assertEqual(calls, [(NOW+timedelta(minutes=offset), mode)
+                                 for offset, mode in ((0, True), (30, True), (60, False), (90, False))])
+
     def test_no_census_runs_the_retained_comparison_and_preserves_absent_video_state(self):
         result = self.run_cycle()
         self.assertEqual(result['video']['state'], 'WAITING_FOR_CENSUS')

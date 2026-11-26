@@ -236,11 +236,20 @@ def _capture_settled_replay(root, request, approval_path, settled, video, browse
     if (not approval.continuous and previous and previous[-1].get('capture_mode') is None
             and datetime.fromisoformat(previous[-1]['at_utc']) <= pinned_at):
         retryable.add(sources.AMBIGUOUS_PLAYER)
+    attempt_limit = REPLAY_MAX_ATTEMPTS
+    # One forward-playback check is available after the old seek-based attempt
+    # failed. The same provider stop, actor pin and interval still apply.
+    if (not approval.continuous and len(previous) == REPLAY_MAX_ATTEMPTS
+            and previous[-1].get('capture_mode') == sources.REPLAY_FRAME_MODE
+            and previous[-1].get('sampling') is None
+            and previous[-1]['status'] == sources.PLAYER_SEEK_UNAVAILABLE):
+        retryable.add(sources.PLAYER_SEEK_UNAVAILABLE)
+        attempt_limit += 1
     if previous and previous[-1]['status'] not in retryable:
         return 'HOLD_REPLAY_SOURCE_UNVERIFIED'
     if sum(1 for _ in work.glob('poll-*.json')) != len(previous):
         return 'HOLD_REPLAY_ATTEMPT_UNVERIFIED'
-    hold, _ = shadow._claim_poll(work, now, REPLAY_MAX_ATTEMPTS, REPLAY_RETRY_INTERVAL)
+    hold, _ = shadow._claim_poll(work, now, attempt_limit, REPLAY_RETRY_INTERVAL)
     if hold:
         return ('WAITING_FOR_REPLAY_RETRY_INTERVAL' if hold == 'WAITING_FOR_OFFICIAL_POLL_INTERVAL'
                 else 'HOLD_REPLAY_ATTEMPT_LIMIT')
