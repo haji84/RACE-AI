@@ -190,6 +190,26 @@ class CaptureTests(unittest.TestCase):
         dialog.locator.assert_called_once_with('video:visible')
         page.locator.assert_called_once_with('[role="dialog"][aria-modal="true"]:visible')
 
+    def test_komatsushima_denial_during_final_player_binding_beats_timeout(self):
+        key, url = source.target(KOMATSUSHIMA)
+        page = Mock(url=url)
+        page.goto.return_value.status = 200
+        page.title.return_value = KOMATSUSHIMA_TITLE
+        page.get_by_role.return_value.count.return_value = 1
+        page.get_by_role.return_value.is_visible.return_value = True
+        dialog = page.locator.return_value
+        dialog.count.side_effect = [0, 1]
+
+        def unable_to_bind():
+            for event, callback in (call.args for call in page.on.call_args_list):
+                if event == 'response':
+                    callback(Mock(status=403, request=Mock(resource_type='media')))
+            raise TimeoutError('player binding timed out')
+
+        dialog.locator.return_value.count.side_effect = unable_to_bind
+        with self.assertRaisesRegex(source.AccessDenied, 'source HTTP 403'):
+            source.open_player(page, key, url)
+
     def test_winticket_still_frames_require_a_separate_exact_approval(self):
         with TemporaryDirectory() as temp:
             root = Path(temp)

@@ -240,17 +240,17 @@ def open_player(page, key, url):
         page.wait_for_function("""selector => [...document.querySelectorAll(selector)].some(
             v => v.getClientRects().length && v.readyState >= 2 && v.videoWidth
                 && Number.isFinite(v.duration))""", arg=selector, timeout=18000)
+        if dialog is not None and dialog.count() != 1:
+            raise PlayerUnavailable(AMBIGUOUS_PLAYER)
+        video = dialog.locator('video:visible') if dialog is not None else page.locator('video:visible')
+        if video.count() != 1:
+            raise PlayerUnavailable(AMBIGUOUS_PLAYER)
+        if video.evaluate('v => !!(v.mediaKeys || window.__raceEncrypted)'):
+            raise AccessDenied('protected player')
+        return video, title, refused_media
     finally:
         if refused_media:
             raise AccessDenied(f'source HTTP {refused_media[0]}')
-    if dialog is not None and dialog.count() != 1:
-        raise PlayerUnavailable(AMBIGUOUS_PLAYER)
-    video = dialog.locator('video:visible') if dialog is not None else page.locator('video:visible')
-    if video.count() != 1:
-        raise PlayerUnavailable(AMBIGUOUS_PLAYER)
-    if video.evaluate('v => !!(v.mediaKeys || window.__raceEncrypted)'):
-        raise AccessDenied('protected player')
-    return video, title, refused_media
 
 
 def capture(page, key, url, directory, interval, *, approval=None):
