@@ -12,6 +12,8 @@ from datetime import date, datetime, timezone
 from math import isfinite
 import re
 
+from . import keirin_winticket_interviews as interviews
+
 SCHEMA = "RACE_AI_KEIRIN_RIDER_FORM_FALL_EVIDENCE_V1"
 SHA = re.compile(r"^[0-9a-f]{64}$")
 RACE = re.compile(r"^20[0-9]{10}$")
@@ -61,7 +63,7 @@ def _receipt(row, source_captures, cutoff):
          "FORM_PUBLISHED_AFTER_SOURCE_CAPTURE")
 
 
-def validate(evidence, *, starters, source_pages, as_of, target_race_id):
+def validate(evidence, *, starters, source_pages, as_of, target_race_id, target_cutoff_at=None):
     """Reject stale/mismatched/unwitnessed history, never use later results."""
     need(type(evidence) is dict and set(evidence) == {"schema", "as_of", "riders"}
          and evidence["schema"] == SCHEMA, "FORM_SCHEMA_INVALID")
@@ -100,9 +102,11 @@ def validate(evidence, *, starters, source_pages, as_of, target_race_id):
              "FORM_RESULT_COUNT_INVALID")
         observed = set()
         for record in results:
-            need(type(record) is dict and set(record) == {
+            fields = {
                 "race_id", "race_date", "status", "place", "field_size",
-                "published_at", "source_sha256"}, "FORM_RESULT_FIELDS_INVALID")
+                "published_at", "source_sha256"}
+            need(type(record) is dict and set(record) in (fields, fields | {"verification_sha256"}),
+                 "FORM_RESULT_FIELDS_INVALID")
             rid = record["race_id"]
             d = day(record["race_date"])
             need(type(rid) is str and RACE.fullmatch(rid) is not None and
@@ -136,17 +140,38 @@ def validate(evidence, *, starters, source_pages, as_of, target_race_id):
         comments = rider["comments"]
         need(type(comments) is list and len(comments) <= 12,
              "FORM_COMMENT_COUNT_INVALID")
+        has_interviews = False
         for c in comments:
-            need(type(c) is dict and set(c) == {
-                "speaker", "text", "published_at", "source_sha256"},
+            fields = {"speaker", "text", "published_at", "source_sha256"}
+            need(type(c) is dict and set(c) in (fields, fields | {"winticket", "verification_sha256"}),
                  "FORM_COMMENT_FIELDS_INVALID")
+            is_interview = "winticket" in c
             need(type(c["speaker"]) is str and
-                 c["speaker"] in STATEMENT_SPEAKERS and
+                 c["speaker"] in ({"RIDER", "INTERVIEW"} if is_interview else STATEMENT_SPEAKERS) and
                  type(c["text"]) is str and
-                 1 <= len(c["text"]) <= 300 and
-                 all(ord(ch) >= 32 for ch in c["text"]),
+                 1 <= len(c["text"]) <= (2000 if is_interview else 300) and
+                 (not is_interview or c["text"].strip()) and
+                 all(ord(ch) >= 32 or is_interview and ch == "\n" for ch in c["text"]),
                  "FORM_COMMENT_INVALID")
-            _receipt(c, program_captures, evidence_cutoff)
+            if is_interview:
+                has_interviews = True
+                digest = c["source_sha256"]
+                need(type(digest) is str and digest in program_captures,
+                     "FORM_SOURCE_SHA_UNMATCHED")
+                proof = c["verification_sha256"]
+                need(type(proof) is str and SHA.fullmatch(proof),
+                     "FORM_WINTICKET_VERIFICATION_REQUIRED")
+                try:
+                    interviews.validate(c, target_race_id=target_race_id, target_car=car,
+                        available_at=program_captures[digest], target_cutoff_at=target_cutoff_at)
+                except ValueError as exc:
+                    raise FormEvidenceError(str(exc)) from None
+            else:
+                _receipt(c, program_captures, evidence_cutoff)
+        if has_interviews:
+            need(all(type(sha) is str and SHA.fullmatch(sha)
+                     for sha in (r.get("verification_sha256") for r in results)),
+                 "FORM_WINTICKET_FINISH_VERIFICATION_REQUIRED")
     return evidence
 
 
@@ -173,10 +198,10 @@ def _label(change):
     return "NO_CLEAR_CHANGE"
 
 
-def assess(evidence, *, starters, source_pages, as_of, target_race_id):
+def assess(evidence, *, starters, source_pages, as_of, target_race_id, target_cutoff_at=None):
     """Compute research-only effects. Never infer injury or crash causation."""
     validate(evidence, starters=starters, source_pages=source_pages,
-             as_of=as_of, target_race_id=target_race_id)
+             as_of=as_of, target_race_id=target_race_id, target_cutoff_at=target_cutoff_at)
     target = day(target_race_id[:4] + "-" + target_race_id[4:6] + "-" +
                  target_race_id[6:8])
     output = {}
@@ -220,6 +245,13 @@ def assess(evidence, *, starters, source_pages, as_of, target_race_id):
         change = 0.0 if recent_change is None else recent_change
         fall_effect = 0.0 if fall_change is None else fall_change
         adjust = round(max(-0.08, min(0.08, .10 * change + .03 * fall_effect)), 6)
+        interview = interviews.assess(rider["comments"], results,
+            target_race_id=target_race_id, as_of=instant(evidence["as_of"]))
+        if interview is not None:
+            before_interview = adjust
+            adjust = round(max(-.08, min(.08, adjust + interview["score_adjustment"])), 6)
+            interview["estimated_score_adjustment"] = interview["score_adjustment"]
+            interview["score_adjustment"] = round(adjust - before_interview, 6)
         absence_days = None
         returns = None
         if rider["absences"]:
@@ -240,8 +272,11 @@ def assess(evidence, *, starters, source_pages, as_of, target_race_id):
             "comments_count": len(rider["comments"]),
             "score_adjustment": adjust,
             "effect_on_tactics": (
-                "OBSERVED_RESULTS_UPWEIGHT_RESEARCH" if adjust > 0
+                "COMMENT_AND_FINISH_ASSOCIATION_RESEARCH" if interview and interview["score_adjustment"]
+                else "OBSERVED_RESULTS_UPWEIGHT_RESEARCH" if adjust > 0
                 else "OBSERVED_RESULTS_DOWNWEIGHT_RESEARCH" if adjust < 0
                 else "UNKNOWN_NO_ADJUSTMENT"),
         }
+        if interview is not None:
+            output[car]["winticket_interview"] = interview
     return output

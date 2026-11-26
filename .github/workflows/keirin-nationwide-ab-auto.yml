@@ -30,6 +30,7 @@ on:
       - 'race_ai/keirin_nationwide_forecast_view.py'
       - 'tests/test_keirin_nationwide_forecast_view.py'
       - 'race_ai/keirin_rider_form_evidence.py'
+      - 'race_ai/keirin_winticket_interviews.py'
       - 'race_ai/keirin_form_fall_shadow.py'
       - 'race_ai/keirin_form_history_admission.py'
       - 'race_ai/keirin_form_fall_blind_pdca.py'
@@ -172,6 +173,7 @@ jobs:
           python -m py_compile \
             race_ai/keirin_nationwide_auto_generator.py \
             race_ai/keirin_rider_form_evidence.py \
+            race_ai/keirin_winticket_interviews.py \
             race_ai/keirin_form_fall_shadow.py \
             race_ai/keirin_form_history_admission.py \
             race_ai/keirin_form_fall_blind_pdca.py \

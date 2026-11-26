@@ -72,7 +72,8 @@ def source_bundle(snapshot, supplement, *, generated_at):
             supplement["condition_evidence"],
             starters={r["car"] for r in snapshot["riders"]},
             source_pages=pages, as_of=asof.isoformat(),
-            target_race_id=snapshot["race_id"])
+            target_race_id=snapshot["race_id"],
+            target_cutoff_at=snapshot["published_cutoff_at"])
     except form.FormEvidenceError as exc:
         raise ConditionShadowError(str(exc)) from None
     return pages, assessed

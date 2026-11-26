@@ -1,6 +1,6 @@
 """Synthetic source bytes and TEST RSA key. Not actual real-race proof."""
 from copy import deepcopy
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from hashlib import sha256
 from pathlib import Path
 from tempfile import TemporaryDirectory
@@ -53,13 +53,14 @@ class NationwideRealAutomationCode(unittest.TestCase):
 
     def add_source(self,*,snapshot=None):
         sample=snapshot or fixture()
+        race_id = sample["race_id"]
         for j,receipt in enumerate([
                 sample["cutoff_source"],*sample["source_pages"]]):
-            raw=(f"<html><body>FAKE SOURCE {j} {RID}</body></html>").encode()
+            raw=(f"<html><body>FAKE SOURCE {j} {race_id}</body></html>").encode()
             digest=sha256(raw).hexdigest()
             receipt["bytes_sha256"]=digest
             (self.raw/(digest+".html")).write_bytes(raw)
-        (self.cards/(RID+".json")).write_text(
+        (self.cards/(race_id+".json")).write_text(
             json.dumps(sample,ensure_ascii=False),encoding="utf-8")
         return sample
 
@@ -81,6 +82,42 @@ class NationwideRealAutomationCode(unittest.TestCase):
         self.assertEqual(out["A_generated"],0)
         self.assertEqual(out["B_generated"],0)
         self.assertEqual(out["statuses"],{"NO_FORECAST_INPUT_MISSING":79})
+
+    def test_winticket_reviewed_history_seals_only_the_conditioned_prediction(self):
+        from race_ai import keirin_form_fall_shadow as condition
+        from tests.test_keirin_form_history_admission import UP, STEADY, export, interview, result, reviewed_export
+
+        snapshot = self.add_source()
+        past = [interview(n, UP if n <= 3 else STEADY) for n in range(1, 7)]
+        doc = export(past + [interview(18, UP)],
+                     [result(n, 1 if n <= 3 else 7) for n in range(1, 7)])
+        load, _ = reviewed_export(self.raw, snapshot, doc)
+        report = self.run_it(form_evidence_loader=load)
+        row = next(row for row in report["records"] if row["race_id"] == RID)
+        self.assertEqual(row["form_fall_shadow_state"], "PRIVATE_CONDITIONED_SHADOW_SEALED")
+        self.assertEqual(row["winticket_adjusted_riders"], 1)
+        at = datetime.fromisoformat(NOW).astimezone(timezone.utc).isoformat()
+        condition.readback_shadow(self.cipher / (RID + ".form.sealed.json"),
+            expected_sha=row["form_fall_shadow_file_sha256"],
+            expected_baseline_sha=generator.generate_A_B(snapshot, generated_at=at)["prediction_sha256"],
+            expected_race=RID)
+        self.assertTrue((self.cipher / (RID + ".sealed.json")).exists())
+        self.assertNotIn(UP, json.dumps(report, ensure_ascii=False))
+
+    def test_optional_history_checks_happen_after_baseline_and_cannot_block_it(self):
+        self.add_source()
+        second = fixture()
+        second["race_id"] = "202611182602"
+        self.add_source(snapshot=second)
+
+        def failed_review(**_):
+            self.assertTrue((self.cipher/(RID+".sealed.json")).exists())
+            self.assertTrue((self.cipher/(second["race_id"]+".sealed.json")).exists())
+            generator.when("0001-01-01T00:00:00+09:00")
+
+        report = self.run_it(form_evidence_loader=failed_review)
+        self.assertEqual(report["same_job_sealed"], 2)
+        self.assertFalse((self.cipher/(RID+".form.sealed.json")).exists())
 
     def test_one_real_automatic_source_bound_AB_sealed_and_78_hold(self):
         self.add_source()
