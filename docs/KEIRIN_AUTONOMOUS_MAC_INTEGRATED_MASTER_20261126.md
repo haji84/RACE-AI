@@ -225,3 +225,14 @@ GitHub上に、最新HEAD・実行コマンド・証拠参照、対象母数/生
 11月28日朝に、WINTICKETの各レースの「結果」から「映像を観る」を選んだ。11月27日の福井11Rは、打鐘表示で7番と3番が前方におり、終盤は3番が先頭に出た。放送と2媒体の照合結果は3–5–6で一致。WINTICKETの15:31締切前に保存したA・Bは共に上位8点で不的中だった。録画なしの目視記録1レースを保管した。[福井11R](https://www.winticket.jp/keirin/fukui/raceresult/2026112551/3/11) · [締切前保存の固定版](https://github.com/haji84/RACE-AI/blob/f94f5fd9c66a185ee605002ce6d2fea303dd17aa/forecasts/2026-11-27.json) · [結果の固定版](https://github.com/haji84/RACE-AI/blob/7eeb7ab8a39ae38358d69429e06e620696d1e647/results/2026-11-27.json)
 
 04:20に匿名のGitHub読み取りでHTTP 403が記録され、候補台帳は保管済みの228件を再利用していた。当時の記録には拒否の詳細が残っていない。既存の認証済みGitHub CLIで読み取りを確認し、旧403記録を保全して読み取りを復旧した。07:38のMac定期起動で当日78レースを読み戻し、228候補を保全した。再開前後で映像取得試行の記録は同じSHAだった。録画なしの福井11Rは目視の検証記録に加えた。
+
+#### 出走表から日付を選んだ映像の実機確認
+
+MacのChromeで「出走表」から開催日・会場・レースを選び、結果画面の「映像を観る」で2レースを再生した。当日11月28日の出走表には8場78レースがあり、朝に確認した小松島1Rは発走前で結果と映像が未掲載だった。[当日の出走表](https://www.winticket.jp/keirin/racecard/20261128) · [小松島1R](https://www.winticket.jp/keirin/komatsushima/raceresult/2026112673/3/1)
+
+- 11月27日の富山11Rは映像で走行と車番表示を確認した。WINTICKETと2媒体の結果は1–4–7で一致。06:20 JSTの保存A/BではAの3番目、Bの1番目にあり、両方で上位4点以内だった。保存はWINTICKET表示の15:51と公開台帳の15:53の両方の締切前。[富山11R](https://www.winticket.jp/keirin/toyama/raceresult/2026112646/2/11) · [予想の固定版](https://github.com/haji84/RACE-AI/blob/bfb7239a00c41cf8adec9281885b786ef80239a9/forecasts/2026-11-27.json) · [結果の固定版](https://github.com/haji84/RACE-AI/blob/7eeb7ab8a39ae38358d69429e06e620696d1e647/results/2026-11-27.json)
+- 2024年11月28日の佐世保1Rは選手紹介、7車の走行、着順表示まで確認した。放送の上位3車は3–4–5で、2媒体の全着順3–4–5–7–2–6–1とも一致。1着3番の決まり手は結果表で捲り。[佐世保1R](https://www.winticket.jp/keirin/sasebo/raceresult/2024112785/2/1) · [Kドリームス結果](https://keirin.kdreams.jp/gamboo/keirin-kaisai/race-card/result/8520241127/85202411270200/01/) · [ネットケイリン結果](https://keirin.netkeiba.com/db/result/?player_id=13588&race_id=202411288501)
+
+既存の視聴記録ツールが、WINTICKETの結果URLに含まれる開催初日・開催何日目・場コード・レース番号を照合できるようにした。Macのコーパスを読み取り専用で開き、2件のテキスト記録を試験用台帳に2回取り込んで、再生確認の2件だけが残ることを確認。戦術の判定欄を付けたWINTICKETの目視記録は取り込みを止める。関連153検査と独立レビューで確認した。今回の学習追加と映像あり・なしの締切前比較は各0件。
+
+07:53 JSTのMac定期実行で再生候補228件を読戻し、学習観測3件・候補SHA `85d2953f729f` を復元した。08:03前後の標準公開ページは対象78レース、保存確認済みA/B 40、参考A/B 31、未掲載7件。未掲載は久留米2・3・4・5・6・7・9R。07:51開始の既存公式処理は開催を78件登録し、新しい暗号化予想原本は0件だった。[公開サイト](https://keirin-20261119-race-note.chankuma.chatgpt.site/) · [公式処理の実行](https://github.com/haji84/RACE-AI/actions/runs/46079103269)

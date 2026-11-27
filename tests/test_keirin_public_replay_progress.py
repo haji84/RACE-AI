@@ -50,6 +50,39 @@ class PublicReplayProgress(unittest.TestCase):
         self.assertEqual(row["status"], "conflicting_observations")
         self.assertEqual(row["reported_leaders"]["back"], [2, 4])
 
+    def test_winticket_manual_playback_uses_the_meeting_day_in_the_result_link(self):
+        key = "20241128-85-01"
+        url = "https://www.winticket.jp/keirin/sasebo/raceresult/2024112785/2/1"
+        note = dict(race_id=key, source_url=url, status="playback_only", evidence="manually played")
+        for _ in range(2):
+            self.assertEqual(self.import_rows(note)["outside_window"], {"playback_only": 1})
+        rows = [json.loads(line) for line in self.out.read_text().splitlines()]
+        result = next(row for row in rows if row["race_id"] == key)
+        self.assertEqual(len(result["receipts"]), 1)
+        self.assertEqual(result["reported_leaders"], {})
+
+    def test_winticket_rejects_unmatched_result_pages_and_phase_labels(self):
+        url = "https://www.winticket.jp/keirin/toyama/raceresult/2026112646/2/11"
+        note = dict(race_id="20261127-46-11", source_url=url, status="playback_only", evidence="manually played")
+        self.assertEqual(self.import_rows(note)["outside_window"], {"playback_only": 1})
+
+        for wrong in (url.replace("/2/11", "/1/11"), url.replace("/2/11", "/2/1"),
+                      url.replace("2646/", "2647/"), url.replace("/raceresult/", "/racecard/"),
+                      url.replace("https://", "http://"), url.replace("jp/", "jp.invalid/"), url + "#video"):
+            with self.subTest(url=wrong), self.assertRaises(ValueError):
+                self.import_rows(dict(note, source_url=wrong))
+        with self.assertRaises(ValueError):
+            self.import_rows(dict(note, status="observed", back_car=5, back_seconds=42))
+
+        for phase_fields in (
+            {"back_seconds": 42},
+            {"back_car": None, "back_seconds": 42, "adjudication": {"reason": "unreadable"}},
+            {"corner_second_car": None},
+            {"adjudication": None},
+        ):
+            with self.subTest(phase_fields=phase_fields), self.assertRaises(ValueError):
+                self.import_rows(dict(note, **phase_fields))
+
     def test_adjudicated_unknown_does_not_revalidate_a_previous_positive_label(self):
         initial = self.record(back_car=4, back_seconds=46, corner_car=2, corner_seconds=58)
         adjudicated = dict(initial, back_car=None, adjudication={"reason": "riders overlap"})
