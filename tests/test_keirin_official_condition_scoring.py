@@ -6,7 +6,7 @@ from unittest import TestCase
 from race_ai import keirin_official_condition_scoring as score
 from race_ai import keirin_official_condition_trial as trial
 from tests import test_keirin_official_condition_trial as trial_fixture
-from tests.test_keirin_nationwide_auto_generator import CUTOFF
+from tests.test_keirin_nationwide_auto_generator import AT, CUTOFF
 
 DAY = '2026-11-18'
 SEALED = DAY + 'T09:03:00+09:00'
@@ -63,6 +63,28 @@ class OfficialConditionScoringTests(TestCase):
         self.assertEqual(report['markets']['exacta_top2']['virtual_returns']['paired_races'], 1)
         with self.assertRaisesRegex(ValueError,'EXACTA_PAYOUT'):
             self.observe(pair, result, confirmed_exacta_payout=(order[::-1], 550))
+
+    def test_combined_replay_never_counts_as_a_pre_cutoff_original(self):
+        pair, result = self.inputs()
+        snapshot, baseline, *_ = trial_fixture.ConditionTrialTests().inputs()
+        original = dict(snapshot=snapshot, baseline=baseline, conditioned=None, supplement=None)
+        origins = dict(sealed_at=SEALED, latest_server_evidence_at=WITNESSED, use_form=False)
+        replay_at = DAY+'T13:00:00+09:00'
+        self.assertIsNone(score.observe_combined(original, pair, result, **origins))
+        scope, components, observation = score.observe_combined(original, pair, result,
+                                                                replay_at=replay_at, **origins)
+        self.assertEqual(scope, 'RETROSPECTIVE_RESEARCH')
+        self.assertIn(trial.CHALLENGER, components)
+        self.assertEqual(set(observation.markets), set(score.TICKET_BUDGETS))
+        with self.assertRaisesRegex(ValueError, 'COMBINED_REPLAY_TIME'):
+            score.observe_combined(original, pair, result, replay_at=AT, **origins)
+
+        original['combined_forecast'] = trial.build_combined(snapshot, baseline, pair, generated_at=AT)
+        scope, _, _ = score.observe_combined(original, pair, result, **origins)
+        self.assertEqual(scope, 'PROSPECTIVE_RESEARCH')
+        original['combined_forecast']['input_sha256'] = 'c' * 64
+        with self.assertRaisesRegex(ValueError, 'COMBINED_ORIGINAL_BINDING'):
+            score.observe_combined(original, pair, result, **origins)
 
     def test_pooled_progress_and_intervals_use_day_blocks_and_hold_adoption(self):
         pair,result = self.inputs()

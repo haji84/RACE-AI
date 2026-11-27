@@ -45,7 +45,8 @@ def main(argv=None):
             store = records.RecordStore(reader, day, index_commit=head)
             admit_pair = partial(records.admit_saved_pair, history_cache={})
             report = measure_day(store, private, admit_condition_pair=admit_pair,
-                                 requested_race_ids=requested)
+                                 requested_race_ids=requested,
+                                 combined_replay_at=checked_at.isoformat() if requested is not None else None)
             index_sha = model.digest(store.index)
         report.update(scoring_code_commit=code_commit, scoring_action_run_id=os.environ['GITHUB_RUN_ID'])
         if args.publish:

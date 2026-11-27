@@ -3,7 +3,7 @@ from dataclasses import dataclass
 from datetime import date, timedelta
 from hashlib import sha256
 from itertools import permutations
-from math import exp, fsum
+from math import exp, fsum, isfinite
 import re
 
 from . import keirin_dossier_conditions as dossier
@@ -15,6 +15,8 @@ from .keirin_joint_finish import JointFinish
 SCHEMA = 'RACE_AI_KEIRIN_OFFICIAL_CONDITION_TRIAL_V1'
 BASELINE = 'official-b-scenarios-with-full-support-v1'
 CHALLENGER = 'official-b-scenarios-with-meeting-round-history-v1'
+COMBINED_MODEL = 'official-and-research-ensemble-v1'
+FORM_MODELS = ('baseline-plus-documented-form-v1', 'six-phase-plus-documented-form-v1')
 MIN_STARTS = 10
 WITNESS_MARGIN = timedelta(minutes=15)
 FULL_SUPPORT = 0.20
@@ -154,3 +156,113 @@ def build_pair(snapshot, baseline, condition, roster, history):
                 historical_packet_day=history.day,
                 meeting_grade=grade, round_stage=stage, covered_riders=len(corrections),
                 baseline=original, challenger=candidate)
+
+
+def _rank_mass(tickets, outcomes):
+    mass = {tuple(order): 1.0 / rank for rank, order in enumerate(tickets, 1)}
+    _need(1 <= len(tickets) <= 12 and len(mass) == len(tickets) and
+          mass.keys() <= outcomes, 'COMBINED_RANKING')
+    total = fsum(mass.values())
+    return {order: value / total for order, value in mass.items()}
+
+
+def _display_models(snapshot, outcomes):
+    try:
+        analysis = model.generate_evidence_analysis(snapshot)
+    except model.AutomaticForecastError:
+        return {}
+    models = {}
+    for arm in ('A', 'B'):
+        forecast = analysis[arm]
+        # The display model may abstain even though it lists candidate support.
+        if not forecast['ranked_tickets']:
+            continue
+        rows = forecast['candidate_evidence']['3t']
+        mass = {tuple(row['ticket']): row['support'] for row in rows}
+        _need(len(mass) == len(rows) and mass.keys() <= outcomes and
+              all(isfinite(value) and value > 0 for value in mass.values()), 'COMBINED_DISPLAY_SUPPORT')
+        total = fsum(mass.values())
+        models[forecast['model']] = {order: value / total for order, value in mass.items()}
+    return models
+
+
+def build_combined(snapshot, original, pair, *, generated_at, form_shadow=None, supplement=None):
+    """Fuse live and research forecasts on the same verified pre-race inputs."""
+    model.validate_snapshot(snapshot, computed_at=original['generated_at'])
+    prediction_sha = original['prediction_sha256']
+    snapshot_sha = model.digest(snapshot)
+    _need(original['schema'] == model.PREDICTION and pair['schema'] == SCHEMA and
+          original['A']['model'] == model.MODEL_A and original['B']['model'] == model.MODEL_B and
+          original['source_facts_sha256'] == snapshot_sha and original['race_id'] == snapshot['race_id'] and
+          pair['baseline_prediction_sha256'] == prediction_sha and
+          model.digest({k: v for k, v in original.items() if k != 'prediction_sha256'}) == prediction_sha,
+          'COMBINED_ORIGINAL')
+    baseline, challenger = pair['baseline'], pair['challenger']
+    fields = ('cars', 'race_id', 'input_sha256', 'source_packet_sha256', 'generated_at', 'cutoff_at',
+              'source_as_of', 'source_forecast_generated_at')
+    for record, identity in ((baseline, BASELINE), (challenger, CHALLENGER)):
+        joint_forecast.validate_forecast(record)
+        _need(record['model_id'] == identity and record['model_version'] == SCHEMA and
+              record['scope'] == 'PROSPECTIVE_RESEARCH', 'COMBINED_COMPONENT')
+    roster = [{key: row[key] for key in ('car', 'name', 'registration')} for row in baseline['riders']]
+    research_roster = [{key: row[key] for key in ('car', 'name', 'registration')} for row in challenger['riders']]
+    _need(all(baseline[field] == challenger[field] for field in fields) and roster == research_roster and
+          {row['car']: row['registration'] for row in roster} ==
+          {rider['car']: rider['athlete_id'] for rider in snapshot['riders']} and
+          baseline['race_id'] == pair['race_id'] == original['race_id'] and
+          baseline['generated_at'] == baseline['source_forecast_generated_at'] == original['generated_at'] and
+          baseline['cutoff_at'] == original['published_cutoff_at'] and
+          baseline['source_packet_sha256'] == pair['historical_packet_sha256'], 'COMBINED_INPUTS')
+
+    base_mass, research_mass = ({tuple(row['order']): row['probability'] for row in record['trifectas']}
+                                for record in (baseline, challenger))
+    outcomes = base_mass.keys()
+    current = {identity: _rank_mass(original[arm]['ranked_tickets'], outcomes)
+               for arm, identity in (('A', model.MODEL_A), ('B', model.MODEL_B))}
+    research = [{BASELINE: base_mass, CHALLENGER: research_mass}]
+    held = {}
+    sources = [model.when(baseline['source_as_of'])]
+    if form_shadow is not None:
+        form_sha = form_shadow['sha256']
+        _need(form_shadow['baseline_prediction_sha256'] == prediction_sha and
+              form_shadow['baseline_source_sha256'] == snapshot_sha and
+              form_shadow['condition_supplement_sha256'] == model.digest(supplement) and
+              form_shadow['race_id'] == original['race_id'] and
+              form_shadow['generated_at'] == original['generated_at'] and
+              form_shadow['published_cutoff_at'] == original['published_cutoff_at'] and
+              model.digest({k: v for k, v in form_shadow.items() if k != 'sha256'}) == form_sha,
+              'COMBINED_FORM_INPUTS')
+        forms = {}
+        for arm, identity in zip(('A_research', 'B_research'), FORM_MODELS, strict=True):
+            _need(form_shadow[arm]['model'] == identity, 'COMBINED_FORM_MODEL')
+            forms[identity] = _rank_mass(form_shadow[arm]['ranked_tickets'], outcomes)
+        sources.extend(model.when(page['captured_at']) for page in supplement['source_pages'])
+        research.append(forms)
+    else:
+        form_sha = None
+        held.update(dict.fromkeys(FORM_MODELS, 'NO_AUTHENTICATED_FORM_ORIGINAL'))
+    display = _display_models(snapshot, outcomes)
+    if display:
+        research.append(display)
+    for identity in (model.EVIDENCE_A, model.EVIDENCE_B):
+        if identity not in display:
+            held[identity] = 'DISPLAY_MODEL_ABSTAINED_OR_INPUT_UNAVAILABLE'
+
+    # Current forecasts get half the mass. Available research families share
+    # the other half equally, with equal weight for arms within each family.
+    weighted = [(identity, distribution, 0.25) for identity, distribution in current.items()]
+    for family in research:
+        share = 0.5 / len(research) / len(family)
+        weighted.extend((identity, distribution, share) for identity, distribution in family.items())
+    weights = {identity: weight for identity, _, weight in weighted}
+    mass = {order: fsum(weight * distribution.get(order, 0.0)
+                        for _, distribution, weight in weighted) for order in outcomes}
+    law = JointFinish(baseline['cars'], mass, tail=(0.0, 0.0))
+    forecast = joint_forecast.build_forecast(
+        law, race_id=baseline['race_id'], generated_at=generated_at, cutoff_at=baseline['cutoff_at'],
+        source_as_of=max(sources).isoformat(), model_id=COMBINED_MODEL, model_version='v1',
+        input_sha256=model.digest(dict(original_sha256=prediction_sha, condition_trial_sha256=model.digest(pair),
+                                      form_sha256=form_sha, model_id=COMBINED_MODEL, weights=weights, held=held)),
+        source_packet_sha256=baseline['source_packet_sha256'],
+        source_forecast_generated_at=original['generated_at'], riders=roster)
+    return dict(forecast, component_weights=weights, component_holds=held)
