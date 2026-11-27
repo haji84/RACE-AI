@@ -216,13 +216,21 @@ class MacCycleTests(unittest.TestCase):
             result = self.run_cycle(shadow_request=request)
         self.assertEqual(result.get('shadow_replay', {}).get('state'), 'HOLD_PROVIDER_REFUSAL')
 
-    def test_approved_frame_mode_completes_without_a_movie_and_keeps_the_prior_attempt(self):
+    def test_frame_approval_survives_recording_expiry_and_keeps_the_prior_attempt(self):
         from collections import Counter
         from scripts import keirin_mac_cycle as cycle
 
         request, approval = self.komatsushima_inputs()
         checks = []
         now = NOW
+        recording = json.loads(approval.read_bytes())
+        recording['valid_until'] = (NOW + timedelta(minutes=10)).isoformat()
+        approval.write_text(json.dumps(recording))
+
+        class ReplayDateTime(datetime):
+            @classmethod
+            def now(cls, tz=None):
+                return now.astimezone(tz)
 
         def capture(queue, out, **options):
             row = json.loads(queue.read_text())
@@ -255,12 +263,14 @@ class MacCycleTests(unittest.TestCase):
 
         with (patch.dict('os.environ', {'RACE_AI_KEIRIN_OFFICIAL_SOURCE_ENABLED': 'false'}),
               self.settled_shadow(NOW), patch.object(cycle.sources, 'run', side_effect=capture),
-              patch.object(cycle.media, 'inspect', return_value=('verified', {}))):
+              patch.object(cycle.media, 'inspect', return_value=('verified', {})),
+              patch.object(cycle.sources, 'datetime', ReplayDateTime)):
             first = self.run_cycle(shadow_request=request, now=now)
             self.assertEqual(first['shadow_replay']['state'], 'HOLD_REPLAY_SOURCE_UNVERIFIED')
             decision = json.loads(approval.read_bytes())
             decision['allowed_uses'].remove('video_recording')
             decision['allowed_uses'].append('frame_capture')
+            del decision['valid_until']
             self.write('komatsushima-frame-analysis-approval.json', decision).chmod(0o600)
             now = NOW+timedelta(minutes=15)
             waiting = self.run_cycle(shadow_request=request, now=now)
@@ -345,13 +355,111 @@ class MacCycleTests(unittest.TestCase):
                             recorded_at=now.isoformat(), media_saved=False, presented_frames=9,
                             distinct_sampled_frames=2)
             self.write('komatsushima-passive-inspection-proof.json', evidence).chmod(0o600)
-            for offset in (135, 165):
+            for offset, expected in ((135, 'HOLD_REPLAY_SOURCE_UNVERIFIED'),
+                                     (165, 'HOLD_REPLAY_ATTEMPT_LIMIT')):
                 now = NOW+timedelta(minutes=offset)
                 result = self.run_cycle(shadow_request=request, now=now)
-                self.assertEqual(result['shadow_replay']['state'], 'HOLD_REPLAY_SOURCE_UNVERIFIED')
+                self.assertEqual(result['shadow_replay']['state'], expected)
         self.assertEqual(calls, [(NOW+timedelta(minutes=offset), mode)
                                  for offset, mode in ((0, True), (30, True), (60, False), (90, False),
                                                       (135, False))])
+
+    def test_published_calendar_retains_future_cancelled_and_verified_result_candidates(self):
+        from scripts import keirin_mac_replay_calendar as calendar
+
+        urls = {
+            '202611267301': 'https://keirin.kdreams.jp/komatsushima/racedetail/7320261126010001/',
+            '202611267302': 'https://keirin.kdreams.jp/komatsushima/racedetail/7320261126010002/',
+        }
+        past, today = '2026-11-26', '2026-11-27'
+        checked = '2026-11-27T10:00:00+09:00'
+        cutoff = '2026-11-26T08:45:00+09:00'
+        roster = dict(schema='KEIRIN_PUBLIC_RESULT_ROSTER_V1', date=past,
+            generated_at='2026-11-26T08:40:00+09:00', forecast_asset_sha256='b'*64,
+            races=[dict(race_id=key,date=past,venue='小松島',race_no=int(key[-2:]),
+                        published_cutoff_at=cutoff,source_url=url,
+                        observed_riders=[{'number': car} for car in range(1, 8)])
+                   for key,url in urls.items()])
+        comparison = dict(race_id='202611267301', observed_at=checked, authority='cross_source_reference',
+            comparison_scope='POST_CUTOFF_REFERENCE', winning_3t=[1,2,3], winning_2t=[1,2],
+            payouts_100yen={'2t':300,'3t':1230},
+            sources=[dict(source_id='kdreams', checked_at=checked, url=urls['202611267301']+'?pageType=result'),
+                     dict(source_id='netkeirin', checked_at=checked,
+                          url='https://keirin.netkeiba.com/race/result/?race_id=202611267301')])
+        results = dict(schema='KEIRIN_PUBLISHED_RESULTS_V1', date=past, checked_at=checked,
+            races=[dict(race_id='202611267301',state='matched',comparison=comparison),
+                   dict(race_id='202611267302',state='held',reason='SPECIAL_CANCELLED_REFUND_CONFIRMED')])
+        forecast = dict(schema='RACE_AI_KEIRIN_PUBLIC_FORECASTS_V1', day=today,
+            races=[dict(race_id='202611277301', cutoff_at='2026-11-27T20:00:00+09:00', status='pending')])
+        now=datetime(2026,11,27,10,tzinfo=timezone.utc)
+        rows=calendar.combine(today, forecast, None, None, now)
+        rows+=calendar.combine(past, None, roster, results, now)
+        self.assertEqual({row['race_id']:row['state'] for row in rows}, {
+            '20261127-73-01':'scheduled','20261126-73-01':'ended_cross_source','20261126-73-02':'cancelled'})
+        self.assertTrue(all('a' not in row and 'comparison' not in row for row in rows))
+        self.assertEqual(rows[1]['result_observed_at'],checked)
+        self.assertIsNone(rows[2]['result_observed_at'])
+        results['races'][0]['comparison']['sources'][0]['checked_at']='2026-11-25T00:00:00+09:00'
+        self.assertEqual(calendar.combine(past,None,roster,results,now)[0]['state'],'result_held')
+
+    def test_calendar_capture_checks_scope_and_rotates_before_retrying(self):
+        from collections import Counter
+        from contextlib import closing
+        import sqlite3
+        from scripts import keirin_mac_cycle as cycle
+
+        today=NOW+timedelta(days=1)
+        queue=[
+            dict(race_id='20261126-73-02',race_date='2026-11-26',
+                 race_detail_url='https://keirin.kdreams.jp/komatsushima/racedetail/7320261126010002/'),
+            dict(race_id='20261127-12-01',race_date='2026-11-27',
+                 race_detail_url='https://keirin.kdreams.jp/aomori/racedetail/1220261127010001/'),
+            dict(race_id='20261127-12-02',race_date='2026-11-27',
+                 race_detail_url='https://keirin.kdreams.jp/aomori/racedetail/1220261127010002/'),
+        ]
+        rights=self.root/'rights'
+        rights.write_bytes(b'fictional research approval')
+        scope=self.write('approved.json', dict(source_host='keirin.kdreams.jp',rights_ref='rights',
+            rights_sha256=sha256(rights.read_bytes()).hexdigest(),reviewer='fixture reviewer',
+            allowed_uses=['automated_fetch','private_retention','history_analysis','video_recording'],
+            race_ids=[row['race_id'] for row in queue[:2]]))
+        attempts=[]
+        now=today
+
+        def capture(path, out, **options):
+            row=json.loads(path.read_bytes())
+            attempts.append((row['race_id'], options['retry_failed']))
+            out.mkdir(mode=0o700,exist_ok=True)
+            status=cycle.sources.DIGEST_BUTTON_UNAVAILABLE
+            with open(out/'attempts.jsonl','a',opener=cycle.sources.private_log_fd) as log:
+                log.write(json.dumps(dict(race_id=row['race_id'],source_ref=row['race_detail_url'],
+                                        status=status,at_utc=now.isoformat()))+'\n')
+            return Counter({status:1})
+
+        with (closing(sqlite3.connect(':memory:')) as db,
+              patch.object(cycle.sources,'run',side_effect=capture),
+              patch.object(cycle.shutil,'disk_usage',return_value=SimpleNamespace(free=100*cycle.GIB))):
+            cycle.corpus.setup(db)
+            with db:
+                cycle.corpus.load_race(db,dict(queue[0],riders=[],event_status='finish_verified'))
+            self.assertEqual(cycle._capture(db,self.root,scope,None,now,calendar_rows=[queue[0]],
+                                            calendar_cancelled={queue[0]['race_id']}),
+                             ('NO_ELIGIBLE_REPLAY',0))
+            with db:
+                cycle.corpus.load_race(db,dict(queue[2],riders=[],event_status='cancelled_reported'))
+            self.assertEqual(cycle._capture(db,self.root,scope,None,now,calendar_rows=[queue[2]],
+                                            calendar_cancelled={queue[0]['race_id']}),
+                             ('NO_ELIGIBLE_REPLAY',0))
+            for minute in (0,15,30,45,60,75):
+                now=today+timedelta(minutes=minute)
+                self.assertEqual(cycle._capture(db,self.root,scope,None,now,calendar_rows=queue),
+                                 ('NO_NEW_RECORDING',0))
+            now=today+timedelta(minutes=90)
+            self.assertEqual(cycle._capture(db,self.root,scope,None,now,calendar_rows=queue),
+                             ('HOLD_CAPTURE_ATTEMPTS_OR_PLAYER',0))
+        self.assertEqual(attempts,[('20261127-12-01',False),('20261126-73-02',False),
+                                   ('20261127-12-01',True),('20261126-73-02',True),
+                                   ('20261127-12-01',True),('20261126-73-02',True)])
 
     def test_no_census_runs_the_retained_comparison_and_preserves_absent_video_state(self):
         result = self.run_cycle()
@@ -443,14 +551,26 @@ class MacCycleTests(unittest.TestCase):
         options = dict(census=roster, manifest=films, reviewed=review)
         with patch.object(cycle.learning, 'study', wraps=cycle.learning.study) as fit:
             first = self.run_cycle(**options)
-            again = self.run_cycle(**options)
+            again = self.run_cycle(now=NOW+timedelta(days=1), **options)
         self.assertEqual(fit.call_count, 1)
         self.assertEqual(first['video']['observation_count'], 1)
         self.assertEqual(first['video']['model_state'], 'TRIAL_PROFILE_FITTED')
         self.assertEqual(again['video']['model_state'], 'TRIAL_PROFILE_REUSED')
         self.assertEqual(first['video']['trial_sha256'], again['video']['trial_sha256'])
+        dataset = first['video']['dataset_sha256']
+        self.assertRegex(dataset, r'^[0-9a-f]{64}$')
+        self.assertEqual(again['video']['dataset_sha256'], dataset)
         self.assertNotIn('015001', json.dumps(first))
         self.assertNotIn('fixture frames', json.dumps(first))
+
+        engine_marker = self.root/'different-learner.py'
+        engine_marker.write_text('# different installed learner')
+        with (patch.object(cycle.learning, '__file__', str(engine_marker)),
+              patch.object(cycle.learning, 'study', side_effect=AssertionError('refitted without new data'))):
+            changed = self.run_cycle(**options)['video']
+        self.assertEqual(changed['model_state'], 'HOLD_TRAINING_ENGINE_VERSION')
+        self.assertEqual(changed['dataset_sha256'], dataset)
+        self.assertIsNone(changed['trial_sha256'])
 
         for frame in frames:
             (self.root/frame['path']).unlink()

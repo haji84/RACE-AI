@@ -701,6 +701,9 @@ def run(queue, output, *, interval, pause, limit, executable, retry_failed=False
                                      'race_id': row['race_id'], 'source_ref': url}
                             if approval.permission_basis:
                                 proof['permission_basis'] = approval.permission_basis
+                            if row.get('result_commit'):
+                                proof['result_discovery'] = dict(commit=row['result_commit'],
+                                    observed_at=row['result_observed_at'], scope='two_source_confirmed_end')
                             if approval.source_host == WINTICKET_HOST and not continuous:
                                 proof['capture_mode'] = REPLAY_FRAME_MODE
                             with (tmp / 'source-approval.json').open('x') as receipt:
