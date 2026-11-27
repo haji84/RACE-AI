@@ -154,8 +154,8 @@ def discover_missing_links(day, missing, fetch):
     return selected
 
 
-def build_public_roster(forecast_bytes, source_rows, official_rows, *, display_cutoffs=None, previous=None,
-                        results=None, fetch=None):
+def build_public_roster(forecast_bytes, source_rows, official_rows, *, display_cutoffs=None, archived_links=None,
+                        previous=None, results=None, fetch=None):
     from race_ai import keirin_public_forecasts as public
     from race_ai import keirin_secondary_result_consensus as consensus
 
@@ -171,6 +171,7 @@ def build_public_roster(forecast_bytes, source_rows, official_rows, *, display_c
     official = {row['race_id']: row for row in official_rows}
     saved_results = {row['race_id']: row for row in (results or {}).get('races', [])}
     display_cutoffs = display_cutoffs or {}
+    archived_links = archived_links or {}
     rows, missing = {}, set()
     for item in forecast['races']:
         rid = item['race_id']
@@ -195,11 +196,12 @@ def build_public_roster(forecast_bytes, source_rows, official_rows, *, display_c
             checked(cutoff is not None and field is not None and (source is not None or item['cutoff_at'] is not None),
                     'PUBLIC_ROSTER_INPUT_INCOMPLETE')
             venue = rid[8:10]
+            link = source['source_url'] if source else archived_links.get(rid)
             row = dict(race_id=rid, date=day, venue=VENUE_NAMES.get(venue, '開催コード ' + venue),
                        race_no=int(rid[-2:]), published_cutoff_at=cutoff,
-                       source_url=source['source_url'] if source else None,
+                       source_url=link,
                        observed_riders=[{'number': rider['number']} for rider in field['riders']])
-            if source is None:
+            if link is None:
                 missing.add(rid)
         rows[rid] = row
 
@@ -244,6 +246,7 @@ def published_display_cutoffs(store, head, forecast):
 
 def refresh_public_rosters(state, store, fetch, *, now):
     from race_ai import keirin_dossier_secondary as secondary
+    from race_ai import keirin_public_forecast_odds as odds
     from race_ai import keirin_public_forecasts as public
     from scripts.keirin_public_rider_projection import _checked_starters
 
@@ -271,6 +274,7 @@ def refresh_public_rosters(state, store, fetch, *, now):
             display_cutoffs = published_display_cutoffs(store, head, snapshot) if any(
                 row['cutoff_at'] is None for row in snapshot['races']) else {}
             context_rows, starter_rows = [], []
+            archived_links = {}
             if missing:
                 context = store.read_previous(head, f'rider-context-secondary/{day}.json')
                 if context is not None:
@@ -283,8 +287,14 @@ def refresh_public_rosters(state, store, fetch, *, now):
                         packet = _checked_starters(json.loads(starters))
                         checked(packet['day'] == day, 'PUBLIC_ROSTER_INPUT_DAY_MISMATCH')
                         starter_rows = packet['races']
+                    existing_links = store.read_previous(head, f'odds/{day}.json')
+                    if existing_links is not None:
+                        # The registered page URL is useful even when its racecard context is held.
+                        packet = odds.checked(json.loads(existing_links))
+                        checked(packet['day'] == day, 'PUBLIC_ROSTER_INPUT_DAY_MISMATCH')
+                        archived_links = {row['race_id']: row['source_url'] for row in packet['races']}
             roster = build_public_roster(raw, context_rows, starter_rows, display_cutoffs=display_cutoffs,
-                                         previous=previous, results=results, fetch=fetch)
+                                         archived_links=archived_links, previous=previous, results=results, fetch=fetch)
         except (ValueError, TypeError, KeyError) as error:
             if str(error) in SOURCE_STOP_CODES:
                 raise

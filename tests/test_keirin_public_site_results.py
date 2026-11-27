@@ -62,6 +62,14 @@ class PublicDailyRosterTests(unittest.TestCase):
         self.assertEqual(fallback.call_args.args[:2], (DATE, {IDS[1]}))
         self.assertEqual(manifest['races'], [race(0), race(1)])
 
+    def test_archived_link_for_verified_official_starters_avoids_a_fresh_lookup(self):
+        official = [dict(race_id=IDS[1], riders=race(1)['observed_riders'])]
+        with patch.object(publisher, 'discover_missing_links') as fallback:
+            manifest = publisher.build_public_roster(self.forecasts(), [self.source(0)], official,
+                                                     archived_links={IDS[1]:race(1)['source_url']})
+        fallback.assert_not_called()
+        self.assertEqual(manifest['races'], [race(0), race(1)])
+
     def test_incomplete_starters_cannot_create_a_roster_or_trigger_provider_lookup(self):
         with patch.object(publisher, 'discover_missing_links') as fallback:
             with self.assertRaisesRegex(ValueError, 'PUBLIC_ROSTER_INPUT_INCOMPLETE'):
