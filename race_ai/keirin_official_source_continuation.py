@@ -13,7 +13,6 @@ import math
 import os
 from pathlib import Path
 import re
-from tempfile import TemporaryDirectory
 from threading import RLock
 import time
 import uuid
@@ -367,22 +366,8 @@ def _append_files(repo, parent, files, message):
         for length in range(1, len(parts)):
             entry = _entry(repo, parent, '/'.join(parts[:length]))
             need(entry is None or entry[0] == '040000 tree', 'STATE_ANCESTOR_INVALID')
-    with TemporaryDirectory(prefix='keirin-official-continuation-') as folder:
-        tree = Path(folder)/'branch'
-        archive._cmd(repo, 'worktree', 'add', '--detach', str(tree), parent)
-        try:
-            for path, raw in files.items():
-                target = tree/path; target.parent.mkdir(parents=True, exist_ok=True)
-                with target.open('xb') as stream: stream.write(raw)
-            archive._cmd(tree, 'add', '--', *files)
-            archive._cmd(tree, '-c', 'user.name=RACE-AI', '-c',
-                         'user.email=race-ai@users.noreply.github.com', 'commit', '-m', message)
-            commit = archive._cmd(tree, 'rev-parse', 'HEAD')[1]
-            need(archive.COMMIT.fullmatch(commit), 'COMMIT_IDENTITY_INVALID')
-            status, _ = archive._cmd(tree, 'push', 'origin', 'HEAD:refs/heads/'+archive.BRANCH, okay=True)
-            need(status == 0, 'PUSH_NOT_ACKNOWLEDGED')
-        finally:
-            archive._cmd(repo, 'worktree', 'remove', '--force', str(tree), okay=True)
+    status, commit = archive._push_archive_files(repo, parent, files, message)
+    need(status == 0, 'PUSH_NOT_ACKNOWLEDGED')
     return commit
 
 

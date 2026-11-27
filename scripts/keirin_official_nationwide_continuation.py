@@ -333,8 +333,9 @@ def run_capture(*,repo,private_root,owner_public_pem,owner_private_pem,day=None,
     need(type(max_races) is int and 1<=max_races<=8,'CAPTURE_RACE_BOUND')
     report = _summary(day)
     try:
-        # This initial read precedes the source lease and every archive write.
-        store = records.RecordStore(repo, day, retry_archive_timeout=True)
+        # The fresh capture runner needs the lineage and selected records, not
+        # every historical ciphertext. This still precedes the source lease.
+        store = records.RecordStore(repo, day, retry_archive_timeout=True, blobless_fetch=True)
     except archive.GitCipherFetchTimeout:
         report['state'] = CAPTURE_ARCHIVE_FETCH_HOLD
         return report

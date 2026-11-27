@@ -253,6 +253,7 @@ class NationwideRecordTests(unittest.TestCase):
             origin, writer = root/'archive.git', root/'writer'
             git(root, 'init', '--bare', '-b', archive.BRANCH, str(origin))
             git(origin, 'config', 'uploadpack.allowFilter', 'true')
+            git(origin, 'config', 'uploadpack.allowReachableSHA1InWant', 'true')
             git(root, 'clone', str(origin), str(writer))
             git(writer, 'config', 'user.name', 'Fixture')
             git(writer, 'config', 'user.email', 'fixture@example.invalid')
@@ -262,7 +263,15 @@ class NationwideRecordTests(unittest.TestCase):
             unrelated = git(writer, 'rev-parse', 'HEAD:unrelated')
             git(writer, 'push', 'origin', 'HEAD:refs/heads/'+archive.BRANCH)
 
-            lineage = dict(repo=writer, producer_run_id=payload['producer_run_id'],
+            capture_writer = root/'capture-writer'
+            git(root, 'init', '-q', str(capture_writer))
+            git(capture_writer, 'remote', 'add', 'origin', origin.as_uri())
+            store = api.RecordStore(capture_writer, day, synthetic_local=True,
+                                    retry_archive_timeout=True, blobless_fetch=True)
+            parent = store.head
+            self.assertIn('?' + unrelated, git(capture_writer, 'rev-list', '--objects',
+                                              '--missing=print', parent))
+            lineage = dict(repo=capture_writer, producer_run_id=payload['producer_run_id'],
                            producer_commit=payload['producer_commit'],
                            cohort_sha256=payload['cohort_sha256'], synthetic_local=True)
             archive.append_once(raw_cipher=base, expected_cipher_sha256=payload['baseline_cipher_sha256'],
@@ -273,7 +282,6 @@ class NationwideRecordTests(unittest.TestCase):
             archive.append_conditioned_once(raw_cipher=adjusted, expected_cipher_sha256=form_sha,
                                             expected_baseline_cipher_sha256=base_cipher_sha,
                                             expected_baseline_prediction_sha256=base_prediction_sha, **lineage)
-            store = api.RecordStore(writer, day, synthetic_local=True)
             orig_meta = store.append(kind='original', payload=dict(payload, safe_report=dict(day_jst=day)),
                                      public_pem=self.public,
                                      race_id=race, observed_at=payload['baseline_sealed_at'])
@@ -285,6 +293,9 @@ class NationwideRecordTests(unittest.TestCase):
                          final_capture=capture, scored=scored, safe_report=dict(day_jst=day))
             revision = store.append(kind='result', payload=saved, public_pem=self.public, race_id=race,
                                     observed_at='2030-01-15T04:10:00Z', monetary_complete=True)
+            self.assertEqual(git(capture_writer, 'merge-base', parent, store.head), parent)
+            self.assertIn('?' + unrelated, git(capture_writer, 'rev-list', '--objects',
+                                              '--missing=print', store.head))
 
             def reader(name):
                 path = root/name

@@ -734,7 +734,7 @@ class RunnerTests(unittest.TestCase):
                                  '--owner-public-pem', '/public', '--report', str(report), '--day', DAY])
             saved = json.loads(report.read_bytes())
         self.assertEqual(code, 2)
-        store.assert_called_once_with('/synthetic', DAY, retry_archive_timeout=True)
+        store.assert_called_once_with('/synthetic', DAY, retry_archive_timeout=True, blobless_fetch=True)
         open_provider.assert_not_called()
         self.assertEqual(saved['state'], 'HOLD_OFFICIAL_SP_CAPTURE_ARCHIVE_FETCH_TIMEOUT')
         self.assertEqual(saved['source_requests'], 0)

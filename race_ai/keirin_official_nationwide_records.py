@@ -7,8 +7,6 @@ GitHub server-origin checks. No provider transport is present here.
 from copy import deepcopy
 from datetime import datetime, timezone
 from hashlib import sha256
-from pathlib import Path
-from tempfile import TemporaryDirectory
 import base64
 import json
 import os
@@ -263,7 +261,7 @@ def _check_archive_commit(repo, head):
 class RecordStore:
     """Select bounded encrypted records without scanning all historical bytes."""
     def __init__(self, repo, day, *, synthetic_local=False, partial_read=False,
-                 retry_archive_timeout=False, index_commit=None):
+                 retry_archive_timeout=False, blobless_fetch=False, index_commit=None):
         self.repo=archive._remote(repo,synthetic_local=synthetic_local)
         self.day=history._day(day);self.path=ROOT+'/'+day+'/index.json'
         self.index_commit=index_commit
@@ -272,8 +270,9 @@ class RecordStore:
             self.refresh()
         elif partial_read:
             self._load_index(_fetch_partial_head(self.repo))
-        elif retry_archive_timeout:
-            self._load_index(archive._refresh(self.repo, retry_on_timeout=True))
+        elif retry_archive_timeout or blobless_fetch:
+            self._load_index(archive._refresh(
+                self.repo, retry_on_timeout=retry_archive_timeout, blobless=blobless_fetch))
         else:
             self.refresh()
 
@@ -348,20 +347,9 @@ class RecordStore:
             checked_index(updated,self.day)
             index_raw=history._canonical(updated)
             need(len(index_raw)<MAX_INDEX_BYTES,'INDEX_BYTE_BOUND')
-            with TemporaryDirectory(prefix='keirin-official-sp-record-') as folder:
-                tree=Path(folder)/'tree';archive._cmd(self.repo,'worktree','add','--detach',str(tree),self.head)
-                try:
-                    target=tree/cipher_path;history._create_parent(tree,cipher_path)
-                    need(not target.exists() and not target.is_symlink(),'EVIDENCE_CREATE_ONCE')
-                    with target.open('xb') as stream:stream.write(raw)
-                    index_path=tree/self.path;need(not index_path.is_symlink(),'INDEX_SYMLINK')
-                    index_path.write_bytes(index_raw)
-                    archive._cmd(tree,'add','--',cipher_path,self.path)
-                    archive._cmd(tree,'-c','user.name=RACE-AI','-c','user.email=race-ai@users.noreply.github.com',
-                                 'commit','-m','archive(keirin): encrypted official SP '+kind)
-                    commit=archive._cmd(tree,'rev-parse','HEAD')[1]
-                    code,_=archive._cmd(tree,'push','origin','HEAD:refs/heads/'+archive.BRANCH,okay=True)
-                finally:archive._cmd(self.repo,'worktree','remove','--force',str(tree),okay=True)
+            code, commit = archive._push_archive_files(
+                self.repo, self.head, {cipher_path: raw, self.path: index_raw},
+                'archive(keirin): encrypted official SP ' + kind, replace_path=self.path)
             if code==0:
                 self.refresh()
                 need(archive._cmd(self.repo,'merge-base','--is-ancestor',commit,self.head,okay=True)[0]==0 and
