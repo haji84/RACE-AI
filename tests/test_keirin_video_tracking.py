@@ -66,6 +66,41 @@ class KeirinVideoTrackingTests(unittest.TestCase):
         linked = tracking.track_frames([(0, frame()), (200, frame(179, duplicate=True))], (3, 4, 5, 6))[1]
         self.assertAlmostEqual(linked['riders']['3']['x'], 179, delta=3)
 
+    def test_phase_observations_require_repeated_broadcast_markers(self):
+        from scripts import keirin_video_tracking as tracking
+
+        blank = np.zeros((360,640,3),dtype=np.uint8)
+        bell = blank.copy()
+        bell[77:108,52:85] = (245,185,10)
+        home = blank.copy()
+        home[318:330,575:583] = (220,175,70)
+        home[318:326,533:545] = (220,175,70)
+        home[318:326,550:561] = (220,175,70)
+        home[318:326,603:612] = (220,175,70)
+        frames = [(0,blank), (200,bell), (400,bell), (600,bell),
+                  (800,blank), (2000,home), (2200,home), (2400,home), (2600,home)]
+        labels = tracking.phase_observations(frames)
+        self.assertEqual(labels['BELL']['observed_from_ms'],200)
+        self.assertEqual(labels['HOME']['state'],'BROADCAST_ANCHOR')
+        self.assertEqual(labels['BELL']['source'],'bell_icon')
+        self.assertEqual(labels['HOME']['source'],'last_lap_graphic')
+        self.assertEqual(labels['BACK']['state'],'UNKNOWN')
+        self.assertEqual(tracking.phase_observations([(0,bell)])['BELL']['state'],'UNKNOWN')
+
+    def test_independent_scoring_counts_switches_only_for_unambiguous_same_shot_links(self):
+        from scripts import keirin_video_tracking as tracking
+
+        reference = {at: {'3': (100, 100), '4': (370, 100)} for at in (0, 200, 400, 600)}
+        different_review = {at: {'3': (101, 100), '4': (370, 102)} for at in reference}
+        def observation(at, x, *, cut=False):
+            return dict(at_ms=at, cut_before=cut, riders={'3': {'x': x, 'y': 100, 'track_id': 9}})
+        found = tracking.score_reference([observation(0, 100), observation(200, 370),
+            observation(400, 100, cut=True), observation(600, 100)], reference, different_review,
+            width=640, cars=(3, 4))
+        self.assertEqual(found['identity_links_compared'], 2)
+        self.assertEqual(found['identity_switches_observed'], 1)
+        self.assertEqual(found['camera_cut_intervals_excluded'], 1)
+
     def test_independent_scoring_reports_unknowns_and_different_car_assignments(self):
         from scripts import keirin_video_tracking as tracking
 

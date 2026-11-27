@@ -1,4 +1,4 @@
-"""Resume a private text ledger of KDreams public-player checks, without fetching media."""
+"""Resume a private text ledger of public-player checks, without fetching media."""
 
 import argparse
 import fcntl
@@ -11,18 +11,21 @@ import re
 import sqlite3
 from collections import Counter, defaultdict
 from contextlib import closing
-from datetime import date
+from datetime import date, timedelta
 from pathlib import Path
 from urllib.parse import urlsplit
 
 from scripts.keirin_video_archive_index import official, replay_id
 from scripts.keirin_video_census import DETAIL, compact_id, monthly_key
 from scripts.keirin_video_corpus import output_file, pack, sha, valid_car
+from scripts.keirin_video_sources import WINTICKET_DETAIL, WINTICKET_HOST
 
 
 YENJOY = re.compile(r"/yenjoy/keirin-kaisai/race-card/result/(\d{10})/(\d{14})/(\d{1,2})/")
 STATES = ("failed", "playback_only", "unreadable", "observed")
+PHASES = ("back", "corner")
 FOLLOWER_FIELDS = ("_second_car", "_nearest_follower_car", "_runner_up")
+PHASE_FIELDS = {phase + field for phase in PHASES for field in ("_car", "_seconds", *FOLLOWER_FIELDS)}
 
 
 def race_key(value):
@@ -49,6 +52,21 @@ def source_key(url):
     raise ValueError("expected a KDreams race source")
 
 
+def _winticket_playback_key(url):
+    """Resolve a manually viewed result link using the meeting code and day number."""
+    if not isinstance(url, str):
+        return None
+    bits = urlsplit(url)
+    if bits.netloc != WINTICKET_HOST:
+        return None
+    match = WINTICKET_DETAIL.fullmatch(bits.path)
+    if not match or url != f"https://{WINTICKET_HOST}{bits.path}":
+        raise ValueError("expected a public WINTICKET result page for a single race")
+    _, opened, venue, meeting_day, race = match.groups()
+    day = date.fromisoformat(opened) + timedelta(days=int(meeting_day) - 1)
+    return compact_id(f"{day:%Y%m%d}{venue}{int(race):02d}")
+
+
 def read_rows(path):
     opener = gzip.open if path.suffix == ".gz" else open
     with opener(path, "rt", encoding="utf-8") as stream:
@@ -72,15 +90,19 @@ def validate_note(row, complete_field=None):
         raise ValueError(f"conflicting identifiers: {key}")
     if "race_date" in row and date.fromisoformat(row["race_date"]).strftime("%Y%m%d") != key[:8]:
         raise ValueError(f"conflicting record date: {key}")
-    if source_key(row.get("source_url") or row.get("source_ref")) != key:
+    url = row.get("source_url") or row.get("source_ref")
+    winticket_key = _winticket_playback_key(url)
+    if (winticket_key or source_key(url)) != key:
         raise ValueError(f"wrong race source: {key}")
+    if winticket_key is not None and ("adjudication" in row or PHASE_FIELDS.intersection(row)):
+        raise ValueError(f"WINTICKET manual notes only record viewing status: {key}")
     lengths = [row[name] for name in ("duration_seconds", "player_duration_seconds", "duration_s")
                if row.get(name) is not None]
     if any(type(n) not in (int, float) or not math.isfinite(n) or n <= 0 for n in lengths):
         raise ValueError(f"invalid replay duration: {key}")
     labels = {}
     reported_cars = set()
-    for phase in ("back", "corner"):
+    for phase in PHASES:
         car = row.get(phase + "_car")
         number = row.get(phase + "_seconds")
         if car is not None and not valid_car(car):
@@ -171,10 +193,10 @@ def reduce_race(row, receipts):
     for receipt in receipts:
         entry = receipt["entry"]
         if entry.get("adjudication"):
-            for phase in ("back", "corner"):
+            for phase in PHASES:
                 if phase + "_car" in entry and entry[phase + "_car"] is None:
                     held_phases.add(phase)
-        for phase in ("back", "corner"):
+        for phase in PHASES:
             followers[phase].update(entry[phase + f] for f in FOLLOWER_FIELDS if entry.get(phase + f) is not None)
         for phase, car in receipt["labels"].items():
             positions[phase].add(car)

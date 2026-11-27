@@ -31,6 +31,7 @@ MAX_SECONDS = 180
 MAX_ASSET_BYTES = 512 * 1024 * 1024
 WIDTH = 640
 TAKEO_BIBS = (1, 2, 3, 4, 5, 6)
+PHASES = ('INITIAL', 'BELL', 'HOME', 'BACK', '4C', 'GOAL')
 _SHAPE = np.ones((2, 2), dtype=bool)
 
 
@@ -163,6 +164,47 @@ def track_frames(frames, cars, *, scale=1):
     return tracks
 
 
+def _largest_component(mask):
+    labels, _ = ndimage.label(mask)
+    return int(np.bincount(labels.ravel())[1:].max(initial=0))
+
+
+def _broadcast_episode(sightings, *, max_gap, minimum, source):
+    groups = []
+    for at_ms in sightings:
+        if not groups or at_ms - groups[-1][-1] > max_gap:
+            groups.append([])
+        groups[-1].append(at_ms)
+    accepted = [group for group in groups if len(group) >= minimum]
+    if len(accepted) != 1:
+        return {'state': 'UNKNOWN'}
+    group, = accepted
+    return dict(state='BROADCAST_ANCHOR', source=source, observed_from_ms=group[0],
+                observed_through_ms=group[-1], frames_seen=len(group))
+
+
+def phase_observations(frames):
+    """Find repeated graphic markers in the Takeo broadcast layout.
+
+    The bell icon and last-lap graphic establish visible windows. They do not
+    give the physical bell or home line crossing time.
+    """
+    bell, last_lap = [], []
+    for at_ms, frame in frames:
+        r, g, b = frame[65:135, 35:108].astype(np.int16).transpose(2, 0, 1)
+        if _largest_component((r >= 205) & (g >= 135) & (g <= 230) & (r >= g+15) & (g >= b+60)) >= 850:
+            bell.append(at_ms)
+        r, g, b = frame[298:342, 485:630].astype(np.int16).transpose(2, 0, 1)
+        gold = (r >= 181) & (g >= 122) & (r >= g+10) & (g >= b+38)
+        if (260 <= gold.sum() <= 460 and 65 <= _largest_component(gold) <= 125
+                and gold[4:39, 87:113].sum() >= 80):
+            last_lap.append(at_ms)
+    report = {phase: {'state': 'UNKNOWN'} for phase in PHASES}
+    report['BELL'] = _broadcast_episode(bell, max_gap=1200, minimum=3, source='bell_icon')
+    report['HOME'] = _broadcast_episode(last_lap, max_gap=200, minimum=4, source='last_lap_graphic')
+    return report
+
+
 def _review_points(reference, race_id, media_sha256, cars, width, height):
     if (reference['race_id'], reference['media_sha256']) != (race_id, media_sha256):
         raise ValueError('The review does not bind to the tracked footage.')
@@ -178,6 +220,20 @@ def _review_points(reference, race_id, media_sha256, cars, width, height):
     return points
 
 
+def _identity_links(observations, truth, radius):
+    links = {}
+    for candidate in observations.values():
+        track = candidate.get('track_id')
+        if type(track) is not int:
+            continue
+        matches = [car for car, center in truth.items()
+                   if math.dist(center, (candidate['x'], candidate['y'])) <= radius]
+        if len(matches) == 1:
+            links[track] = matches[0]
+    duplicates = Counter(links.values())
+    return {track: car for track, car in links.items() if duplicates[car] == 1}
+
+
 def score_reference(tracks, first, second, *, width, cars):
     """Compare matching bibs only where the two independent reviews agree spatially."""
     if not first or first.keys() != second.keys():
@@ -187,8 +243,11 @@ def score_reference(tracks, first, second, *, width, cars):
         raise ValueError('Tracked sample timestamps are missing.')
     counts = Counter()
     by_car = {str(car): Counter() for car in cars}
-    for at_ms, earlier in first.items():
+    cuts = [frame['at_ms'] for frame in tracks if frame.get('cut_before')]
+    last_time, last_links = None, {}
+    for at_ms, earlier in sorted(first.items()):
         later, observations = second[at_ms], measured[at_ms]
+        agreed = {}
         for car, total in by_car.items():
             a, b, tracked = earlier.get(car), later.get(car), observations.get(car)
             if a is None or b is None:
@@ -198,6 +257,7 @@ def score_reference(tracks, first, second, *, width, cars):
             else:
                 total['agreed_points'] += 1
                 target = ((a[0]+b[0])/2, (a[1]+b[1])/2)
+                agreed[car] = target
                 if tracked is None:
                     total['tracker_abstentions'] += 1
                 elif math.dist(target, (tracked['x'], tracked['y'])) <= width * .05:
@@ -207,6 +267,15 @@ def score_reference(tracks, first, second, *, width, cars):
                 continue
             if tracked is not None:
                 total['unscored_predictions'] += 1
+        links = _identity_links(observations, agreed, width * .05)
+        if last_time is not None:
+            if any(last_time < cut <= at_ms for cut in cuts):
+                counts['camera_cut_intervals_excluded'] += 1
+            else:
+                common = last_links.keys() & links.keys()
+                counts['identity_links_compared'] += len(common)
+                counts['identity_switches_observed'] += sum(last_links[track] != links[track] for track in common)
+        last_time, last_links = at_ms, links
     for subtotal in by_car.values():
         counts.update(subtotal)
     return dict(annotated_frames=len(first), agreed_points=counts['agreed_points'],
@@ -214,6 +283,9 @@ def score_reference(tracks, first, second, *, width, cars):
                 localized_car_incorrectly=counts['localized_car_incorrectly'],
                 tracker_abstentions=counts['tracker_abstentions'], reference_unknown=counts['reference_unknown'],
                 reviewer_disagreements=counts['reviewer_disagreements'], unscored_predictions=counts['unscored_predictions'],
+                identity_links_compared=counts['identity_links_compared'],
+                identity_switches_observed=counts['identity_switches_observed'],
+                camera_cut_intervals_excluded=counts['camera_cut_intervals_excluded'],
                 by_car={car: dict(subtotal) for car, subtotal in by_car.items()})
 
 
@@ -252,9 +324,11 @@ def _track_clip(media, digest, race_id, cars):
     with media.open('rb') as source:
         if file_digest(source, 'sha256').hexdigest() != digest:
             raise ValueError('The reviewed media changed during tracking.')
-    tracks = track_frames(((index*1000//FPS, frame) for index, frame in enumerate(frames)), cars, scale=width/WIDTH)
+    sampled = [(index*1000//FPS, frame) for index, frame in enumerate(frames)]
+    tracks = track_frames(sampled, cars, scale=width/WIDTH)
     return dict(schema=SCHEMA, race_id=race_id, media_sha256=digest, cars=list(cars), width=width, height=height,
-                tracker_source_sha256=sha256(Path(__file__).read_bytes()).hexdigest(), sample_fps=FPS, tracks=tracks)
+                tracker_source_sha256=sha256(Path(__file__).read_bytes()).hexdigest(), sample_fps=FPS,
+                tracks=tracks, phases=phase_observations(sampled))
 
 
 def main(argv=None):

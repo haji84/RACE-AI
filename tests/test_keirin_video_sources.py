@@ -61,7 +61,8 @@ class CaptureTests(unittest.TestCase):
             queue = root / 'queue.jsonl'
             other = {**RACE, 'race_id': '20240504-13-02', 'race_detail_url':
                      RACE['race_detail_url'].replace('0001/', '0002/')}
-            queue.write_text(json.dumps(other) + '\n' + json.dumps(RACE) + '\n')
+            spoofed = dict(RACE, result_commit='9'*40, result_observed_at='2024-05-04T00:00:00+00:00')
+            queue.write_text(json.dumps(other) + '\n' + json.dumps(spoofed) + '\n')
             evidence = root / 'test-rights'
             evidence.write_bytes(b'synthetic rightsholder evidence')
             approval = root / 'review.json'
@@ -85,6 +86,21 @@ class CaptureTests(unittest.TestCase):
             proof = json.loads((root / 'captures' / '202405041301' / 'source-approval.json').read_text())
             self.assertEqual(proof['race_id'], RACE['race_id'])
             self.assertEqual(proof['decision_sha256'], sha256(approval.read_bytes()).hexdigest())
+            self.assertNotIn('result_discovery', proof)
+
+            queue.write_text(json.dumps(RACE) + '\n')
+            calendar = dict(race_id=RACE['race_id'], commit='a'*40, observed_at='2024-05-04T04:00:00+00:00')
+            options = dict(continuous=True, source_approval=approval, interval=3, pause=0, limit=1,
+                           executable='unused', stop_after_refusal=True)
+            with (patch.dict('sys.modules', {'playwright.sync_api': api}),
+                  patch.object(source, 'record_digest', side_effect=fake_clip)):
+                with self.assertRaisesRegex(ValueError,'Invalid replay calendar result time'):
+                    source.run(queue, root/'invalid', calendar_result=dict(calendar,observed_at='2024-04-04T00:00:00+00:00'),
+                               **options)
+                self.assertEqual(source.run(queue, root/'calendar', calendar_result=calendar, **options)['captured'],1)
+            traced = json.loads((root/'calendar/202405041301/source-approval.json').read_bytes())
+            self.assertEqual(traced['result_discovery'], dict(commit=calendar['commit'],
+                observed_at=calendar['observed_at'], scope='two_source_confirmed_end'))
 
     def test_listing_binds_track_and_race_with_cross_month_meeting(self):
         self.assertEqual(source.target(RACE)[0], '202405041301')
