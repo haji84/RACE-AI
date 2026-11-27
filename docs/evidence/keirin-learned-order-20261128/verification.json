@@ -1,0 +1,496 @@
+{
+  "comparative_all_archive": {
+    "all/exactas": {
+      "display-two-component-equal-weight:Hit@1": 295,
+      "display-two-component-equal-weight:Hit@1:paired": 1574,
+      "display-two-component-equal-weight:Hit@1:paired_existing_hits": 295,
+      "display-two-component-equal-weight:Hit@1:paired_learned_hits": 377,
+      "display-two-component-equal-weight:Hit@2": 443,
+      "display-two-component-equal-weight:Hit@2:paired": 1561,
+      "display-two-component-equal-weight:Hit@2:paired_existing_hits": 440,
+      "display-two-component-equal-weight:Hit@2:paired_learned_hits": 609,
+      "display-two-component-equal-weight:forecast": 1574,
+      "display-two-component-equal-weight:log_loss_sum": 26428.03998999935,
+      "eligible": 1639,
+      "keirin-conditional-order-trees-v1:Hit@1": 394,
+      "keirin-conditional-order-trees-v1:Hit@2": 637,
+      "keirin-conditional-order-trees-v1:forecast": 1639,
+      "keirin-conditional-order-trees-v1:log_loss_sum": 4518.747817051255,
+      "observed-ability-on-evidenced-scenarios:Hit@1": 296,
+      "observed-ability-on-evidenced-scenarios:Hit@1:paired": 1613,
+      "observed-ability-on-evidenced-scenarios:Hit@1:paired_existing_hits": 296,
+      "observed-ability-on-evidenced-scenarios:Hit@1:paired_learned_hits": 387,
+      "observed-ability-on-evidenced-scenarios:Hit@2": 455,
+      "observed-ability-on-evidenced-scenarios:Hit@2:paired": 1600,
+      "observed-ability-on-evidenced-scenarios:Hit@2:paired_existing_hits": 452,
+      "observed-ability-on-evidenced-scenarios:Hit@2:paired_learned_hits": 624,
+      "observed-ability-on-evidenced-scenarios:forecast": 1613,
+      "observed-ability-on-evidenced-scenarios:log_loss_sum": 26584.08743163834,
+      "role-and-pace-on-evidenced-scenarios:Hit@1": 293,
+      "role-and-pace-on-evidenced-scenarios:Hit@1:paired": 1574,
+      "role-and-pace-on-evidenced-scenarios:Hit@1:paired_existing_hits": 293,
+      "role-and-pace-on-evidenced-scenarios:Hit@1:paired_learned_hits": 377,
+      "role-and-pace-on-evidenced-scenarios:Hit@2": 442,
+      "role-and-pace-on-evidenced-scenarios:Hit@2:paired": 1561,
+      "role-and-pace-on-evidenced-scenarios:Hit@2:paired_existing_hits": 439,
+      "role-and-pace-on-evidenced-scenarios:Hit@2:paired_learned_hits": 609,
+      "role-and-pace-on-evidenced-scenarios:forecast": 1574,
+      "role-and-pace-on-evidenced-scenarios:log_loss_sum": 26431.37340855835
+    },
+    "all/trifectas": {
+      "display-two-component-equal-weight:Hit@1": 90,
+      "display-two-component-equal-weight:Hit@12": 425,
+      "display-two-component-equal-weight:Hit@12:paired": 1157,
+      "display-two-component-equal-weight:Hit@12:paired_existing_hits": 316,
+      "display-two-component-equal-weight:Hit@12:paired_learned_hits": 538,
+      "display-two-component-equal-weight:Hit@1:paired": 1574,
+      "display-two-component-equal-weight:Hit@1:paired_existing_hits": 90,
+      "display-two-component-equal-weight:Hit@1:paired_learned_hits": 195,
+      "display-two-component-equal-weight:Hit@2": 162,
+      "display-two-component-equal-weight:Hit@2:paired": 1565,
+      "display-two-component-equal-weight:Hit@2:paired_existing_hits": 160,
+      "display-two-component-equal-weight:Hit@2:paired_learned_hits": 314,
+      "display-two-component-equal-weight:Hit@4": 259,
+      "display-two-component-equal-weight:Hit@4:paired": 1557,
+      "display-two-component-equal-weight:Hit@4:paired_existing_hits": 257,
+      "display-two-component-equal-weight:Hit@4:paired_learned_hits": 443,
+      "display-two-component-equal-weight:Hit@9": 382,
+      "display-two-component-equal-weight:Hit@9:paired": 1335,
+      "display-two-component-equal-weight:Hit@9:paired_existing_hits": 331,
+      "display-two-component-equal-weight:Hit@9:paired_learned_hits": 536,
+      "display-two-component-equal-weight:forecast": 1574,
+      "display-two-component-equal-weight:log_loss_sum": 38606.63841946602,
+      "eligible": 1639,
+      "keirin-conditional-order-trees-v1:Hit@1": 202,
+      "keirin-conditional-order-trees-v1:Hit@12": 793,
+      "keirin-conditional-order-trees-v1:Hit@2": 326,
+      "keirin-conditional-order-trees-v1:Hit@4": 465,
+      "keirin-conditional-order-trees-v1:Hit@9": 694,
+      "keirin-conditional-order-trees-v1:forecast": 1639,
+      "keirin-conditional-order-trees-v1:log_loss_sum": 6760.008787097949,
+      "observed-ability-on-evidenced-scenarios:Hit@1": 94,
+      "observed-ability-on-evidenced-scenarios:Hit@12": 440,
+      "observed-ability-on-evidenced-scenarios:Hit@12:paired": 1195,
+      "observed-ability-on-evidenced-scenarios:Hit@12:paired_existing_hits": 331,
+      "observed-ability-on-evidenced-scenarios:Hit@12:paired_learned_hits": 557,
+      "observed-ability-on-evidenced-scenarios:Hit@1:paired": 1613,
+      "observed-ability-on-evidenced-scenarios:Hit@1:paired_existing_hits": 94,
+      "observed-ability-on-evidenced-scenarios:Hit@1:paired_learned_hits": 199,
+      "observed-ability-on-evidenced-scenarios:Hit@2": 166,
+      "observed-ability-on-evidenced-scenarios:Hit@2:paired": 1604,
+      "observed-ability-on-evidenced-scenarios:Hit@2:paired_existing_hits": 164,
+      "observed-ability-on-evidenced-scenarios:Hit@2:paired_learned_hits": 319,
+      "observed-ability-on-evidenced-scenarios:Hit@4": 268,
+      "observed-ability-on-evidenced-scenarios:Hit@4:paired": 1596,
+      "observed-ability-on-evidenced-scenarios:Hit@4:paired_existing_hits": 266,
+      "observed-ability-on-evidenced-scenarios:Hit@4:paired_learned_hits": 454,
+      "observed-ability-on-evidenced-scenarios:Hit@9": 396,
+      "observed-ability-on-evidenced-scenarios:Hit@9:paired": 1373,
+      "observed-ability-on-evidenced-scenarios:Hit@9:paired_existing_hits": 345,
+      "observed-ability-on-evidenced-scenarios:Hit@9:paired_learned_hits": 555,
+      "observed-ability-on-evidenced-scenarios:forecast": 1613,
+      "observed-ability-on-evidenced-scenarios:log_loss_sum": 38812.85545492945,
+      "role-and-pace-on-evidenced-scenarios:Hit@1": 90,
+      "role-and-pace-on-evidenced-scenarios:Hit@12": 421,
+      "role-and-pace-on-evidenced-scenarios:Hit@12:paired": 1157,
+      "role-and-pace-on-evidenced-scenarios:Hit@12:paired_existing_hits": 312,
+      "role-and-pace-on-evidenced-scenarios:Hit@12:paired_learned_hits": 538,
+      "role-and-pace-on-evidenced-scenarios:Hit@1:paired": 1574,
+      "role-and-pace-on-evidenced-scenarios:Hit@1:paired_existing_hits": 90,
+      "role-and-pace-on-evidenced-scenarios:Hit@1:paired_learned_hits": 195,
+      "role-and-pace-on-evidenced-scenarios:Hit@2": 165,
+      "role-and-pace-on-evidenced-scenarios:Hit@2:paired": 1565,
+      "role-and-pace-on-evidenced-scenarios:Hit@2:paired_existing_hits": 163,
+      "role-and-pace-on-evidenced-scenarios:Hit@2:paired_learned_hits": 314,
+      "role-and-pace-on-evidenced-scenarios:Hit@4": 257,
+      "role-and-pace-on-evidenced-scenarios:Hit@4:paired": 1557,
+      "role-and-pace-on-evidenced-scenarios:Hit@4:paired_existing_hits": 255,
+      "role-and-pace-on-evidenced-scenarios:Hit@4:paired_learned_hits": 443,
+      "role-and-pace-on-evidenced-scenarios:Hit@9": 384,
+      "role-and-pace-on-evidenced-scenarios:Hit@9:paired": 1335,
+      "role-and-pace-on-evidenced-scenarios:Hit@9:paired_existing_hits": 333,
+      "role-and-pace-on-evidenced-scenarios:Hit@9:paired_learned_hits": 536,
+      "role-and-pace-on-evidenced-scenarios:forecast": 1574,
+      "role-and-pace-on-evidenced-scenarios:log_loss_sum": 38610.03754669352
+    }
+  },
+  "coverage": {
+    "candidate_generated": 1642,
+    "exactas_known_settlement": 1639,
+    "exactas_multiple_winning_tickets": 6,
+    "scheduled_in_archive": 1642,
+    "trifectas_known_settlement": 1639,
+    "trifectas_multiple_winning_tickets": 9
+  },
+  "day_jst": "2026-11-28",
+  "fixed_set_calibration": {
+    "exactas/Hit@1/LOW": {
+      "brier": 0.1692903171718928,
+      "hits": 385,
+      "mean_probability": 0.24938046259829344,
+      "observed_rate": 0.23677736777367775,
+      "races": 1626
+    },
+    "exactas/Hit@1/MEDIUM": {
+      "brier": 0.2224414940725102,
+      "hits": 9,
+      "mean_probability": 0.6487282020830727,
+      "observed_rate": 0.6923076923076923,
+      "races": 13
+    },
+    "exactas/Hit@2/HIGH": {
+      "races": 1,
+      "status": "SMALL_GROUP"
+    },
+    "exactas/Hit@2/LOW": {
+      "brier": 0.22088047538407432,
+      "hits": 560,
+      "mean_probability": 0.36041101741443715,
+      "observed_rate": 0.36769533814839134,
+      "races": 1523
+    },
+    "exactas/Hit@2/MEDIUM": {
+      "brier": 0.22135053488196654,
+      "hits": 76,
+      "mean_probability": 0.6613484758634045,
+      "observed_rate": 0.6608695652173913,
+      "races": 115
+    },
+    "trifectas/Hit@1/LOW": {
+      "brier": 0.10190844713702846,
+      "hits": 202,
+      "mean_probability": 0.11693661109853085,
+      "observed_rate": 0.12324588163514338,
+      "races": 1639
+    },
+    "trifectas/Hit@12/HIGH": {
+      "brier": 0.09762580266525746,
+      "hits": 28,
+      "mean_probability": 0.8330950893273816,
+      "observed_rate": 0.9032258064516129,
+      "races": 31
+    },
+    "trifectas/Hit@12/LOW": {
+      "brier": 0.23917611671253033,
+      "hits": 576,
+      "mean_probability": 0.42338871926801114,
+      "observed_rate": 0.43471698113207546,
+      "races": 1325
+    },
+    "trifectas/Hit@12/MEDIUM": {
+      "brier": 0.21990697623526972,
+      "hits": 189,
+      "mean_probability": 0.6786829038851981,
+      "observed_rate": 0.6678445229681979,
+      "races": 283
+    },
+    "trifectas/Hit@2/LOW": {
+      "brier": 0.14812901570736414,
+      "hits": 326,
+      "mean_probability": 0.18814347580904342,
+      "observed_rate": 0.19890176937156803,
+      "races": 1639
+    },
+    "trifectas/Hit@4/LOW": {
+      "brier": 0.1896154291221016,
+      "hits": 451,
+      "mean_probability": 0.27639157252657065,
+      "observed_rate": 0.2790841584158416,
+      "races": 1616
+    },
+    "trifectas/Hit@4/MEDIUM": {
+      "brier": 0.2393207916188772,
+      "hits": 14,
+      "mean_probability": 0.6402919597505781,
+      "observed_rate": 0.6086956521739131,
+      "races": 23
+    },
+    "trifectas/Hit@9/HIGH": {
+      "brier": 0.14979341547567201,
+      "hits": 9,
+      "mean_probability": 0.8214833296553118,
+      "observed_rate": 0.8181818181818182,
+      "races": 11
+    },
+    "trifectas/Hit@9/LOW": {
+      "brier": 0.2290678705452869,
+      "hits": 563,
+      "mean_probability": 0.3842252888908206,
+      "observed_rate": 0.39015939015939016,
+      "races": 1443
+    },
+    "trifectas/Hit@9/MEDIUM": {
+      "brier": 0.21726628825276015,
+      "hits": 122,
+      "mean_probability": 0.6689701125028636,
+      "observed_rate": 0.6594594594594595,
+      "races": 185
+    }
+  },
+  "fixed_set_virtual_returns": {
+    "exactas/Hit@1": {
+      "max_day_net_drawdown_yen": 42520,
+      "payout_yen": 121380,
+      "return_rate": 0.7405735204392923,
+      "stake_yen": 163900
+    },
+    "exactas/Hit@2": {
+      "max_day_net_drawdown_yen": 70500,
+      "payout_yen": 257300,
+      "return_rate": 0.7849298352654057,
+      "stake_yen": 327800
+    },
+    "trifectas/Hit@1": {
+      "max_day_net_drawdown_yen": 28290,
+      "payout_yen": 135610,
+      "return_rate": 0.8273947528981086,
+      "stake_yen": 163900
+    },
+    "trifectas/Hit@12": {
+      "max_day_net_drawdown_yen": 516550,
+      "payout_yen": 1456900,
+      "return_rate": 0.7407463900752491,
+      "stake_yen": 1966800
+    },
+    "trifectas/Hit@2": {
+      "max_day_net_drawdown_yen": 64410,
+      "payout_yen": 265660,
+      "return_rate": 0.8104331909701037,
+      "stake_yen": 327800
+    },
+    "trifectas/Hit@4": {
+      "max_day_net_drawdown_yen": 178610,
+      "payout_yen": 484270,
+      "return_rate": 0.7386668700427089,
+      "stake_yen": 655600
+    },
+    "trifectas/Hit@9": {
+      "max_day_net_drawdown_yen": 405800,
+      "payout_yen": 1077290,
+      "return_rate": 0.7303165887058505,
+      "stake_yen": 1475100
+    }
+  },
+  "frozen_evaluation_forecasts_at": "2026-11-27T15:24:21.677064+00:00",
+  "frozen_evaluation_forecasts_sha256": "e97ed42cd467420a31ebb2cf786838527b460bba3ea29b876d86febe7034cf14",
+  "model": {
+    "archive_commit": "2a1260fb0940ad11160b56a36f9c24cc4fb2f6d2",
+    "archive_sha256": [
+      "1bdad22b9744c9c5563f7bb1af31875170a3e6b7f4b0dd73fba8f98d645d8fc4",
+      "d915560877493816b90df8bcd5e7bdef45557f57100b4cd40a3d017cd959334d"
+    ],
+    "calibration": {
+      "log_loss": {
+        "0.8": 4.2386676533867735,
+        "0.9": 4.1967746314994,
+        "1.0": 4.185389782431763,
+        "1.1": 4.19257528320632,
+        "1.25": 4.2229506750349834,
+        "1.5": 4.2957982970070105
+      },
+      "races": 1714,
+      "temperature": 1.0
+    },
+    "calibration_results_before": "20261031",
+    "calibration_window": [
+      "20261001",
+      "20261029"
+    ],
+    "evaluation_window": [
+      "20261101",
+      "20261122"
+    ],
+    "features": [
+      "mark_rank",
+      "points",
+      "win_rate",
+      "top2_rate",
+      "top3_rate",
+      "age",
+      "gear",
+      "points_vs_field",
+      "style",
+      "rider_class",
+      "line_role",
+      "line_size",
+      "leader_points_vs_field",
+      "line_points_vs_field",
+      "line_points_max_vs_field",
+      "field_size",
+      "lines_known",
+      "line_count",
+      "largest_line",
+      "venue",
+      "meeting_grade",
+      "round_stage",
+      "competition",
+      "mark_count",
+      "stage",
+      "same_line_first",
+      "same_line_second",
+      "position_vs_first",
+      "position_vs_second",
+      "points_vs_first",
+      "points_vs_second",
+      "first_style",
+      "second_style",
+      "first_role",
+      "second_role"
+    ],
+    "fit_inventory": 27147,
+    "fit_labels": 27019,
+    "fit_results_before": "20260930",
+    "fit_window": [
+      "20251001",
+      "20260929"
+    ],
+    "fitted_at": "2026-11-27T15:24:09.824602+00:00",
+    "frozen_at": "2026-11-27T15:24:13.032656+00:00",
+    "lightgbm": "4.6.0",
+    "model_id": "keirin-conditional-order-trees-v1",
+    "tree_sha256": "17d8fddfbe4f6ba25871c9e869175e5ca2ca5e7475e96ab5f5b6a19e1bf0d7c6"
+  },
+  "odds_clock_audit": {
+    "day": "2026-11-27",
+    "latest_odds_quotes": 659,
+    "latest_odds_races": 73,
+    "odds_release_tip": "dfbb9db7ff68cc1dccc574fd0e28cad14f6ef0b7",
+    "official_archive_commit": "2b484cafb8232019651256a22220db8caf249a54",
+    "official_original_count": 60,
+    "owns_exacta_odds": false,
+    "provider_requests": 0,
+    "scope": "ARCHIVED_PUBLIC_ODDS_CLOCK_METADATA_ONLY",
+    "t15_counts": {
+      "missing_race": 5,
+      "published_after_t15": 1,
+      "stale_at_t15": 54
+    },
+    "versions": [
+      "3b54453fcc88f7f25c9403472b8dcb560aa9041f",
+      "4ab27db266f82b8181554d6792372ac5042d4ff6",
+      "4d1e89e202f17d1665db915342c0ad52e73d4148",
+      "7947d9ff5ca2297f3f3436d350a0c5d18af38514",
+      "97bd004b8ae2862159dc52d26c69c37b80850277",
+      "fa098b14a5a5a662532a11f54cf17ff60bc41289"
+    ]
+  },
+  "operational_confidence_status": "HOLD_CALIBRATION_SERIES_MISSING",
+  "provider_requests": 0,
+  "readback_at": "2026-11-27T15:30:25.324374+00:00",
+  "schema": "RACE_AI_KEIRIN_LEARNED_ORDER_RESEARCH_RECEIPT_V1",
+  "scope": "RETROSPECTIVE_ARCHIVE_NO_PRE_CUTOFF_ATTESTATION",
+  "sealed_model": {
+    "plaintext_sha256": "bb15508e0541f9aeaf676d7e59f51f77f87187e607951de39d2596190e65160d",
+    "sealed_at": "2026-11-27T15:34:30.657334+00:00",
+    "sealed_sha256": "ba14eb787dca7d0a6b94af4e322f5a1b85ea9e5e90d4fae84d23ed7bdca87386"
+  },
+  "source_files_sha256": {
+    "race_ai/keirin_calibrated_selection.py": "e7b8317fd411a87cb9c546b816a668ba3699ef1e43c84e09d57ae02f73cd1b42",
+    "race_ai/keirin_learned_order.py": "9fb5de6869ba081e85074b1fed39f2f0dac3542905804a41e999de330f55655e",
+    "scripts/keirin_learned_order_study.py": "1a0a2da161f50563b98a47752b4fb5c8553f9362c43e21968ff7786310013139"
+  },
+  "stronger_existing_models_common_races": {
+    "archived": 1642,
+    "common_race_set_sha256": "91f8725d6577ebf341427867a89413c8b736c45423c37579e45dc5bdde98ad53",
+    "days": 22,
+    "evaluation_window": [
+      "20261101",
+      "20261122"
+    ],
+    "frozen_at": "2026-11-27T15:27:04.154372+00:00",
+    "hits": {
+      "all_96": {
+        "exacta_top1": 363,
+        "exacta_top2": 579,
+        "trifecta_top1": 195,
+        "trifecta_top4": 450,
+        "trifecta_top8": 623
+      },
+      "keirin-conditional-order-trees-v1": {
+        "exacta_top1": 369,
+        "exacta_top2": 596,
+        "trifecta_top1": 193,
+        "trifecta_top4": 440,
+        "trifecta_top8": 614
+      },
+      "saved": {
+        "exacta_top1": 367,
+        "exacta_top2": 568,
+        "trifecta_top1": 185,
+        "trifecta_top4": 431,
+        "trifecta_top8": 606
+      }
+    },
+    "model_feature_holds": {},
+    "model_sha256": {
+      "PR327_saved_and_all_96": "d393bbb129470e9d14aaac28bc79a5b7565035a5d1eaf7f832a56b89ccb13c02",
+      "keirin-conditional-order-trees-v1": "634a75078328fc061d2ed92e4f0ab0fb1fc00e9a4331d4842887a923b758deb8"
+    },
+    "new_forecasts_sha256": "e97ed42cd467420a31ebb2cf786838527b460bba3ea29b876d86febe7034cf14",
+    "new_races": 1642,
+    "old_forecasts_sha256": "a2d0da7398667f87e8f38267f41135024f5405b1b5f0823ab24b322299294021",
+    "old_input_holds": {
+      "ABSENT_ENTRY": 24,
+      "CONTESTED_LINE_POSITION": 19
+    },
+    "paired_day_bootstrap_95_new_minus": {
+      "all_96": {
+        "exacta_top1": [
+          -0.009391416063951274,
+          0.015717607652420362
+        ],
+        "exacta_top2": [
+          -0.0033903507757763545,
+          0.02445477061122446
+        ],
+        "trifecta_top1": [
+          -0.012443106058166125,
+          0.009868583469041266
+        ],
+        "trifecta_top4": [
+          -0.01696180507481147,
+          0.0034275960684757626
+        ],
+        "trifecta_top8": [
+          -0.015989873773277232,
+          0.005168461376044398
+        ]
+      },
+      "saved": {
+        "exacta_top1": [
+          -0.01138704333871265,
+          0.013378150282288573
+        ],
+        "exacta_top2": [
+          0.003944257181667254,
+          0.03232302284287892
+        ],
+        "trifecta_top1": [
+          -0.004196320194211972,
+          0.01636179262761351
+        ],
+        "trifecta_top4": [
+          -0.003892070518279778,
+          0.017184970493971722
+        ],
+        "trifecta_top8": [
+          -0.005421727056776741,
+          0.016881342745593938
+        ]
+      }
+    },
+    "prior_input_common": 1598,
+    "prior_result_common_before_new_intersection": 1495,
+    "production_promoted": false,
+    "races": 1495,
+    "refitted": false,
+    "result_admission_holds": {
+      "ABSENT_ENTRY": 24,
+      "CONTESTED_LINE_POSITION": 19,
+      "INCOMPLETE_OR_SPECIAL_RESULT": 103
+    },
+    "scope": "RETROSPECTIVE_CHRONOLOGICAL_ARCHIVE_SAME_RACE_STRICT_PR327",
+    "scored_at": "2026-11-27T15:27:05.495693+00:00"
+  },
+  "verified_report_sha256": "dcf2dbb8f4f48a6c0fa17f62f44d2e338036cf423fff7ab6a1c17f41d05b2827"
+}
