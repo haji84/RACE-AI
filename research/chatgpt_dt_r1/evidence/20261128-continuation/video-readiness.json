@@ -1,0 +1,232 @@
+{
+  "as_of": "2026-11-27T22:30:48+00:00",
+  "audit_scope": {
+    "model_training_identity_coverage": "NOT_INFERRED_FROM_PUBLIC_WEIGHTS",
+    "normalized_target_inputs_supplied": false,
+    "note": "Public projections are counted separately and never converted into source-authenticated DT-R1 inputs.",
+    "private_motion_records_supplied": false,
+    "private_phase_records_supplied": false,
+    "synthetic_data_used_for_this_report": false
+  },
+  "bounded_source_continuation": {
+    "all_prediction_coverage_complete": false,
+    "baseline_hold_reasons": {
+      "OFFICIAL_EXTENSION_LINE_GROUP_COUNT_OR_LABEL_UNKNOWN": 4,
+      "OFFICIAL_EXTENSION_LINE_NOT_PUBLISHED": 4
+    },
+    "claim_commit": "80c86253c414ee2b6052972ccf200e8ce5dfa060",
+    "day_inventory_complete": true,
+    "finish_commit": "3523e23734e79c721c4c32ceb88f6d3fc65e618a",
+    "finish_state": "PARTIAL",
+    "gate_changed": false,
+    "general_source_release": false,
+    "global_pause": false,
+    "global_pause_inference_basis": "Per-run finish closes one lease; capture/publish/settle succeeded and provider_denied is false.",
+    "legacy_incident_resolved": false,
+    "new_encrypted_originals": 0,
+    "new_source_requests_by_auditor": 0,
+    "provider_denied": false,
+    "registered_races": 78,
+    "request_limit": 300,
+    "requests_consumed": 28,
+    "run_id": 46076010624,
+    "safe_artifact_id": 15235905341,
+    "safe_artifact_zip_sha256": "9ea05a3953aa08dcb6a3130118bc669ef45cc525b69d8da4565e3c70466d705a",
+    "safe_summary_sha256": "6d9636b63075bf7f892bcc75ff7677fe8d98d0dee7ceabb7808b77c892294e7c",
+    "source_commit": "837189bc2e5a54af6a02555a658a44af0d9cab58",
+    "status_counts": {
+      "BASELINE_SOURCE_UNVERIFIED": 8,
+      "FROZEN_ORIGINAL_PRESERVED": 40,
+      "SOURCE_CAPTURE_BUDGET_PENDING": 26,
+      "UNSUPPORTED_CLASS_OR_ROUND": 4
+    }
+  },
+  "frozen_model": {
+    "artifact_integrity_verified": true,
+    "feature_columns": 462,
+    "model_sha256": "5e022092a35c0258954090c6f3d0f8fa14f03f22511b28d6aa9183f5a38c381c",
+    "motion_columns_with_nonzero_weight": 0,
+    "motion_feature_columns": 64,
+    "observation_counts_inferred_from_weights": false,
+    "source_admission": "NOT_PERFORMED",
+    "supplied": true,
+    "timing_sidecar_declared": false,
+    "weather_context_columns_with_nonzero_weight": 0,
+    "weather_context_feature_columns": 10,
+    "weather_sidecar_declared": false
+  },
+  "future_public_inventory": {
+    "cutoffs_after_observed_at": 40,
+    "day": "2026-11-28",
+    "earliest_known_cutoff": "2026-11-28T08:47:00+09:00",
+    "known_cutoffs": 40,
+    "latest_known_cutoff": "2026-11-28T20:27:00+09:00",
+    "not_normalized_dt_r1_inputs": true,
+    "pin": "bf4f4bbac94b70bd9cc7f0423d0e20e36fcc4b06",
+    "published_at": "2026-11-27T19:52:51.289604+00:00",
+    "registered_races": 78,
+    "result_ref": "7eeb7ab8a39ae38358d69429e06e620696d1e647",
+    "result_roster_day_present": false,
+    "result_roster_http_status": 404,
+    "rider_context_coverage": {
+      "comments_confirmed": 128,
+      "comments_held": 150,
+      "comments_missing": 0,
+      "registered_races": 40,
+      "registered_riders": 278,
+      "verified_races": 40,
+      "verified_riders": 278
+    },
+    "rider_context_path": "rider-context/2026-11-28.json",
+    "source": "forecasts/2026-11-28.json",
+    "starters_path": "starters/2026-11-28.json",
+    "starters_races": 40,
+    "starters_registrations": 278,
+    "status_counts": {
+      "pending": 38,
+      "saved": 40
+    }
+  },
+  "identity": {
+    "duplicate_target_race_groups": 0,
+    "identity_unusable": 0,
+    "missing_official_registration": 0,
+    "rider_targets": 0,
+    "target_races": 0
+  },
+  "independent_source_authentication": false,
+  "input_bytes_sha256": {
+    "frozen_model": "dab8c7f014c41ac18e4fed1ae28ac9b36e994611d1fcf5992f8b06e31a4c618b",
+    "public_observations": "5b94663ed835818baf26dd532f1ac92ecef74f1dbbd3e078e3634cc054863f07",
+    "public_starters": "860fe2ecba0fa6a3213f3d4477155b5ff3321a37b633749cf639e4eb06755600"
+  },
+  "modifies_models_or_originals": false,
+  "motion": {
+    "duplicate_race_rider_groups": 0,
+    "joined_observation_uses": 0,
+    "joint_schema_valid": true,
+    "missing_fields": {
+      "identity_receipt_sha256": 0,
+      "measurement_evidence": 0,
+      "measurement_receipt_sha256": 0,
+      "registration_id": 0,
+      "rider_id": 0
+    },
+    "missing_provenance": {
+      "available_at": 0,
+      "kind": 0,
+      "retrieved_at": 0,
+      "reviewed_at": 0,
+      "reviewer_id": 0,
+      "source_sha256": 0,
+      "source_url": 0
+    },
+    "rider_targets_with_history": 0,
+    "schema_rejected": 0,
+    "schema_valid": 0,
+    "source_admission": "NOT_PERFORMED",
+    "supplied": 0,
+    "target_races_with_history": 0,
+    "unavailable_by_as_of": 0
+  },
+  "phases": {
+    "by_phase": {
+      "BELL": 0,
+      "FINAL_BACK": 0,
+      "FINAL_HOME": 0,
+      "FOURTH_CORNER": 0,
+      "GOAL": 0,
+      "INITIAL": 0
+    },
+    "complete_order_matching_supplied_roster": 0,
+    "declared_complete": 0,
+    "duplicate_race_phase_groups": 0,
+    "existing_fitter_required": true,
+    "missing_provenance": {
+      "available_at": 0,
+      "kind": 0,
+      "retrieved_at": 0,
+      "reviewed_at": 0,
+      "reviewer_id": 0,
+      "source_sha256": 0,
+      "source_url": 0
+    },
+    "schema_rejected": 0,
+    "schema_valid": 0,
+    "supplied": 0,
+    "training_admission": "NOT_PERFORMED",
+    "unavailable_by_as_of": 0,
+    "unreviewed_source": 0
+  },
+  "public_observations": {
+    "by_phase": {
+      "back": 141,
+      "corner": 97,
+      "home": 29,
+      "other": 0
+    },
+    "checkpoints": 267,
+    "conversion_to_training_records": "NOT_PERFORMED",
+    "declared_race_count_matches": true,
+    "missing": {
+      "complete_order": 267,
+      "media_sha256": 267,
+      "receipt": 267,
+      "reviewed_at": 267,
+      "reviewer_id": 267,
+      "source_sha256": 267
+    },
+    "races": 125,
+    "races_with_leader_registration": 111,
+    "usable_as_complete_phase_labels": 0
+  },
+  "public_starters": {
+    "normalized_input_created": false,
+    "races": 40,
+    "registration_missing": 0,
+    "registration_present": 278,
+    "rider_entries": 278,
+    "source_admission": "NOT_PERFORMED"
+  },
+  "real_media_replayed": false,
+  "schema": "dt-r1-evidence-readiness-v1",
+  "source_pins": {
+    "frozen_model": {
+      "byte_length": 54355,
+      "commit": "410596da678beddcef6f8ca645cdc4e970f2d0fb",
+      "git_blob": "1012088b18ddb15e2e1a1fc051a19e520f34e1db",
+      "path": "research/chatgpt-dt-r1/20261128/497154664f90725024836fbfe7cc84def152ccadb13868ccae0edb7b14c8cc4f/frozen_model.json",
+      "repository": "haji84/RACE-AI"
+    },
+    "public_observations": {
+      "byte_length": 187694,
+      "commit": "5e372be988d31926f7c2a3f751ef15592af7b4d3",
+      "git_blob": "4a4b000451024e77a53a9e7556b6ab01129e3180",
+      "path": "docs/evidence/keirin-video-corpus-20261124/public-race-observations.json",
+      "repository": "haji84/RACE-AI"
+    },
+    "public_starters": {
+      "byte_length": 20143,
+      "commit": "bf4f4bbac94b70bd9cc7f0423d0e20e36fcc4b06",
+      "git_blob": "86b608cf5bb558efa83f98891a2b7a413c8dc5f6",
+      "path": "starters/2026-11-28.json",
+      "repository": "haji84/RACE-AI"
+    }
+  },
+  "status": "DIAGNOSTIC_ONLY",
+  "weather": {
+    "missing": 0,
+    "missing_fields": {
+      "available_at": 0,
+      "issued_at": 0,
+      "kind": 0,
+      "source_sha256": 0
+    },
+    "rejected_by_existing_filter": 0,
+    "source_admission": "NOT_PERFORMED",
+    "source_clock_schema_accepted": 0,
+    "supplied": 0,
+    "target_races": 0,
+    "with_usable_numeric_values": 0
+  }
+}

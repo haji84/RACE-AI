@@ -145,11 +145,16 @@ def leader_prob(model,row):
     return dict(zip((r['car'] for r in row['riders']),map(float,p)))
 
 
-def mixture(leader,conditional,row):
+def mixture(leader,conditional,row,*,full=False):
     """No target labels consulted. Marginalize all scenario distributions."""
-    p=leader_prob(leader,row);mass=Counter();by_leader={}
+    p=leader_prob(leader,row);mass=Counter();by_leader={};ranks={}
     for car,weight in p.items():
-        triples=conditional.distribution(scenario_row(row,car))['trifectas']
+        law=conditional.distribution(scenario_row(row,car),full=full);triples=law['trifectas']
+        if full:
+            for rider in law['riders']:
+                c=rider['car']
+                ranks.setdefault(c,np.zeros(len(row['riders'])))
+                ranks[c]+=weight*np.asarray(rider['rank_probabilities'])
         conditional_wins=Counter()
         for t in triples:
             order=tuple(t['cars']);prob=t['probability']
@@ -163,58 +168,75 @@ def mixture(leader,conditional,row):
     for k,v in mass.items():
         wins[k[0]]+=v;exacta[k[:2]]+=v
     favorite=max(wins,key=lambda c:(wins[c],-c))
-    return {'trifectas':[{'cars':list(k),'probability':v} for k,v in sorted(mass.items(),key=lambda t:(-t[1],t[0]))],
+    out={'trifectas':[{'cars':list(k),'probability':v} for k,v in sorted(mass.items(),key=lambda t:(-t[1],t[0]))],
             'exactas':[{'cars':list(k),'probability':v} for k,v in sorted(exacta.items(),key=lambda t:(-t[1],t[0]))],
             'back_leader':p,'favorite_car':favorite,
             'favorite_loss_by_back_leader':[{'back_leader':c,'scenario_probability':w,
                  'conditional_loss_probability':max(0.,min(1.,1-by_leader[c][favorite]))} for c,w in sorted(p.items())],
+            'distribution_condition':'ordered_numeric_finish_without_ties; incidents not separately modelled',
             'scope':'ARCHIVE_TRAINED_STATISTICAL_SCENARIO_NOT_VIDEO_OR_CAUSAL'}
+    if full:
+        out['riders']=[{'car':rider['car'],'rank_probabilities':ranks[rider['car']].tolist(),
+            'win_probability':float(ranks[rider['car']][0]),
+            'top2_probability':float(ranks[rider['car']][:2].sum()),
+            'top3_probability':float(ranks[rider['car']][:3].sum()),
+            'expected_rank':float(ranks[rider['car']]@np.arange(1,len(row['riders'])+1))} for rider in row['riders']]
+    return out
 
 
 def score(rows,leader,conditional,direct):
-    counts=Counter(); b_hits=0;b_loss=[];all_n=0
+    counts=Counter();holds=Counter();b_hits=0;b_loss=[];all_n=0;b_n=0;predicted_n=0
     hits={name:{str(k):0 for k in K} for name in ('direct','mixture')}
     exactas={name:{str(k):0 for k in (1,2)} for name in hits}
     losses={name:[] for name in hits}
     for row in rows:
         b,status=back_label(row);counts[status]+=1
+        y=_result_key(row)
+        all_n+=int(y is not None);b_n+=int(b is not None)
         if row.get('feature_status')!='READY':
-            counts['FEATURE_HOLD']+=1;continue
+            counts['FEATURE_HOLD']+=1;holds[row.get('feature_status','MISSING_FEATURE_STATUS')]+=1;continue
         p=leader_prob(leader,row)
         if b is not None:
             b_hits+=int(max(p,key=lambda c:(p[c],-c))==b)
             b_loss.append(-math.log(max(p[b],1e-300)))
-        y=_result_key(row)
         if not y:
             continue
-        y=tuple(y);all_n+=1
+        y=tuple(y);predicted_n+=1
         laws={'direct':direct.distribution(row),'mixture':mixture(leader,conditional,row)}
         for name,law in laws.items():
             ranked=law['trifectas'];q=next(t['probability'] for t in ranked if tuple(t['cars'])==y)
             losses[name].append(-math.log(max(q,1e-300)))
             for k in K:hits[name][str(k)]+=int(y in [tuple(t['cars']) for t in ranked[:k]])
             for k in (1,2):exactas[name][str(k)]+=int(y[:2] in [tuple(t['cars']) for t in law['exactas'][:k]])
-    return {'registered':len(rows),'finish_evaluable':all_n,'B_label_counts':dict(counts),
-            'B_evaluable':len(b_loss),'B_top1_hits':b_hits,'B_top1_rate':b_hits/len(b_loss) if b_loss else None,
+    return {'registered':len(rows),'finish_evaluable':all_n,'finish_predicted_evaluable':predicted_n,
+            'holds':dict(holds),'B_label_counts':dict(counts),
+            'B_evaluable':b_n,'B_predicted_evaluable':len(b_loss),'B_top1_hits':b_hits,
+            'B_top1_rate':b_hits/b_n if b_n else None,
             'B_log_loss':float(np.mean(b_loss)) if b_loss else None,
-            'finish':{name:{'top3_log_loss':float(np.mean(losses[name])) if all_n else None,
-                           'trifecta_hits':hits[name],'exacta_hits':exactas[name]} for name in hits}}
+            'finish':{name:{'top3_log_loss':float(np.mean(losses[name])) if losses[name] else None,
+                           'proper_score_n':len(losses[name]),'trifecta_hits':hits[name],'exacta_hits':exactas[name],
+                           'trifecta_rates':{k:v/all_n if all_n else None for k,v in hits[name].items()},
+                           'exacta_rates':{k:v/all_n if all_n else None for k,v in exactas[name].items()}} for name in hits}}
 
 
-def study(paths,destination):
+def study(paths,destination,*,splits=None,evaluate_reused_test=False):
+    from .back_candidate import freeze_candidate, _source_pins
+    from .runtime import _private_path
+    destination=_private_path(destination)
+    if destination.exists():raise ValueError('B_STUDY_DESTINATION_NO_REPLACE')
+    splits=DEFAULT_SPLITS if splits is None else splits
+    source_pins=_source_pins()
     records,audit=load_archives(paths)
-    rows=prepare(records);groups=partition(rows,DEFAULT_SPLITS)
+    rows=prepare(records);groups=partition(rows,splits)
     train=[r for r in groups['fit'] if r.get('feature_status')=='READY' and _result_key(r) and back_label(r)[0] is not None]
-    before=DEFAULT_SPLITS['tune']['start']
+    before=splits['tune']['start']
     print('B_STUDY_TRAINING '+str(len(train)),flush=True)
     leader=fit_leader(train,before)
     conditional=fit_ranker([scenario_row(r,back_label(r)[0]) for r in train],before=before)
     direct=fit_ranker(train,before=before)
     # Freeze before evaluating. No final-period choice or calibration transfer.
-    artifact={'schema':VERSION,'source_dataset_sha256':audit['dataset_sha256'],
-              'leader':leader,'conditional':conditional.to_dict(),'direct':direct.to_dict(),
-              'source_definition':SOURCE,'production_promoted':False}
-    artifact['artifact_sha256']=digest(artifact)
+    if _source_pins()!=source_pins:raise ValueError('B_EXECUTABLE_SOURCE_CHANGED')
+    artifact=freeze_candidate(leader,conditional,direct,source_dataset_sha256=audit['dataset_sha256'],splits=splits)
     destination.mkdir(mode=0o700,parents=True,exist_ok=False)
     write_private_json(destination/'back_candidate.json',artifact)
     report={'schema':VERSION,'scope':'REUSED_RETROSPECTIVE_ARCHIVE_NOT_PROSPECTIVE',
@@ -223,8 +245,10 @@ def study(paths,destination):
                  'leader':leader['converged'],'conditional':conditional.fit_meta['optimizer_converged'],
                  'direct':direct.fit_meta['optimizer_converged']},
             'tune':score(groups['tune'],leader,conditional,direct),
-            'test':score(groups['test'],leader,conditional,direct),
+            'test_evaluated':bool(evaluate_reused_test),
+            'test':score(groups['test'],leader,conditional,direct) if evaluate_reused_test else None,
             'video_kinematics_measured':False,'full_phase_order_measured':False,'production_promoted':False}
+    if _source_pins()!=source_pins:raise ValueError('B_EXECUTABLE_SOURCE_CHANGED')
     write_private_json(destination/'aggregate.json',report)
     return report
 
@@ -232,9 +256,18 @@ def study(paths,destination):
 def main():
     parser=argparse.ArgumentParser(description=__doc__)
     parser.add_argument('private',type=Path)
+    parser.add_argument('--bundle-dir',type=Path,required=True,help='New directory for owner-encrypted retention; required before any training.')
+    parser.add_argument('--owner-public-key',type=Path,required=True,help='Existing pinned owner RSA public key, never a new key.')
+    parser.add_argument('--splits',type=Path,help='Explicit chronological contract for a new meaningful study.')
+    parser.add_argument('--include-reused-test',action='store_true',help='Explicit retrospective scoring only; never use its results to select parameters.')
     args=parser.parse_args();private=args.private.resolve()
     if not private.is_dir() or any((p/'.git').exists() for p in (private,*private.parents)):
         raise ValueError('PRIVATE_RUNNER_PATH_REQUIRED')
+    from race_ai import keirin_official_run_history as codec
+    from .back_candidate import export_candidate
+    public_key=args.owner_public_key.read_bytes();codec.storage.checked_public_key(public_key)
+    if args.bundle_dir.exists() or args.bundle_dir.is_symlink():raise ValueError('B_DESTINATION_NO_REPLACE')
+    if args.bundle_dir.resolve().is_relative_to(private):raise ValueError('B_RETENTION_MUST_SURVIVE_PRIVATE_CLEANUP')
     paths=[]
     for name in PINNED_SOURCE_SHA256:
         path=private/name
@@ -243,7 +276,11 @@ def main():
                         '--proto-redir','=https','--connect-timeout','15','--max-time','180','--output',str(path),url],
                        check=True)
         _verify_file(path,PINNED_SOURCE_SHA256);paths.append(path)
-    result=study(paths,private/'B-study')
+    splits=json.loads(args.splits.read_text()) if args.splits else None
+    result=study(paths,private/'B-study',splits=splits,evaluate_reused_test=args.include_reused_test)
+    candidate_sha=sha256((private/'B-study'/'back_candidate.json').read_bytes()).hexdigest()
+    receipt=export_candidate(private/'B-study',args.bundle_dir,public_key,expected_candidate_sha256=candidate_sha)
     print('DT_R1_B_AGGREGATE '+json.dumps(result,ensure_ascii=False,sort_keys=True,allow_nan=False),flush=True)
+    print('DT_R1_B_BUNDLE '+json.dumps(receipt,sort_keys=True,allow_nan=False),flush=True)
 
 if __name__=='__main__':main()

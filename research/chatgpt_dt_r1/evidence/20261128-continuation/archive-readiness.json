@@ -1,0 +1,147 @@
+{
+  "as_of": "2026-11-27T22:35:44.786271+00:00",
+  "audit_scope": {
+    "actual_data_used": true,
+    "historical_registration_crosswalk_supplied": false,
+    "motion_records_supplied": false,
+    "phase_records_supplied": false,
+    "private_originals_published": false,
+    "synthetic_data_used": false,
+    "training_performed": false
+  },
+  "frozen_model": {
+    "supplied": false
+  },
+  "identity": {
+    "duplicate_target_race_groups": 0,
+    "identity_unusable": 0,
+    "missing_official_registration": 218529,
+    "rider_targets": 218529,
+    "target_races": 30713
+  },
+  "independent_source_authentication": false,
+  "modifies_models_or_originals": false,
+  "motion": {
+    "duplicate_race_rider_groups": 0,
+    "joined_observation_uses": 0,
+    "joint_schema_valid": true,
+    "missing_fields": {
+      "identity_receipt_sha256": 0,
+      "measurement_evidence": 0,
+      "measurement_receipt_sha256": 0,
+      "registration_id": 0,
+      "rider_id": 0
+    },
+    "missing_provenance": {
+      "available_at": 0,
+      "kind": 0,
+      "retrieved_at": 0,
+      "reviewed_at": 0,
+      "reviewer_id": 0,
+      "source_sha256": 0,
+      "source_url": 0
+    },
+    "rider_targets_with_history": 0,
+    "schema_rejected": 0,
+    "schema_valid": 0,
+    "source_admission": "NOT_PERFORMED",
+    "supplied": 0,
+    "target_races_with_history": 0,
+    "unavailable_by_as_of": 0
+  },
+  "phases": {
+    "by_phase": {
+      "BELL": 0,
+      "FINAL_BACK": 0,
+      "FINAL_HOME": 0,
+      "FOURTH_CORNER": 0,
+      "GOAL": 0,
+      "INITIAL": 0
+    },
+    "complete_order_matching_supplied_roster": 0,
+    "declared_complete": 0,
+    "duplicate_race_phase_groups": 0,
+    "existing_fitter_required": true,
+    "missing_provenance": {
+      "available_at": 0,
+      "kind": 0,
+      "retrieved_at": 0,
+      "reviewed_at": 0,
+      "reviewer_id": 0,
+      "source_sha256": 0,
+      "source_url": 0
+    },
+    "schema_rejected": 0,
+    "schema_valid": 0,
+    "supplied": 0,
+    "training_admission": "NOT_PERFORMED",
+    "unavailable_by_as_of": 0,
+    "unreviewed_source": 0
+  },
+  "public_observations": {
+    "by_phase": {
+      "back": 0,
+      "corner": 0,
+      "home": 0,
+      "other": 0
+    },
+    "checkpoints": 0,
+    "conversion_to_training_records": "NOT_PERFORMED",
+    "missing": {
+      "complete_order": 0,
+      "media_sha256": 0,
+      "receipt": 0,
+      "reviewed_at": 0,
+      "reviewer_id": 0,
+      "source_sha256": 0
+    },
+    "races": 0,
+    "races_with_leader_registration": 0,
+    "usable_as_complete_phase_labels": 0
+  },
+  "public_starters": {
+    "normalized_input_created": false,
+    "races": 0,
+    "registration_missing": 0,
+    "registration_present": 0,
+    "rider_entries": 0,
+    "source_admission": "NOT_PERFORMED"
+  },
+  "real_media_replayed": false,
+  "schema": "dt-r1-evidence-readiness-v1",
+  "source": {
+    "commit": "2a1260fb0940ad11160b56a36f9c24cc4fb2f6d2",
+    "dataset_sha256": "9bc3fbda8339b32ba178f5c9c39d6623216ad5c2d5519774870ac5491ba0a847",
+    "files": [
+      {
+        "bytes": 104706048,
+        "name": "keirin.db",
+        "sha256": "1bdad22b9744c9c5563f7bb1af31875170a3e6b7f4b0dd73fba8f98d645d8fc4"
+      },
+      {
+        "bytes": 45436928,
+        "name": "keirin_2026q4.db",
+        "sha256": "d915560877493816b90df8bcd5e7bdef45557f57100b4cd40a3d017cd959334d"
+      }
+    ],
+    "normalized_bytes": 164162368,
+    "normalized_bytes_sha256": "75969a1155966d0fa407c270c7a36aff03c3481fd374cc30ca8c0e717b9c5602",
+    "repository": "sumidatadayoshi/keirin-data"
+  },
+  "status": "DIAGNOSTIC_ONLY",
+  "weather": {
+    "missing": 30713,
+    "missing_fields": {
+      "available_at": 0,
+      "issued_at": 0,
+      "kind": 0,
+      "source_sha256": 0
+    },
+    "rejected_by_existing_filter": 0,
+    "source_admission": "NOT_PERFORMED",
+    "source_clock_schema_accepted": 0,
+    "supplied": 0,
+    "target_races": 30713,
+    "with_usable_numeric_values": 0
+  }
+}

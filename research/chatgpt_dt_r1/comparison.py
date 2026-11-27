@@ -18,6 +18,14 @@ prediction clock and cutoff clock. SHA/model drift and duplicate identities are
 hard failures; invalid individual forecasts are recorded as HOLD, not dropped
 from the scheduled denominator. Retrospective null clocks are not manufactured.
 
+Opt-in prospective v2 uses prospective_contract, its externally retained
+expected_prospective_contract_sha256, prospective_receipts and an existing
+trusted prospective_verifier. Only originals admitted by prospective_contest
+may have different actual generation clocks on the same immutable input
+snapshot. The default v1 rules, and retrospective rows in mixed reports, keep
+their exact-clock rule. The v2 adapter does not implement a producer or a new
+authority, and does not certify official outcomes or pick a contest winner.
+
 The report includes fixed trifecta K=1/2/4/9/12, exacta K=1/2, joint NLL/Brier,
 calibration bin counts, conditions, actual attached selection coverage/returns,
 and deterministic paired bootstrap resampling entire days. Retrospective and
@@ -341,7 +349,9 @@ def _paired_bootstrap(common_ids, admitted, model_ids, samples, seed):
 
 def compare_models(forecasts, outcomes, registry, *, expected_model_ids, bootstrap_samples=1000,
                    seed=20261128, expected_model_sha256=None, expected_participant_pins=None,
-                   require_shared_evidence=False):
+                   require_shared_evidence=False, prospective_contract=None,
+                   expected_prospective_contract_sha256=None, prospective_receipts=None,
+                   prospective_verifier=None):
     """Compare declared entrants on the full registry and on an exact common cohort."""
     require(isinstance(expected_model_ids, (list, tuple)) and len(expected_model_ids) == 3 and
             all(isinstance(m, str) and bool(m.strip()) for m in expected_model_ids) and
@@ -350,11 +360,23 @@ def compare_models(forecasts, outcomes, registry, *, expected_model_ids, bootstr
     require(isinstance(seed, int) and not isinstance(seed, bool), "INVALID_BOOTSTRAP_SEED")
     require(type(require_shared_evidence) is bool, "SHARED_EVIDENCE_MODE_MUST_BE_BOOLEAN")
     ids = list(expected_model_ids)
+    v2 = any(value is not None for value in (prospective_contract, expected_prospective_contract_sha256,
+                                            prospective_receipts, prospective_verifier))
+    v2_pins, v2_hold = {}, None
+    if v2:
+        from .prospective_contest import checked_contract, admit_original
+        try:
+            v2_pins = checked_contract(prospective_contract, expected_prospective_contract_sha256, ids)
+            require(isinstance(prospective_receipts, dict), "PROSPECTIVE_V2_ORIGINAL_RECEIPTS_REQUIRED")
+        except (ValueError, TypeError, KeyError) as error:
+            v2_hold = str(error) if isinstance(error, PolicyError) else "PROSPECTIVE_V2_CONTRACT_INVALID"
     scheduled, result_index = _index(registry, "REGISTRY"), _index(outcomes, "OUTCOME")
     require(set(result_index) <= set(scheduled), "UNREGISTERED_OUTCOME")
     shared_registry, shared_registry_holds = {}, {}
-    if require_shared_evidence:
+    if require_shared_evidence or v2:
         for rid, registered in scheduled.items():
+            if not require_shared_evidence and registered.get('cohort') != 'prospective':
+                continue
             try:
                 shared_registry[rid] = shared_evidence_digest(registered)
             except PolicyError as error:
@@ -397,6 +419,10 @@ def compare_models(forecasts, outcomes, registry, *, expected_model_ids, bootstr
         for model_id, value in (expected_model_sha256 or {}).items():
             require(value == pins[model_id]["model_sha256"], "CONFLICTING_MODEL_MANIFESTS")
         expected_model_sha256 = {model_id: pin["model_sha256"] for model_id, pin in pins.items()}
+    if v2_pins:
+        require(not pins or pins == v2_pins, "PROSPECTIVE_V2_CONFLICTING_PARTICIPANT_PINS")
+        for model_id, value in (expected_model_sha256 or {}).items():
+            require(value == v2_pins[model_id]['model_sha256'], "PROSPECTIVE_V2_CONFLICTING_MODEL_MANIFESTS")
     for forecast in forecasts:
         require(isinstance(forecast, dict), "INVALID_FORECAST_ROW")
         rid, model_id = forecast.get("race_id"), forecast.get("model_id")
@@ -422,14 +448,22 @@ def compare_models(forecasts, outcomes, registry, *, expected_model_ids, bootstr
                 continue
             try:
                 f = validate_forecast(supplied[key])
-                if require_shared_evidence:
+                v2_original = None
+                if v2 and f['cohort'] == 'prospective':
+                    require(v2_hold is None, v2_hold or "PROSPECTIVE_V2_CONTRACT_INVALID")
+                    receipts = prospective_receipts.get(rid, {})
+                    require(isinstance(receipts, dict), "PROSPECTIVE_V2_ORIGINAL_RECEIPTS_REQUIRED")
+                    v2_original = admit_original(supplied[key], registered, receipts.get(model_id),
+                        contract=prospective_contract, contract_sha256=expected_prospective_contract_sha256,
+                        verifier=prospective_verifier)
+                if require_shared_evidence or (v2 and f['cohort'] == 'prospective'):
                     require(rid not in shared_registry_holds, shared_registry_holds.get(rid, "SHARED_EVIDENCE_BINDING_INCOMPLETE"))
                     checked_sha(f.get("shared_evidence_sha256"), "SHARED_EVIDENCE_REQUIRED")
                     require(f["shared_evidence_sha256"] == shared_registry[rid], "SHARED_EVIDENCE_MISMATCH")
                     if f["cohort"] == "prospective":
                         require(clock(registered["context_as_of"]) <= clock(f["prediction_at"]),
                                 "SHARED_EVIDENCE_AFTER_PREDICTION")
-                pin = pins.get(model_id, {})
+                pin = (v2_pins if v2 and f['cohort'] == 'prospective' else pins).get(model_id, {})
                 if pin.get("feature_schema_sha256") is not None:
                     require(f.get("feature_schema_sha256") == pin["feature_schema_sha256"], "FEATURE_SCHEMA_PIN_MISMATCH")
                 require(f["day"] == registered["day"], "FORECAST_DAY_MISMATCH")
@@ -446,6 +480,7 @@ def compare_models(forecasts, outcomes, registry, *, expected_model_ids, bootstr
                                  "model_sha256": f["model_sha256"], "input_sha256": f["input_sha256"],
                                  "prediction_at": f["prediction_at"], "cutoff_at": f["cutoff_at"],
                                  "source_attestation_status": _attestation(supplied[key]),
+                                 "prospective_original_v2": v2_original,
                                  "markets": {market: _market_score(f, outcome, market) for market in POINTS},
                                  "selection": _selection_score(f, outcome, expected_policy_sha256=pin.get("policy_sha256"))}
             except (ValueError, TypeError, KeyError) as error:
@@ -461,7 +496,8 @@ def compare_models(forecasts, outcomes, registry, *, expected_model_ids, bootstr
                 why.append("INPUT_MISMATCH")
             if len({r["cohort"] for r in rows}) != 1:
                 why.append("COHORT_MISMATCH")
-            for key in ("prediction_at", "cutoff_at"):
+            independently_bound_v2 = all(r['cohort'] == 'prospective' and r.get('prospective_original_v2') for r in rows)
+            for key in (("cutoff_at",) if independently_bound_v2 else ("prediction_at", "cutoff_at")):
                 if not all(_clock_equal(rows[0][key], r[key]) for r in rows[1:]):
                     why.append(key.upper() + "_MISMATCH")
         if why:
@@ -496,12 +532,14 @@ def compare_models(forecasts, outcomes, registry, *, expected_model_ids, bootstr
         "conditional_distribution_caveat": "Forecast distributions exclude dead heats/abnormal completion; settled incident races with valid top3 remain in all-target scoring.",
         "source_attested": False,
         "shared_evidence": {
-            "status": "ENFORCED" if require_shared_evidence else "NOT_REQUESTED",
+            "status": "ENFORCED" if require_shared_evidence else ("ENFORCED_FOR_V2_PROSPECTIVE" if v2 else "NOT_REQUESTED"),
             "required": require_shared_evidence, "binding_schema": SHARED_EVIDENCE_SCHEMA,
-            "registered_complete_bindings": len(shared_registry) if require_shared_evidence else None,
-            "registry_hold_reasons": dict(Counter(shared_registry_holds.values())) if require_shared_evidence else None,
-            "admitted_matching_forecasts": len(admitted) if require_shared_evidence else None,
-            "common_matching_races": len(common_ids) if require_shared_evidence else None,
+            "registered_complete_bindings": len(shared_registry) if require_shared_evidence or v2 else None,
+            "registry_hold_reasons": dict(Counter(shared_registry_holds.values())) if require_shared_evidence or v2 else None,
+            "admitted_matching_forecasts": (sum(require_shared_evidence or r['cohort'] == 'prospective' for r in admitted.values())
+                                            if require_shared_evidence or v2 else None),
+            "common_matching_races": (sum(require_shared_evidence or admitted[(rid, ids[0])]['cohort'] == 'prospective' for rid in common_ids)
+                                      if require_shared_evidence or v2 else None),
             "independently_authenticated": False,
             "scope": "Snapshot declarations compared; existing external source/support and original readback verification remains required.",
         },
@@ -533,4 +571,16 @@ def compare_models(forecasts, outcomes, registry, *, expected_model_ids, bootstr
         for cohort in ("retrospective", "prospective", "undeclared")
         for group in [[rid for rid in eligible if scheduled[rid].get("cohort", "undeclared") == cohort]]
     }
+    if v2:
+        originals = [r['prospective_original_v2'] for r in admitted.values() if r.get('prospective_original_v2')]
+        report['prospective_contract'] = {
+            'schema': 'dt-r1-prospective-contest-v2', 'status': 'HOLD' if v2_hold else 'EXTERNAL_REVERIFICATION_REQUIRED_PER_ORIGINAL',
+            'contract_sha256': expected_prospective_contract_sha256, 'contract_hold_reason': v2_hold,
+            'admitted_forecasts': len(originals),
+            'prospective_forecasts_supplied': sum(f.get('cohort') == 'prospective' for f in forecasts),
+            'participant_pins': v2_pins or None,
+            'clock_basis': 'IMMUTABLE_INPUT_SNAPSHOT_AND_ACTUAL_ORIGINAL_CLOCKS',
+            'legacy_v1_clock_rule_unchanged': True, 'outcome_authentication_included': False,
+            'original_receipt_sha256s': sorted({r['verification_receipt_sha256'] for r in originals}),
+        }
     return report

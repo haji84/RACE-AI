@@ -120,7 +120,17 @@ jobs:
           umask 077
           private="$(mktemp -d "$RUNNER_TEMP/dt-r1-back.XXXXXX")"
           trap 'rm -rf -- "$private"' EXIT
-          python -m research.chatgpt_dt_r1.back_phase_study "$private"
+          python -m research.chatgpt_dt_r1.back_phase_study "$private" \
+            --bundle-dir "$RUNNER_TEMP/dt-r1-back-evidence" \
+            --owner-public-key "$GITHUB_WORKSPACE/docs/evidence/2026-11-18/keirin_owner_existing_rsa_public_spki3072.pem"
+      - name: Preserve owner-encrypted B candidate and external manifest pin
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: dt-r1-back-candidate-${{ github.sha }}
+          path: ${{ runner.temp }}/dt-r1-back-evidence/
+          if-no-files-found: error
+          retention-days: 7
+          compression-level: 0
 
   frozen-followup:
     if: github.event_name == 'push' && github.ref == 'refs/heads/research/chatgpt-dt-r1-pipeline-20261128' && github.event.head_commit.message == 'Evaluate frozen DT-R1 models on new post-archive dates'

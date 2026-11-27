@@ -1,11 +1,23 @@
 import copy
 import unittest
+import tempfile
+import io
+from contextlib import redirect_stderr
+from unittest.mock import patch
 import numpy as np
-from research.chatgpt_dt_r1.back_phase_study import back_label,prepare,scenario_row,fit_leader,leader_prob,mixture
+from research.chatgpt_dt_r1.back_phase_study import back_label,prepare,scenario_row,fit_leader,leader_prob,mixture,score
 from research.chatgpt_dt_r1.model import RankModel
 from research.chatgpt_dt_r1.test_agari import records
 
 class BackStudyTests(unittest.TestCase):
+    def test_cli_refuses_unretained_training_before_source_download(self):
+        from research.chatgpt_dt_r1 import back_phase_study
+        with tempfile.TemporaryDirectory() as private:
+            with patch('sys.argv',['back-study',private]),redirect_stderr(io.StringIO()):
+                with patch.object(back_phase_study.subprocess,'run',side_effect=lambda *a,**k:self.fail('Missing retention must stop before download')):
+                    with self.assertRaises(SystemExit) as stopped:back_phase_study.main()
+        self.assertEqual(stopped.exception.code,2)
+
     def fixture(self):
         rows=records()
         target=rows[-1]
@@ -47,5 +59,26 @@ class BackStudyTests(unittest.TestCase):
         row=prepare([r])[0];s=scenario_row(row,1)
         self.assertTrue(np.all(s['features'][:,-1]==1.))
         self.assertTrue(np.all(s['features'][:,-5:-1]==0.))
+
+    def test_held_prediction_stays_in_finish_and_back_target_denominators(self):
+        row=prepare([self.fixture()])[0]
+        held=copy.deepcopy(row);held['race_id']='held';held['feature_status']='MISSING_INPUT'
+        from research.chatgpt_dt_r1.features import _bind_feature_input
+        held=_bind_feature_input(held)
+        leader={'feature_names':list(row['feature_names']),'mean':[0.]*len(row['feature_names']),
+                'scale':[1.]*len(row['feature_names']),'weights':[0.]*len(row['feature_names'])}
+        conditional=RankModel.zero(scenario_row(row,1)['feature_names'])
+        direct=RankModel.zero(row['feature_names'])
+        result=score([row,held],leader,conditional,direct)
+        self.assertEqual(result['finish_evaluable'],2)
+        self.assertEqual(result['finish_predicted_evaluable'],1)
+        self.assertEqual(result['B_evaluable'],2)
+        self.assertEqual(result['B_predicted_evaluable'],1)
+        self.assertEqual(result['B_top1_hits'],1)
+        self.assertEqual(result['B_top1_rate'],.5)
+        self.assertEqual(result['finish']['direct']['trifecta_hits']['1'],1)
+        self.assertEqual(result['finish']['direct']['trifecta_rates']['1'],.5)
+        self.assertEqual(result['finish']['direct']['proper_score_n'],1)
+        self.assertEqual(result['holds'],{'MISSING_INPUT':1})
 
 if __name__=='__main__':unittest.main()
