@@ -59,6 +59,6 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          python -m pip install --disable-pip-version-check 'beautifulsoup4>=4.12,<5'
+          python -m pip install --disable-pip-version-check 'beautifulsoup4>=4.12,<5' 'cryptography>=44,<48'
           python -m unittest tests.test_keirin_public_site_results
           bash scripts/keirin_publish_public_site_results.sh 0 --refresh-rosters
