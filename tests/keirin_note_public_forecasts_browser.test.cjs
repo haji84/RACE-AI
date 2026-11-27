@@ -16,12 +16,13 @@ if (!chromium && process.env.RACE_AI_REQUIRE_PUBLIC_BROWSER === '1') {
 }
 
 const WEB = path.join(__dirname, '..', 'web');
-const BASE = 'https://raw.githubusercontent.com/haji84/RACE-AI/state/keirin-public-forecasts/forecasts/';
+const BASE = 'https://raw.githubusercontent.com/haji84/RACE-AI/state/keirin-public-forecasts/';
 const TODAY = '2026-11-26';
 const PAST = '2026-11-25';
 const MISSING = '2026-11-24';
 const INVALID = '2026-11-23';
 const A = [[1, 2, 3], [1, 3, 2], [2, 1, 3], [2, 3, 1], [3, 1, 2], [3, 2, 1], [1, 4, 3], [1, 3, 4]];
+const dayCalls = day => ['forecasts', 'references', 'research'].map(lane => BASE + lane + '/' + day + '.json');
 
 function snapshot(day) {
   const raceDay = day.replaceAll('-', '');
@@ -88,7 +89,8 @@ describe('KEIRIN anonymous forecast page', { skip: !chromium }, () => {
       assert.equal(headers.authorization, undefined);
       assert.equal(headers.cookie, undefined);
       assert.equal(headers.referer, undefined);
-      const result = await serve(url.slice(BASE.length, -5), route);
+      const [lane, day] = url.slice(BASE.length, -5).split('/');
+      const result = lane === 'forecasts' ? await serve(day, route) : await serve.supplement?.(lane, day) ?? null;
       if (result !== undefined) await route.fulfill({
         status: result === null ? 404 : 200, json: result,
         headers: { 'access-control-allow-origin': '*' }
@@ -104,7 +106,7 @@ describe('KEIRIN anonymous forecast page', { skip: !chromium }, () => {
     assert.equal(await page.getByLabel('対象日（JST）').inputValue(), TODAY);
     const races = page.locator('#keirin-public-races');
     await races.getByText('西武園 1R', { exact: true }).waitFor();
-    assert.deepEqual(calls, [BASE + TODAY + '.json']);
+    assert.deepEqual(calls.sort(), dayCalls(TODAY).sort());
     assert.match(await page.getByRole('status').filter({ visible: true }).innerText(), /1\s*\/\s*2\s*レース/);
     assert.match(await races.innerText(), /締切\s*12:30/);
     assert.match(await races.innerText(), /保存\s*12:25:13/);
@@ -140,7 +142,8 @@ describe('KEIRIN anonymous forecast page', { skip: !chromium }, () => {
     await page.getByText('公開データの形式を確認できません。', { exact: true }).waitFor();
     await date.fill('2026-11-27');
     await page.getByText('選択できる範囲の日付を入力してください。', { exact: true }).waitFor();
-    assert.deepEqual(calls, [TODAY, PAST, MISSING, INVALID].map(day => BASE + day + '.json'));
+    assert.deepEqual(calls.sort(), [...dayCalls(TODAY), ...dayCalls(PAST), ...[MISSING, INVALID]
+      .map(day => BASE + 'forecasts/' + day + '.json')].sort());
     await page.goBack();
     await page.getByRole('heading', { name: '今日のレースを、確かなデータで。' }).waitFor();
     assert.equal(new URL(page.url()).hash, '');
@@ -159,6 +162,36 @@ describe('KEIRIN anonymous forecast page', { skip: !chromium }, () => {
     await page.goBack();
     await page.getByRole('heading', { name: '今日のレースを、確かなデータで。' }).waitFor();
     assert.equal(new URL(page.url()).hash, fragment);
-    assert.deepEqual(calls, [BASE + TODAY + '.json']);
+    assert.deepEqual(calls.sort(), dayCalls(TODAY).sort());
+  });
+
+  test('fills registered gaps with labeled references and racecard candidates, keeping original A/B first', async t => {
+    const serve = day => {
+      const official = snapshot(day);
+      official.races.push({ ...official.races[1], race_id: '202611268303' });
+      official.races.push({ ...official.races[1], race_id: '202611268306', cutoff_at: day + 'T21:35:00+09:00' });
+      return official;
+    };
+    serve.supplement = (lane, day) => {
+      const ref = { cutoff_at: day + 'T21:00:00+09:00', saved_at: day + 'T12:00:00+09:00',
+        a: [[4, 3, 2]], b: [[4, 2, 3]] };
+      const research = { cutoff_at: day + 'T22:00:00+09:00', generated_at: day + 'T12:18:00+09:00',
+        starter_cars: [1, 2, 3, 4, 5, 6, 7], a: [[7, 6, 5]], b: [] };
+      return lane === 'references'
+        ? { schema: 'RACE_AI_KEIRIN_PUBLIC_REFERENCE_FORECASTS_V1', day, published_at: day + 'T12:05:00+09:00',
+          races: ['2601', '1102', '8304', '8306'].map(race => ({ ...ref, race_id: '20261126' + race })) }
+        : { schema: 'RACE_AI_KEIRIN_PUBLIC_RESULT_UNREAD_AB_V1', day, published_at: day + 'T12:30:00+09:00',
+          races: ['1102', '8303'].map(race => ({ ...research, race_id: '20261126' + race })) };
+    };
+    const { page } = await open(t, '#keirin-public', serve);
+    await page.getByText('3 / 4', { exact: true }).waitFor();
+    const official = page.locator('article').filter({ hasText: '西武園 1R' });
+    const reference = page.locator('article').filter({ hasText: '函館 2R' });
+    const research = page.locator('article').filter({ hasText: '久留米 3R' });
+    assert.equal(await official.getByRole('listitem').count(), 16);
+    assert.match(await reference.innerText(), /締切前の参考[\s\S]*4.3.2/);
+    assert.match(await research.innerText(), /出走表の参考[\s\S]*7.6.5[\s\S]*B[\s\S]*保留/);
+    assert.equal(await page.getByText('久留米 4R', { exact: true }).count(), 0);
+    assert.match(await page.locator('article').filter({ hasText: '久留米 6R' }).innerText(), /未掲載[\s\S]*21:35/);
   });
 });
