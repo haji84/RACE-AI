@@ -140,6 +140,7 @@ class LiveWorkflowTests(unittest.TestCase):
         branch = job[start:poll]
         self.assertIn('scripts.keirin_official_measured_outcomes', branch)
         self.assertIn('--official-learned-replay', branch)
+        self.assertIn('env -u RACE_AI_KEIRIN_PRIVATE_RSA_PEM -u GITHUB_TOKEN', branch)
         self.assertNotIn('--publish', branch)
         self.assertIn('exit 0', branch)
 

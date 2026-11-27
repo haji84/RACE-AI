@@ -301,7 +301,8 @@ jobs:
           if [ "$RESULT_MODE" = learned-replay ]; then
             umask 077
             [[ -n "$DOSSIER_DAY" ]]
-            python -m pip install --disable-pip-version-check 'numpy==2.2.6' 'lightgbm==4.6.0'
+            env -u RACE_AI_KEIRIN_PRIVATE_RSA_PEM -u GITHUB_TOKEN \
+              python -m pip install --disable-pip-version-check --only-binary=:all: 'numpy==2.2.6' 'lightgbm==4.6.0'
             ids=$(jq -r '.inputs.measurement_race_ids // empty' "$GITHUB_EVENT_PATH")
             scope=()
             if [ -n "$ids" ]; then
