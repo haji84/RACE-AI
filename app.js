@@ -26,7 +26,7 @@ if (typeof window === 'object' && typeof location === 'object') window.RaceNoteI
   const status = byId("keirin-public-status");
   const updated = byId("keirin-public-updated");
   const races = byId("keirin-public-races");
-  const base = "https://raw.githubusercontent.com/haji84/RACE-AI/state/keirin-public-forecasts/forecasts/";
+  const base = "https://raw.githubusercontent.com/haji84/RACE-AI/state/keirin-public-forecasts/";
   const jstToday = globalThis.RaceAuditModel.jstToday;
   const jstDateTime = new Intl.DateTimeFormat("ja-JP", {
     timeZone: "Asia/Tokyo", year: "numeric", month: "2-digit", day: "2-digit",
@@ -62,21 +62,55 @@ if (typeof window === 'object' && typeof location === 'object') window.RaceNoteI
       new Set(tickets.map(ticket => ticket.join("-"))).size === tickets.length;
   }
 
+  function validPacket(snapshot, day, schema) {
+    return snapshot?.schema === schema && snapshot.day === day && validClock(snapshot.published_at) &&
+      Array.isArray(snapshot.races) && snapshot.races.length <= 300;
+  }
+
+  function validRaceId(id, datePrefix, seen) {
+    if (typeof id !== "string" || !/^\d{10}(?:0[1-9]|1[0-2])$/.test(id) || !id.startsWith(datePrefix) || seen.has(id)) return false;
+    seen.add(id);
+    return true;
+  }
+
   function validSnapshot(snapshot, day) {
-    if (snapshot?.schema !== "RACE_AI_KEIRIN_PUBLIC_FORECASTS_V1" || snapshot.day !== day ||
-        !validClock(snapshot.published_at) || !Array.isArray(snapshot.races) || snapshot.races.length > 300) return false;
+    if (!validPacket(snapshot, day, "RACE_AI_KEIRIN_PUBLIC_FORECASTS_V1")) return false;
     const seen = new Set(), datePrefix = day.replaceAll("-", "");
     return snapshot.races.every(row => {
-      if (typeof row?.race_id !== "string" || !/^\d{10}(?:0[1-9]|1[0-2])$/.test(row.race_id) ||
-          !row.race_id.startsWith(datePrefix) || seen.has(row.race_id) ||
+      if (!validRaceId(row?.race_id, datePrefix, seen) ||
           !Array.isArray(row.a) || !Array.isArray(row.b) || (row.cutoff_at !== null && !validClock(row.cutoff_at))) return false;
-      seen.add(row.race_id);
       if (row.status === "pending") return row.saved_at === null && row.a.length === 0 && row.b.length === 0;
       return row.status === "saved" && validClock(row.saved_at) && row.cutoff_at !== null &&
         Date.parse(row.saved_at) < Date.parse(row.cutoff_at) &&
         Date.parse(row.saved_at) <= Date.parse(snapshot.published_at) &&
         validTickets(row.a) && validTickets(row.b);
     });
+  }
+
+  function publicCandidates(snapshot, day, research) {
+    const schema = research ? "RACE_AI_KEIRIN_PUBLIC_RESULT_UNREAD_AB_V1" : "RACE_AI_KEIRIN_PUBLIC_REFERENCE_FORECASTS_V1";
+    const records = new Map(), seen = new Set(), datePrefix = day.replaceAll("-", "");
+    if (!validPacket(snapshot, day, schema)) return records;
+    for (const row of snapshot.races) {
+      if (!validRaceId(row?.race_id, datePrefix, seen) || !validClock(row.cutoff_at) ||
+          jstToday(new Date(row.cutoff_at)) !== day || !Array.isArray(row.a) || !Array.isArray(row.b)) return new Map();
+      const created = research ? row.generated_at : row.saved_at;
+      if (!validClock(created) || Date.parse(created) > Date.parse(snapshot.published_at)) return new Map();
+      const inTime = Date.parse(created) < Date.parse(row.cutoff_at);
+      if (research) {
+        const cars = row.starter_cars;
+        if (!Array.isArray(cars) || cars.length < 5 || cars.length > 9 ||
+            !cars.every((car, i) => Number.isInteger(car) && car >= 1 && car <= 9 && (i === 0 || car > cars[i - 1]))) return new Map();
+        const arms = [row.a, row.b].filter(tickets => tickets.length);
+        if (!arms.length || !arms.every(validTickets) || !arms.flat(2).every(car => cars.includes(car))) return new Map();
+      } else if (!inTime || !validTickets(row.a) || !validTickets(row.b)) {
+        return new Map();
+      }
+      const status = research ? (inTime ? "research" : "late-research") : "reference";
+      records.set(row.race_id, { race_id: row.race_id, a: row.a, b: row.b, status,
+        cutoff_at: row.cutoff_at, saved_at: created, published_at: snapshot.published_at });
+    }
+    return records;
   }
 
   function element(tag, className, label) {
@@ -97,10 +131,15 @@ if (typeof window === 'object' && typeof location === 'object') window.RaceNoteI
 
   function ticketList(arm, tickets) {
     const group = element("div", "keirin-public-model");
+    group.append(element("h3", "", arm));
+    if (!tickets.length) {
+      group.append(element("p", "", "保留"));
+      return group;
+    }
     const list = element("ol");
     list.setAttribute("aria-label", arm + "の三連単（予想順）");
     list.append(...tickets.map(ticket => element("li", "", ticket.join("–"))));
-    group.append(element("h3", "", arm), list);
+    group.append(list);
     return group;
   }
 
@@ -109,14 +148,19 @@ if (typeof window === 'object' && typeof location === 'object') window.RaceNoteI
     const name = (venues[venueCode] || "開催コード " + venueCode) + " " + Number(row.race_id.slice(-2)) + "R";
     const card = element("article", "keirin-public-race");
     const head = element("div", "keirin-public-race-head");
-    const saved = row.status === "saved";
+    const labels = { saved: "掲載済み", reference: "締切前の参考", research: "出走表の参考",
+      "late-research": "締切後の参考", pending: "未掲載" };
+    const available = row.status !== "pending";
     head.append(element("h2", "", name),
-      element("span", "keirin-public-badge " + (saved ? "is-saved" : ""), saved ? "掲載済み" : "未掲載"));
+      element("span", "keirin-public-badge " + (row.status === "saved" ? "is-saved" : ""), labels[row.status]));
     const clocks = element("p", "keirin-public-clocks");
     clocks.append("締切 ", row.cutoff_at === null ? "未確認" : clock(row.cutoff_at, day, false));
-    if (saved) clocks.append("　保存 ", clock(row.saved_at, day));
+    if (available) {
+      const fromRacecard = row.status === "research" || row.status === "late-research";
+      clocks.append(fromRacecard ? "　作成 " : "　保存 ", clock(row.saved_at, day));
+    }
     card.append(head, clocks);
-    if (saved) {
+    if (available) {
       const arms = element("div", "keirin-public-arms");
       arms.append(ticketList("A", row.a), ticketList("B", row.b));
       card.append(arms);
@@ -124,18 +168,38 @@ if (typeof window === 'object' && typeof location === 'object') window.RaceNoteI
     return card;
   }
 
-  function render(snapshot) {
-    const ordered = snapshot.races.slice().sort((a, b) =>
+  function render(snapshot, referencePacket, researchPacket) {
+    const references = publicCandidates(referencePacket, snapshot.day, false);
+    const research = publicCandidates(researchPacket, snapshot.day, true);
+    const ordered = snapshot.races.map(row => {
+      if (row.status === "saved") return row;
+      const supplements = [references.get(row.race_id), research.get(row.race_id)];
+      return supplements.find(item => item && (row.cutoff_at === null ||
+        Date.parse(row.cutoff_at) === Date.parse(item.cutoff_at))) ?? row;
+    }).sort((a, b) =>
       (a.cutoff_at === null ? Infinity : Date.parse(a.cutoff_at)) -
       (b.cutoff_at === null ? Infinity : Date.parse(b.cutoff_at)) || a.race_id.localeCompare(b.race_id));
     const saved = ordered.filter(row => row.status === "saved").length;
-    const pending = ordered.length - saved;
-    status.replaceChildren("掲載済み ", element("strong", "", saved + " / " + ordered.length), " レース");
+    const pending = ordered.filter(row => row.status === "pending").length;
+    const available = ordered.length - pending;
+    status.replaceChildren("掲載済み ", element("strong", "", available + " / " + ordered.length), " レース");
+    if (saved !== available) status.append(" ・ 締切前保存 " + saved + " ・ 参考 " + (available - saved));
     if (pending) status.append(" ・ 未掲載 " + pending + " レース");
     if (!ordered.length) status.textContent = "この日の公開データにレースはありません。";
-    updated.replaceChildren("公開データ更新 ", clock(snapshot.published_at), " JST");
+    const latest = ordered.reduce((time, row) =>
+      Date.parse(row.published_at) > Date.parse(time) ? row.published_at : time, snapshot.published_at);
+    updated.replaceChildren("公開データ更新 ", clock(latest), " JST");
     updated.hidden = false;
     races.replaceChildren(...ordered.map(row => raceCard(row, snapshot.day)));
+  }
+
+  async function fetchDay(lane, day, request) {
+    const response = await fetch(base + lane + "/" + day + ".json", {
+      cache: "no-store", credentials: "omit", redirect: "error", referrerPolicy: "no-referrer", signal: request.signal
+    });
+    if (response.status === 404) return undefined;
+    if (!response.ok) throw new Error("Public forecast unavailable");
+    return response.json().catch(() => null);
   }
 
   async function load() {
@@ -158,19 +222,20 @@ if (typeof window === 'object' && typeof location === 'object') window.RaceNoteI
     currentRequest = request;
     const timeout = setTimeout(() => request.abort(), 15000);
     try {
-      const response = await fetch(base + day + ".json", {
-        cache: "no-store", credentials: "omit", redirect: "error", referrerPolicy: "no-referrer", signal: request.signal
-      });
+      const snapshot = await fetchDay("forecasts", day, request);
       if (currentRequest !== request) return;
-      if (response.status === 404) {
+      if (snapshot === undefined) {
         status.textContent = "この日の公開予想は掲載されていません。";
         return;
       }
-      if (!response.ok) throw new Error("Public forecast unavailable");
-      const snapshot = await response.json().catch(() => null);
-      if (currentRequest !== request) return;
-      if (validSnapshot(snapshot, day)) render(snapshot);
-      else status.textContent = "公開データの形式を確認できません。";
+      if (!validSnapshot(snapshot, day)) {
+        status.textContent = "公開データの形式を確認できません。";
+        return;
+      }
+      const supplements = snapshot.races.some(row => row.status === "pending")
+        ? await Promise.all(["references", "research"].map(lane => fetchDay(lane, day, request).catch(() => null)))
+        : [];
+      if (currentRequest === request) render(snapshot, ...supplements);
     } catch {
       if (currentRequest === request) status.textContent = "公開予想を取得できませんでした。再読み込みで確認できます。";
     } finally {
