@@ -38,6 +38,10 @@ on:
       - 'scripts/keirin_official_measured_outcomes.py'
       - 'race_ai/keirin_official_combined_study.py'
       - 'tests/test_keirin_official_combined_study.py'
+      - 'race_ai/keirin_official_learned_replay.py'
+      - 'race_ai/keirin_learned_official_inputs.py'
+      - 'tests/test_keirin_official_learned_replay.py'
+      - 'tests/test_keirin_learned_official_inputs.py'
       - 'race_ai/keirin_measurement_publication.py'
       - 'race_ai/keirin_paired_measurement.py'
       - 'scripts/keirin_official_day_pipeline.py'
@@ -91,6 +95,10 @@ on:
       - 'scripts/keirin_official_measured_outcomes.py'
       - 'race_ai/keirin_official_combined_study.py'
       - 'tests/test_keirin_official_combined_study.py'
+      - 'race_ai/keirin_official_learned_replay.py'
+      - 'race_ai/keirin_learned_official_inputs.py'
+      - 'tests/test_keirin_official_learned_replay.py'
+      - 'tests/test_keirin_learned_official_inputs.py'
       - 'race_ai/keirin_measurement_publication.py'
       - 'race_ai/keirin_paired_measurement.py'
       - 'tests/test_keirin_measurement_publication.py'
@@ -118,7 +126,7 @@ on:
         type: choice
         required: true
         default: test
-        options: [test, saved-only, observe, rider-dossiers, dossier-context, measure-results, combined-study]
+        options: [test, saved-only, observe, rider-dossiers, dossier-context, measure-results, combined-study, learned-replay]
       dossier_day:
         type: string
         description: JST day for source-free dossier replay or measurement
@@ -181,6 +189,8 @@ jobs:
             tests.test_keirin_official_nationwide_sources \
             tests.test_keirin_official_nationwide_records \
             tests.test_keirin_official_combined_study \
+            tests.test_keirin_official_learned_replay \
+            tests.test_keirin_learned_official_inputs \
             tests.test_keirin_official_condition_trial \
             tests.test_keirin_official_condition_scoring \
             tests.test_keirin_official_paired_measurement \
@@ -240,7 +250,7 @@ jobs:
       (github.event_name == 'schedule' ||
        (github.event_name == 'workflow_dispatch' && needs.tests.result == 'success' &&
         (inputs.mode == 'saved-only' || inputs.mode == 'observe' || inputs.mode == 'dossier-context' ||
-         inputs.mode == 'combined-study')))
+         inputs.mode == 'combined-study' || inputs.mode == 'learned-replay')))
     runs-on: ubuntu-24.04
     timeout-minutes: 15
     permissions:
@@ -288,6 +298,23 @@ jobs:
               | tee "$root/safe/summary.json" "$GITHUB_STEP_SUMMARY"
             exit 0
           fi
+          if [ "$RESULT_MODE" = learned-replay ]; then
+            umask 077
+            [[ -n "$DOSSIER_DAY" ]]
+            env -u RACE_AI_KEIRIN_PRIVATE_RSA_PEM -u GITHUB_TOKEN \
+              python -m pip install --disable-pip-version-check --only-binary=:all: 'numpy==2.2.6' 'lightgbm==4.6.0'
+            ids=$(jq -r '.inputs.measurement_race_ids // empty' "$GITHUB_EVENT_PATH")
+            scope=()
+            if [ -n "$ids" ]; then
+              scope=(--race-ids "$ids")
+            fi
+            python -m scripts.keirin_official_measured_outcomes --repo "$GITHUB_WORKSPACE" \
+              --private-root "$root/private" --day "$DOSSIER_DAY" "${scope[@]}" \
+              --official-learned-replay \
+              --owner-public-pem "$GITHUB_WORKSPACE/docs/evidence/2026-11-18/keirin_owner_existing_rsa_public_spki3072.pem" \
+              | tee "$root/safe/summary.json" "$GITHUB_STEP_SUMMARY"
+            exit 0
+          fi
           status=0
           python -m scripts.keirin_result_watch \
             --mode "$RESULT_MODE" \
@@ -314,6 +341,14 @@ jobs:
         with:
           name: keirin-combined-study-encrypted-${{ github.run_id }}
           path: ${{ runner.temp }}/keirin-result-live-${{ github.run_id }}/safe/combined-study-*.sealed.json
+          retention-days: 21
+          if-no-files-found: warn
+      - name: Retain encrypted official learned replay forecasts
+        if: always() && github.event_name == 'workflow_dispatch' && inputs.mode == 'learned-replay'
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: keirin-official-learned-replay-encrypted-${{ github.run_id }}
+          path: ${{ runner.temp }}/keirin-result-live-${{ github.run_id }}/safe/official-learned-replay-forecasts.sealed.json
           retention-days: 21
           if-no-files-found: warn
       - name: Destroy ephemeral plaintext
