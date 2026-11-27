@@ -154,7 +154,8 @@ def discover_missing_links(day, missing, fetch):
     return selected
 
 
-def build_public_roster(forecast_bytes, source_rows, official_rows, *, previous=None, results=None, fetch=None):
+def build_public_roster(forecast_bytes, source_rows, official_rows, *, display_cutoffs=None, previous=None,
+                        results=None, fetch=None):
     from race_ai import keirin_public_forecasts as public
     from race_ai import keirin_secondary_result_consensus as consensus
 
@@ -169,11 +170,12 @@ def build_public_roster(forecast_bytes, source_rows, official_rows, *, previous=
     sources = {row['race_id']: row for row in source_rows}
     official = {row['race_id']: row for row in official_rows}
     saved_results = {row['race_id']: row for row in (results or {}).get('races', [])}
+    display_cutoffs = display_cutoffs or {}
     rows, missing = {}, set()
     for item in forecast['races']:
         rid = item['race_id']
         prior, source = old.get(rid), sources.get(rid)
-        cutoff = item['cutoff_at'] or (source or {}).get('cutoff_at')
+        cutoff = item['cutoff_at'] or display_cutoffs.get(rid)
         if prior is not None:
             row = prior
             if cutoff is not None and public.when(cutoff) != public.when(prior['published_cutoff_at']):
@@ -188,8 +190,10 @@ def build_public_roster(forecast_bytes, source_rows, official_rows, *, previous=
                         'PUBLIC_ROSTER_SETTLED_CLOCK_CONFLICT')
                 row = dict(prior, published_cutoff_at=cutoff)
         else:
+            cutoff = cutoff or (source or {}).get('cutoff_at')
             field = source if source is not None else official.get(rid)
-            checked(cutoff is not None and field is not None, 'PUBLIC_ROSTER_INPUT_INCOMPLETE')
+            checked(cutoff is not None and field is not None and (source is not None or item['cutoff_at'] is not None),
+                    'PUBLIC_ROSTER_INPUT_INCOMPLETE')
             venue = rid[8:10]
             row = dict(race_id=rid, date=day, venue=VENUE_NAMES.get(venue, '開催コード ' + venue),
                        race_no=int(rid[-2:]), published_cutoff_at=cutoff,
@@ -212,6 +216,30 @@ def build_public_roster(forecast_bytes, source_rows, official_rows, *, previous=
                   races=[rows[rid] for rid in sorted(rows)])
     validate_roster(roster, consensus)
     return roster
+
+
+def published_display_cutoffs(store, head, forecast):
+    from race_ai import keirin_public_forecast_updates as updates
+    from race_ai import keirin_public_forecasts as public
+
+    day = forecast['day']
+    registered = {row['race_id'] for row in forecast['races']}
+    cutoffs = {}
+    # Follow the existing public view's order for rows without an official clock.
+    for family, validate in (('references', public.checked_reference),
+                             ('research', public.checked_research), ('updates', updates.checked)):
+        raw = store.read_previous(head, f'{family}/{day}.json')
+        if raw is None:
+            continue
+        try:
+            layer = validate(json.loads(raw))
+            if layer['day'] != day or any(row['race_id'] not in registered for row in layer['races']):
+                continue
+        except (ValueError, KeyError, TypeError):
+            continue
+        for row in layer['races']:
+            cutoffs.setdefault(row['race_id'], row['cutoff_at'])
+    return cutoffs
 
 
 def refresh_public_rosters(state, store, fetch, *, now):
@@ -240,8 +268,10 @@ def refresh_public_rosters(state, store, fetch, *, now):
             checked(snapshot['day'] == day and public.when(snapshot['published_at']) <= now,
                     'PUBLIC_ROSTER_INPUT_DAY_MISMATCH')
             missing = {r['race_id'] for r in snapshot['races']} - {r['race_id'] for r in (previous or {}).get('races', [])}
+            display_cutoffs = published_display_cutoffs(store, head, snapshot) if any(
+                row['cutoff_at'] is None for row in snapshot['races']) else {}
             context_rows, starter_rows = [], []
-            if missing or any(r['cutoff_at'] is None for r in snapshot['races']):
+            if missing:
                 context = store.read_previous(head, f'rider-context-secondary/{day}.json')
                 if context is not None:
                     packet = secondary.checked_day(json.loads(context))
@@ -253,7 +283,8 @@ def refresh_public_rosters(state, store, fetch, *, now):
                         packet = _checked_starters(json.loads(starters))
                         checked(packet['day'] == day, 'PUBLIC_ROSTER_INPUT_DAY_MISMATCH')
                         starter_rows = packet['races']
-            roster = build_public_roster(raw, context_rows, starter_rows, previous=previous, results=results, fetch=fetch)
+            roster = build_public_roster(raw, context_rows, starter_rows, display_cutoffs=display_cutoffs,
+                                         previous=previous, results=results, fetch=fetch)
         except (ValueError, TypeError, KeyError) as error:
             if str(error) in SOURCE_STOP_CODES:
                 raise

@@ -9,7 +9,7 @@ import shutil
 import subprocess
 from tempfile import TemporaryDirectory
 import unittest
-from unittest.mock import patch
+from unittest.mock import Mock, patch
 from urllib.error import HTTPError
 
 from race_ai import keirin_secondary_result_consensus as consensus
@@ -84,11 +84,31 @@ class PublicDailyRosterTests(unittest.TestCase):
             publisher.build_public_roster(self.forecasts(cutoff='2026-11-23T09:11:00+09:00'), [], [],
                                          previous=roster([race(0), race(1)]), results=snapshot([matched]))
 
-    def test_legacy_roster_uses_the_verified_source_clock_when_the_official_row_has_no_cutoff(self):
-        original = roster([race(0, '2026-11-23T09:02:00+09:00'), race(1)])
-        updated = publisher.build_public_roster(self.forecasts(cutoff=None), [self.source(0)], [], previous=original)
+    def test_legacy_roster_uses_the_display_clock_and_retains_prior_clocks_for_unlisted_rows(self):
+        original = roster([race(0, '2026-11-23T09:02:00+09:00'), race(1, '2026-11-23T09:04:00+09:00')])
+        updated = publisher.build_public_roster(self.forecasts(cutoff=None), [self.source(0), self.source(1)], [],
+                                               display_cutoffs={IDS[0]:race(0)['published_cutoff_at']}, previous=original)
         self.assertEqual(updated['generated_at'], original['generated_at'])
-        self.assertEqual(updated['races'], [race(0), race(1)])
+        self.assertEqual(updated['races'], [race(0), original['races'][1]])
+
+    def test_published_reference_clock_precedes_research_and_unregistered_layers_are_held(self):
+        raw = self.forecasts(cutoff=None)
+        head = 'a'*40
+        packet = dict(day=DATE, published_at='2026-11-23T00:33:00+00:00')
+        picks = dict(a=[[1, 2, 3]], b=[[2, 1, 3]])
+        ref = dict(packet, schema='RACE_AI_KEIRIN_PUBLIC_REFERENCE_FORECASTS_V1', races=[dict(
+            race_id=IDS[0], cutoff_at='2026-11-23T09:35:00+09:00', saved_at='2026-11-23T00:29:00+00:00', **picks)])
+        research = dict(packet, schema='RACE_AI_KEIRIN_PUBLIC_RESULT_UNREAD_AB_V1', races=[dict(
+            race_id=rid, cutoff_at='2026-11-23T09:37:00+09:00', generated_at='2026-11-23T00:29:00+00:00',
+            starter_cars=list(range(1, 8)), **picks) for rid in IDS[:2]])
+        store = Mock()
+        store.read_previous.side_effect = [json.dumps(ref), json.dumps(research), None]
+        self.assertEqual(publisher.published_display_cutoffs(store, head, json.loads(raw)),
+                         {IDS[0]:'2026-11-23T09:35:00+09:00', IDS[1]:'2026-11-23T09:37:00+09:00'})
+        research['races'][1]['race_id'] = IDS[2]
+        store.read_previous.side_effect = [json.dumps(ref), json.dumps(research), None]
+        self.assertEqual(publisher.published_display_cutoffs(store, head, json.loads(raw)),
+                         {IDS[0]:'2026-11-23T09:35:00+09:00'})
 
     def test_roster_lookup_denial_stops_both_paths_on_following_runs(self):
         rejection = capture.SourceCaptureError('PROVIDER_DENIED_OR_RATE_LIMITED_STOP', http_status=403)
