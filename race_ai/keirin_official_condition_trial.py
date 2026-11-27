@@ -186,8 +186,10 @@ def _display_models(snapshot, outcomes):
     return models
 
 
-def build_combined(snapshot, original, pair, *, generated_at, form_shadow=None, supplement=None):
+def build_combined(snapshot, original, pair, *, generated_at, form_shadow=None, supplement=None,
+                   current_weight=0.5):
     """Fuse live and research forecasts on the same verified pre-race inputs."""
+    _need(type(current_weight) in (int, float) and 0 < current_weight < 1, 'COMBINED_CURRENT_WEIGHT')
     model.validate_snapshot(snapshot, computed_at=original['generated_at'])
     prediction_sha = original['prediction_sha256']
     snapshot_sha = model.digest(snapshot)
@@ -248,11 +250,10 @@ def build_combined(snapshot, original, pair, *, generated_at, form_shadow=None, 
         if identity not in display:
             held[identity] = 'DISPLAY_MODEL_ABSTAINED_OR_INPUT_UNAVAILABLE'
 
-    # Current forecasts get half the mass. Available research families share
-    # the other half equally, with equal weight for arms within each family.
-    weighted = [(identity, distribution, 0.25) for identity, distribution in current.items()]
+    # Share mass equally within each family and among available research families.
+    weighted = [(identity, distribution, current_weight / 2) for identity, distribution in current.items()]
     for family in research:
-        share = 0.5 / len(research) / len(family)
+        share = (1 - current_weight) / len(research) / len(family)
         weighted.extend((identity, distribution, share) for identity, distribution in family.items())
     weights = {identity: weight for identity, _, weight in weighted}
     mass = {order: fsum(weight * distribution.get(order, 0.0)

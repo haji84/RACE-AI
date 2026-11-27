@@ -36,11 +36,14 @@ class LiveWorkflowTests(unittest.TestCase):
                 ({'event':'workflow_dispatch','mode':'saved-only','tests':'failure'},False),
                 ({'event':'workflow_dispatch','mode':'observe','tests':'failure'},False),
                 ({'event':'workflow_dispatch','mode':'dossier-context','tests':'failure'},False),
+                ({'event':'workflow_dispatch','mode':'combined-study','tests':'failure'},False),
+                ({'event':'workflow_dispatch','mode':'combined-study','ref':'refs/heads/feature'},False),
                 ({'event':'workflow_dispatch','mode':'test'},False),
                 ({'event':'push'},False),({'cancelled':True},False),
                 ({'prefix':'external-source'},False),
                 ({'event':'workflow_dispatch','mode':'observe'},True),
-                ({'event':'workflow_dispatch','mode':'dossier-context'},True)]:
+                ({'event':'workflow_dispatch','mode':'dossier-context'},True),
+                ({'event':'workflow_dispatch','mode':'combined-study'},True)]:
             v=dict(event='schedule',ref='refs/heads/main',repo='haji84/RACE-AI',id='1416489937',
                    source='true',store='true',mode='observe',tests='success',cancelled=False,prefix='');v.update(changes)
             context=dict(github=NS(event_name=v['event'],ref=v['ref'],repository=v['repo'],repository_id=v['id']),
@@ -62,7 +65,8 @@ class LiveWorkflowTests(unittest.TestCase):
     def test_only_safe_receipt_uploaded_and_plaintext_cleaned(self):
         job=self.job()
         paths=re.findall(r'^\s+path: (.+)$',job,flags=re.M)
-        self.assertEqual(paths,['${{ runner.temp }}/keirin-result-live-${{ github.run_id }}/safe/summary.json'])
+        safe = '${{ runner.temp }}/keirin-result-live-${{ github.run_id }}/safe/'
+        self.assertEqual(paths, [safe + 'summary.json', safe + 'combined-study-*.sealed.json'])
         self.assertIn('if: always()',job)
         self.assertIn('rm -rf -- "$root"',job)
         self.assertNotIn('RACE_AI_STATE_KEY',job)
@@ -77,7 +81,7 @@ class LiveWorkflowTests(unittest.TestCase):
     def test_dossier_update_reuses_scheduled_result_run_or_source_free_dispatch(self):
         text = self.text()
         job = text.split('  publish-rider-dossiers:\n', 1)[1].split('  measured-results:\n', 1)[0]
-        self.assertIn('options: [test, saved-only, observe, rider-dossiers, dossier-context, measure-results]', text)
+        self.assertIn('options: [test, saved-only, observe, rider-dossiers, dossier-context, measure-results, combined-study]', text)
         self.assertIn('needs: [tests, observe-results]', job)
         self.assertIn('scripts.keirin_daily_rider_update', job)
         self.assertNotIn('scripts.keirin_result_watch', job)
@@ -114,6 +118,15 @@ class LiveWorkflowTests(unittest.TestCase):
         self.assertNotIn('scripts.keirin_result_watch', job)
         self.assertNotIn('RACE_AI_KEIRIN_OFFICIAL_SOURCE_ENABLED', job)
         self.assertNotIn('RACE_AI_STATE_KEY', job)
+
+    def test_combined_study_exits_before_the_live_poll(self):
+        job = self.job()
+        branch = job.split('if [ "$RESULT_MODE" = combined-study ]; then', 1)[1].split('          fi', 1)[0]
+        self.assertIn('scripts.keirin_official_measured_outcomes', branch)
+        self.assertIn('--combined-holdout-from', branch)
+        self.assertNotIn('--publish', branch)
+        self.assertIn('exit 0', branch)
+        self.assertLess(job.index(branch), job.index('scripts.keirin_result_watch'))
 
 
 if __name__=='__main__':unittest.main()

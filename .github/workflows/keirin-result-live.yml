@@ -36,6 +36,8 @@ on:
       - 'scripts/keirin_official_nationwide_continuation.py'
       - 'scripts/keirin_result_watch.py'
       - 'scripts/keirin_official_measured_outcomes.py'
+      - 'race_ai/keirin_official_combined_study.py'
+      - 'tests/test_keirin_official_combined_study.py'
       - 'race_ai/keirin_measurement_publication.py'
       - 'race_ai/keirin_paired_measurement.py'
       - 'scripts/keirin_official_day_pipeline.py'
@@ -87,6 +89,8 @@ on:
       - 'scripts/keirin_official_nationwide_continuation.py'
       - 'scripts/keirin_result_watch.py'
       - 'scripts/keirin_official_measured_outcomes.py'
+      - 'race_ai/keirin_official_combined_study.py'
+      - 'tests/test_keirin_official_combined_study.py'
       - 'race_ai/keirin_measurement_publication.py'
       - 'race_ai/keirin_paired_measurement.py'
       - 'tests/test_keirin_measurement_publication.py'
@@ -114,7 +118,7 @@ on:
         type: choice
         required: true
         default: test
-        options: [test, saved-only, observe, rider-dossiers, dossier-context, measure-results]
+        options: [test, saved-only, observe, rider-dossiers, dossier-context, measure-results, combined-study]
       dossier_day:
         type: string
         description: JST day for source-free dossier replay or measurement
@@ -122,6 +126,10 @@ on:
       measurement_race_ids:
         type: string
         description: Optional comma-separated race IDs for an aggregate-only measurement of the specified day
+        required: false
+      combined_holdout_from:
+        type: string
+        description: ISO-8601 cutoff of the first combined-study evaluation race, with timezone
         required: false
   schedule:
     # Start/recover the bounded observer during 08:00-23:59 JST.
@@ -172,6 +180,7 @@ jobs:
             tests.test_keirin_official_nationwide_continuation \
             tests.test_keirin_official_nationwide_sources \
             tests.test_keirin_official_nationwide_records \
+            tests.test_keirin_official_combined_study \
             tests.test_keirin_official_condition_trial \
             tests.test_keirin_official_condition_scoring \
             tests.test_keirin_official_paired_measurement \
@@ -230,7 +239,8 @@ jobs:
       vars.RACE_AI_AB_SOURCE_S3_PREFIX == '' &&
       (github.event_name == 'schedule' ||
        (github.event_name == 'workflow_dispatch' && needs.tests.result == 'success' &&
-        (inputs.mode == 'saved-only' || inputs.mode == 'observe' || inputs.mode == 'dossier-context')))
+        (inputs.mode == 'saved-only' || inputs.mode == 'observe' || inputs.mode == 'dossier-context' ||
+         inputs.mode == 'combined-study')))
     runs-on: ubuntu-24.04
     timeout-minutes: 15
     permissions:
@@ -266,6 +276,18 @@ jobs:
               --day "$DOSSIER_DAY" | tee "$root/safe/summary.json" "$GITHUB_STEP_SUMMARY"
             exit 0
           fi
+          if [ "$RESULT_MODE" = combined-study ]; then
+            umask 077
+            ids=$(jq -r '.inputs.measurement_race_ids // empty' "$GITHUB_EVENT_PATH")
+            holdout=$(jq -r '.inputs.combined_holdout_from // empty' "$GITHUB_EVENT_PATH")
+            [[ -n "$DOSSIER_DAY" && -n "$ids" && -n "$holdout" ]]
+            python -m scripts.keirin_official_measured_outcomes --repo "$GITHUB_WORKSPACE" \
+              --private-root "$root/private" --day "$DOSSIER_DAY" --race-ids "$ids" \
+              --combined-holdout-from "$holdout" \
+              --owner-public-pem "$GITHUB_WORKSPACE/docs/evidence/2026-11-18/keirin_owner_existing_rsa_public_spki3072.pem" \
+              | tee "$root/safe/summary.json" "$GITHUB_STEP_SUMMARY"
+            exit 0
+          fi
           status=0
           python -m scripts.keirin_result_watch \
             --mode "$RESULT_MODE" \
@@ -284,6 +306,14 @@ jobs:
         with:
           name: keirin-result-live-receipt-${{ github.run_id }}
           path: ${{ runner.temp }}/keirin-result-live-${{ github.run_id }}/safe/summary.json
+          retention-days: 21
+          if-no-files-found: warn
+      - name: Retain encrypted chronological study forecasts and model
+        if: always() && github.event_name == 'workflow_dispatch' && inputs.mode == 'combined-study'
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: keirin-combined-study-encrypted-${{ github.run_id }}
+          path: ${{ runner.temp }}/keirin-result-live-${{ github.run_id }}/safe/combined-study-*.sealed.json
           retention-days: 21
           if-no-files-found: warn
       - name: Destroy ephemeral plaintext

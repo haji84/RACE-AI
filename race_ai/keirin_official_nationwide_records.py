@@ -599,20 +599,26 @@ def verify_condition_trial_cipher(row, store):
 
 def admit_saved_pair(store, original_meta, result_meta, owner_private_pem, *, history_cache=None):
     """Prove the stored pair from the protected capture, readback and pinned dossier."""
-    from . import keirin_official_condition_trial as trial
-
     payload = store.read(original_meta, owner_private_pem)
-    pair = payload.get('condition_trial')
-    if pair is None:
+    if payload.get('condition_trial') is None:
         return None
     saved_result = store.read(result_meta, owner_private_pem)
     need(saved_result['original_evidence_sha256'] == original_meta['evidence_sha256'],
          'CONDITION_TRIAL_RESULT_ORIGINAL')
     packets = saved_result['origin_packets']
     raw, _ = archived_original(store, payload)
-    original, _ = verify_origins(dict(payload, conditioned=None), raw, None, packets)
+    baseline_origin, _ = verify_origins(dict(payload, conditioned=None), raw, None, packets)
+    return replay_condition_pair(store, original_meta, payload, packets, baseline_origin,
+                                 history_cache=history_cache)
+
+
+def replay_condition_pair(store, original_meta, payload, packets, baseline_origin, *, history_cache=None):
+    """Rebuild the trial from an authenticated original and its capture receipts."""
+    from . import keirin_official_condition_trial as trial
+
+    pair = payload['condition_trial']
     cutoff = model.when(payload['baseline']['published_cutoff_at'])
-    latest_server = model.when(original['latest_server_evidence_at'])
+    latest_server = model.when(baseline_origin['latest_server_evidence_at'])
     sealed_at = model.when(original_meta['observed_at'])
     need(max(latest_server, sealed_at) <= cutoff - trial.WITNESS_MARGIN, 'CONDITION_TRIAL_T15')
     first = origin._bundle(packets['producer'], role='producer', policy=POLICY)
