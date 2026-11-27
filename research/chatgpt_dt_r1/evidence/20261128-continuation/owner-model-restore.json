@@ -1,0 +1,69 @@
+{
+  "schema": "DT_R1_OWNER_RESTORATION_ACCEPTANCE_V1",
+  "run_id": 46080603797,
+  "job_id": 140779451567,
+  "run_url": "https://github.com/haji84/RACE-AI/actions/runs/46080603797",
+  "artifact_id": 15237332009,
+  "artifact_name": "keirin-result-live-receipt-46080603797",
+  "artifact_zip_bytes": 1075,
+  "artifact_zip_sha256": "cef66e90a021f5ffd6d4e2211bb5859861ab2639a605cb15671da3e77d10363d",
+  "observed_report": {
+    "day_jst": "2026-11-28",
+    "ephemeral_plaintext_removed": true,
+    "models": {
+      "codex_frozen": {
+        "model_id": "keirin-conditional-order-trees-v1",
+        "owner_decryption_verified": true,
+        "sealed_model_sha256": "ba14eb787dca7d0a6b94af4e322f5a1b85ea9e5e90d4fae84d23ed7bdca87386",
+        "status": "RESTORED",
+        "tree_sha256": "17d8fddfbe4f6ba25871c9e869175e5ca2ca5e7475e96ab5f5b6a19e1bf0d7c6"
+      },
+      "dt_r1_back": {
+        "archive_commit": "b33be58a4b0920003f40fd75157ecbd79272c9ad",
+        "artifact_sha256": "f1be40a98fdfe792628163b9e0a82f25a4ba583609517219f9b80a86b999c9e6",
+        "candidate_bytes_sha256": "1ce3c29bf278dc2e662b4531d5d9c86bc1ad775cd0582a4cdea5c4171f497784",
+        "manifest_sha256": "36952b78e652c0c5acb74ca6aeb38f882b3e8bab77121dee6071f50c9f2c8682",
+        "model_id": "chatgpt-dt-r1",
+        "owner_decryption_verified": true,
+        "receipt_file_sha256": "9f2c4e0ef9dd722fa6d2bf4812059165371f350da872402069aeca57550e2fbf",
+        "restored_files": 2,
+        "status": "RESTORED"
+      },
+      "dt_r1_direct": {
+        "archive_commit": "410596da678beddcef6f8ca645cdc4e970f2d0fb",
+        "calibration_artifacts": 7,
+        "encrypted_shards": 8,
+        "manifest_sha256": "497154664f90725024836fbfe7cc84def152ccadb13868ccae0edb7b14c8cc4f",
+        "model_id": "chatgpt-dt-r1",
+        "model_sha256": "5e022092a35c0258954090c6f3d0f8fa14f03f22511b28d6aa9183f5a38c381c",
+        "owner_decryption_verified": true,
+        "restored_files": 24,
+        "status": "RESTORED"
+      }
+    },
+    "new_forecasts": 0,
+    "owner_decryption_verified": true,
+    "production_promoted": false,
+    "provider_source_requests": 0,
+    "reader_code_commit": "20db6dafe466eb4be6dd171db8f83b9de3ffb54a",
+    "reader_run_id": "46080603797",
+    "restored_models": 3,
+    "schema": "DT_R1_OWNER_MODEL_RESTORE_V1",
+    "scope": "OWNER_MODEL_RESTORATION_ONLY",
+    "source_authenticated": false,
+    "started_at": "2026-11-27T23:10:16.352000+00:00",
+    "state": "OWNER_MODELS_RESTORED_AND_VERIFIED",
+    "state_writes": 0,
+    "training_runs": 0,
+    "verified_at": "2026-11-27T23:10:23.422023+00:00"
+  },
+  "acceptance": {
+    "original_study_retention_readback_and_owner_restore": true,
+    "back_candidate_retention_readback_and_owner_restore": true,
+    "codex_frozen_restore": true,
+    "calibration_artifacts_restored": 7,
+    "future_calibration_transfer_proven": false,
+    "formal_three_model_contest_completed": false
+  },
+  "note": "The three restored components are DT-R1 direct study, DT-R1 B candidate and Codex frozen model. This is not the three-participant contest, and does not authenticate retrospective sources or promote any model."
+}

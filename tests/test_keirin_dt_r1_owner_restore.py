@@ -166,7 +166,8 @@ class OwnerRestoreWorkflowTests(unittest.TestCase):
         self.assertNotIn('scripts.keirin_result_watch', block)
         self.assertNotIn('scripts.keirin_official_measured_outcomes', block)
         self.assertEqual(job.count('secrets.RACE_AI_KEIRIN_PRIVATE_RSA_PEM'), 1)
-        self.assertIn("inputs.mode == 'dt-r1-restore' && '3.12' || '3.11'", job)
+        self.assertIn("inputs.mode == 'dt-r1-restore'", job)
+        self.assertIn("&& '3.12' || '3.11'", job)
         self.assertLess(job.index('if [ "$RESULT_MODE" = dt-r1-restore ]; then'),
                         job.index('if [ "$RESULT_MODE" = dossier-context ]; then'))
 

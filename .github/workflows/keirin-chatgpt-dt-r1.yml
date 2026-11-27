@@ -7,11 +7,15 @@ on:
     paths:
       - research/chatgpt_dt_r1/**
       - .github/workflows/keirin-chatgpt-dt-r1.yml
+      - scripts/keirin_dt_r1_future_*.py
+      - tests/test_keirin_dt_r1_future_*.py
   pull_request:
     branches: [main]
     paths:
       - research/chatgpt_dt_r1/**
       - .github/workflows/keirin-chatgpt-dt-r1.yml
+      - scripts/keirin_dt_r1_future_*.py
+      - tests/test_keirin_dt_r1_future_*.py
   workflow_dispatch:
 
 permissions:
@@ -40,6 +44,12 @@ jobs:
         run: python -m pip install -r research/chatgpt_dt_r1/requirements.txt
       - name: Verify research, privacy, temporal and missing-evidence contracts
         run: python -m unittest discover -s research/chatgpt_dt_r1 -p 'test_*.py' -v
+      - name: Verify source-free future producer and independent reader boundaries
+        run: |
+          python -m pip install --disable-pip-version-check 'beautifulsoup4>=4.12,<5'
+          python -m unittest -v tests.test_keirin_dt_r1_future_shadow \
+            tests.test_keirin_dt_r1_future_readback \
+            tests.test_keirin_dt_r1_future_workflow
       - name: Verify documented command interface
         run: |
           python -m research.chatgpt_dt_r1.cli --help
