@@ -5,9 +5,11 @@ import argparse
 from collections import Counter
 from datetime import datetime, timedelta, timezone
 from email.utils import parsedate_to_datetime
+from hashlib import sha256
 import json
 from pathlib import Path
 import re
+from subprocess import SubprocessError
 import time
 from unicodedata import normalize
 
@@ -16,6 +18,16 @@ SOURCE_STOP_CODES = {
     'PROVIDER_DENIED_OR_RATE_LIMITED_STOP', 'PUBLIC_PROVIDER_HTTP_ERROR_STOP',
     'PUBLIC_PROVIDER_UNAVAILABLE_STOP', 'PROVIDER_NON_HTML_OR_REDIRECT',
     'PROVIDER_EMPTY_OR_OVERSIZED_HTML',
+}
+JST = timezone(timedelta(hours=9))
+# The published race view uses these labels to bind a result to its forecast.
+VENUE_NAMES = {
+    '11':'函館', '12':'青森', '13':'いわき平', '21':'弥彦', '22':'前橋', '23':'取手', '24':'宇都宮', '25':'大宮',
+    '26':'西武園', '27':'京王閣', '28':'立川', '31':'松戸', '32':'千葉', '34':'川崎', '35':'平塚', '36':'小田原',
+    '37':'伊東温泉', '38':'静岡', '42':'名古屋', '43':'岐阜', '44':'大垣', '45':'豊橋', '46':'富山', '47':'松阪',
+    '48':'四日市', '51':'福井', '53':'奈良', '54':'向日町', '55':'和歌山', '56':'岸和田', '61':'玉野',
+    '62':'広島', '63':'防府', '71':'高松', '73':'小松島', '74':'高知', '75':'松山', '81':'小倉', '83':'久留米',
+    '84':'武雄', '85':'佐世保', '86':'別府', '87':'熊本',
 }
 
 
@@ -128,6 +140,174 @@ def validate_roster(published, consensus):
         ids.add(rid)
 
 
+def discover_missing_links(day, missing, fetch):
+    from scripts import keirin_discover_public_race_links as links
+
+    date = datetime.fromisoformat(day).date()
+    calendar = links.CALENDAR.format(year=date.year, month=date.month, day=date.day)
+    meetings = links.linked_racecards(fetch(calendar), base_url=calendar, day=day)
+    selected = {}
+    for venue in sorted({rid[8:10] for rid in missing} & meetings.keys()):
+        url = meetings[venue]
+        details = links.linked_details(fetch(url), base_url=url, day=day, venue=venue)
+        selected.update((rid, link) for rid, link in details.items() if rid in missing)
+    return selected
+
+
+def build_public_roster(forecast_bytes, source_rows, official_rows, *, display_cutoffs=None, archived_links=None,
+                        previous=None, results=None, fetch=None):
+    from race_ai import keirin_public_forecasts as public
+    from race_ai import keirin_secondary_result_consensus as consensus
+
+    forecast = public.checked(json.loads(forecast_bytes))
+    day = forecast['day']
+    old = {}
+    if previous is not None:
+        validate_roster(previous, consensus)
+        checked(previous['date'] == day, 'PUBLIC_ROSTER_INPUT_DAY_MISMATCH')
+        old = {row['race_id']: row for row in previous['races']}
+    checked(old.keys() <= {row['race_id'] for row in forecast['races']}, 'PUBLIC_ROSTER_SHRANK')
+    sources = {row['race_id']: row for row in source_rows}
+    official = {row['race_id']: row for row in official_rows}
+    saved_results = {row['race_id']: row for row in (results or {}).get('races', [])}
+    display_cutoffs = display_cutoffs or {}
+    archived_links = archived_links or {}
+    rows, missing = {}, set()
+    for item in forecast['races']:
+        rid = item['race_id']
+        prior, source = old.get(rid), sources.get(rid)
+        cutoff = item['cutoff_at'] or display_cutoffs.get(rid)
+        if prior is not None:
+            row = prior
+            if cutoff is not None and public.when(cutoff) != public.when(prior['published_cutoff_at']):
+                result = saved_results.get(rid, {})
+                observations = []
+                if result.get('state') == 'matched':
+                    comparison = result['comparison']
+                    observations = [comparison['observed_at'], *(source['checked_at'] for source in comparison['sources'])]
+                elif result.get('reason') == 'special_result':
+                    observations = [results['checked_at']]
+                checked(all(public.when(cutoff) <= public.when(at) for at in observations),
+                        'PUBLIC_ROSTER_SETTLED_CLOCK_CONFLICT')
+                row = dict(prior, published_cutoff_at=cutoff)
+        else:
+            cutoff = cutoff or (source or {}).get('cutoff_at')
+            field = source if source is not None else official.get(rid)
+            checked(cutoff is not None and field is not None and (source is not None or item['cutoff_at'] is not None),
+                    'PUBLIC_ROSTER_INPUT_INCOMPLETE')
+            venue = rid[8:10]
+            link = source['source_url'] if source else archived_links.get(rid)
+            row = dict(race_id=rid, date=day, venue=VENUE_NAMES.get(venue, '開催コード ' + venue),
+                       race_no=int(rid[-2:]), published_cutoff_at=cutoff,
+                       source_url=link,
+                       observed_riders=[{'number': rider['number']} for rider in field['riders']])
+            if link is None:
+                missing.add(rid)
+        rows[rid] = row
+
+    if missing:
+        resolved = discover_missing_links(day, missing, fetch)
+        checked(resolved.keys() == missing, 'PUBLIC_ROSTER_PUBLISHED_LINK_MISSING')
+        for rid, url in resolved.items():
+            rows[rid]['source_url'] = url
+    if previous is not None and rows == old:
+        return previous
+    roster = dict(schema='KEIRIN_PUBLIC_RESULT_ROSTER_V1', date=day,
+                  generated_at=previous['generated_at'] if previous else forecast['published_at'],
+                  forecast_asset_sha256=sha256(forecast_bytes).hexdigest(),
+                  races=[rows[rid] for rid in sorted(rows)])
+    validate_roster(roster, consensus)
+    return roster
+
+
+def published_display_cutoffs(store, head, forecast):
+    from race_ai import keirin_public_forecast_updates as updates
+    from race_ai import keirin_public_forecasts as public
+
+    day = forecast['day']
+    registered = {row['race_id'] for row in forecast['races']}
+    cutoffs = {}
+    # Follow the existing public view's order for rows without an official clock.
+    for family, validate in (('references', public.checked_reference),
+                             ('research', public.checked_research), ('updates', updates.checked)):
+        raw = store.read_previous(head, f'{family}/{day}.json')
+        if raw is None:
+            continue
+        try:
+            layer = validate(json.loads(raw))
+            if layer['day'] != day or any(row['race_id'] not in registered for row in layer['races']):
+                continue
+        except (ValueError, KeyError, TypeError):
+            continue
+        for row in layer['races']:
+            cutoffs.setdefault(row['race_id'], row['cutoff_at'])
+    return cutoffs
+
+
+def refresh_public_rosters(state, store, fetch, *, now):
+    from race_ai import keirin_dossier_secondary as secondary
+    from race_ai import keirin_public_forecast_odds as odds
+    from race_ai import keirin_public_forecasts as public
+    from scripts.keirin_public_rider_projection import _checked_starters
+
+    head = store.head()
+    checked(head is not None, 'PUBLIC_FORECAST_STATE_UNAVAILABLE')
+    store.run(['fetch', '--no-tags', '--depth=1', store.remote, head])
+    today = now.astimezone(JST).date()
+    directory = state / 'rosters'
+    directory.mkdir(exist_ok=True)
+    ready = True
+    for date in (today, today - timedelta(days=1)):
+        day = date.isoformat()
+        raw = store.read_previous(head, f'forecasts/{day}.json')
+        if raw is None:
+            continue
+        target = directory / f'{day}.json'
+        previous = json.loads(target.read_bytes()) if target.exists() else None
+        result_path = state / 'results' / target.name
+        results = json.loads(result_path.read_bytes()) if result_path.exists() else None
+        try:
+            snapshot = public.checked(json.loads(raw))
+            checked(snapshot['day'] == day and public.when(snapshot['published_at']) <= now,
+                    'PUBLIC_ROSTER_INPUT_DAY_MISMATCH')
+            missing = {r['race_id'] for r in snapshot['races']} - {r['race_id'] for r in (previous or {}).get('races', [])}
+            display_cutoffs = published_display_cutoffs(store, head, snapshot) if any(
+                row['cutoff_at'] is None for row in snapshot['races']) else {}
+            context_rows, starter_rows = [], []
+            archived_links = {}
+            if missing:
+                context = store.read_previous(head, f'rider-context-secondary/{day}.json')
+                if context is not None:
+                    packet = secondary.checked_day(json.loads(context))
+                    checked(packet['day'] == day, 'PUBLIC_ROSTER_INPUT_DAY_MISMATCH')
+                    context_rows = packet['races']
+                if missing - {r['race_id'] for r in context_rows}:
+                    starters = store.read_previous(head, f'starters/{day}.json')
+                    if starters is not None:
+                        packet = _checked_starters(json.loads(starters))
+                        checked(packet['day'] == day, 'PUBLIC_ROSTER_INPUT_DAY_MISMATCH')
+                        starter_rows = packet['races']
+                    existing_links = store.read_previous(head, f'odds/{day}.json')
+                    if existing_links is not None:
+                        # The registered page URL is useful even when its racecard context is held.
+                        packet = odds.checked(json.loads(existing_links))
+                        checked(packet['day'] == day, 'PUBLIC_ROSTER_INPUT_DAY_MISMATCH')
+                        archived_links = {row['race_id']: row['source_url'] for row in packet['races']}
+            roster = build_public_roster(raw, context_rows, starter_rows, display_cutoffs=display_cutoffs,
+                                         archived_links=archived_links, previous=previous, results=results, fetch=fetch)
+        except (ValueError, TypeError, KeyError) as error:
+            if str(error) in SOURCE_STOP_CODES:
+                raise
+            print(json.dumps({'roster_day':day,'roster_state':'held', 'reason':str(error)
+                              if re.fullmatch(r'[A-Z0-9_]{3,90}', str(error)) else 'PUBLIC_ROSTER_VALIDATION_FAILED'}))
+            ready = False
+            continue
+        if roster != previous:
+            target.write_text(json.dumps(roster, ensure_ascii=False, separators=(',', ':')) + '\n')
+            print(json.dumps({'roster_day':day,'roster_state':'registered','race_count':len(roster['races'])}))
+    return ready
+
+
 def provider_pause(error, now):
     status = getattr(error, 'http_status', None)
     if status not in (401, 403, 429):
@@ -215,7 +395,7 @@ def collect(published, fetch, consensus, *, previous=None, now=None, resume_afte
             pause = provider_pause(error, datetime.now(timezone.utc)) if stopped else None
             if pause is not None:
                 evidence[-1]['provider_pause'] = pause
-    if not attempted and previous is not None:
+    if not attempted and previous is not None and len(entries) == len(old) and all(old.get(row['race_id']) == row for row in entries):
         return previous,evidence
     return {'schema':'KEIRIN_PUBLISHED_RESULTS_V1', 'date':date,
             'checked_at':datetime.now(timezone.utc).isoformat(),
@@ -237,18 +417,46 @@ def pause_is_active(path, now):
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--state-directory', required=True, type=Path)
+    parser.add_argument('--refresh-rosters', action='store_true', help='Register new days from the canonical public projections.')
     parser.add_argument('--stop-when-complete', action='store_true',
                         help='Return 10 when every published race is matched or has a special result.')
     args = parser.parse_args()
     from race_ai import keirin_secondary_result_consensus as consensus
     from scripts.keirin_capture_public_two_sources import fetch_once
-    rosters=sorted((args.state_directory/'rosters').glob('20??-??-??.json'))
-    checked(bool(rosters),'PUBLIC_RESULT_ROSTERS_MISSING')
     result_dir=args.state_directory/'results'
     result_dir.mkdir(exist_ok=True)
     pause_file = result_dir / 'provider-pause.json'
-    if pause_is_active(pause_file, datetime.now(timezone.utc)):
+    now = datetime.now(timezone.utc)
+    if pause_is_active(pause_file, now):
         return 0
+
+    # Leave time for the last pair of requests and the Git write before the job times out.
+    deadline = time.monotonic() + 450
+
+    def can_poll():
+        return time.monotonic() < deadline
+
+    def fetch_roster_link(url):
+        checked(can_poll(), 'PUBLIC_ROSTER_LOOKUP_BUDGET_PENDING')
+        return fetch_once(url)
+
+    complete = True
+    if args.refresh_rosters:
+        from race_ai.keirin_public_forecasts import PublicForecastGit
+
+        try:
+            complete = refresh_public_rosters(args.state_directory, PublicForecastGit(Path.cwd()), fetch_roster_link, now=now)
+        except (ValueError, OSError, SubprocessError) as error:
+            complete = False
+            if str(error) in SOURCE_STOP_CODES:
+                pause = provider_pause(error, datetime.now(timezone.utc))
+                if pause is not None:
+                    pause_file.write_text(json.dumps(pause) + '\n')
+                print(json.dumps({'roster_state':'held','provider_failure':str(error)}))
+                return 75
+            print(json.dumps({'roster_state':'held','reason':'PUBLIC_ROSTER_STATE_READ_FAILED'}))
+    rosters=sorted((args.state_directory/'rosters').glob('20??-??-??.json'))
+    checked(bool(rosters),'PUBLIC_RESULT_ROSTERS_MISSING')
 
     position_file = result_dir / 'poll-positions.json'
     positions = json.loads(position_file.read_bytes()) if position_file.exists() else {}
@@ -263,13 +471,6 @@ def main():
         previous=json.loads(destination.read_bytes()) if destination.exists() else None
         day_packets.append((previous['checked_at'] if previous else '', path, destination, previous))
 
-    # Leave time for the last pair of requests and the Git write before the job times out.
-    deadline = time.monotonic() + 450
-
-    def can_poll():
-        return time.monotonic() < deadline
-
-    complete = True
     status = 0
     for _, path, destination, previous in sorted(day_packets):
         if not can_poll():

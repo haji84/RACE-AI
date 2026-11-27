@@ -2,6 +2,9 @@
 set -euo pipefail
 
 watch_minutes=${1:-0}
+if (($#)); then
+  shift
+fi
 if [[ ! "$watch_minutes" =~ ^(0|[1-9][0-9]{0,2})$ ]] || ((watch_minutes > 345)); then
   echo 'Expected a watch window in minutes between 0 and 345.' >&2
   exit 2
@@ -22,14 +25,14 @@ while true; do
   fi
 
   status=0
-  python -m scripts.keirin_public_site_results --state-directory "$state" --stop-when-complete \
+  python -m scripts.keirin_public_site_results --state-directory "$state" --stop-when-complete "$@" \
     | tee -a "${GITHUB_STEP_SUMMARY:?}" || status=$?
   # 10 means no races are outstanding. 75 means preserve the collected rows and stop on a source failure.
   if ((status != 0 && status != 10 && status != 75)); then
     exit "$status"
   fi
 
-  git -C "$state" add -- results
+  git -C "$state" add -- rosters results
   if ! git -C "$state" diff --cached --quiet; then
     git -C "$state" -c user.name='github-actions[bot]' \
       -c user.email='41898282+github-actions[bot]@users.noreply.github.com' \

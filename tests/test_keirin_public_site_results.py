@@ -9,7 +9,7 @@ import shutil
 import subprocess
 from tempfile import TemporaryDirectory
 import unittest
-from unittest.mock import patch
+from unittest.mock import Mock, patch
 from urllib.error import HTTPError
 
 from race_ai import keirin_secondary_result_consensus as consensus
@@ -34,6 +34,103 @@ def roster(races):
 
 def snapshot(entries):
     return {'schema':'KEIRIN_PUBLISHED_RESULTS_V1','date':DATE,'checked_at':'2026-11-23T01:04:00Z','races':entries}
+
+
+class PublicDailyRosterTests(unittest.TestCase):
+    def forecasts(self, *, published='2026-11-23T00:33:00+00:00', cutoff='2026-11-23T09:00:00+09:00'):
+        return json.dumps(dict(schema='RACE_AI_KEIRIN_PUBLIC_FORECASTS_V1', day=DATE,
+            published_at=published, races=[dict(race_id=rid, status='pending', cutoff_at=cutoff,
+                saved_at=None, a=[], b=[]) for rid in IDS[:2]])).encode()
+
+    def source(self, number):
+        row = race(number)
+        return dict(race_id=row['race_id'], source_url=row['source_url'],
+                    cutoff_at=row['published_cutoff_at'], riders=row['observed_riders'])
+
+    def test_registers_the_daily_forecast_universe_from_confirmed_cards(self):
+        with patch.object(publisher, 'discover_missing_links') as fallback:
+            manifest = publisher.build_public_roster(self.forecasts(), [self.source(0), self.source(1)], [])
+        fallback.assert_not_called()
+        self.assertEqual(manifest['races'], [race(0), race(1)])
+        self.assertEqual(manifest['generated_at'], '2026-11-23T00:33:00+00:00')
+
+    def test_fallback_uses_an_official_starter_list_and_an_observed_provider_link(self):
+        official = [dict(race_id=IDS[1], riders=race(1)['observed_riders'])]
+        with patch.object(publisher, 'discover_missing_links', return_value={IDS[1]:race(1)['source_url']}) as fallback:
+            manifest = publisher.build_public_roster(self.forecasts(), [self.source(0)], official)
+        fallback.assert_called_once()
+        self.assertEqual(fallback.call_args.args[:2], (DATE, {IDS[1]}))
+        self.assertEqual(manifest['races'], [race(0), race(1)])
+
+    def test_archived_link_for_verified_official_starters_avoids_a_fresh_lookup(self):
+        official = [dict(race_id=IDS[1], riders=race(1)['observed_riders'])]
+        with patch.object(publisher, 'discover_missing_links') as fallback:
+            manifest = publisher.build_public_roster(self.forecasts(), [self.source(0)], official,
+                                                     archived_links={IDS[1]:race(1)['source_url']})
+        fallback.assert_not_called()
+        self.assertEqual(manifest['races'], [race(0), race(1)])
+
+    def test_incomplete_starters_cannot_create_a_roster_or_trigger_provider_lookup(self):
+        with patch.object(publisher, 'discover_missing_links') as fallback:
+            with self.assertRaisesRegex(ValueError, 'PUBLIC_ROSTER_INPUT_INCOMPLETE'):
+                publisher.build_public_roster(self.forecasts(), [self.source(0)], [])
+        fallback.assert_not_called()
+
+    def test_representation_refresh_leaves_the_time_bound_to_existing_results(self):
+        previous = roster([race(0), race(1)])
+        later = '2026-11-23T09:02:00+09:00'
+        updated = publisher.build_public_roster(self.forecasts(cutoff=later), [], [], previous=previous)
+        self.assertEqual(updated['generated_at'], previous['generated_at'])
+        self.assertEqual(updated['races'], [race(0, later), race(1, later)])
+        self.assertEqual(publisher.build_public_roster(self.forecasts(cutoff=later), [], [], previous=updated), updated)
+
+    def test_cutoff_revision_cannot_invalidate_the_earlier_of_two_result_receipts(self):
+        matched = {'race_id':IDS[0], 'state':'matched', 'comparison':{
+            'observed_at':'2026-11-23T00:12:00Z',
+            'sources':[{'checked_at':'2026-11-23T00:10:00Z'}, {'checked_at':'2026-11-23T00:12:00Z'}]}}
+        with self.assertRaisesRegex(ValueError, 'PUBLIC_ROSTER_SETTLED_CLOCK_CONFLICT'):
+            publisher.build_public_roster(self.forecasts(cutoff='2026-11-23T09:11:00+09:00'), [], [],
+                                         previous=roster([race(0), race(1)]), results=snapshot([matched]))
+
+    def test_legacy_roster_uses_the_display_clock_and_retains_prior_clocks_for_unlisted_rows(self):
+        original = roster([race(0, '2026-11-23T09:02:00+09:00'), race(1, '2026-11-23T09:04:00+09:00')])
+        updated = publisher.build_public_roster(self.forecasts(cutoff=None), [self.source(0), self.source(1)], [],
+                                               display_cutoffs={IDS[0]:race(0)['published_cutoff_at']}, previous=original)
+        self.assertEqual(updated['generated_at'], original['generated_at'])
+        self.assertEqual(updated['races'], [race(0), original['races'][1]])
+
+    def test_published_reference_clock_precedes_research_and_unregistered_layers_are_held(self):
+        raw = self.forecasts(cutoff=None)
+        head = 'a'*40
+        packet = dict(day=DATE, published_at='2026-11-23T00:33:00+00:00')
+        picks = dict(a=[[1, 2, 3]], b=[[2, 1, 3]])
+        ref = dict(packet, schema='RACE_AI_KEIRIN_PUBLIC_REFERENCE_FORECASTS_V1', races=[dict(
+            race_id=IDS[0], cutoff_at='2026-11-23T09:35:00+09:00', saved_at='2026-11-23T00:29:00+00:00', **picks)])
+        research = dict(packet, schema='RACE_AI_KEIRIN_PUBLIC_RESULT_UNREAD_AB_V1', races=[dict(
+            race_id=rid, cutoff_at='2026-11-23T09:37:00+09:00', generated_at='2026-11-23T00:29:00+00:00',
+            starter_cars=list(range(1, 8)), **picks) for rid in IDS[:2]])
+        store = Mock()
+        store.read_previous.side_effect = [json.dumps(ref), json.dumps(research), None]
+        self.assertEqual(publisher.published_display_cutoffs(store, head, json.loads(raw)),
+                         {IDS[0]:'2026-11-23T09:35:00+09:00', IDS[1]:'2026-11-23T09:37:00+09:00'})
+        research['races'][1]['race_id'] = IDS[2]
+        store.read_previous.side_effect = [json.dumps(ref), json.dumps(research), None]
+        self.assertEqual(publisher.published_display_cutoffs(store, head, json.loads(raw)),
+                         {IDS[0]:'2026-11-23T09:35:00+09:00'})
+
+    def test_roster_lookup_denial_stops_both_paths_on_following_runs(self):
+        rejection = capture.SourceCaptureError('PROVIDER_DENIED_OR_RATE_LIMITED_STOP', http_status=403)
+        with TemporaryDirectory() as folder, redirect_stdout(io.StringIO()), \
+             patch('sys.argv', ['publisher', '--state-directory', folder, '--refresh-rosters']), \
+             patch('race_ai.keirin_public_forecasts.PublicForecastGit'), \
+             patch.object(publisher, 'refresh_public_rosters', side_effect=rejection) as refresh, \
+             patch.object(publisher, 'collect') as collect:
+            self.assertEqual(publisher.main(), 75)
+            self.assertEqual(publisher.main(), 0)
+            self.assertEqual(json.loads((Path(folder) / 'results/provider-pause.json').read_text()),
+                             dict(status=403, retry_at=None))
+        refresh.assert_called_once()
+        collect.assert_not_called()
 
 
 class PublicResultRefreshTests(unittest.TestCase):
