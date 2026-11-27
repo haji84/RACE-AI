@@ -8,8 +8,6 @@ retain their observation-day scope. No marker is overwritten or cleared.
 from __future__ import annotations
 
 from datetime import date, datetime, timedelta, timezone
-from pathlib import Path
-from tempfile import TemporaryDirectory
 import json
 import re
 
@@ -221,25 +219,9 @@ def append_once(*, repo, day, code, observed_at):
             if prior_denial is not None:
                 must(prior_denial["code"] == DENIED, "STOP_DENIAL_MARKER_CODE_INVALID")
                 return "PROVIDER_DAY_ALREADY_STOPPED"
-        with TemporaryDirectory(prefix="keirin-provider-stop-") as d:
-            tree = Path(d)/"branch"
-            archive._cmd(repo, "worktree", "add", "--detach", str(tree), head)
-            try:
-                target=tree/path
-                target.parent.mkdir(parents=True,exist_ok=True)
-                must(not target.exists(), "PROVIDER_STOP_CREATE_ONCE_REQUIRED")
-                target.write_text(payload,encoding="utf-8")
-                archive._cmd(tree,"add","--",path)
-                archive._cmd(
-                    tree,"-c","user.name=RACE-AI",
-                    "-c","user.email=race-ai@users.noreply.github.com",
-                    "commit","-m","safety(keirin): stop denied day source GET")
-                status,_=archive._cmd(
-                    tree,"push","origin",f"HEAD:refs/heads/{archive.BRANCH}",
-                    okay=True)
-            finally:
-                archive._cmd(repo,"worktree","remove","--force",str(tree),
-                             okay=True)
+        status, _ = archive._push_archive_files(
+            repo, head, {path: payload.encode("utf-8")},
+            "safety(keirin): stop denied day source GET")
         if status==0:
             checked_head = archive._refresh(repo)
             must(_read_immutable_marker(repo, checked_head, path, day) == doc,

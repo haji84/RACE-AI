@@ -3,6 +3,7 @@ from hashlib import sha256
 from pathlib import Path
 from tempfile import TemporaryDirectory
 from unittest.mock import patch
+import os
 import subprocess
 import unittest
 
@@ -121,6 +122,36 @@ class SyntheticGitHubOnlyCipherHistory(unittest.TestCase):
                  f"refs/remotes/origin/{ledger.BRANCH}:{ledger._refs(rid1)[0]}")
         self.assertNotIn("ranked_tickets",work)
         self.assertNotIn("athlete_id",work)
+
+    def test_cold_append_preserves_unrelated_blobs_without_downloading_them(self):
+        git(self.origin, "config", "uploadpack.allowFilter", "true")
+        git(self.origin, "config", "uploadpack.allowReachableSHA1InWant", "true")
+        old_path = "historical-ciphertext"
+        (self.worker1 / old_path).write_bytes(b"retained encrypted fixture\x00\n")
+        git(self.worker1, "add", old_path)
+        git(self.worker1, "commit", "-m", "add unrelated ciphertext")
+        git(self.worker1, "push", "origin", f"HEAD:refs/heads/{ledger.BRANCH}")
+        parent = git(self.worker1, "rev-parse", "HEAD")
+        old_blob = git(self.worker1, "rev-parse", f"{parent}:{old_path}")
+        cold = self.root / "cold"
+        git(self.root, "init", "-b", "main", str(cold))
+        git(cold, "remote", "add", "origin", self.origin.as_uri())
+        ref = f"refs/remotes/origin/{ledger.BRANCH}"
+        git(cold, "fetch", "--filter=blob:none", "origin", f"refs/heads/{ledger.BRANCH}:{ref}")
+
+        def has_old_blob():
+            return subprocess.run(
+                ["git", "cat-file", "-e", old_blob], cwd=cold,
+                env=dict(os.environ, GIT_NO_LAZY_FETCH="1"), capture_output=True,
+                check=False, timeout=5,
+            ).returncode == 0
+
+        self.assertFalse(has_old_blob(), "fixture must start without the historical blob")
+        result = self.put(cold, "202611182601")
+        head = result["write_commit"]
+        self.assertEqual(git(self.origin, "rev-parse", f"{head}^"), parent)
+        self.assertEqual(git(self.origin, "rev-parse", f"{head}:{old_path}"), old_blob)
+        self.assertFalse(has_old_blob(), "appending one race must not hydrate unrelated ciphertext")
 
     def test_same_race_different_random_cipher_rejected_without_mutation(self):
         rid="202611182601"

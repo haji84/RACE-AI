@@ -50,8 +50,10 @@ def need(ok, reason):
         raise GitCipherArchiveError(reason)
 
 
-def _cmd(repo, *args, okay=False, timeout=35):
+def _cmd(repo, *args, okay=False, timeout=35, index_path=None):
     env = dict(os.environ, GIT_TERMINAL_PROMPT="0")
+    if index_path is not None:
+        env.update(GIT_INDEX_FILE=str(index_path), GIT_NO_LAZY_FETCH="1")
     try:
         done = subprocess.run(
             ["git", *args], cwd=repo, text=True, encoding="utf-8",
@@ -143,8 +145,10 @@ def _receipt(doc, digest, run_id, producer_sha, previous_head, cohort_sha256=Non
     return receipt
 
 
-def _refresh(repo, *, retry_on_timeout=False):
-    fetch = ("fetch", "--no-tags", "origin", f"refs/heads/{BRANCH}:refs/remotes/origin/{BRANCH}")
+def _refresh(repo, *, retry_on_timeout=False, blobless=False):
+    options = ("--filter=blob:none", "--no-recurse-submodules") if blobless else ()
+    fetch = ("fetch", "--no-tags", *options, "origin",
+             f"refs/heads/{BRANCH}:refs/remotes/origin/{BRANCH}")
     try:
         _cmd(repo, *fetch)
     except GitCipherFetchTimeout:
@@ -158,7 +162,46 @@ def _refresh(repo, *, retry_on_timeout=False):
 
 def _show(repo, ref, path):
     done=_cmd(repo,"show",f"{ref}:{path}",okay=True)
-    return done if done[0]==0 else None
+    if done[0] == 0:
+        return done
+    _require_absent_path(repo, ref, path)
+    return None
+
+
+def _require_absent_path(repo, ref, path):
+    # On a promisor remote a failed blob retrieval can mean the path exists
+    # but its bytes are unavailable. Only the tree can attest absence.
+    _, entry = _cmd(repo, "--no-replace-objects", "ls-tree", "--full-tree", ref, "--", path)
+    need(not entry, "ARCHIVE_BLOB_READ_UNAVAILABLE")
+
+
+def _push_archive_files(repo, parent, files, message, *, replace_path=None):
+    """Fast-forward a complete archive tree without materializing its blobs."""
+    need(COMMIT.fullmatch(parent) and bool(files), "ARCHIVE_APPEND_INPUT_INVALID")
+    with TemporaryDirectory(prefix="keirin-archive-index-") as folder:
+        index = Path(folder) / "index"
+        content = Path(folder) / "content"
+        _cmd(repo, "--no-replace-objects", "read-tree", parent, index_path=index)
+        for path, raw in files.items():
+            _, entry = _cmd(repo, "ls-files", "--stage", "--", path, index_path=index)
+            if path == replace_path:
+                need(not entry or (entry.startswith("100644 ") and
+                     entry.endswith("\t" + path) and "\n" not in entry), "INDEX_SYMLINK")
+            else:
+                need(not entry, "ARCHIVE_CREATE_ONCE_REQUIRED")
+            content.write_bytes(raw)
+            _, blob = _cmd(repo, "hash-object", "-w", "--no-filters", "--",
+                           str(content), index_path=index)
+            _cmd(repo, "update-index", "--add", "--cacheinfo", f"100644,{blob},{path}",
+                 index_path=index)
+        _, tree = _cmd(repo, "write-tree", "--missing-ok", index_path=index)
+        _, commit = _cmd(repo, "--no-replace-objects", "-c", "user.name=RACE-AI",
+                         "-c", "user.email=race-ai@users.noreply.github.com",
+                         "commit-tree", tree, "-p", parent, "-m", message, index_path=index)
+        need(COMMIT.fullmatch(commit), "COMMIT_IDENTITY_INVALID")
+        status, _ = _cmd(repo, "push", "origin", f"{commit}:refs/heads/{BRANCH}",
+                         okay=True, index_path=index)
+    return status, commit
 
 
 def read_blob_bytes(repo, ref, path, *, max_bytes=MAX_BYTES):
@@ -182,6 +225,7 @@ def read_blob_bytes(repo, ref, path, *, max_bytes=MAX_BYTES):
     status, kind = _cmd(repo, "--no-replace-objects", "cat-file", "-t",
                         target, okay=True)
     if status != 0:
+        _require_absent_path(repo, ref, path)
         return None
     need(kind == "blob", "ARCHIVE_BLOB_OBJECT_REQUIRED")
     _, length = _cmd(repo, "--no-replace-objects", "cat-file", "-s", target)
@@ -284,28 +328,11 @@ def append_once(*,repo,raw_cipher,expected_cipher_sha256,
                     "readback_head":head}
         receipt=_receipt(doc,expected_cipher_sha256,producer_run_id,
                          producer_commit,head,cohort_sha256)
-        with TemporaryDirectory(prefix="keirin-cipher-only-git-") as d:
-            tree=Path(d)/"tree"
-            _cmd(repo,"worktree","add","--detach",str(tree),head)
-            try:
-                dest=tree/cipher_path
-                rec=tree/receipt_path
-                dest.parent.mkdir(parents=True,exist_ok=True)
-                rec.parent.mkdir(parents=True,exist_ok=True)
-                need(not dest.exists() and not rec.exists(),
-                     "ORIGINAL_RACE_CREATE_ONCE_VIOLATION")
-                dest.write_bytes(raw_cipher)
-                rec.write_bytes((json.dumps(receipt,sort_keys=True,
-                                   separators=(",",":"))+"\n").encode("utf-8"))
-                _cmd(tree,"add","--",cipher_path,receipt_path)
-                _cmd(tree,"-c","user.name=RACE-AI","-c",
-                     "user.email=race-ai@users.noreply.github.com",
-                     "commit","-m",f"archive(keirin): sealed A/B {rid} original SHA")
-                newhead=_cmd(tree,"rev-parse","HEAD")[1]
-                status,_=_cmd(tree,"push","origin",
-                              f"HEAD:refs/heads/{BRANCH}",okay=True)
-            finally:
-                _cmd(repo,"worktree","remove","--force",str(tree),okay=True)
+        receipt_raw = (json.dumps(receipt, sort_keys=True, separators=(",", ":"))
+                       + "\n").encode("utf-8")
+        status, newhead = _push_archive_files(
+            repo, head, {cipher_path: raw_cipher, receipt_path: receipt_raw},
+            f"archive(keirin): sealed A/B {rid} original SHA")
         if status==0:
             observed=read_original(repo=repo,race_id=rid,
                                    expected_cipher_sha256=expected_cipher_sha256,
@@ -461,25 +488,11 @@ def append_conditioned_once(*, repo, raw_cipher, expected_cipher_sha256,
         receipt.update(schema=FORM_SCHEMA,
                        baseline_cipher_sha256=expected_baseline_cipher_sha256,
                        baseline_prediction_sha256=expected_baseline_prediction_sha256)
-        with TemporaryDirectory(prefix="keirin-conditioned-git-") as folder:
-            tree = Path(folder) / "tree"
-            _cmd(repo, "worktree", "add", "--detach", str(tree), head)
-            try:
-                dest, rec = tree/cipher_path, tree/receipt_path
-                need(not dest.exists() and not rec.exists(),
-                     "CONDITIONED_ORIGINAL_CREATE_ONCE_VIOLATION")
-                dest.write_bytes(raw_cipher)
-                rec.write_bytes((json.dumps(receipt, sort_keys=True,
-                    separators=(",", ":")) + "\n").encode("utf-8"))
-                _cmd(tree, "add", "--", cipher_path, receipt_path)
-                _cmd(tree, "-c", "user.name=RACE-AI", "-c",
-                     "user.email=race-ai@users.noreply.github.com", "commit", "-m",
-                     f"archive(keirin): conditioned A/B {rid} original SHA")
-                newhead = _cmd(tree, "rev-parse", "HEAD")[1]
-                status, _ = _cmd(tree, "push", "origin",
-                    f"HEAD:refs/heads/{BRANCH}", okay=True)
-            finally:
-                _cmd(repo, "worktree", "remove", "--force", str(tree), okay=True)
+        receipt_raw = (json.dumps(receipt, sort_keys=True, separators=(",", ":"))
+                       + "\n").encode("utf-8")
+        status, newhead = _push_archive_files(
+            repo, head, {cipher_path: raw_cipher, receipt_path: receipt_raw},
+            f"archive(keirin): conditioned A/B {rid} original SHA")
         if status == 0:
             restored = read_conditioned_original(repo=repo, race_id=rid,
                 expected_cipher_sha256=expected_cipher_sha256,
