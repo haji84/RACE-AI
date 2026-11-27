@@ -520,9 +520,13 @@ class MacCycleTests(unittest.TestCase):
                 again = self.run_cycle(**options)
                 saved_receipt, = self.root.glob('tracks-*/receipt.json')
                 cached = json.loads(saved_receipt.read_bytes())
+                cached['broadcast_anchors'] = 1
+                saved_receipt.write_text(json.dumps(cached))
+                changed_count = self.run_cycle(**options)
                 cached['unexpected_private_value'] = 'not an aggregate field'
                 saved_receipt.write_text(json.dumps(cached))
                 tampered = self.run_cycle(**options)
+        self.assertEqual(changed_count['video']['tracking']['state'], 'HOLD_TRACKING_INPUT_OR_RUNTIME')
         track.assert_called_once_with(clip, digest, race, [1, 2])
         self.assertEqual(first['video']['tracking']['state'], 'TRACKS_GENERATED')
         self.assertEqual(again['video']['tracking']['state'], 'TRACKS_REUSED')

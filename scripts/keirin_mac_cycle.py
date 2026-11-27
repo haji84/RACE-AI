@@ -133,12 +133,17 @@ def _capture(db, root, approval, browser, now, *, calendar_rows=(), calendar_can
     if db.execute('SELECT 1 FROM race WHERE id=?', (row['race_id'],)).fetchone() is None:
         with db:
             corpus.load_race(db, dict(row, riders=[], roster_complete=False))
+    calendar_result = None
+    if row.get('result_commit') is not None:
+        calendar_result = dict(race_id=row['race_id'], commit=row['result_commit'],
+                               observed_at=row['result_observed_at'])
     with TemporaryDirectory(dir=root) as temp:
         path = Path(temp)/'queue.jsonl'
         media.atomic_jsonl(path, [row])
         counts = sources.run(path, digests, interval=3, pause=2, limit=1, executable=browser,
                              continuous=True, source_approval=approval, chromium_sandbox=True,
-                             headless=False, stop_after_refusal=True, retry_failed=retry)
+                             headless=False, stop_after_refusal=True, retry_failed=retry,
+                             calendar_result=calendar_result)
     if any(_provider_refused(status) for status in counts):
         return 'HOLD_PROVIDER_REFUSAL', 0
     return ('RECORDED' if counts['captured'] else 'NO_NEW_RECORDING'), counts['captured']
@@ -397,6 +402,10 @@ def _fit(db, root, reviewed):
     return 'TRIAL_PROFILE_FITTED', expected[profiles_path.name], dataset_sha
 
 
+def _broadcast_anchor_count(tracks):
+    return sum(item['state'] == 'BROADCAST_ANCHOR' for item in tracks.get('phases', {}).values())
+
+
 def _track(db, root, request, clips):
     if request is None:
         return {'state': 'NO_TRACKING_REQUEST'}
@@ -434,16 +443,16 @@ def _track(db, root, request, clips):
                 or receipt['engine_sha256'] != engine
                 or type(receipt['sampled_frames']) is not int or not 0 < receipt['sampled_frames'] <= tracking.MAX_SECONDS*tracking.FPS
                 or type(receipt['analysis_ms']) is not int or receipt['analysis_ms'] < 0
-                or type(receipt['broadcast_anchors']) is not int or not 0 <= receipt['broadcast_anchors'] <= 6):
+                or type(receipt['broadcast_anchors']) is not int
+                or receipt['broadcast_anchors'] != _broadcast_anchor_count(json.loads(track_bytes))):
             raise ValueError('The stored tracking output changed.')
         return dict(receipt, state='TRACKS_REUSED')
     start = monotonic()
     tracks = tracking._track_clip(media_path, digest, rid, cars)
     track_bytes = tracking._json(tracks)
-    anchors = sum(item['state'] == 'BROADCAST_ANCHOR' for item in tracks.get('phases', {}).values())
     receipt = dict(tracks_sha256=sha256(track_bytes).hexdigest(), engine_sha256=engine,
                    sampled_frames=len(tracks['tracks']), analysis_ms=round(1000 * (monotonic()-start)),
-                   broadcast_anchors=anchors)
+                   broadcast_anchors=_broadcast_anchor_count(tracks))
     with TemporaryDirectory(dir=root) as temp:
         staging = Path(temp)/'tracks'
         staging.mkdir(mode=0o700)

@@ -603,8 +603,20 @@ def require_capture_scope(approval, key, url, *, continuous):
 
 def run(queue, output, *, interval, pause, limit, executable, retry_failed=False, continuous=False,
         source_approval=None, chromium_sandbox=None, headless=None, stop_after_refusal=False,
-        settled_replay_url=None, settled_replay_decision_sha256=None):
+        settled_replay_url=None, settled_replay_decision_sha256=None, calendar_result=None):
     approval = load_source_approval(source_approval, continuous)
+    if calendar_result is not None:
+        if (not continuous or limit != 1 or not stop_after_refusal or settled_replay_url is not None
+                or type(calendar_result) is not dict
+                or set(calendar_result) != {'race_id', 'commit', 'observed_at'}
+                or not RACE.fullmatch(calendar_result['race_id'])
+                or not re.fullmatch(r'[0-9a-f]{40}', calendar_result['commit'])):
+            raise ValueError('Invalid replay calendar result binding.')
+        seen = datetime.fromisoformat(calendar_result['observed_at'])
+        if (seen.utcoffset() is None or seen > datetime.now(timezone.utc)
+                or seen.astimezone(timezone(timedelta(hours=9))).date()
+                < date.fromisoformat(calendar_result['race_id'][:8])):
+            raise ValueError('Invalid replay calendar result time.')
     if settled_replay_url is not None and not (limit == 1 and stop_after_refusal):
         raise ValueError('settled replay requires a bounded single attempt and refusal stop')
     if settled_replay_url is not None and settled_replay_decision_sha256 != approval.decision_sha256:
@@ -622,6 +634,8 @@ def run(queue, output, *, interval, pause, limit, executable, retry_failed=False
                 tally['no_listed_url'] += 1
                 continue
             key, url = target(row)
+            if calendar_result is not None and row['race_id'] != calendar_result['race_id']:
+                raise ValueError('Replay calendar result belongs to a different race.')
             if key == KOMATSUSHIMA_REPLAY_KEY or settled_replay_url is not None:
                 if key != KOMATSUSHIMA_REPLAY_KEY or settled_replay_url != url:
                     tally['outside_settled_replay_scope'] += 1
@@ -701,9 +715,9 @@ def run(queue, output, *, interval, pause, limit, executable, retry_failed=False
                                      'race_id': row['race_id'], 'source_ref': url}
                             if approval.permission_basis:
                                 proof['permission_basis'] = approval.permission_basis
-                            if row.get('result_commit'):
-                                proof['result_discovery'] = dict(commit=row['result_commit'],
-                                    observed_at=row['result_observed_at'], scope='two_source_confirmed_end')
+                            if calendar_result is not None:
+                                proof['result_discovery'] = dict(commit=calendar_result['commit'],
+                                    observed_at=calendar_result['observed_at'], scope='two_source_confirmed_end')
                             if approval.source_host == WINTICKET_HOST and not continuous:
                                 proof['capture_mode'] = REPLAY_FRAME_MODE
                             with (tmp / 'source-approval.json').open('x') as receipt:
