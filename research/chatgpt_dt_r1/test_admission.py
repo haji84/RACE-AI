@@ -245,8 +245,8 @@ class AdmissionTests(unittest.TestCase):
         timing = dict(observation_id='synthetic-timing', race_id=history['race_id'],
             rider_id=row['riders'][0]['identity_key'], venue_id='98',
             event_at='2030-01-14T06:05:00Z', event_day='2030-01-14',
-            timings={'full_last_lap_seconds': 24.}, identity_confidence=1.,
-            uncertainties={'full_last_lap_seconds': .05}, provenance=dict(kind='official_record',
+            timings={'agari_half_seconds': 12.}, identity_confidence=1.,
+            uncertainties={'agari_half_seconds': .05}, provenance=dict(kind='official_record',
                 source_url='https://example.test/synthetic-timing', source_sha256='9'*64,
                 retrieved_at='2030-01-14T06:10:00Z', available_at='2030-01-14T06:10:00Z'))
         as_of = '2030-01-15T04:10:00Z'
@@ -262,7 +262,7 @@ class AdmissionTests(unittest.TestCase):
         self.assertEqual(len(featured['feature_names']), 224)
         self.assertGreater(featured['features'][0, featured['feature_names'].index('history_entries_log')], 0)
         self.assertAlmostEqual(featured['features'][0,
-            featured['feature_names'].index('history_observed_full_last_lap_seconds_mean')], .6)
+            featured['feature_names'].index('history_observed_agari_half_seconds_mean')], .6)
         binding = runtime_binding(row)
         history_sha = digest([history])
         binding.update(feature_input_sha256=featured['feature_input_sha256'],

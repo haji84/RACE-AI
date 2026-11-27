@@ -114,6 +114,10 @@ class RankModel:
         _verify_feature_binding(row, required=self.fit_meta.get('feature_digest_required', False))
         if not np.isfinite(self.temperature) or self.temperature <= 0:
             raise ValueError('TEMPERATURE_INVALID')
+        from .features import retired_timing_feature
+        retired = np.asarray([retired_timing_feature(name) for name in self.feature_names])
+        if np.any(self.weights[:, retired] != 0.):
+            raise ValueError('RETIRED_FULL_LAP_WEIGHT_NONZERO_RETRAIN_REQUIRED')
         # Scaling is fitted on the training set only. Clipping bounds extrapolation.
         x = np.clip((x - self.mean) / self.scale, -12., 12.)
         return cars, x @ self.weights.T, pair_features(row)
@@ -275,6 +279,8 @@ def fit_ranker(rows: Sequence[dict], *, before: str, ridge=.01, use_pairs=True,
     mask_features = np.ones(f, dtype=bool) if feature_mask is None else np.asarray(feature_mask, dtype=bool)
     if mask_features.shape != (f,):
         raise ValueError('FEATURE_MASK_INVALID')
+    from .features import retired_timing_feature
+    mask_features = mask_features & np.asarray([not retired_timing_feature(name) for name in names])
     samples = []
     for row in valid:
         cars = _cars(row)

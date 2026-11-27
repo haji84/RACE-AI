@@ -2,7 +2,8 @@
 
 Same-race outcomes, archived weather and collection clocks never enter features.
 Rest/starts are calendar proxies, not physiological fatigue measurements. Source
-``agari`` is final HALF-lap time: it never populates final-lap measurements.
+``agari`` is final HALF-lap time and is the active timing feature. Full final
+lap columns are retired compatibility slots; they never receive measurements.
 """
 from __future__ import annotations
 
@@ -50,6 +51,12 @@ HISTORY_FEATURES = (
 FEATURE_NAMES = CURRENT_FEATURES + HISTORY_FEATURES
 FEATURE_VERSION = 'CHAT_DT_R1_STRICT_PRIOR_DAY_FEATURES_V1'
 FEATURE_INDEX = {name: i for i, name in enumerate(FEATURE_NAMES)}
+
+
+def retired_timing_feature(name):
+    """Keep the frozen 106/224-column schema without learning full-lap data."""
+    return name.startswith(('history_final_lap_', 'history_venue_final_lap_',
+                            'history_observed_full_last_lap_seconds_'))
 
 
 def _digest(value):
@@ -160,7 +167,7 @@ def _history_summary(past, rider, record, target_day):
     values['history_incident_rate'] = _mean([float(r['incident']) for r in recent_starts])
     values['history_incident_missing'] = float(not recent_starts)
     timing_counts = {}
-    for kind, scale in (('half_lap', 20.0), ('final_lap', 40.0)):
+    for kind, scale in (('half_lap', 20.0),):
         timed = [r for r in starts if r[kind + '_seconds'] is not None]
         for prefix, observations in ((kind, timed), ('venue_' + kind, [r for r in timed if r['venue_code'] == record.get('venue_code')])):
             observations = observations[-20:]
@@ -168,6 +175,12 @@ def _history_summary(past, rider, record, target_day):
             values[f'history_{prefix}_log'] = _log_count(len(observations), 20)
             values[f'history_{prefix}_missing'] = float(not observations)
             timing_counts[prefix] = len(observations)
+    # Reserved columns stay at the exact missing-value encoding of the old archive.
+    for prefix in ('final_lap', 'venue_final_lap'):
+        values[f'history_{prefix}_mean'] = 0.0
+        values[f'history_{prefix}_log'] = 0.0
+        values[f'history_{prefix}_missing'] = 1.0
+        timing_counts[prefix] = 0
     marked = [r for r in starts if r['sb_mark'] is not None][-30:]
     values['history_s_rate'] = _mean([float('S' in r['sb_mark']) for r in marked])
     values['history_b_rate'] = _mean([float('B' in r['sb_mark']) for r in marked])
@@ -336,14 +349,14 @@ class FeatureBuilder:
                     rank = None
                 cancelled, absent = bool(result.get('cancelled')), bool(result.get('absence'))
                 started = not cancelled and not absent and (rank is not None or bool(result.get('incident')))
-                half, final = (_finite(result.get(key)) for key in ('half_lap_seconds', 'final_lap_seconds'))
+                half = _finite(result.get('half_lap_seconds'))
                 event = dict(
                     day=record['day'], date=target_day, race_id=record['race_id'],
                     venue_code=record.get('venue_code'), race_class=record.get('race_class'),
                     rank=rank, form=1 - (rank - 1) / max(1, size - 1) if rank is not None else None,
                     started=started, incident=bool(result.get('incident')),
                     half_lap_seconds=half if half is not None and half > 0 else None,
-                    final_lap_seconds=final if final is not None and final > 0 else None,
+                    final_lap_seconds=None,  # Retired input, never learned or inferred from agari.
                     sb_mark=result.get('sb_mark'),
                 )
                 event['event_sha256'] = _digest({key: value for key, value in event.items() if key != 'date'})

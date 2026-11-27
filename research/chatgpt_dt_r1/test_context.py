@@ -16,8 +16,8 @@ def card():
 
 def observation(day='2026-07-01', kind='official_record'):
     return {'observation_id': 'o1', 'race_id': 'past', 'rider_id': '1', 'venue_id': 'v',
-            'event_at': None, 'event_day': day, 'timings': {'full_last_lap_seconds': 24.},
-            'identity_confidence': 1., 'uncertainties': {'full_last_lap_seconds': .05},
+            'event_at': None, 'event_day': day, 'timings': {'agari_half_seconds': 12.},
+            'identity_confidence': 1., 'uncertainties': {'agari_half_seconds': .05},
             'provenance': {'kind': kind, 'source_url': 'urn:synthetic:timing', 'source_sha256': 'c' * 64,
                            'retrieved_at': '2026-07-11T00:00:00Z', 'available_at': '2026-07-11T00:00:00Z'}}
 
@@ -33,18 +33,34 @@ class ContextTests(unittest.TestCase):
         base = FeatureBuilder().transform(card())
         with_past = augment_features([base], timing_records=[observation()], as_of='2026-07-12T00:00:00Z')[0]
         names = with_past['feature_names']
-        col = names.index('history_observed_full_last_lap_seconds_mean')
-        self.assertAlmostEqual(with_past['features'][0, col], 24 / 40)
+        col = names.index('history_observed_agari_half_seconds_mean')
+        self.assertAlmostEqual(with_past['features'][0, col], 12 / 20)
         self.assertEqual(with_past['features'][1, col], 0.)
         future = augment_features([base], timing_records=[observation(day='2026-07-10')], as_of='2026-07-12T00:00:00Z')[0]
         empty = augment_features([base], timing_records=[], as_of='2026-07-12T00:00:00Z')[0]
         np.testing.assert_array_equal(future['features'], empty['features'])
         self.assertEqual(future['feature_input_sha256'], empty['feature_input_sha256'])
 
+    def test_full_lap_only_is_ignored_and_never_converted_to_agari(self):
+        base = FeatureBuilder().transform(card())
+        full = observation()
+        full['timings'] = {'full_last_lap_seconds': 24.}
+        full['uncertainties'] = {'full_last_lap_seconds': .05}
+        held = augment_features([base], timing_records=[full], as_of='2026-07-12T00:00:00Z')[0]
+        empty = augment_features([base], timing_records=[], as_of='2026-07-12T00:00:00Z')[0]
+        np.testing.assert_array_equal(held['features'], empty['features'])
+        self.assertEqual(held['feature_input_sha256'], empty['feature_input_sha256'])
+        self.assertEqual(held['context_evidence']['measured_timing_rider_count'], 0)
+        both = observation()
+        both['timings']['full_last_lap_seconds'] = 24.
+        row = augment_features([base], timing_records=[both], as_of='2026-07-12T00:00:00Z')[0]
+        self.assertEqual(row['features'][0, row['feature_names'].index('history_observed_full_last_lap_seconds_mean')], 0.)
+        self.assertAlmostEqual(row['features'][0, row['feature_names'].index('history_observed_agari_half_seconds_mean')], .6)
+
     def test_ai_timing_is_not_promoted_to_measured_feature(self):
         row = augment_features([FeatureBuilder().transform(card())], timing_records=[observation(kind='ai_estimate')],
                                as_of='2026-07-12T00:00:00Z')[0]
-        i = row['feature_names'].index('history_observed_full_last_lap_seconds_mean')
+        i = row['feature_names'].index('history_observed_agari_half_seconds_mean')
         self.assertEqual(row['features'][0, i], 0.)
 
     def test_geometry_current_value_assumption_is_explicit(self):
@@ -73,7 +89,7 @@ class ContextTests(unittest.TestCase):
     def test_unusable_identity_and_empty_roster_remain_unknown(self):
         row = card(); row['riders'][0]['identity_usable'] = False
         f = augment_features([FeatureBuilder().transform(row)], timing_records=[observation()], as_of='2026-07-12T00:00:00Z')[0]
-        col = f['feature_names'].index('history_observed_full_last_lap_seconds_mean')
+        col = f['feature_names'].index('history_observed_agari_half_seconds_mean')
         self.assertEqual(f['features'][0, col], 0.)
         row['riders'] = []
         held = augment_features([FeatureBuilder().transform(row)], as_of='2026-07-12T00:00:00Z')[0]

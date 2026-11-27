@@ -194,6 +194,23 @@ class DataFeatureContracts(unittest.TestCase):
         self.assertEqual(built[1]['features'][0, names.index('history_final_lap_missing')], 1)
         self.assertTrue(all(np.isfinite(x['features']).all() for x in built))
 
+    def test_full_lap_is_retired_and_only_prior_agari_changes_timing_features(self):
+        rows, _ = self.load([{}, {'day': '20260102'}])
+        baseline = features.build_features(rows)[1]
+        modified = deepcopy(rows)
+        modified[0]['result_rows'][0]['final_lap_seconds'] = 24.0
+        ignored = features.build_features(modified)[1]
+        np.testing.assert_array_equal(baseline['features'], ignored['features'])
+        self.assertEqual(baseline['feature_input_sha256'], ignored['feature_input_sha256'])
+        modified[0]['result_rows'][0]['half_lap_seconds'] = 18.0
+        active = features.build_features(modified)[1]
+        names = active['feature_names']
+        self.assertNotEqual(active['features'][0, names.index('history_half_lap_mean')],
+                            baseline['features'][0, names.index('history_half_lap_mean')])
+        self.assertAlmostEqual(active['features'][0, names.index('history_venue_half_lap_mean')], 18. / 20.)
+        self.assertEqual(active['features'][0, names.index('history_final_lap_mean')], 0.)
+        self.assertEqual(active['features'][0, names.index('history_final_lap_missing')], 1.)
+
     def test_unsupported_rosters_are_retained_as_holds_without_failing_other_races(self):
         rows, audit = self.load([{'n': 0}, {'rno': 2, 'n': 2}, {'rno': 3, 'n': 3},
                                  {'rno': 4, 'n': 9}, {'rno': 5, 'n': 10}])

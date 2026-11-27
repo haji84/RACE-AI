@@ -27,6 +27,9 @@ GEOMETRY_SCALES = {'circumference_m': 400., 'straight_m': 100., 'cant_deg': 45.,
 WEATHER_SCALES = {'wind_speed_m_s': 10., 'gust_m_s': 10., 'temperature_c': 40.,
                   'humidity_percent': 100., 'precipitation_mm': 20.}
 TIMING_STATS = ('count', 'min', 'mean', 'recent', 'variance', 'uncertainty_mean')
+# Keep historical column indices for frozen artifacts. Only the verified half-lap
+# (agari) and independent segment measurements are active; full-lap is retired.
+ACTIVE_TIMINGS = tuple(metric for metric in TIMINGS if metric != 'full_last_lap_seconds')
 EXTRA_NAMES = tuple(
     [name for k in GEOMETRY_FIELDS for name in ('context_venue_' + k, 'context_venue_' + k + '_missing')]
     + ['context_geometry_present', 'context_current_geometry_assumption']
@@ -84,7 +87,8 @@ def augment_features(rows, *, venue_store=None, timing_records=(), as_of,
     book = TimingBook.from_records(timing_records)
     indexed = defaultdict(list)
     for observation in book.observations:
-        indexed[observation.rider_id, observation.venue_id].append(observation)
+        if any(observation.timings.get(metric) is not None for metric in ACTIVE_TIMINGS):
+            indexed[observation.rider_id, observation.venue_id].append(observation)
     books = {key: TimingBook(value) for key, value in indexed.items()}
     out = []
     for original in rows:
@@ -112,7 +116,7 @@ def augment_features(rows, *, venue_store=None, timing_records=(), as_of,
                     if event_before and utc(observation.provenance.available_at) <= utc(as_of):
                         admitted_sources.add(digest(asdict(observation)))
         means = {}
-        for metric in TIMINGS:
+        for metric in ACTIVE_TIMINGS:
             vals = [v[metric + '_mean'] for v in timing_by_rider.values() if v.get(metric + '_mean') is not None]
             means[metric] = float(np.mean(vals)) if vals else None
         groups = row.get('line_groups') or []
@@ -152,15 +156,17 @@ def augment_features(rows, *, venue_store=None, timing_records=(), as_of,
             timing = (timing_by_rider.get(str(rider.get('identity_key', rider.get('athlete_id', ''))), {})
                       if rider.get('identity_usable') is True else {})
             for metric in TIMINGS:
-                scale = 40. if metric == 'full_last_lap_seconds' else 20.
+                scale = 20.
+                active = metric in ACTIVE_TIMINGS
                 for stat in TIMING_STATS:
-                    number = timing.get(metric + '_' + stat, 0 if stat == 'count' else None)
+                    missing = 0 if stat == 'count' else None
+                    number = timing.get(metric + '_' + stat, missing) if active else missing
                     key = f'history_observed_{metric}_{stat}'
                     values[key] = (0. if number is None else log1p(number) / log1p(100)
                                    if stat == 'count' else number / (scale * scale if stat == 'variance' else scale))
                     values[key + '_missing'] = float(number is None)
-                mean = timing.get(metric + '_mean')
-                values[f'history_observed_{metric}_relative'] = (mean - means[metric]) / scale if mean is not None and means[metric] is not None else 0.
+                mean = timing.get(metric + '_mean') if active else None
+                values[f'history_observed_{metric}_relative'] = (mean - means[metric]) / scale if mean is not None and means.get(metric) is not None else 0.
             extras.append([values[name] for name in EXTRA_NAMES])
         row['features'] = np.concatenate((np.asarray(row['features']), np.asarray(extras).reshape(len(row['riders']), len(EXTRA_NAMES))), axis=1)
         row['feature_names'] = tuple(row['feature_names']) + EXTRA_NAMES
@@ -170,7 +176,7 @@ def augment_features(rows, *, venue_store=None, timing_records=(), as_of,
             sources = sorted({v.source_sha256 for v in venue_store.records if v.venue_code == venue and utc(v.retrieved_at) <= utc(as_of)})
         evidence = {'scope': scope, 'as_of': as_of, 'venue_sources': sources, 'timing_sources': sorted(admitted_sources),
                     'weather_source': weather_sha, 'current_geometry_assumption': bool(geometry.get('retrospective_current_geometry_assumption')),
-                    'measured_timing_rider_count': sum(any(t.get(metric + '_count', 0) for metric in TIMINGS) for t in timing_by_rider.values())}
+                    'measured_timing_rider_count': sum(any(t.get(metric + '_count', 0) for metric in ACTIVE_TIMINGS) for t in timing_by_rider.values())}
         row['context_evidence'] = evidence
         row['history_evidence'] = dict(row['history_evidence'], external_context=evidence)
         out.append(_bind_feature_input(row))

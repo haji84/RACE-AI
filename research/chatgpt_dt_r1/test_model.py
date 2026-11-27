@@ -21,6 +21,20 @@ def fixture(i=0, n=5, day='2026-01-01'):
 
 
 class RankerTests(unittest.TestCase):
+    def test_retired_full_lap_cannot_influence_ranker(self):
+        rows = [fixture(i) for i in range(30)]
+        for row in rows:
+            row['feature_names'] = ('history_final_lap_mean', 'noise1', 'noise2')
+        model = fit_ranker(rows, before='2026-01-02', max_iter=2)
+        self.assertEqual(model.fit_meta['feature_mask'][0], False)
+        np.testing.assert_array_equal(model.weights[:, 0], np.zeros(4))
+        base = model.distribution(rows[0])
+        changed = copy.deepcopy(rows[0]); changed['features'][:, 0] += np.arange(5) * 100
+        self.assertEqual(model.distribution(changed), base)
+        model.weights[0, 0] = 1.
+        with self.assertRaisesRegex(ValueError, 'RETIRED_FULL_LAP_WEIGHT_NONZERO'):
+            model.distribution(rows[0])
+
     def test_exact_joint_law_and_marginals_every_field(self):
         for n in range(3, 10):
             row = fixture(n, n=n)
