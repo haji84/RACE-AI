@@ -93,6 +93,33 @@ jobs:
           retention-days: 7
           compression-level: 0
 
+  archived-back-phase-study:
+    if: github.event_name == 'push' && github.ref == 'refs/heads/research/chatgpt-dt-r1-pipeline-20261128' && github.event.head_commit.message == 'Evaluate actual archived B leader supervision for DT-R1'
+    needs: contracts
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    env:
+      OPENBLAS_NUM_THREADS: '1'
+      OMP_NUM_THREADS: '1'
+      PYTHONDONTWRITEBYTECODE: '1'
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
+        with:
+          python-version: '3.12'
+      - name: Install existing pinned research dependencies
+        run: python -m pip install -r research/chatgpt_dt_r1/requirements.txt
+      - name: Compare B-conditioned and direct rank models on shared archived records
+        shell: bash
+        run: |
+          set -euo pipefail
+          umask 077
+          private="$(mktemp -d "$RUNNER_TEMP/dt-r1-back.XXXXXX")"
+          trap 'rm -rf -- "$private"' EXIT
+          python -m research.chatgpt_dt_r1.back_phase_study "$private"
+
 # No scheduled source scraping, raw archive upload, secret access, cache,
 # prediction publishing, active-model promotion or competing cron is added.
 # Artifacts are a short-lived transfer only. Durable retention requires the
