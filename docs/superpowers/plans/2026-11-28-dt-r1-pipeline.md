@@ -34,7 +34,7 @@ Spec: owner conversation; `KEIRIN_PREDICTION_ACCURACY_CONFIDENCE_SPEC_20261128.m
 - [x] T4 `policy.py`, `calibration.py`, `comparison.py`: odds/count policy, disjoint calibration/audit, all-target/common-cohort metrics and paired day-block intervals.
 - [x] T5 `pipeline.py`, `cli.py`: chronological candidate selection, frozen evaluation, ablations, reproducible artifacts, input/model/source hashes, optional observations.
 - [x] T6 `runtime.py`, report view, CI: immutable forecast/result revisions, append-only calendar admission, existing encryption, future shadow adapter, authenticated optional odds/calibration and candidate retraining without automatic production promotion.
-- [ ] T7 real archive run, negative-path tests, independent source/code review, final evidence and draft PR. Owner: coordinator plus independent reviewer.
+- [x] T7 real archive run, negative-path tests, independent source/code and public-artifact review, final evidence. Publication is on the dedicated research branch and draft PR; production promotion remains separate.
 
 ## Review focus
 
@@ -43,3 +43,13 @@ Leakage across any split or same day; odds/cutoff clock substitution; label-driv
 ## Verification
 
 Use small synthetic tests for invariants and attacks, then a measured real-data training/calibration/evaluation run. Report those forms of evidence separately. Pin the chosen model before evaluating the final archive period. Record all unmeasured deployment/video/future conditions explicitly.
+
+## Completed evidence
+
+- Local focused research suite: 172 tests pass, including calendar-to-card admission, unknown-input official results, source/result clock bounds, exact probability identities, artifact integrity, and aggregate dashboard privacy.
+- Training-code CI at `352578a43dcc41dcf67a39ab52c9debd5dab988e`: success; 171 tests, 170 pass and one optional FFmpeg test skipped on the runner. The local FFmpeg test passes. A later dashboard regression adds one local test without changing training code.
+- Final fixed archive study: 30,713 registered; final-period 3,508 registered and 3,480 evaluable; full weights, temperature, outcome metrics, ablations and confidence counts reproduce the preceding successful run exactly.
+- Model SHA: `562b14ecee281be26660b5a1659e14e9fa08b9a34ff4baca8fa31d7ce13491fa`.
+- Public evidence: `research/chatgpt_dt_r1/evidence/20261128/RESULTS.md` and adjacent aggregate JSON, model weights, dashboard, verification record and checksums. No private original forecasts or raw database included.
+- Retrospective only. No verified high/hot label in the archive final period, no real-rider video/phase labels, no simultaneous authenticated historical odds, and no two-rival frozen exports. Production, future three-way performance and complete scheduled coverage are unproven.
+- Dashboard privacy and script syntax verified; browser visual inspection unavailable because the local browser download returned HTTP 403. This does not become a claimed visual check.

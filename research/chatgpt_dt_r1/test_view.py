@@ -83,6 +83,18 @@ class ViewTests(unittest.TestCase):
     def setUp(self):
         self.assertIsNotNone(view, 'research dashboard is not implemented')
 
+    def test_selected_without_context_candidate_is_visible_with_all_four_ablations(self):
+        source = report()
+        source['selected_candidate'] = 'without_context_with_pairs'
+        source['ablations_frozen_before_test']['without_context_with_pairs'] = metrics()
+        html = view.render_report(source)
+        projected = json.loads(Document(html).dataset)
+        self.assertEqual(projected['selected_candidate_id'], 'without_context_with_pairs')
+        self.assertNotEqual(projected['selected_candidate'], '未確定')
+        self.assertEqual(len(projected['ablations']), 4)
+        self.assertIn('温度校正前', html)
+        self.assertIn('主結果は校正後', html)
+
     def test_owner_report_cannot_be_written_under_git(self):
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
