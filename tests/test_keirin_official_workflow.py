@@ -198,6 +198,46 @@ class OfficialWorkflow(unittest.TestCase):
         self.assertIn('Destroy ephemeral plaintext', result)
         self.assertGreaterEqual(result.count('if: always()'), 3)
 
+    def test_official_settlement_signals_the_public_publisher_without_private_data(self):
+        _, blocks = jobs()
+        event = 'keirin-official-sp-settled'
+        settle = blocks['official-sp-settle']
+        self.assertIn('      - name: Request public result refresh\n', settle)
+        prior, signal = settle.split('      - name: Request public result refresh\n', 1)
+        self.assertIn('Destroy temporary official result plaintext', prior)
+        self.assertIn("jq -e '.provider_denied == false and .source_unavailable == false'", prior)
+        self.assertIn("if: success() && steps.official-settlement.outputs.refresh_public_results == 'true'", signal)
+        self.assertIn('continue-on-error: true', signal)
+        self.assertIn('GH_TOKEN: ${{ github.token }}', signal)
+        self.assertIn('timeout 15s gh api --method POST --silent repos/haji84/RACE-AI/dispatches', signal)
+        self.assertIn(f'-f event_type={event}', signal)
+        self.assertNotIn('client_payload', signal)
+        self.assertNotIn('secrets.', signal)
+
+        publisher = WORKFLOW.with_name('keirin-public-site-results.yml').read_text(encoding='utf-8')
+        self.assertIn(f'  repository_dispatch:\n    types: [{event}]', publisher)
+        self.assertIn('  schedule:', publisher)
+        publish = publisher.split('  publish-public-site-results:\n', 1)[1]
+        guard = publish.split('    if: >-\n', 1)[1].split('    concurrency:', 1)[0]
+        guard = ' '.join(guard.split()).replace('&&', ' and ').replace('||', ' or ')
+        for overrides, expected in (
+            ({}, True),
+            ({'actor_id': '1'}, False),
+            ({'repository_id': '1'}, False),
+            ({'repository': 'fork/RACE-AI'}, False),
+            ({'ref': 'refs/heads/feature'}, False),
+            ({'event_name': 'pull_request'}, False),
+            ({'event_name': 'schedule', 'actor_id': '1'}, True),
+            ({'event_name': 'workflow_dispatch', 'actor_id': '1'}, True),
+        ):
+            github = dict(repository='haji84/RACE-AI', repository_id='1416489937',
+                          ref='refs/heads/main', event_name='repository_dispatch', actor_id='41898282')
+            github.update(overrides)
+            with self.subTest(overrides=overrides):
+                self.assertEqual(bool(eval(guard, {'__builtins__': {}}, {'github': NS(**github)})), expected)
+        self.assertIn('group: keirin-public-site-results-state', publish)
+        self.assertNotIn('secrets.', publish)
+
     def test_production_uses_official_capture_and_one_concurrency_group(self):
         text, blocks = jobs()
         capture = blocks['github-only-owner-capture']

@@ -1731,6 +1731,7 @@ jobs:
         with:
           python-version: '3.11'
       - name: Compare due authenticated originals through the admitted official form path
+        id: official-settlement
         shell: bash
         env:
           GITHUB_TOKEN: ${{ github.token }}
@@ -1748,6 +1749,9 @@ jobs:
             --report "$root/safe/summary.json" --max-races 8 > "$root/counts.json" || status=$?
           if [ -f "$root/safe/summary.json" ]; then
             cat "$root/safe/summary.json" >> "$GITHUB_STEP_SUMMARY"
+            if jq -e '.provider_denied == false and .source_unavailable == false' "$root/safe/summary.json" >/dev/null; then
+              echo 'refresh_public_results=true' >> "$GITHUB_OUTPUT"
+            fi
           fi
           exit "$status"
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
@@ -1765,3 +1769,19 @@ jobs:
           if [ -d "$root" ] && [[ "$root" == "$RUNNER_TEMP"/keirin-official-sp-settle-* ]]; then
             rm -rf -- "$root"
           fi
+      - name: Request public result refresh
+        if: success() && steps.official-settlement.outputs.refresh_public_results == 'true'
+        continue-on-error: true
+        timeout-minutes: 1
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          # Send during the existing public observation window in Japan.
+          case "$(TZ=Asia/Tokyo date +%H%M)" in
+            005[6-9]|0[1-7]*|080?) exit 0 ;;
+          esac
+          timeout 15s gh api --method POST --silent repos/haji84/RACE-AI/dispatches \
+            -f event_type=keirin-official-sp-settled
+          echo 'Requested a public Site result refresh.' >> "$GITHUB_STEP_SUMMARY"
