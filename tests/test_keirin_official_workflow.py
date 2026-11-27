@@ -238,6 +238,24 @@ class OfficialWorkflow(unittest.TestCase):
         self.assertIn('group: keirin-public-site-results-state', publish)
         self.assertNotIn('secrets.', publish)
 
+    def test_public_dispatch_can_trigger_private_readback_only_from_the_actions_bot(self):
+        readback = WORKFLOW.with_name('keirin-joint-original-readback.yml').read_text(encoding='utf-8')
+        guard = readback.split('  independent-owner-readback:\n', 1)[1].split('    if: >-\n', 1)[1]
+        guard = guard.split('    runs-on:', 1)[0]
+        guard = ' '.join(guard.split()).replace('&&', ' and ').replace('||', ' or ')
+        github = NS(repository='haji84/RACE-AI', repository_id='1416489937', ref='refs/heads/main',
+                    event_name='workflow_run')
+        for event, actor, expected in (
+            ('repository_dispatch', 41898282, True),
+            ('repository_dispatch', 123, False),
+            ('schedule', 123, True),
+            ('workflow_dispatch', 123, True),
+        ):
+            github.event = NS(workflow_run=NS(event=event, actor=NS(id=actor), conclusion='success',
+                                             head_branch='main', head_repository=NS(full_name=github.repository)))
+            with self.subTest(event=event, actor=actor):
+                self.assertEqual(bool(eval(guard, {'__builtins__': {}}, {'github': github})), expected)
+
     def test_production_uses_official_capture_and_one_concurrency_group(self):
         text, blocks = jobs()
         capture = blocks['github-only-owner-capture']
