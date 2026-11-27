@@ -8,7 +8,7 @@
 
 ## 確認済みのモデル実体
 
-mainの確認基準は `837189bc2e5a54af6a02555a658a44af0d9cab58`。研究ブランチへmainの実装を一括取り込みしたという意味ではない。
+mainの確認基準は `837189bc2e5a54af6a02555a658a44af0d9cab58`。同commitまでの既存変更を通常のmergeで保持し、既存のCodex loaderと公式入力projectorを再利用する。
 
 | 役割 | 確認済みnative ID | 保存実体・現在の接続 |
 | --- | --- | --- |
@@ -60,6 +60,14 @@ registryへ追加する2項目は `input_snapshot_sha256` と `input_frozen_at`�
 
 mainの実source処理には、repository、main ref、workflow、job、実行event、owner鍵の既存チェックがある。研究ブランチから環境変数を作ってこのguardを迂回しない。既存の保護された経路へ接続する変更とレビューが必要であり、この契約だけでproducerや秘密鍵の利用が始まることはない。
 
+## 公式入力と復元の実接続
+
+`official_inputs.project` は、既存の `keirin_learned_official_inputs.project` が再解析する同じ公式原資料からDTの正規化行を作る。`verification_payload` の内容を既存 `records.admit_original` の実再検証結果と照合するcallbackが必須。新しい実処理時計と、元のsource証跡の時計を分ける。登録番号のある公式履歴だけを同じnamespaceで参照し、過去archiveの名前等による複合IDを公式IDへ推測変換しない。空履歴は欠測として残す。
+
+`prepare` の106列へ既存のバンクcontext、上がり、能力変換を適用すると462列のモデルschemaになる。固定モデルが要求するvenue sidecarは `fixtures/venue_geometry.json`、SHA-256は `a7d832a2661c6f05167e7a412a55e51183c21e746447f91dac44e14eeb4dfe19`。バンクcontextには非ゼロ係数があるため、欠落したsidecarを空列で代用しない。利用時刻とgeometryの適用範囲も既存コードで検査する。このadapter自体は未来予想を生成・保存していない。
+
+既存の `keirin-result-live.yml` / `observe-results` には、保護されたmainからのみ実行する手動 `dt-r1-restore` を追加する。元のDT study、Codex固定モデル、B候補の実owner復号を同じ既存鍵で検査する。provider取得・採点・再学習・原本生成・モデル採用は行わず、安全な集計receiptのみを残す。実行前の実装テストと実owner復号の合格は別判定である。
+
 ## 比較API
 
 ```python
@@ -78,6 +86,18 @@ report = compare_models(
 元の予測オブジェクトや時計は変更しない。欠測の対戦相手を生成しない。v2の認証不足はHOLDとして全対象分母へ残す。混在する過去行にはv1の規則を使い、`prospective_contract.admitted_forecasts` へ加算しない。無効なv2契約を渡しても、過去行をv2で認証したことにはならない。
 
 この関数自身は公式結果の発行元を再取得しないため、`source_attested` と `formal_comparison_verified` を自動的にtrueへ変更しない。実producer、独立verifier、公式結果の接続が成立するまでは、未来対戦の最終判定はHOLDのままである。
+
+## 公開画面の表示名
+
+`view.py` は `all_target.models` と `common_cohort.models` の集計を公開用に写す際、次のexact native IDを既存の表示IDへ対応付ける。原本、比較レポート、参加者manifestは書き換えない。
+
+| native ID | 既存表示ID | 画面の名称 |
+| --- | --- | --- |
+| `official-and-research-ensemble-v1` | `existing-integrated` | 既存統合モデル |
+| `keirin-conditional-order-trees-v1` | `codex-new` | Codex 新モデル |
+| `chatgpt-dt-r1` | `chatgpt-dt-r1` | ChatGPT DT-R1 |
+
+旧表示IDを使う集計も引き続き表示できる。同一集計にnative IDとその表示IDが両方ある場合は、値の一致や受領件数0にかかわらず `AMBIGUOUS_CONTEST_MODEL_ALIAS` で表示を止める。公式A/B個別や未知のIDを統合候補へ変換しない。欠測モデルは未受領、勝敗は未判定のまま。この表示名の対応付けは、artifact確認、統合recipeの選定、未来対決の認証を代行しない。
 
 ## 根拠
 

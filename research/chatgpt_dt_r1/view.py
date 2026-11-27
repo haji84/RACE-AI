@@ -20,6 +20,11 @@ TRIFECTA_K = (1, 2, 4, 9, 12)
 EXACTA_K = (1, 2)
 ENTRANTS = (('existing-integrated', '既存統合モデル'), ('codex-new', 'Codex 新モデル'),
             ('chatgpt-dt-r1', 'ChatGPT DT-R1'))
+NATIVE_MODEL_DISPLAY_IDS = {
+    'official-and-research-ensemble-v1': 'existing-integrated',
+    'keirin-conditional-order-trees-v1': 'codex-new',
+    'chatgpt-dt-r1': 'chatgpt-dt-r1',
+}
 CANDIDATES = {
     'full_without_pairs': '履歴あり・相互作用なし',
     'full_with_pairs': '履歴あり・ライン相互作用あり',
@@ -40,6 +45,25 @@ HOLD_CODES = {'MISSING_PREDICTION', 'HOLD_UNSUPPORTED_ROSTER', 'HOLD_NONFINITE_F
 
 def _mapping(value):
     return value if isinstance(value, dict) else {}
+
+
+def _display_models(value):
+    """Project exact native IDs or legacy aliases without changing originals.
+
+    The aliases identify dashboard cards, not authenticated model manifests.
+    A native ID and its alias in one aggregate are ambiguous even if their
+    values agree or both have zero forecasts. Never choose one or add them.
+    """
+    aliases = {model_id for model_id, _ in ENTRANTS}
+    output = {}
+    for model_id, metrics in _mapping(value).items():
+        display_id = NATIVE_MODEL_DISPLAY_IDS.get(model_id, model_id)
+        if display_id not in aliases:
+            continue
+        if display_id in output:
+            raise ValueError('AMBIGUOUS_CONTEST_MODEL_ALIAS')
+        output[display_id] = metrics
+    return output
 
 
 def _count(value):
@@ -166,8 +190,9 @@ def _project(report):
             if valid:
                 groups[dimension][key] = _metrics(value)
     contest = _mapping(report.get('three_way_contest'))
-    all_models = _mapping(_mapping(contest.get('all_target')).get('models'))
+    all_models = _display_models(_mapping(contest.get('all_target')).get('models'))
     common = _mapping(contest.get('common_cohort'))
+    common_models = _display_models(common.get('models'))
     common_n = _count(common.get('eligible_n'))
     entrants = []
     for model_id, label in ENTRANTS:
@@ -176,8 +201,8 @@ def _project(report):
         if model_id == 'chatgpt-dt-r1' and received is None:
             received = main['predicted_evaluable']
         present = received is not None and received > 0
-        if present and common_n and model_id in _mapping(common.get('models')):
-            result = _contest_metrics(common['models'][model_id])
+        if present and common_n and model_id in common_models:
+            result = _contest_metrics(common_models[model_id])
             scope = '共通対象'
         elif present:
             result = _contest_metrics(source) if source else main

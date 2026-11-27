@@ -46,6 +46,10 @@ jobs:
           python -m research.chatgpt_dt_r1.bundle --help
       - name: Read back retained real study ciphertext from pinned GitHub history
         run: python -m research.chatgpt_dt_r1.retained_readback
+      - name: Read back the retained actual B candidate without keys or retraining
+        run: >-
+          python -m research.chatgpt_dt_r1.retained_back_readback
+          --receipt research/chatgpt_dt_r1/evidence/20261128-continuation/back-retention.json
       - name: Verify aggregate dashboard in desktop and mobile browser
         run: |
           python -m pip install --disable-pip-version-check playwright==1.56.0

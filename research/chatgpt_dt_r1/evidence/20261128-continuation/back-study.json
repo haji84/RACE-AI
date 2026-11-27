@@ -1,0 +1,115 @@
+{
+  "schema": "DT_R1_BACK_RETENTION_REPAIR_EXECUTION_V1",
+  "purpose": "New fit-period candidate for missing retention; not recovery of deleted pilot weights or independent accuracy evidence",
+  "source_run_id": 46078387927,
+  "source_job_id": 140771664714,
+  "source_code_commit": "418130cc11993615f21545ad370e2c726c056ea5",
+  "source_run_url": "https://github.com/haji84/RACE-AI/actions/runs/46078387927",
+  "job_conclusion": "success",
+  "artifact_id": 15235914447,
+  "artifact_zip_bytes": 158797,
+  "artifact_zip_sha256": "899446228a4c78d068c1a7dee25530fa9423cf4534d781c3becfc15d81ec239a",
+  "archive_commit": "b33be58a4b0920003f40fd75157ecbd79272c9ad",
+  "archive_parent": "410596da678beddcef6f8ca645cdc4e970f2d0fb",
+  "path": "research/chatgpt-dt-r1/20261128-back/36952b78e652c0c5acb74ca6aeb38f882b3e8bab77121dee6071f50c9f2c8682",
+  "aggregate": {
+    "archive_races": 30713,
+    "artifact_sha256": "f1be40a98fdfe792628163b9e0a82f25a4ba583609517219f9b80a86b999c9e6",
+    "full_phase_order_measured": false,
+    "optimizers_converged": {
+      "conditional": true,
+      "direct": true,
+      "leader": true
+    },
+    "production_promoted": false,
+    "schema": "dt-r1-back-latent-mixture-v1",
+    "scope": "REUSED_RETROSPECTIVE_ARCHIVE_NOT_PROSPECTIVE",
+    "source_definition": "https://keirin.jp/pc/static/beginner/basics/racecard.html",
+    "test": null,
+    "test_evaluated": false,
+    "training_labeled": 20041,
+    "tune": {
+      "B_evaluable": 2414,
+      "B_label_counts": {
+        "NO_EXPLICIT_B": 2,
+        "UNIQUE_ARCHIVED_B": 2414
+      },
+      "B_log_loss": 0.9078826334857546,
+      "B_predicted_evaluable": 2414,
+      "B_top1_hits": 1472,
+      "B_top1_rate": 0.6097763048881525,
+      "finish": {
+        "direct": {
+          "exacta_hits": {
+            "1": 553,
+            "2": 890
+          },
+          "exacta_rates": {
+            "1": 0.23109068115336398,
+            "2": 0.37191809444212287
+          },
+          "proper_score_n": 2393,
+          "top3_log_loss": 4.179759782743512,
+          "trifecta_hits": {
+            "1": 275,
+            "2": 446,
+            "4": 691,
+            "9": 1017,
+            "12": 1139
+          },
+          "trifecta_rates": {
+            "1": 0.11491851232762224,
+            "2": 0.1863769327204346,
+            "4": 0.2887588800668617,
+            "9": 0.42498955286251566,
+            "12": 0.47597158378604265
+          }
+        },
+        "mixture": {
+          "exacta_hits": {
+            "1": 564,
+            "2": 909
+          },
+          "exacta_rates": {
+            "1": 0.23568742164646886,
+            "2": 0.37985791893021315
+          },
+          "proper_score_n": 2393,
+          "top3_log_loss": 4.152592714826121,
+          "trifecta_hits": {
+            "1": 278,
+            "2": 454,
+            "4": 696,
+            "9": 1032,
+            "12": 1158
+          },
+          "trifecta_rates": {
+            "1": 0.11617216882574175,
+            "2": 0.18972001671541996,
+            "4": 0.29084830756372754,
+            "9": 0.43125783535311324,
+            "12": 0.48391140827413287
+          }
+        }
+      },
+      "finish_evaluable": 2393,
+      "finish_predicted_evaluable": 2393,
+      "holds": {},
+      "registered": 2416
+    },
+    "video_kinematics_measured": false
+  },
+  "bundle": {
+    "artifact_sha256": "f1be40a98fdfe792628163b9e0a82f25a4ba583609517219f9b80a86b999c9e6",
+    "candidate_bytes_sha256": "1ce3c29bf278dc2e662b4531d5d9c86bc1ad775cd0582a4cdea5c4171f497784",
+    "manifest_sha256": "36952b78e652c0c5acb74ca6aeb38f882b3e8bab77121dee6071f50c9f2c8682",
+    "owner_decryption_verified": false,
+    "production_promoted": false,
+    "status": "ENCRYPTED_B_CANDIDATE_SAVED"
+  },
+  "owner_decryption_verified": false,
+  "independent_readback_verified": false,
+  "source_authenticated": false,
+  "future_races_verified": 0,
+  "production_promoted": false
+}

@@ -129,6 +129,78 @@ class ViewTests(unittest.TestCase):
         self.assertIsNone(entrants['codex-new']['metrics'])
         self.assertEqual(data['verdict'], '勝敗未判定')
 
+    def test_three_native_model_ids_use_existing_display_names_and_common_counts(self):
+        source = report()
+        native_ids = ('official-and-research-ensemble-v1', 'keirin-conditional-order-trees-v1',
+                      'chatgpt-dt-r1')
+        aliases = ('existing-integrated', 'codex-new', 'chatgpt-dt-r1')
+        all_models, common_models = {}, {}
+        for i, native_id in enumerate(native_ids, 1):
+            all_models[native_id] = {'eligible_n': 12, 'forecast_n': 8 + i,
+                'trifecta': {'hit_at': {'1': {'hits': i + 2}}},
+                'raw_original': 'PRIVATE_NATIVE_ORIGINAL'}
+            common_models[native_id] = {'eligible_n': 6, 'forecast_n': 6,
+                'trifecta': {'hit_at': {'1': {'hits': i}}}}
+        source['three_way_contest'] = {'all_target': {'models': all_models},
+            'common_cohort': {'eligible_n': 6, 'models': common_models}}
+        before = deepcopy(source)
+        html = view.render_report(source)
+        data = json.loads(Document(html).dataset)
+        self.assertEqual([row['id'] for row in data['entrants']], list(aliases))
+        self.assertEqual([row['name'] for row in data['entrants']],
+                         ['既存統合モデル', 'Codex 新モデル', 'ChatGPT DT-R1'])
+        for i, entrant in enumerate(data['entrants'], 1):
+            self.assertEqual(entrant['received'], 8 + i)
+            self.assertEqual(entrant['status'], '受領済み')
+            self.assertEqual(entrant['metric_scope'], '共通対象')
+            self.assertEqual(entrant['metrics']['evaluable'], 6)
+            self.assertEqual(entrant['metrics']['trifecta']['1']['hits'], i)
+            self.assertEqual(entrant['metrics']['trifecta']['1']['all_target_rate'], i / 6)
+        self.assertEqual(data['verdict'], '勝敗未判定')
+        self.assertNotIn('PRIVATE_NATIVE_ORIGINAL', html)
+        self.assertEqual(source, before)
+
+    def test_native_all_target_metrics_keep_a_missing_rival_pending(self):
+        source = report()
+        models = source['three_way_contest']['all_target']['models']
+        models.pop('existing-integrated')
+        models['official-and-research-ensemble-v1'] = {'eligible_n': 10, 'forecast_n': 8,
+            'trifecta': {'hit_at': {'1': {'hits': 3}}}}
+        models['keirin-conditional-order-trees-v1'] = models.pop('codex-new')
+        data = json.loads(Document(view.render_report(source)).dataset)
+        entrants = {row['id']: row for row in data['entrants']}
+        integrated = entrants['existing-integrated']
+        self.assertEqual(integrated['status'], '受領済み')
+        self.assertEqual(integrated['metric_scope'], '各モデルの全対象')
+        self.assertEqual(integrated['metrics']['trifecta']['1']['all_target_rate'], .3)
+        self.assertEqual(entrants['codex-new']['status'], '未受領')
+        self.assertIsNone(entrants['codex-new']['metrics'])
+
+    def test_native_and_display_alias_duplicates_fail_closed_in_either_aggregate(self):
+        pairs = (('official-and-research-ensemble-v1', 'existing-integrated'),
+                 ('keirin-conditional-order-trees-v1', 'codex-new'))
+        for section in ('all_target', 'common_cohort'):
+            for native_id, alias in pairs:
+                with self.subTest(section=section, alias=alias):
+                    source = report()
+                    models = source['three_way_contest'][section].setdefault('models', {})
+                    models[alias] = {'forecast_n': 0}
+                    models[native_id] = {'forecast_n': 0}
+                    with self.assertRaisesRegex(ValueError, 'AMBIGUOUS_CONTEST_MODEL_ALIAS'):
+                        view.render_report(source)
+
+    def test_unrecognized_or_individual_arm_ids_never_fill_an_integrated_card(self):
+        source = report()
+        source['three_way_contest']['all_target']['models'] = {
+            key: {'eligible_n': 10, 'forecast_n': 10, 'trifecta': {'hit_at': {'1': {'hits': 10}}}}
+            for key in ('official-A', 'official-B', 'PRIVATE_UNKNOWN_MODEL')}
+        html = view.render_report(source)
+        entrants = {row['id']: row for row in json.loads(Document(html).dataset)['entrants']}
+        for alias in ('existing-integrated', 'codex-new'):
+            self.assertEqual(entrants[alias]['status'], '未受領')
+            self.assertIsNone(entrants[alias]['metrics'])
+        self.assertNotIn('PRIVATE_UNKNOWN_MODEL', html)
+
     def test_required_metric_counts_thresholds_and_retrospective_caveat(self):
         html = view.render_report(report())
         data = json.loads(Document(html).dataset)
