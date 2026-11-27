@@ -82,6 +82,11 @@ def observe(pair, official, *, latest_server_evidence_at, sealed_at, competition
     _need(official['race_id'] == rid, 'RESULT_RACE_IDENTITY')
     cutoff = model.when(official['official_cutoff_at'])
     records = _checked_pair(pair, cutoff, sealed_at, latest_server_evidence_at)
+    return _observe_laws(pair, official, cutoff, records, competition, largest_line_size, confirmed_exacta_payout)
+
+
+def _observe_laws(pair, official, cutoff, records, competition, largest_line_size, confirmed_exacta_payout):
+    rid = pair['race_id']
     cars = set(records[0]['cars'])
     order = _order(official, cars, cutoff)
     trifecta_amount = (ticket_score._result(official, cars, rid)[order[:3]]
@@ -119,6 +124,30 @@ def observe(pair, official, *, latest_server_evidence_at, sealed_at, competition
     if type(largest_line_size) is int and 1 <= largest_line_size <= len(cars):
         groups['largest_line_size'] = str(largest_line_size)
     return Observation(rid, groups, observations, tuple(errors))
+
+
+def observe_combined(original, pair, official, *, latest_server_evidence_at, sealed_at,
+                     use_form, replay_at=None):
+    """Score an independently witnessed original, or an explicitly timestamped replay."""
+    frozen = original.get('combined_forecast')
+    if frozen is None and replay_at is None:
+        return None
+    _need(official['race_id'] == pair['race_id'], 'RESULT_RACE_IDENTITY')
+    cutoff = model.when(official['official_cutoff_at'])
+    reference, _ = _checked_pair(pair, cutoff, sealed_at, latest_server_evidence_at)
+    generated_at = frozen['generated_at'] if frozen is not None else replay_at
+    combined = trial.build_combined(original['snapshot'], original['baseline'], pair,
+        generated_at=generated_at, form_shadow=original['conditioned'] if use_form else None,
+        supplement=original.get('supplement') if use_form else None)
+    if frozen is None:
+        _need(combined['scope'] == 'RETROSPECTIVE_RESEARCH' and
+              model.when(generated_at) >= model.when(official['observed_at']), 'COMBINED_REPLAY_TIME')
+    else:
+        _need(combined == frozen and combined['scope'] == 'PROSPECTIVE_RESEARCH' and
+              model.when(generated_at) <= model.when(sealed_at), 'COMBINED_ORIGINAL_BINDING')
+    observation = _observe_laws(pair, official, cutoff, (reference, combined),
+                               original['snapshot']['competition'], None, None)
+    return combined['scope'], tuple(combined['component_weights']), observation
 
 
 def summarize_day(day, rows, *, coverage=None):

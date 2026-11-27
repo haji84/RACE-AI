@@ -569,6 +569,8 @@ def _replay_saved_result(store,original_meta,result_meta,owner_private_pem):
         packets=saved['origin_packets'],final_capture=saved['final_capture'])
     need(replay==saved['scored'] and replay['monetary_comparison_eligible'] is result_meta['monetary_complete'],
          'SAVED_RESULT_NOT_REPRODUCIBLE')
+    if 'combined_forecast' in original_payload:
+        original['combined_forecast'] = original_payload['combined_forecast']
     return original,replay,saved['final_capture']
 
 

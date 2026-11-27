@@ -195,6 +195,13 @@ def _seal_and_archive(*,candidate,condition_input,history_manifest,condition_sta
             trial = None
         if trial is not None and model.when(snapshot['published_cutoff_at']) - clock() >= trial_model.WITNESS_MARGIN:
             payload['condition_trial'] = trial
+            try:
+                combined = trial_model.build_combined(snapshot, baseline, trial,
+                    generated_at=form._aware(clock()).isoformat(), form_shadow=adjusted, supplement=supplement)
+            except (ValueError, TypeError, KeyError, ArithmeticError):
+                combined = None
+            if combined is not None and model.when(snapshot['published_cutoff_at']) - clock() >= trial_model.WITNESS_MARGIN:
+                payload['combined_forecast'] = combined
     evidence=store.append(kind='original',payload=payload,public_pem=public,observed_at=clock(),race_id=rid)
     row=dict(race_id=rid,cipher_sha256=digest,conditioned_state=condition_archive_state,
              baseline_prediction_sha256=baseline['prediction_sha256'],cohort_sha256=cohort_sha,

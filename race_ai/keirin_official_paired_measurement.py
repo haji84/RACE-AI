@@ -6,6 +6,7 @@ from subprocess import TimeoutExpired
 from . import keirin_form_fall_blind_pdca as ticket_score
 from . import keirin_nationwide_auto_generator as model
 from . import keirin_official_condition_scoring as condition_scoring
+from . import keirin_official_condition_trial as condition_trial
 from . import keirin_official_nationwide_records as records
 from . import keirin_paired_measurement as paired
 
@@ -70,7 +71,8 @@ def _result_measurements(original, scored):
     return cutoff, monetary, winners, arms, groups
 
 
-def measure_day(store, owner_private_pem, *, admit_condition_pair=None, requested_race_ids=None):
+def measure_day(store, owner_private_pem, *, admit_condition_pair=None, requested_race_ids=None,
+                combined_replay_at=None):
     """Replay only the latest revision of each official result on one pinned day."""
     cohort = None
     if requested_race_ids is not None:
@@ -110,6 +112,8 @@ def measure_day(store, owner_private_pem, *, admit_condition_pair=None, requeste
     group_rows = {key: defaultdict(lambda: defaultdict(list)) for key in COMPARISONS}
     holds = {key: {scope: defaultdict(int) for scope in SCOPES} for key in COMPARISONS}
     condition_rows = []
+    combined_rows = defaultdict(list)
+    combined_held = 0
     result_replay_holds = defaultdict(int)
     condition_coverage = dict(replayed_official_results=0, no_admitted_condition_pair=0,
                               attested_condition_pairs=0, pair_or_witness_held=0, official_premise_held=0)
@@ -149,6 +153,17 @@ def measure_day(store, owner_private_pem, *, admit_condition_pair=None, requeste
                     condition_rows.append(condition_scoring.observe(condition_pair, scored['official_result'],
                         latest_server_evidence_at=witnessed_at, sealed_at=sealed_at,
                         competition=groups['competition'], largest_line_size=int(groups['largest_line_size'])))
+                    if combined_replay_at is not None or original.get('combined_forecast') is not None:
+                        try:
+                            use_form = (original['conditioned'] is not None and
+                                        _frozen_with_margin(original, scored, cutoff, use_conditioned=True))
+                            scope, components, observation = condition_scoring.observe_combined(
+                                original, condition_pair, scored['official_result'], use_form=use_form,
+                                latest_server_evidence_at=witnessed_at, sealed_at=sealed_at,
+                                replay_at=combined_replay_at)
+                            combined_rows[scope, components].append(observation)
+                        except (ValueError, KeyError, TypeError, ArithmeticError):
+                            combined_held += 1
             except (ValueError, KeyError, TypeError, OSError, TimeoutExpired) as error:
                 reason = ('official_premise_held' if str(error) ==
                           'OFFICIAL_CONDITION_SCORING_UNSUPPORTED_ALL_FINISH_NO_TIES_PREMISE'
@@ -197,6 +212,15 @@ def measure_day(store, owner_private_pem, *, admit_condition_pair=None, requeste
             store.day, condition_rows, coverage=condition_coverage)
         if cohort is not None:
             report['meeting_condition_trial']['subgroups'] = {}
+    if combined_rows or combined_held or combined_replay_at is not None:
+        report['combined_model_trial'] = dict(
+            model_id=condition_trial.COMBINED_MODEL,
+            comparison_model_id=condition_trial.BASELINE,
+            held=combined_held,
+            cohorts=[dict(scope=scope, components=list(components), evaluated_races=len(rows),
+                markets={market: paired.summarize_market([row.markets[market] for row in rows], market, detail=False)
+                         for market in condition_scoring.TICKET_BUDGETS})
+                     for (scope, components), rows in sorted(combined_rows.items())])
     if cohort is not None:
         report.update(state='OFFICIAL_SP_SELECTED_COHORT_MEASURED', cohort=cohort)
     return report
