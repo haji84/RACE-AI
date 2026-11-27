@@ -1,0 +1,1334 @@
+{
+  "conditions": {
+    "all/exactas": {
+      "eligible": 1639,
+      "keirin-conditional-order-trees-v1:Hit@1": 394,
+      "keirin-conditional-order-trees-v1:Hit@2": 637,
+      "keirin-conditional-order-trees-v1:forecast": 1639,
+      "keirin-conditional-order-trees-v1:log_loss_sum": 4518.747817051255
+    },
+    "all/trifectas": {
+      "eligible": 1639,
+      "keirin-conditional-order-trees-v1:Hit@1": 202,
+      "keirin-conditional-order-trees-v1:Hit@12": 793,
+      "keirin-conditional-order-trees-v1:Hit@2": 326,
+      "keirin-conditional-order-trees-v1:Hit@4": 465,
+      "keirin-conditional-order-trees-v1:Hit@9": 694,
+      "keirin-conditional-order-trees-v1:forecast": 1639,
+      "keirin-conditional-order-trees-v1:log_loss_sum": 6760.008787097949
+    },
+    "competition:A1_A2/exactas": {
+      "eligible": 677,
+      "keirin-conditional-order-trees-v1:Hit@1": 149,
+      "keirin-conditional-order-trees-v1:Hit@2": 246,
+      "keirin-conditional-order-trees-v1:forecast": 677,
+      "keirin-conditional-order-trees-v1:log_loss_sum": 1920.3622645076607
+    },
+    "competition:A1_A2/trifectas": {
+      "eligible": 677,
+      "keirin-conditional-order-trees-v1:Hit@1": 77,
+      "keirin-conditional-order-trees-v1:Hit@12": 307,
+      "keirin-conditional-order-trees-v1:Hit@2": 127,
+      "keirin-conditional-order-trees-v1:Hit@4": 181,
+      "keirin-conditional-order-trees-v1:Hit@9": 271,
+      "keirin-conditional-order-trees-v1:forecast": 677,
+      "keirin-conditional-order-trees-v1:log_loss_sum": 2832.3580441952063
+    },
+    "competition:CHALLENGE/exactas": {
+      "eligible": 341,
+      "keirin-conditional-order-trees-v1:Hit@1": 103,
+      "keirin-conditional-order-trees-v1:Hit@2": 152,
+      "keirin-conditional-order-trees-v1:forecast": 341,
+      "keirin-conditional-order-trees-v1:log_loss_sum": 853.940105218068
+    },
+    "competition:CHALLENGE/trifectas": {
+      "eligible": 341,
+      "keirin-conditional-order-trees-v1:Hit@1": 58,
+      "keirin-conditional-order-trees-v1:Hit@12": 187,
+      "keirin-conditional-order-trees-v1:Hit@2": 89,
+      "keirin-conditional-order-trees-v1:Hit@4": 120,
+      "keirin-conditional-order-trees-v1:Hit@9": 168,
+      "keirin-conditional-order-trees-v1:forecast": 341,
+      "keirin-conditional-order-trees-v1:log_loss_sum": 1292.5429553320535
+    },
+    "competition:OTHER/exactas": {
+      "eligible": 136,
+      "keirin-conditional-order-trees-v1:Hit@1": 32,
+      "keirin-conditional-order-trees-v1:Hit@2": 58,
+      "keirin-conditional-order-trees-v1:forecast": 136,
+      "keirin-conditional-order-trees-v1:log_loss_sum": 342.0492781962214
+    },
+    "competition:OTHER/trifectas": {
+      "eligible": 136,
+      "keirin-conditional-order-trees-v1:Hit@1": 12,
+      "keirin-conditional-order-trees-v1:Hit@12": 74,
+      "keirin-conditional-order-trees-v1:Hit@2": 24,
+      "keirin-conditional-order-trees-v1:Hit@4": 35,
+      "keirin-conditional-order-trees-v1:Hit@9": 63,
+      "keirin-conditional-order-trees-v1:forecast": 136,
+      "keirin-conditional-order-trees-v1:log_loss_sum": 536.4175783718924
+    },
+    "competition:S/exactas": {
+      "eligible": 485,
+      "keirin-conditional-order-trees-v1:Hit@1": 110,
+      "keirin-conditional-order-trees-v1:Hit@2": 181,
+      "keirin-conditional-order-trees-v1:forecast": 485,
+      "keirin-conditional-order-trees-v1:log_loss_sum": 1402.396169129302
+    },
+    "competition:S/trifectas": {
+      "eligible": 485,
+      "keirin-conditional-order-trees-v1:Hit@1": 55,
+      "keirin-conditional-order-trees-v1:Hit@12": 225,
+      "keirin-conditional-order-trees-v1:Hit@2": 86,
+      "keirin-conditional-order-trees-v1:Hit@4": 129,
+      "keirin-conditional-order-trees-v1:Hit@9": 192,
+      "keirin-conditional-order-trees-v1:forecast": 485,
+      "keirin-conditional-order-trees-v1:log_loss_sum": 2098.6902091987927
+    },
+    "day:20261101/exactas": {
+      "eligible": 82,
+      "keirin-conditional-order-trees-v1:Hit@1": 16,
+      "keirin-conditional-order-trees-v1:Hit@2": 30,
+      "keirin-conditional-order-trees-v1:forecast": 82,
+      "keirin-conditional-order-trees-v1:log_loss_sum": 218.94687344225773
+    },
+    "day:20261101/trifectas": {
+      "eligible": 82,
+      "keirin-conditional-order-trees-v1:Hit@1": 6,
+      "keirin-conditional-order-trees-v1:Hit@12": 38,
+      "keirin-conditional-order-trees-v1:Hit@2": 13,
+      "keirin-conditional-order-trees-v1:Hit@4": 20,
+      "keirin-conditional-order-trees-v1:Hit@9": 33,
+      "keirin-conditional-order-trees-v1:forecast": 82,
+      "keirin-conditional-order-trees-v1:log_loss_sum": 340.4876303672634
+    },
+    "day:20261102/exactas": {
+      "eligible": 70,
+      "keirin-conditional-order-trees-v1:Hit@1": 17,
+      "keirin-conditional-order-trees-v1:Hit@2": 34,
+      "keirin-conditional-order-trees-v1:forecast": 70,
+      "keirin-conditional-order-trees-v1:log_loss_sum": 182.24490531224475
+    },
+    "day:20261102/trifectas": {
+      "eligible": 70,
+      "keirin-conditional-order-trees-v1:Hit@1": 10,
+      "keirin-conditional-order-trees-v1:Hit@12": 36,
+      "keirin-conditional-order-trees-v1:Hit@2": 12,
+      "keirin-conditional-order-trees-v1:Hit@4": 18,
+      "keirin-conditional-order-trees-v1:Hit@9": 29,
+      "keirin-conditional-order-trees-v1:forecast": 70,
+      "keirin-conditional-order-trees-v1:log_loss_sum": 282.1558266288865
+    },
+    "day:20261103/exactas": {
+      "eligible": 76,
+      "keirin-conditional-order-trees-v1:Hit@1": 19,
+      "keirin-conditional-order-trees-v1:Hit@2": 32,
+      "keirin-conditional-order-trees-v1:forecast": 76,
+      "keirin-conditional-order-trees-v1:log_loss_sum": 217.46937868461967
+    },
+    "day:20261103/trifectas": {
+      "eligible": 76,
+      "keirin-conditional-order-trees-v1:Hit@1": 7,
+      "keirin-conditional-order-trees-v1:Hit@12": 40,
+      "keirin-conditional-order-trees-v1:Hit@2": 18,
+      "keirin-conditional-order-trees-v1:Hit@4": 27,
+      "keirin-conditional-order-trees-v1:Hit@9": 35,
+      "keirin-conditional-order-trees-v1:forecast": 76,
+      "keirin-conditional-order-trees-v1:log_loss_sum": 312.13189315543616
+    },
+    "day:20261104/exactas": {
+      "eligible": 75,
+      "keirin-conditional-order-trees-v1:Hit@1": 17,
+      "keirin-conditional-order-trees-v1:Hit@2": 29,
+      "keirin-conditional-order-trees-v1:forecast": 75,
+      "keirin-conditional-order-trees-v1:log_loss_sum": 215.39192899111603
+    },
+    "day:20261104/trifectas": {
+      "eligible": 75,
+      "keirin-conditional-order-trees-v1:Hit@1": 11,
+      "keirin-conditional-order-trees-v1:Hit@12": 37,
+      "keirin-conditional-order-trees-v1:Hit@2": 14,
+      "keirin-conditional-order-trees-v1:Hit@4": 20,
+      "keirin-conditional-order-trees-v1:Hit@9": 36,
+      "keirin-conditional-order-trees-v1:forecast": 75,
+      "keirin-conditional-order-trees-v1:log_loss_sum": 304.8711801064914
+    },
+    "day:20261105/exactas": {
+      "eligible": 79,
+      "keirin-conditional-order-trees-v1:Hit@1": 17,
+      "keirin-conditional-order-trees-v1:Hit@2": 29,
+      "keirin-conditional-order-trees-v1:forecast": 79,
+      "keirin-conditional-order-trees-v1:log_loss_sum": 230.3154048729822
+    },
+    "day:20261105/trifectas": {
+      "eligible": 79,
+      "keirin-conditional-order-trees-v1:Hit@1": 10,
+      "keirin-conditional-order-trees-v1:Hit@12": 35,
+      "keirin-conditional-order-trees-v1:Hit@2": 16,
+      "keirin-conditional-order-trees-v1:Hit@4": 19,
+      "keirin-conditional-order-trees-v1:Hit@9": 30,
+      "keirin-conditional-order-trees-v1:forecast": 79,
+      "keirin-conditional-order-trees-v1:log_loss_sum": 352.27661379503706
+    },
+    "day:20261106/exactas": {
+      "eligible": 79,
+      "keirin-conditional-order-trees-v1:Hit@1": 22,
+      "keirin-conditional-order-trees-v1:Hit@2": 32,
+      "keirin-conditional-order-trees-v1:forecast": 79,
+      "keirin-conditional-order-trees-v1:log_loss_sum": 210.06669229997453
+    },
+    "day:20261106/trifectas": {
+      "eligible": 79,
+      "keirin-conditional-order-trees-v1:Hit@1": 7,
+      "keirin-conditional-order-trees-v1:Hit@12": 37,
+      "keirin-conditional-order-trees-v1:Hit@2": 16,
+      "keirin-conditional-order-trees-v1:Hit@4": 25,
+      "keirin-conditional-order-trees-v1:Hit@9": 33,
+      "keirin-conditional-order-trees-v1:forecast": 79,
+      "keirin-conditional-order-trees-v1:log_loss_sum": 318.09446932439783
+    },
+    "day:20261107/exactas": {
+      "eligible": 72,
+      "keirin-conditional-order-trees-v1:Hit@1": 20,
+      "keirin-conditional-order-trees-v1:Hit@2": 34,
+      "keirin-conditional-order-trees-v1:forecast": 72,
+      "keirin-conditional-order-trees-v1:log_loss_sum": 187.1330837611476
+    },
+    "day:20261107/trifectas": {
+      "eligible": 72,
+      "keirin-conditional-order-trees-v1:Hit@1": 11,
+      "keirin-conditional-order-trees-v1:Hit@12": 41,
+      "keirin-conditional-order-trees-v1:Hit@2": 18,
+      "keirin-conditional-order-trees-v1:Hit@4": 24,
+      "keirin-conditional-order-trees-v1:Hit@9": 32,
+      "keirin-conditional-order-trees-v1:forecast": 72,
+      "keirin-conditional-order-trees-v1:log_loss_sum": 281.6074306362881
+    },
+    "day:20261108/exactas": {
+      "eligible": 83,
+      "keirin-conditional-order-trees-v1:Hit@1": 17,
+      "keirin-conditional-order-trees-v1:Hit@2": 37,
+      "keirin-conditional-order-trees-v1:forecast": 83,
+      "keirin-conditional-order-trees-v1:log_loss_sum": 228.28106449742086
+    },
+    "day:20261108/trifectas": {
+      "eligible": 83,
+      "keirin-conditional-order-trees-v1:Hit@1": 8,
+      "keirin-conditional-order-trees-v1:Hit@12": 41,
+      "keirin-conditional-order-trees-v1:Hit@2": 17,
+      "keirin-conditional-order-trees-v1:Hit@4": 23,
+      "keirin-conditional-order-trees-v1:Hit@9": 37,
+      "keirin-conditional-order-trees-v1:forecast": 83,
+      "keirin-conditional-order-trees-v1:log_loss_sum": 340.5171569482764
+    },
+    "day:20261109/exactas": {
+      "eligible": 83,
+      "keirin-conditional-order-trees-v1:Hit@1": 24,
+      "keirin-conditional-order-trees-v1:Hit@2": 35,
+      "keirin-conditional-order-trees-v1:forecast": 83,
+      "keirin-conditional-order-trees-v1:log_loss_sum": 218.88884413532512
+    },
+    "day:20261109/trifectas": {
+      "eligible": 83,
+      "keirin-conditional-order-trees-v1:Hit@1": 11,
+      "keirin-conditional-order-trees-v1:Hit@12": 45,
+      "keirin-conditional-order-trees-v1:Hit@2": 12,
+      "keirin-conditional-order-trees-v1:Hit@4": 22,
+      "keirin-conditional-order-trees-v1:Hit@9": 39,
+      "keirin-conditional-order-trees-v1:forecast": 83,
+      "keirin-conditional-order-trees-v1:log_loss_sum": 331.3520021269181
+    },
+    "day:20261110/exactas": {
+      "eligible": 78,
+      "keirin-conditional-order-trees-v1:Hit@1": 20,
+      "keirin-conditional-order-trees-v1:Hit@2": 27,
+      "keirin-conditional-order-trees-v1:forecast": 78,
+      "keirin-conditional-order-trees-v1:log_loss_sum": 216.8838625488429
+    },
+    "day:20261110/trifectas": {
+      "eligible": 78,
+      "keirin-conditional-order-trees-v1:Hit@1": 11,
+      "keirin-conditional-order-trees-v1:Hit@12": 38,
+      "keirin-conditional-order-trees-v1:Hit@2": 16,
+      "keirin-conditional-order-trees-v1:Hit@4": 24,
+      "keirin-conditional-order-trees-v1:Hit@9": 38,
+      "keirin-conditional-order-trees-v1:forecast": 78,
+      "keirin-conditional-order-trees-v1:log_loss_sum": 318.4354136732205
+    },
+    "day:20261111/exactas": {
+      "eligible": 84,
+      "keirin-conditional-order-trees-v1:Hit@1": 22,
+      "keirin-conditional-order-trees-v1:Hit@2": 31,
+      "keirin-conditional-order-trees-v1:forecast": 84,
+      "keirin-conditional-order-trees-v1:log_loss_sum": 226.89907020218453
+    },
+    "day:20261111/trifectas": {
+      "eligible": 84,
+      "keirin-conditional-order-trees-v1:Hit@1": 12,
+      "keirin-conditional-order-trees-v1:Hit@12": 39,
+      "keirin-conditional-order-trees-v1:Hit@2": 18,
+      "keirin-conditional-order-trees-v1:Hit@4": 26,
+      "keirin-conditional-order-trees-v1:Hit@9": 34,
+      "keirin-conditional-order-trees-v1:forecast": 84,
+      "keirin-conditional-order-trees-v1:log_loss_sum": 346.8980795714502
+    },
+    "day:20261112/exactas": {
+      "eligible": 83,
+      "keirin-conditional-order-trees-v1:Hit@1": 24,
+      "keirin-conditional-order-trees-v1:Hit@2": 28,
+      "keirin-conditional-order-trees-v1:forecast": 83,
+      "keirin-conditional-order-trees-v1:log_loss_sum": 229.35188984025604
+    },
+    "day:20261112/trifectas": {
+      "eligible": 83,
+      "keirin-conditional-order-trees-v1:Hit@1": 9,
+      "keirin-conditional-order-trees-v1:Hit@12": 40,
+      "keirin-conditional-order-trees-v1:Hit@2": 10,
+      "keirin-conditional-order-trees-v1:Hit@4": 16,
+      "keirin-conditional-order-trees-v1:Hit@9": 28,
+      "keirin-conditional-order-trees-v1:forecast": 83,
+      "keirin-conditional-order-trees-v1:log_loss_sum": 359.6405021891087
+    },
+    "day:20261113/exactas": {
+      "eligible": 72,
+      "keirin-conditional-order-trees-v1:Hit@1": 17,
+      "keirin-conditional-order-trees-v1:Hit@2": 24,
+      "keirin-conditional-order-trees-v1:forecast": 72,
+      "keirin-conditional-order-trees-v1:log_loss_sum": 212.7123215072629
+    },
+    "day:20261113/trifectas": {
+      "eligible": 72,
+      "keirin-conditional-order-trees-v1:Hit@1": 10,
+      "keirin-conditional-order-trees-v1:Hit@12": 35,
+      "keirin-conditional-order-trees-v1:Hit@2": 16,
+      "keirin-conditional-order-trees-v1:Hit@4": 21,
+      "keirin-conditional-order-trees-v1:Hit@9": 30,
+      "keirin-conditional-order-trees-v1:forecast": 72,
+      "keirin-conditional-order-trees-v1:log_loss_sum": 300.01165243716605
+    },
+    "day:20261114/exactas": {
+      "eligible": 66,
+      "keirin-conditional-order-trees-v1:Hit@1": 20,
+      "keirin-conditional-order-trees-v1:Hit@2": 28,
+      "keirin-conditional-order-trees-v1:forecast": 66,
+      "keirin-conditional-order-trees-v1:log_loss_sum": 172.46678956947198
+    },
+    "day:20261114/trifectas": {
+      "eligible": 66,
+      "keirin-conditional-order-trees-v1:Hit@1": 11,
+      "keirin-conditional-order-trees-v1:Hit@12": 30,
+      "keirin-conditional-order-trees-v1:Hit@2": 15,
+      "keirin-conditional-order-trees-v1:Hit@4": 20,
+      "keirin-conditional-order-trees-v1:Hit@9": 29,
+      "keirin-conditional-order-trees-v1:forecast": 66,
+      "keirin-conditional-order-trees-v1:log_loss_sum": 263.821659581989
+    },
+    "day:20261115/exactas": {
+      "eligible": 80,
+      "keirin-conditional-order-trees-v1:Hit@1": 19,
+      "keirin-conditional-order-trees-v1:Hit@2": 31,
+      "keirin-conditional-order-trees-v1:forecast": 80,
+      "keirin-conditional-order-trees-v1:log_loss_sum": 221.73804781582362
+    },
+    "day:20261115/trifectas": {
+      "eligible": 80,
+      "keirin-conditional-order-trees-v1:Hit@1": 10,
+      "keirin-conditional-order-trees-v1:Hit@12": 40,
+      "keirin-conditional-order-trees-v1:Hit@2": 20,
+      "keirin-conditional-order-trees-v1:Hit@4": 25,
+      "keirin-conditional-order-trees-v1:Hit@9": 36,
+      "keirin-conditional-order-trees-v1:forecast": 80,
+      "keirin-conditional-order-trees-v1:log_loss_sum": 332.7717970342877
+    },
+    "day:20261116/exactas": {
+      "eligible": 72,
+      "keirin-conditional-order-trees-v1:Hit@1": 15,
+      "keirin-conditional-order-trees-v1:Hit@2": 28,
+      "keirin-conditional-order-trees-v1:forecast": 72,
+      "keirin-conditional-order-trees-v1:log_loss_sum": 202.3683542696569
+    },
+    "day:20261116/trifectas": {
+      "eligible": 72,
+      "keirin-conditional-order-trees-v1:Hit@1": 10,
+      "keirin-conditional-order-trees-v1:Hit@12": 38,
+      "keirin-conditional-order-trees-v1:Hit@2": 18,
+      "keirin-conditional-order-trees-v1:Hit@4": 25,
+      "keirin-conditional-order-trees-v1:Hit@9": 34,
+      "keirin-conditional-order-trees-v1:forecast": 72,
+      "keirin-conditional-order-trees-v1:log_loss_sum": 289.84618862340477
+    },
+    "day:20261117/exactas": {
+      "eligible": 71,
+      "keirin-conditional-order-trees-v1:Hit@1": 15,
+      "keirin-conditional-order-trees-v1:Hit@2": 29,
+      "keirin-conditional-order-trees-v1:forecast": 71,
+      "keirin-conditional-order-trees-v1:log_loss_sum": 192.16403367988443
+    },
+    "day:20261117/trifectas": {
+      "eligible": 71,
+      "keirin-conditional-order-trees-v1:Hit@1": 5,
+      "keirin-conditional-order-trees-v1:Hit@12": 32,
+      "keirin-conditional-order-trees-v1:Hit@2": 10,
+      "keirin-conditional-order-trees-v1:Hit@4": 18,
+      "keirin-conditional-order-trees-v1:Hit@9": 28,
+      "keirin-conditional-order-trees-v1:forecast": 71,
+      "keirin-conditional-order-trees-v1:log_loss_sum": 292.13388095049
+    },
+    "day:20261118/exactas": {
+      "eligible": 79,
+      "keirin-conditional-order-trees-v1:Hit@1": 18,
+      "keirin-conditional-order-trees-v1:Hit@2": 24,
+      "keirin-conditional-order-trees-v1:forecast": 79,
+      "keirin-conditional-order-trees-v1:log_loss_sum": 223.29588811189285
+    },
+    "day:20261118/trifectas": {
+      "eligible": 79,
+      "keirin-conditional-order-trees-v1:Hit@1": 11,
+      "keirin-conditional-order-trees-v1:Hit@12": 28,
+      "keirin-conditional-order-trees-v1:Hit@2": 15,
+      "keirin-conditional-order-trees-v1:Hit@4": 19,
+      "keirin-conditional-order-trees-v1:Hit@9": 23,
+      "keirin-conditional-order-trees-v1:forecast": 79,
+      "keirin-conditional-order-trees-v1:log_loss_sum": 342.6066761875943
+    },
+    "day:20261119/exactas": {
+      "eligible": 75,
+      "keirin-conditional-order-trees-v1:Hit@1": 17,
+      "keirin-conditional-order-trees-v1:Hit@2": 29,
+      "keirin-conditional-order-trees-v1:forecast": 75,
+      "keirin-conditional-order-trees-v1:log_loss_sum": 205.41257673755464
+    },
+    "day:20261119/trifectas": {
+      "eligible": 75,
+      "keirin-conditional-order-trees-v1:Hit@1": 9,
+      "keirin-conditional-order-trees-v1:Hit@12": 40,
+      "keirin-conditional-order-trees-v1:Hit@2": 12,
+      "keirin-conditional-order-trees-v1:Hit@4": 21,
+      "keirin-conditional-order-trees-v1:Hit@9": 34,
+      "keirin-conditional-order-trees-v1:forecast": 75,
+      "keirin-conditional-order-trees-v1:log_loss_sum": 305.1018102857519
+    },
+    "day:20261120/exactas": {
+      "eligible": 57,
+      "keirin-conditional-order-trees-v1:Hit@1": 10,
+      "keirin-conditional-order-trees-v1:Hit@2": 21,
+      "keirin-conditional-order-trees-v1:forecast": 57,
+      "keirin-conditional-order-trees-v1:log_loss_sum": 161.6898107365562
+    },
+    "day:20261120/trifectas": {
+      "eligible": 57,
+      "keirin-conditional-order-trees-v1:Hit@1": 10,
+      "keirin-conditional-order-trees-v1:Hit@12": 26,
+      "keirin-conditional-order-trees-v1:Hit@2": 15,
+      "keirin-conditional-order-trees-v1:Hit@4": 17,
+      "keirin-conditional-order-trees-v1:Hit@9": 23,
+      "keirin-conditional-order-trees-v1:forecast": 57,
+      "keirin-conditional-order-trees-v1:log_loss_sum": 230.77478221627226
+    },
+    "day:20261121/exactas": {
+      "eligible": 55,
+      "keirin-conditional-order-trees-v1:Hit@1": 11,
+      "keirin-conditional-order-trees-v1:Hit@2": 20,
+      "keirin-conditional-order-trees-v1:forecast": 55,
+      "keirin-conditional-order-trees-v1:log_loss_sum": 157.6958851272255
+    },
+    "day:20261121/trifectas": {
+      "eligible": 55,
+      "keirin-conditional-order-trees-v1:Hit@1": 5,
+      "keirin-conditional-order-trees-v1:Hit@12": 25,
+      "keirin-conditional-order-trees-v1:Hit@2": 11,
+      "keirin-conditional-order-trees-v1:Hit@4": 15,
+      "keirin-conditional-order-trees-v1:Hit@9": 24,
+      "keirin-conditional-order-trees-v1:forecast": 55,
+      "keirin-conditional-order-trees-v1:log_loss_sum": 232.10163677482745
+    },
+    "day:20261122/exactas": {
+      "eligible": 68,
+      "keirin-conditional-order-trees-v1:Hit@1": 17,
+      "keirin-conditional-order-trees-v1:Hit@2": 25,
+      "keirin-conditional-order-trees-v1:forecast": 68,
+      "keirin-conditional-order-trees-v1:log_loss_sum": 187.33111090755241
+    },
+    "day:20261122/trifectas": {
+      "eligible": 68,
+      "keirin-conditional-order-trees-v1:Hit@1": 8,
+      "keirin-conditional-order-trees-v1:Hit@12": 32,
+      "keirin-conditional-order-trees-v1:Hit@2": 14,
+      "keirin-conditional-order-trees-v1:Hit@4": 20,
+      "keirin-conditional-order-trees-v1:Hit@9": 29,
+      "keirin-conditional-order-trees-v1:forecast": 68,
+      "keirin-conditional-order-trees-v1:log_loss_sum": 282.37050448338937
+    },
+    "field:5/exactas": {
+      "eligible": 14,
+      "keirin-conditional-order-trees-v1:Hit@1": 5,
+      "keirin-conditional-order-trees-v1:Hit@2": 5,
+      "keirin-conditional-order-trees-v1:forecast": 14,
+      "keirin-conditional-order-trees-v1:log_loss_sum": 35.05324943998201
+    },
+    "field:5/trifectas": {
+      "eligible": 14,
+      "keirin-conditional-order-trees-v1:Hit@1": 5,
+      "keirin-conditional-order-trees-v1:Hit@12": 9,
+      "keirin-conditional-order-trees-v1:Hit@2": 5,
+      "keirin-conditional-order-trees-v1:Hit@4": 5,
+      "keirin-conditional-order-trees-v1:Hit@9": 6,
+      "keirin-conditional-order-trees-v1:forecast": 14,
+      "keirin-conditional-order-trees-v1:log_loss_sum": 45.072783583523844
+    },
+    "field:6/exactas": {
+      "eligible": 79,
+      "keirin-conditional-order-trees-v1:Hit@1": 19,
+      "keirin-conditional-order-trees-v1:Hit@2": 30,
+      "keirin-conditional-order-trees-v1:forecast": 79,
+      "keirin-conditional-order-trees-v1:log_loss_sum": 219.68146696650197
+    },
+    "field:6/trifectas": {
+      "eligible": 79,
+      "keirin-conditional-order-trees-v1:Hit@1": 7,
+      "keirin-conditional-order-trees-v1:Hit@12": 39,
+      "keirin-conditional-order-trees-v1:Hit@2": 14,
+      "keirin-conditional-order-trees-v1:Hit@4": 21,
+      "keirin-conditional-order-trees-v1:Hit@9": 36,
+      "keirin-conditional-order-trees-v1:forecast": 79,
+      "keirin-conditional-order-trees-v1:log_loss_sum": 319.90115639343713
+    },
+    "field:7/exactas": {
+      "eligible": 1374,
+      "keirin-conditional-order-trees-v1:Hit@1": 334,
+      "keirin-conditional-order-trees-v1:Hit@2": 545,
+      "keirin-conditional-order-trees-v1:forecast": 1374,
+      "keirin-conditional-order-trees-v1:log_loss_sum": 3729.407220716163
+    },
+    "field:7/trifectas": {
+      "eligible": 1374,
+      "keirin-conditional-order-trees-v1:Hit@1": 173,
+      "keirin-conditional-order-trees-v1:Hit@12": 679,
+      "keirin-conditional-order-trees-v1:Hit@2": 281,
+      "keirin-conditional-order-trees-v1:Hit@4": 403,
+      "keirin-conditional-order-trees-v1:Hit@9": 595,
+      "keirin-conditional-order-trees-v1:forecast": 1374,
+      "keirin-conditional-order-trees-v1:log_loss_sum": 5578.204440832952
+    },
+    "field:8/exactas": {
+      "eligible": 13,
+      "keirin-conditional-order-trees-v1:Hit@1": 3,
+      "keirin-conditional-order-trees-v1:Hit@2": 4,
+      "keirin-conditional-order-trees-v1:forecast": 13,
+      "keirin-conditional-order-trees-v1:log_loss_sum": 39.67587055998803
+    },
+    "field:8/trifectas": {
+      "eligible": 13,
+      "keirin-conditional-order-trees-v1:Hit@1": 1,
+      "keirin-conditional-order-trees-v1:Hit@12": 5,
+      "keirin-conditional-order-trees-v1:Hit@2": 1,
+      "keirin-conditional-order-trees-v1:Hit@4": 2,
+      "keirin-conditional-order-trees-v1:Hit@9": 5,
+      "keirin-conditional-order-trees-v1:forecast": 13,
+      "keirin-conditional-order-trees-v1:log_loss_sum": 62.35978610034357
+    },
+    "field:9/exactas": {
+      "eligible": 159,
+      "keirin-conditional-order-trees-v1:Hit@1": 33,
+      "keirin-conditional-order-trees-v1:Hit@2": 53,
+      "keirin-conditional-order-trees-v1:forecast": 159,
+      "keirin-conditional-order-trees-v1:log_loss_sum": 494.93000936862416
+    },
+    "field:9/trifectas": {
+      "eligible": 159,
+      "keirin-conditional-order-trees-v1:Hit@1": 16,
+      "keirin-conditional-order-trees-v1:Hit@12": 61,
+      "keirin-conditional-order-trees-v1:Hit@2": 25,
+      "keirin-conditional-order-trees-v1:Hit@4": 34,
+      "keirin-conditional-order-trees-v1:Hit@9": 52,
+      "keirin-conditional-order-trees-v1:forecast": 159,
+      "keirin-conditional-order-trees-v1:log_loss_sum": 754.470620187693
+    },
+    "grade:F1/exactas": {
+      "eligible": 580,
+      "keirin-conditional-order-trees-v1:Hit@1": 136,
+      "keirin-conditional-order-trees-v1:Hit@2": 229,
+      "keirin-conditional-order-trees-v1:forecast": 580,
+      "keirin-conditional-order-trees-v1:log_loss_sum": 1606.8308670405065
+    },
+    "grade:F1/trifectas": {
+      "eligible": 580,
+      "keirin-conditional-order-trees-v1:Hit@1": 68,
+      "keirin-conditional-order-trees-v1:Hit@12": 292,
+      "keirin-conditional-order-trees-v1:Hit@2": 114,
+      "keirin-conditional-order-trees-v1:Hit@4": 174,
+      "keirin-conditional-order-trees-v1:Hit@9": 257,
+      "keirin-conditional-order-trees-v1:forecast": 580,
+      "keirin-conditional-order-trees-v1:log_loss_sum": 2390.801024221301
+    },
+    "grade:F2/exactas": {
+      "eligible": 868,
+      "keirin-conditional-order-trees-v1:Hit@1": 219,
+      "keirin-conditional-order-trees-v1:Hit@2": 347,
+      "keirin-conditional-order-trees-v1:forecast": 868,
+      "keirin-conditional-order-trees-v1:log_loss_sum": 2322.559116787989
+    },
+    "grade:F2/trifectas": {
+      "eligible": 868,
+      "keirin-conditional-order-trees-v1:Hit@1": 114,
+      "keirin-conditional-order-trees-v1:Hit@12": 428,
+      "keirin-conditional-order-trees-v1:Hit@2": 183,
+      "keirin-conditional-order-trees-v1:Hit@4": 252,
+      "keirin-conditional-order-trees-v1:Hit@9": 376,
+      "keirin-conditional-order-trees-v1:forecast": 868,
+      "keirin-conditional-order-trees-v1:log_loss_sum": 3471.970856753334
+    },
+    "grade:G1/exactas": {
+      "eligible": 60,
+      "keirin-conditional-order-trees-v1:Hit@1": 10,
+      "keirin-conditional-order-trees-v1:Hit@2": 16,
+      "keirin-conditional-order-trees-v1:forecast": 60,
+      "keirin-conditional-order-trees-v1:log_loss_sum": 191.70252913131492
+    },
+    "grade:G1/trifectas": {
+      "eligible": 60,
+      "keirin-conditional-order-trees-v1:Hit@1": 5,
+      "keirin-conditional-order-trees-v1:Hit@12": 17,
+      "keirin-conditional-order-trees-v1:Hit@2": 6,
+      "keirin-conditional-order-trees-v1:Hit@4": 10,
+      "keirin-conditional-order-trees-v1:Hit@9": 15,
+      "keirin-conditional-order-trees-v1:forecast": 60,
+      "keirin-conditional-order-trees-v1:log_loss_sum": 296.2932261491147
+    },
+    "grade:G3/exactas": {
+      "eligible": 131,
+      "keirin-conditional-order-trees-v1:Hit@1": 29,
+      "keirin-conditional-order-trees-v1:Hit@2": 45,
+      "keirin-conditional-order-trees-v1:forecast": 131,
+      "keirin-conditional-order-trees-v1:log_loss_sum": 397.65530409144384
+    },
+    "grade:G3/trifectas": {
+      "eligible": 131,
+      "keirin-conditional-order-trees-v1:Hit@1": 15,
+      "keirin-conditional-order-trees-v1:Hit@12": 56,
+      "keirin-conditional-order-trees-v1:Hit@2": 23,
+      "keirin-conditional-order-trees-v1:Hit@4": 29,
+      "keirin-conditional-order-trees-v1:Hit@9": 46,
+      "keirin-conditional-order-trees-v1:forecast": 131,
+      "keirin-conditional-order-trees-v1:log_loss_sum": 600.9436799741953
+    },
+    "lines:available/exactas": {
+      "eligible": 1601,
+      "keirin-conditional-order-trees-v1:Hit@1": 384,
+      "keirin-conditional-order-trees-v1:Hit@2": 622,
+      "keirin-conditional-order-trees-v1:forecast": 1601,
+      "keirin-conditional-order-trees-v1:log_loss_sum": 4404.312719560949
+    },
+    "lines:available/trifectas": {
+      "eligible": 1601,
+      "keirin-conditional-order-trees-v1:Hit@1": 198,
+      "keirin-conditional-order-trees-v1:Hit@12": 774,
+      "keirin-conditional-order-trees-v1:Hit@2": 321,
+      "keirin-conditional-order-trees-v1:Hit@4": 454,
+      "keirin-conditional-order-trees-v1:Hit@9": 675,
+      "keirin-conditional-order-trees-v1:forecast": 1601,
+      "keirin-conditional-order-trees-v1:log_loss_sum": 6594.8322073514055
+    },
+    "lines:unavailable/exactas": {
+      "eligible": 38,
+      "keirin-conditional-order-trees-v1:Hit@1": 10,
+      "keirin-conditional-order-trees-v1:Hit@2": 15,
+      "keirin-conditional-order-trees-v1:forecast": 38,
+      "keirin-conditional-order-trees-v1:log_loss_sum": 114.43509749030648
+    },
+    "lines:unavailable/trifectas": {
+      "eligible": 38,
+      "keirin-conditional-order-trees-v1:Hit@1": 4,
+      "keirin-conditional-order-trees-v1:Hit@12": 19,
+      "keirin-conditional-order-trees-v1:Hit@2": 5,
+      "keirin-conditional-order-trees-v1:Hit@4": 11,
+      "keirin-conditional-order-trees-v1:Hit@9": 19,
+      "keirin-conditional-order-trees-v1:forecast": 38,
+      "keirin-conditional-order-trees-v1:log_loss_sum": 165.17657974654358
+    },
+    "round:FINAL/exactas": {
+      "eligible": 110,
+      "keirin-conditional-order-trees-v1:Hit@1": 19,
+      "keirin-conditional-order-trees-v1:Hit@2": 35,
+      "keirin-conditional-order-trees-v1:forecast": 110,
+      "keirin-conditional-order-trees-v1:log_loss_sum": 319.6327976871032
+    },
+    "round:FINAL/trifectas": {
+      "eligible": 110,
+      "keirin-conditional-order-trees-v1:Hit@1": 7,
+      "keirin-conditional-order-trees-v1:Hit@12": 47,
+      "keirin-conditional-order-trees-v1:Hit@2": 15,
+      "keirin-conditional-order-trees-v1:Hit@4": 27,
+      "keirin-conditional-order-trees-v1:Hit@9": 36,
+      "keirin-conditional-order-trees-v1:forecast": 110,
+      "keirin-conditional-order-trees-v1:log_loss_sum": 475.7398931779592
+    },
+    "round:GENERAL/exactas": {
+      "eligible": 397,
+      "keirin-conditional-order-trees-v1:Hit@1": 88,
+      "keirin-conditional-order-trees-v1:Hit@2": 149,
+      "keirin-conditional-order-trees-v1:forecast": 397,
+      "keirin-conditional-order-trees-v1:log_loss_sum": 1126.9650131154162
+    },
+    "round:GENERAL/trifectas": {
+      "eligible": 397,
+      "keirin-conditional-order-trees-v1:Hit@1": 45,
+      "keirin-conditional-order-trees-v1:Hit@12": 187,
+      "keirin-conditional-order-trees-v1:Hit@2": 77,
+      "keirin-conditional-order-trees-v1:Hit@4": 111,
+      "keirin-conditional-order-trees-v1:Hit@9": 166,
+      "keirin-conditional-order-trees-v1:forecast": 397,
+      "keirin-conditional-order-trees-v1:log_loss_sum": 1649.3387622367618
+    },
+    "round:INITIAL_SPECIAL/exactas": {
+      "eligible": 63,
+      "keirin-conditional-order-trees-v1:Hit@1": 10,
+      "keirin-conditional-order-trees-v1:Hit@2": 18,
+      "keirin-conditional-order-trees-v1:forecast": 63,
+      "keirin-conditional-order-trees-v1:log_loss_sum": 198.38334899160085
+    },
+    "round:INITIAL_SPECIAL/trifectas": {
+      "eligible": 63,
+      "keirin-conditional-order-trees-v1:Hit@1": 7,
+      "keirin-conditional-order-trees-v1:Hit@12": 22,
+      "keirin-conditional-order-trees-v1:Hit@2": 12,
+      "keirin-conditional-order-trees-v1:Hit@4": 14,
+      "keirin-conditional-order-trees-v1:Hit@9": 17,
+      "keirin-conditional-order-trees-v1:forecast": 63,
+      "keirin-conditional-order-trees-v1:log_loss_sum": 283.6300179080865
+    },
+    "round:PRELIMINARY/exactas": {
+      "eligible": 539,
+      "keirin-conditional-order-trees-v1:Hit@1": 160,
+      "keirin-conditional-order-trees-v1:Hit@2": 241,
+      "keirin-conditional-order-trees-v1:forecast": 539,
+      "keirin-conditional-order-trees-v1:log_loss_sum": 1384.2393226034565
+    },
+    "round:PRELIMINARY/trifectas": {
+      "eligible": 539,
+      "keirin-conditional-order-trees-v1:Hit@1": 78,
+      "keirin-conditional-order-trees-v1:Hit@12": 295,
+      "keirin-conditional-order-trees-v1:Hit@2": 121,
+      "keirin-conditional-order-trees-v1:Hit@4": 166,
+      "keirin-conditional-order-trees-v1:Hit@9": 263,
+      "keirin-conditional-order-trees-v1:forecast": 539,
+      "keirin-conditional-order-trees-v1:log_loss_sum": 2110.5546847116343
+    },
+    "round:SELECTION/exactas": {
+      "eligible": 121,
+      "keirin-conditional-order-trees-v1:Hit@1": 25,
+      "keirin-conditional-order-trees-v1:Hit@2": 44,
+      "keirin-conditional-order-trees-v1:forecast": 121,
+      "keirin-conditional-order-trees-v1:log_loss_sum": 358.3175925067261
+    },
+    "round:SELECTION/trifectas": {
+      "eligible": 121,
+      "keirin-conditional-order-trees-v1:Hit@1": 14,
+      "keirin-conditional-order-trees-v1:Hit@12": 51,
+      "keirin-conditional-order-trees-v1:Hit@2": 23,
+      "keirin-conditional-order-trees-v1:Hit@4": 34,
+      "keirin-conditional-order-trees-v1:Hit@9": 47,
+      "keirin-conditional-order-trees-v1:forecast": 121,
+      "keirin-conditional-order-trees-v1:log_loss_sum": 534.8298962629506
+    },
+    "round:SEMI_FINAL/exactas": {
+      "eligible": 245,
+      "keirin-conditional-order-trees-v1:Hit@1": 67,
+      "keirin-conditional-order-trees-v1:Hit@2": 104,
+      "keirin-conditional-order-trees-v1:forecast": 245,
+      "keirin-conditional-order-trees-v1:log_loss_sum": 629.90140017359
+    },
+    "round:SEMI_FINAL/trifectas": {
+      "eligible": 245,
+      "keirin-conditional-order-trees-v1:Hit@1": 35,
+      "keirin-conditional-order-trees-v1:Hit@12": 132,
+      "keirin-conditional-order-trees-v1:Hit@2": 48,
+      "keirin-conditional-order-trees-v1:Hit@4": 74,
+      "keirin-conditional-order-trees-v1:Hit@9": 111,
+      "keirin-conditional-order-trees-v1:forecast": 245,
+      "keirin-conditional-order-trees-v1:log_loss_sum": 974.8896526441791
+    },
+    "round:SPECIAL_SELECTION/exactas": {
+      "eligible": 157,
+      "keirin-conditional-order-trees-v1:Hit@1": 25,
+      "keirin-conditional-order-trees-v1:Hit@2": 44,
+      "keirin-conditional-order-trees-v1:forecast": 157,
+      "keirin-conditional-order-trees-v1:log_loss_sum": 479.4357371424055
+    },
+    "round:SPECIAL_SELECTION/trifectas": {
+      "eligible": 157,
+      "keirin-conditional-order-trees-v1:Hit@1": 16,
+      "keirin-conditional-order-trees-v1:Hit@12": 56,
+      "keirin-conditional-order-trees-v1:Hit@2": 29,
+      "keirin-conditional-order-trees-v1:Hit@4": 37,
+      "keirin-conditional-order-trees-v1:Hit@9": 51,
+      "keirin-conditional-order-trees-v1:forecast": 157,
+      "keirin-conditional-order-trees-v1:log_loss_sum": 698.0300285295508
+    },
+    "round:unknown/exactas": {
+      "eligible": 7,
+      "status": "SMALL_GROUP"
+    },
+    "round:unknown/trifectas": {
+      "eligible": 7,
+      "status": "SMALL_GROUP"
+    },
+    "venue:12/exactas": {
+      "eligible": 57,
+      "keirin-conditional-order-trees-v1:Hit@1": 15,
+      "keirin-conditional-order-trees-v1:Hit@2": 22,
+      "keirin-conditional-order-trees-v1:forecast": 57,
+      "keirin-conditional-order-trees-v1:log_loss_sum": 160.85884088500197
+    },
+    "venue:12/trifectas": {
+      "eligible": 57,
+      "keirin-conditional-order-trees-v1:Hit@1": 9,
+      "keirin-conditional-order-trees-v1:Hit@12": 25,
+      "keirin-conditional-order-trees-v1:Hit@2": 10,
+      "keirin-conditional-order-trees-v1:Hit@4": 13,
+      "keirin-conditional-order-trees-v1:Hit@9": 22,
+      "keirin-conditional-order-trees-v1:forecast": 57,
+      "keirin-conditional-order-trees-v1:log_loss_sum": 241.24004355371704
+    },
+    "venue:21/exactas": {
+      "eligible": 45,
+      "keirin-conditional-order-trees-v1:Hit@1": 9,
+      "keirin-conditional-order-trees-v1:Hit@2": 17,
+      "keirin-conditional-order-trees-v1:forecast": 45,
+      "keirin-conditional-order-trees-v1:log_loss_sum": 123.65272180368949
+    },
+    "venue:21/trifectas": {
+      "eligible": 45,
+      "keirin-conditional-order-trees-v1:Hit@1": 5,
+      "keirin-conditional-order-trees-v1:Hit@12": 26,
+      "keirin-conditional-order-trees-v1:Hit@2": 7,
+      "keirin-conditional-order-trees-v1:Hit@4": 12,
+      "keirin-conditional-order-trees-v1:Hit@9": 22,
+      "keirin-conditional-order-trees-v1:forecast": 45,
+      "keirin-conditional-order-trees-v1:log_loss_sum": 177.61034320145873
+    },
+    "venue:22/exactas": {
+      "eligible": 27,
+      "keirin-conditional-order-trees-v1:Hit@1": 9,
+      "keirin-conditional-order-trees-v1:Hit@2": 12,
+      "keirin-conditional-order-trees-v1:forecast": 27,
+      "keirin-conditional-order-trees-v1:log_loss_sum": 70.35891339438565
+    },
+    "venue:22/trifectas": {
+      "eligible": 27,
+      "keirin-conditional-order-trees-v1:Hit@1": 7,
+      "keirin-conditional-order-trees-v1:Hit@12": 13,
+      "keirin-conditional-order-trees-v1:Hit@2": 9,
+      "keirin-conditional-order-trees-v1:Hit@4": 10,
+      "keirin-conditional-order-trees-v1:Hit@9": 12,
+      "keirin-conditional-order-trees-v1:forecast": 27,
+      "keirin-conditional-order-trees-v1:log_loss_sum": 100.56806784999482
+    },
+    "venue:23/exactas": {
+      "eligible": 21,
+      "keirin-conditional-order-trees-v1:Hit@1": 5,
+      "keirin-conditional-order-trees-v1:Hit@2": 8,
+      "keirin-conditional-order-trees-v1:forecast": 21,
+      "keirin-conditional-order-trees-v1:log_loss_sum": 59.658479138437094
+    },
+    "venue:23/trifectas": {
+      "eligible": 21,
+      "keirin-conditional-order-trees-v1:Hit@1": 3,
+      "keirin-conditional-order-trees-v1:Hit@12": 8,
+      "keirin-conditional-order-trees-v1:Hit@2": 5,
+      "keirin-conditional-order-trees-v1:Hit@4": 6,
+      "keirin-conditional-order-trees-v1:Hit@9": 8,
+      "keirin-conditional-order-trees-v1:forecast": 21,
+      "keirin-conditional-order-trees-v1:log_loss_sum": 87.40758046033768
+    },
+    "venue:24/exactas": {
+      "eligible": 71,
+      "keirin-conditional-order-trees-v1:Hit@1": 13,
+      "keirin-conditional-order-trees-v1:Hit@2": 25,
+      "keirin-conditional-order-trees-v1:forecast": 71,
+      "keirin-conditional-order-trees-v1:log_loss_sum": 189.3706482653211
+    },
+    "venue:24/trifectas": {
+      "eligible": 71,
+      "keirin-conditional-order-trees-v1:Hit@1": 6,
+      "keirin-conditional-order-trees-v1:Hit@12": 33,
+      "keirin-conditional-order-trees-v1:Hit@2": 11,
+      "keirin-conditional-order-trees-v1:Hit@4": 18,
+      "keirin-conditional-order-trees-v1:Hit@9": 32,
+      "keirin-conditional-order-trees-v1:forecast": 71,
+      "keirin-conditional-order-trees-v1:log_loss_sum": 287.6308553436985
+    },
+    "venue:25/exactas": {
+      "eligible": 57,
+      "keirin-conditional-order-trees-v1:Hit@1": 16,
+      "keirin-conditional-order-trees-v1:Hit@2": 22,
+      "keirin-conditional-order-trees-v1:forecast": 57,
+      "keirin-conditional-order-trees-v1:log_loss_sum": 155.32688457408926
+    },
+    "venue:25/trifectas": {
+      "eligible": 57,
+      "keirin-conditional-order-trees-v1:Hit@1": 5,
+      "keirin-conditional-order-trees-v1:Hit@12": 20,
+      "keirin-conditional-order-trees-v1:Hit@2": 8,
+      "keirin-conditional-order-trees-v1:Hit@4": 11,
+      "keirin-conditional-order-trees-v1:Hit@9": 17,
+      "keirin-conditional-order-trees-v1:forecast": 57,
+      "keirin-conditional-order-trees-v1:log_loss_sum": 249.90094766901842
+    },
+    "venue:26/exactas": {
+      "eligible": 37,
+      "keirin-conditional-order-trees-v1:Hit@1": 12,
+      "keirin-conditional-order-trees-v1:Hit@2": 14,
+      "keirin-conditional-order-trees-v1:forecast": 37,
+      "keirin-conditional-order-trees-v1:log_loss_sum": 108.7355165749033
+    },
+    "venue:26/trifectas": {
+      "eligible": 37,
+      "keirin-conditional-order-trees-v1:Hit@1": 5,
+      "keirin-conditional-order-trees-v1:Hit@12": 14,
+      "keirin-conditional-order-trees-v1:Hit@2": 6,
+      "keirin-conditional-order-trees-v1:Hit@4": 9,
+      "keirin-conditional-order-trees-v1:Hit@9": 13,
+      "keirin-conditional-order-trees-v1:forecast": 37,
+      "keirin-conditional-order-trees-v1:log_loss_sum": 165.2071140703212
+    },
+    "venue:27/exactas": {
+      "eligible": 27,
+      "keirin-conditional-order-trees-v1:Hit@1": 1,
+      "keirin-conditional-order-trees-v1:Hit@2": 10,
+      "keirin-conditional-order-trees-v1:forecast": 27,
+      "keirin-conditional-order-trees-v1:log_loss_sum": 74.21481094483154
+    },
+    "venue:27/trifectas": {
+      "eligible": 27,
+      "keirin-conditional-order-trees-v1:Hit@1": 1,
+      "keirin-conditional-order-trees-v1:Hit@12": 13,
+      "keirin-conditional-order-trees-v1:Hit@2": 3,
+      "keirin-conditional-order-trees-v1:Hit@4": 5,
+      "keirin-conditional-order-trees-v1:Hit@9": 10,
+      "keirin-conditional-order-trees-v1:forecast": 27,
+      "keirin-conditional-order-trees-v1:log_loss_sum": 116.26034879564725
+    },
+    "venue:28/exactas": {
+      "eligible": 48,
+      "keirin-conditional-order-trees-v1:Hit@1": 8,
+      "keirin-conditional-order-trees-v1:Hit@2": 10,
+      "keirin-conditional-order-trees-v1:forecast": 48,
+      "keirin-conditional-order-trees-v1:log_loss_sum": 157.29661867020147
+    },
+    "venue:28/trifectas": {
+      "eligible": 48,
+      "keirin-conditional-order-trees-v1:Hit@1": 4,
+      "keirin-conditional-order-trees-v1:Hit@12": 18,
+      "keirin-conditional-order-trees-v1:Hit@2": 5,
+      "keirin-conditional-order-trees-v1:Hit@4": 7,
+      "keirin-conditional-order-trees-v1:Hit@9": 13,
+      "keirin-conditional-order-trees-v1:forecast": 48,
+      "keirin-conditional-order-trees-v1:log_loss_sum": 233.9338790871141
+    },
+    "venue:31/exactas": {
+      "eligible": 63,
+      "keirin-conditional-order-trees-v1:Hit@1": 14,
+      "keirin-conditional-order-trees-v1:Hit@2": 17,
+      "keirin-conditional-order-trees-v1:forecast": 63,
+      "keirin-conditional-order-trees-v1:log_loss_sum": 176.8380936489636
+    },
+    "venue:31/trifectas": {
+      "eligible": 63,
+      "keirin-conditional-order-trees-v1:Hit@1": 5,
+      "keirin-conditional-order-trees-v1:Hit@12": 24,
+      "keirin-conditional-order-trees-v1:Hit@2": 8,
+      "keirin-conditional-order-trees-v1:Hit@4": 15,
+      "keirin-conditional-order-trees-v1:Hit@9": 21,
+      "keirin-conditional-order-trees-v1:forecast": 63,
+      "keirin-conditional-order-trees-v1:log_loss_sum": 267.834000959233
+    },
+    "venue:34/exactas": {
+      "eligible": 36,
+      "keirin-conditional-order-trees-v1:Hit@1": 7,
+      "keirin-conditional-order-trees-v1:Hit@2": 11,
+      "keirin-conditional-order-trees-v1:forecast": 36,
+      "keirin-conditional-order-trees-v1:log_loss_sum": 103.81154388999043
+    },
+    "venue:34/trifectas": {
+      "eligible": 36,
+      "keirin-conditional-order-trees-v1:Hit@1": 2,
+      "keirin-conditional-order-trees-v1:Hit@12": 16,
+      "keirin-conditional-order-trees-v1:Hit@2": 4,
+      "keirin-conditional-order-trees-v1:Hit@4": 8,
+      "keirin-conditional-order-trees-v1:Hit@9": 12,
+      "keirin-conditional-order-trees-v1:forecast": 36,
+      "keirin-conditional-order-trees-v1:log_loss_sum": 156.17146738733132
+    },
+    "venue:36/exactas": {
+      "eligible": 41,
+      "keirin-conditional-order-trees-v1:Hit@1": 9,
+      "keirin-conditional-order-trees-v1:Hit@2": 18,
+      "keirin-conditional-order-trees-v1:forecast": 41,
+      "keirin-conditional-order-trees-v1:log_loss_sum": 112.67246747181584
+    },
+    "venue:36/trifectas": {
+      "eligible": 41,
+      "keirin-conditional-order-trees-v1:Hit@1": 3,
+      "keirin-conditional-order-trees-v1:Hit@12": 18,
+      "keirin-conditional-order-trees-v1:Hit@2": 8,
+      "keirin-conditional-order-trees-v1:Hit@4": 12,
+      "keirin-conditional-order-trees-v1:Hit@9": 16,
+      "keirin-conditional-order-trees-v1:forecast": 41,
+      "keirin-conditional-order-trees-v1:log_loss_sum": 171.02185951950176
+    },
+    "venue:38/exactas": {
+      "eligible": 54,
+      "keirin-conditional-order-trees-v1:Hit@1": 16,
+      "keirin-conditional-order-trees-v1:Hit@2": 24,
+      "keirin-conditional-order-trees-v1:forecast": 54,
+      "keirin-conditional-order-trees-v1:log_loss_sum": 142.60189450901126
+    },
+    "venue:38/trifectas": {
+      "eligible": 54,
+      "keirin-conditional-order-trees-v1:Hit@1": 3,
+      "keirin-conditional-order-trees-v1:Hit@12": 29,
+      "keirin-conditional-order-trees-v1:Hit@2": 7,
+      "keirin-conditional-order-trees-v1:Hit@4": 14,
+      "keirin-conditional-order-trees-v1:Hit@9": 25,
+      "keirin-conditional-order-trees-v1:forecast": 54,
+      "keirin-conditional-order-trees-v1:log_loss_sum": 218.05622889124177
+    },
+    "venue:42/exactas": {
+      "eligible": 61,
+      "keirin-conditional-order-trees-v1:Hit@1": 14,
+      "keirin-conditional-order-trees-v1:Hit@2": 32,
+      "keirin-conditional-order-trees-v1:forecast": 61,
+      "keirin-conditional-order-trees-v1:log_loss_sum": 157.10941751067134
+    },
+    "venue:42/trifectas": {
+      "eligible": 61,
+      "keirin-conditional-order-trees-v1:Hit@1": 6,
+      "keirin-conditional-order-trees-v1:Hit@12": 34,
+      "keirin-conditional-order-trees-v1:Hit@2": 18,
+      "keirin-conditional-order-trees-v1:Hit@4": 25,
+      "keirin-conditional-order-trees-v1:Hit@9": 32,
+      "keirin-conditional-order-trees-v1:forecast": 61,
+      "keirin-conditional-order-trees-v1:log_loss_sum": 231.77675897824128
+    },
+    "venue:44/exactas": {
+      "eligible": 30,
+      "keirin-conditional-order-trees-v1:Hit@1": 4,
+      "keirin-conditional-order-trees-v1:Hit@2": 7,
+      "keirin-conditional-order-trees-v1:forecast": 30,
+      "keirin-conditional-order-trees-v1:log_loss_sum": 87.56495528812775
+    },
+    "venue:44/trifectas": {
+      "eligible": 30,
+      "keirin-conditional-order-trees-v1:Hit@1": 5,
+      "keirin-conditional-order-trees-v1:Hit@12": 14,
+      "keirin-conditional-order-trees-v1:Hit@2": 7,
+      "keirin-conditional-order-trees-v1:Hit@4": 8,
+      "keirin-conditional-order-trees-v1:Hit@9": 10,
+      "keirin-conditional-order-trees-v1:forecast": 30,
+      "keirin-conditional-order-trees-v1:log_loss_sum": 120.13790284925926
+    },
+    "venue:45/exactas": {
+      "eligible": 56,
+      "keirin-conditional-order-trees-v1:Hit@1": 12,
+      "keirin-conditional-order-trees-v1:Hit@2": 24,
+      "keirin-conditional-order-trees-v1:forecast": 56,
+      "keirin-conditional-order-trees-v1:log_loss_sum": 152.57727774695752
+    },
+    "venue:45/trifectas": {
+      "eligible": 56,
+      "keirin-conditional-order-trees-v1:Hit@1": 3,
+      "keirin-conditional-order-trees-v1:Hit@12": 30,
+      "keirin-conditional-order-trees-v1:Hit@2": 9,
+      "keirin-conditional-order-trees-v1:Hit@4": 17,
+      "keirin-conditional-order-trees-v1:Hit@9": 29,
+      "keirin-conditional-order-trees-v1:forecast": 56,
+      "keirin-conditional-order-trees-v1:log_loss_sum": 229.81454370491002
+    },
+    "venue:46/exactas": {
+      "eligible": 69,
+      "keirin-conditional-order-trees-v1:Hit@1": 16,
+      "keirin-conditional-order-trees-v1:Hit@2": 26,
+      "keirin-conditional-order-trees-v1:forecast": 69,
+      "keirin-conditional-order-trees-v1:log_loss_sum": 191.04848742144614
+    },
+    "venue:46/trifectas": {
+      "eligible": 69,
+      "keirin-conditional-order-trees-v1:Hit@1": 10,
+      "keirin-conditional-order-trees-v1:Hit@12": 33,
+      "keirin-conditional-order-trees-v1:Hit@2": 16,
+      "keirin-conditional-order-trees-v1:Hit@4": 21,
+      "keirin-conditional-order-trees-v1:Hit@9": 29,
+      "keirin-conditional-order-trees-v1:forecast": 69,
+      "keirin-conditional-order-trees-v1:log_loss_sum": 280.68917711809286
+    },
+    "venue:47/exactas": {
+      "eligible": 27,
+      "keirin-conditional-order-trees-v1:Hit@1": 8,
+      "keirin-conditional-order-trees-v1:Hit@2": 10,
+      "keirin-conditional-order-trees-v1:forecast": 27,
+      "keirin-conditional-order-trees-v1:log_loss_sum": 76.1932365119513
+    },
+    "venue:47/trifectas": {
+      "eligible": 27,
+      "keirin-conditional-order-trees-v1:Hit@1": 2,
+      "keirin-conditional-order-trees-v1:Hit@12": 14,
+      "keirin-conditional-order-trees-v1:Hit@2": 5,
+      "keirin-conditional-order-trees-v1:Hit@4": 6,
+      "keirin-conditional-order-trees-v1:Hit@9": 10,
+      "keirin-conditional-order-trees-v1:forecast": 27,
+      "keirin-conditional-order-trees-v1:log_loss_sum": 111.71445093780545
+    },
+    "venue:48/exactas": {
+      "eligible": 84,
+      "keirin-conditional-order-trees-v1:Hit@1": 20,
+      "keirin-conditional-order-trees-v1:Hit@2": 33,
+      "keirin-conditional-order-trees-v1:forecast": 84,
+      "keirin-conditional-order-trees-v1:log_loss_sum": 234.97876395233686
+    },
+    "venue:48/trifectas": {
+      "eligible": 84,
+      "keirin-conditional-order-trees-v1:Hit@1": 12,
+      "keirin-conditional-order-trees-v1:Hit@12": 42,
+      "keirin-conditional-order-trees-v1:Hit@2": 16,
+      "keirin-conditional-order-trees-v1:Hit@4": 22,
+      "keirin-conditional-order-trees-v1:Hit@9": 35,
+      "keirin-conditional-order-trees-v1:forecast": 84,
+      "keirin-conditional-order-trees-v1:log_loss_sum": 357.1150209477837
+    },
+    "venue:51/exactas": {
+      "eligible": 76,
+      "keirin-conditional-order-trees-v1:Hit@1": 19,
+      "keirin-conditional-order-trees-v1:Hit@2": 33,
+      "keirin-conditional-order-trees-v1:forecast": 76,
+      "keirin-conditional-order-trees-v1:log_loss_sum": 193.9227350279706
+    },
+    "venue:51/trifectas": {
+      "eligible": 76,
+      "keirin-conditional-order-trees-v1:Hit@1": 12,
+      "keirin-conditional-order-trees-v1:Hit@12": 44,
+      "keirin-conditional-order-trees-v1:Hit@2": 20,
+      "keirin-conditional-order-trees-v1:Hit@4": 27,
+      "keirin-conditional-order-trees-v1:Hit@9": 37,
+      "keirin-conditional-order-trees-v1:forecast": 76,
+      "keirin-conditional-order-trees-v1:log_loss_sum": 292.03080978801967
+    },
+    "venue:53/exactas": {
+      "eligible": 86,
+      "keirin-conditional-order-trees-v1:Hit@1": 32,
+      "keirin-conditional-order-trees-v1:Hit@2": 44,
+      "keirin-conditional-order-trees-v1:forecast": 86,
+      "keirin-conditional-order-trees-v1:log_loss_sum": 197.98471285867728
+    },
+    "venue:53/trifectas": {
+      "eligible": 86,
+      "keirin-conditional-order-trees-v1:Hit@1": 20,
+      "keirin-conditional-order-trees-v1:Hit@12": 57,
+      "keirin-conditional-order-trees-v1:Hit@2": 26,
+      "keirin-conditional-order-trees-v1:Hit@4": 34,
+      "keirin-conditional-order-trees-v1:Hit@9": 54,
+      "keirin-conditional-order-trees-v1:forecast": 86,
+      "keirin-conditional-order-trees-v1:log_loss_sum": 301.22531776346847
+    },
+    "venue:61/exactas": {
+      "eligible": 33,
+      "keirin-conditional-order-trees-v1:Hit@1": 6,
+      "keirin-conditional-order-trees-v1:Hit@2": 10,
+      "keirin-conditional-order-trees-v1:forecast": 33,
+      "keirin-conditional-order-trees-v1:log_loss_sum": 95.03150058111461
+    },
+    "venue:61/trifectas": {
+      "eligible": 33,
+      "keirin-conditional-order-trees-v1:Hit@1": 4,
+      "keirin-conditional-order-trees-v1:Hit@12": 14,
+      "keirin-conditional-order-trees-v1:Hit@2": 7,
+      "keirin-conditional-order-trees-v1:Hit@4": 9,
+      "keirin-conditional-order-trees-v1:Hit@9": 12,
+      "keirin-conditional-order-trees-v1:forecast": 33,
+      "keirin-conditional-order-trees-v1:log_loss_sum": 136.11814559810168
+    },
+    "venue:62/exactas": {
+      "eligible": 7,
+      "status": "SMALL_GROUP"
+    },
+    "venue:62/trifectas": {
+      "eligible": 7,
+      "status": "SMALL_GROUP"
+    },
+    "venue:63/exactas": {
+      "eligible": 35,
+      "keirin-conditional-order-trees-v1:Hit@1": 11,
+      "keirin-conditional-order-trees-v1:Hit@2": 18,
+      "keirin-conditional-order-trees-v1:forecast": 35,
+      "keirin-conditional-order-trees-v1:log_loss_sum": 95.61636108356367
+    },
+    "venue:63/trifectas": {
+      "eligible": 35,
+      "keirin-conditional-order-trees-v1:Hit@1": 5,
+      "keirin-conditional-order-trees-v1:Hit@12": 20,
+      "keirin-conditional-order-trees-v1:Hit@2": 10,
+      "keirin-conditional-order-trees-v1:Hit@4": 12,
+      "keirin-conditional-order-trees-v1:Hit@9": 18,
+      "keirin-conditional-order-trees-v1:forecast": 35,
+      "keirin-conditional-order-trees-v1:log_loss_sum": 144.26288996311993
+    },
+    "venue:73/exactas": {
+      "eligible": 33,
+      "keirin-conditional-order-trees-v1:Hit@1": 8,
+      "keirin-conditional-order-trees-v1:Hit@2": 10,
+      "keirin-conditional-order-trees-v1:forecast": 33,
+      "keirin-conditional-order-trees-v1:log_loss_sum": 92.82384136498227
+    },
+    "venue:73/trifectas": {
+      "eligible": 33,
+      "keirin-conditional-order-trees-v1:Hit@1": 4,
+      "keirin-conditional-order-trees-v1:Hit@12": 13,
+      "keirin-conditional-order-trees-v1:Hit@2": 6,
+      "keirin-conditional-order-trees-v1:Hit@4": 8,
+      "keirin-conditional-order-trees-v1:Hit@9": 11,
+      "keirin-conditional-order-trees-v1:forecast": 33,
+      "keirin-conditional-order-trees-v1:log_loss_sum": 134.07105637420077
+    },
+    "venue:74/exactas": {
+      "eligible": 63,
+      "keirin-conditional-order-trees-v1:Hit@1": 10,
+      "keirin-conditional-order-trees-v1:Hit@2": 23,
+      "keirin-conditional-order-trees-v1:forecast": 63,
+      "keirin-conditional-order-trees-v1:log_loss_sum": 182.67361749821234
+    },
+    "venue:74/trifectas": {
+      "eligible": 63,
+      "keirin-conditional-order-trees-v1:Hit@1": 4,
+      "keirin-conditional-order-trees-v1:Hit@12": 31,
+      "keirin-conditional-order-trees-v1:Hit@2": 6,
+      "keirin-conditional-order-trees-v1:Hit@4": 16,
+      "keirin-conditional-order-trees-v1:Hit@9": 22,
+      "keirin-conditional-order-trees-v1:forecast": 63,
+      "keirin-conditional-order-trees-v1:log_loss_sum": 267.7539337682332
+    },
+    "venue:75/exactas": {
+      "eligible": 48,
+      "keirin-conditional-order-trees-v1:Hit@1": 10,
+      "keirin-conditional-order-trees-v1:Hit@2": 16,
+      "keirin-conditional-order-trees-v1:forecast": 48,
+      "keirin-conditional-order-trees-v1:log_loss_sum": 144.90607746066627
+    },
+    "venue:75/trifectas": {
+      "eligible": 48,
+      "keirin-conditional-order-trees-v1:Hit@1": 7,
+      "keirin-conditional-order-trees-v1:Hit@12": 18,
+      "keirin-conditional-order-trees-v1:Hit@2": 12,
+      "keirin-conditional-order-trees-v1:Hit@4": 14,
+      "keirin-conditional-order-trees-v1:Hit@9": 18,
+      "keirin-conditional-order-trees-v1:forecast": 48,
+      "keirin-conditional-order-trees-v1:log_loss_sum": 210.6693893617169
+    },
+    "venue:81/exactas": {
+      "eligible": 87,
+      "keirin-conditional-order-trees-v1:Hit@1": 20,
+      "keirin-conditional-order-trees-v1:Hit@2": 26,
+      "keirin-conditional-order-trees-v1:forecast": 87,
+      "keirin-conditional-order-trees-v1:log_loss_sum": 272.17540324346464
+    },
+    "venue:81/trifectas": {
+      "eligible": 87,
+      "keirin-conditional-order-trees-v1:Hit@1": 9,
+      "keirin-conditional-order-trees-v1:Hit@12": 29,
+      "keirin-conditional-order-trees-v1:Hit@2": 13,
+      "keirin-conditional-order-trees-v1:Hit@4": 18,
+      "keirin-conditional-order-trees-v1:Hit@9": 24,
+      "keirin-conditional-order-trees-v1:forecast": 87,
+      "keirin-conditional-order-trees-v1:log_loss_sum": 413.0394915746314
+    },
+    "venue:83/exactas": {
+      "eligible": 36,
+      "keirin-conditional-order-trees-v1:Hit@1": 7,
+      "keirin-conditional-order-trees-v1:Hit@2": 15,
+      "keirin-conditional-order-trees-v1:forecast": 36,
+      "keirin-conditional-order-trees-v1:log_loss_sum": 100.5758129594824
+    },
+    "venue:83/trifectas": {
+      "eligible": 36,
+      "keirin-conditional-order-trees-v1:Hit@1": 5,
+      "keirin-conditional-order-trees-v1:Hit@12": 22,
+      "keirin-conditional-order-trees-v1:Hit@2": 8,
+      "keirin-conditional-order-trees-v1:Hit@4": 12,
+      "keirin-conditional-order-trees-v1:Hit@9": 19,
+      "keirin-conditional-order-trees-v1:forecast": 36,
+      "keirin-conditional-order-trees-v1:log_loss_sum": 146.1597332508038
+    },
+    "venue:84/exactas": {
+      "eligible": 78,
+      "keirin-conditional-order-trees-v1:Hit@1": 21,
+      "keirin-conditional-order-trees-v1:Hit@2": 31,
+      "keirin-conditional-order-trees-v1:forecast": 78,
+      "keirin-conditional-order-trees-v1:log_loss_sum": 207.92167267163575
+    },
+    "venue:84/trifectas": {
+      "eligible": 78,
+      "keirin-conditional-order-trees-v1:Hit@1": 13,
+      "keirin-conditional-order-trees-v1:Hit@12": 42,
+      "keirin-conditional-order-trees-v1:Hit@2": 18,
+      "keirin-conditional-order-trees-v1:Hit@4": 24,
+      "keirin-conditional-order-trees-v1:Hit@9": 39,
+      "keirin-conditional-order-trees-v1:forecast": 78,
+      "keirin-conditional-order-trees-v1:log_loss_sum": 309.3532564355219
+    },
+    "venue:85/exactas": {
+      "eligible": 27,
+      "keirin-conditional-order-trees-v1:Hit@1": 8,
+      "keirin-conditional-order-trees-v1:Hit@2": 10,
+      "keirin-conditional-order-trees-v1:forecast": 27,
+      "keirin-conditional-order-trees-v1:log_loss_sum": 76.02148525172962
+    },
+    "venue:85/trifectas": {
+      "eligible": 27,
+      "keirin-conditional-order-trees-v1:Hit@1": 4,
+      "keirin-conditional-order-trees-v1:Hit@12": 14,
+      "keirin-conditional-order-trees-v1:Hit@2": 5,
+      "keirin-conditional-order-trees-v1:Hit@4": 7,
+      "keirin-conditional-order-trees-v1:Hit@9": 12,
+      "keirin-conditional-order-trees-v1:forecast": 27,
+      "keirin-conditional-order-trees-v1:log_loss_sum": 113.231953895788
+    },
+    "venue:86/exactas": {
+      "eligible": 69,
+      "keirin-conditional-order-trees-v1:Hit@1": 17,
+      "keirin-conditional-order-trees-v1:Hit@2": 32,
+      "keirin-conditional-order-trees-v1:forecast": 69,
+      "keirin-conditional-order-trees-v1:log_loss_sum": 180.08687034534586
+    },
+    "venue:86/trifectas": {
+      "eligible": 69,
+      "keirin-conditional-order-trees-v1:Hit@1": 10,
+      "keirin-conditional-order-trees-v1:Hit@12": 34,
+      "keirin-conditional-order-trees-v1:Hit@2": 18,
+      "keirin-conditional-order-trees-v1:Hit@4": 23,
+      "keirin-conditional-order-trees-v1:Hit@9": 32,
+      "keirin-conditional-order-trees-v1:forecast": 69,
+      "keirin-conditional-order-trees-v1:log_loss_sum": 271.1881231745695
+    },
+    "venue:87/exactas": {
+      "eligible": 50,
+      "keirin-conditional-order-trees-v1:Hit@1": 16,
+      "keirin-conditional-order-trees-v1:Hit@2": 26,
+      "keirin-conditional-order-trees-v1:forecast": 50,
+      "keirin-conditional-order-trees-v1:log_loss_sum": 123.44586129549333
+    },
+    "venue:87/trifectas": {
+      "eligible": 50,
+      "keirin-conditional-order-trees-v1:Hit@1": 8,
+      "keirin-conditional-order-trees-v1:Hit@12": 30,
+      "keirin-conditional-order-trees-v1:Hit@2": 14,
+      "keirin-conditional-order-trees-v1:Hit@4": 21,
+      "keirin-conditional-order-trees-v1:Hit@9": 27,
+      "keirin-conditional-order-trees-v1:forecast": 50,
+      "keirin-conditional-order-trees-v1:log_loss_sum": 185.94205346512416
+    }
+  },
+  "evaluation_window": [
+    "20261101",
+    "20261122"
+  ],
+  "scope": "RETROSPECTIVE_ARCHIVE_NO_PRE_CUTOFF_ATTESTATION"
+}
