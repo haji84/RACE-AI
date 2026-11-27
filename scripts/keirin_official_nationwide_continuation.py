@@ -46,7 +46,7 @@ def need(ok,code):
 def _runtime(*,repo,private_root,owner_public_pem,owner_private_pem,day,clock,mode):
     at=form._aware(clock());today=at.astimezone(form.JST).date().isoformat()
     day=day or today;history._day(day)
-    need(mode in ('capture','publish','settle','measure'),'MODE_INVALID')
+    need(mode in ('capture','publish','settle','measure','study'),'MODE_INVALID')
     need(os.getenv('GITHUB_ACTIONS')=='true' and os.getenv('GITHUB_REPOSITORY')==archive.REPO and
          os.getenv('GITHUB_REPOSITORY_ID')==archive.REPO_ID and os.getenv('GITHUB_REF')=='refs/heads/main' and
          os.getenv('GITHUB_EVENT_NAME') in ('schedule','workflow_dispatch') and
@@ -54,8 +54,10 @@ def _runtime(*,repo,private_root,owner_public_pem,owner_private_pem,day,clock,mo
     pair=(os.getenv('GITHUB_WORKFLOW_REF'),os.getenv('GITHUB_JOB'))
     allowed = {'capture': {(WORKFLOW,'official-sp-capture')}, 'publish': {(WORKFLOW,'official-sp-publish')},
                'settle': {(WORKFLOW,'official-sp-settle'), (WATCH_WORKFLOW,'observe-results')},
-               'measure': {(WATCH_WORKFLOW,'measured-results')}}
+               'measure': {(WATCH_WORKFLOW,'measured-results')},
+               'study': {(WATCH_WORKFLOW,'observe-results')}}
     need(pair in allowed[mode], 'EXACT_SOURCE_JOB_REQUIRED')
+    need(mode!='study' or os.getenv('GITHUB_EVENT_NAME')=='workflow_dispatch','STUDY_MANUAL_ONLY')
     need(mode!='capture' or day==today,'CAPTURE_ACTUAL_DAY_REQUIRED')
     private_public=pipeline.check_owner_private_key(owner_private_pem)
     public=Path(owner_public_pem).read_bytes();parsed=storage.checked_public_key(public)

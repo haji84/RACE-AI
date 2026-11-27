@@ -93,6 +93,13 @@ class ConditionTrialTests(unittest.TestCase):
                                         form_shadow=form, supplement=supplement)
         self.assertEqual(len(forecast['component_weights']), 8)
         self.assertEqual(forecast['component_holds'], {})
+        replay_at = (model.when(baseline['published_cutoff_at']) + trial.WITNESS_MARGIN).isoformat()
+        learned = trial.build_combined(snapshot, baseline, pair, generated_at=replay_at,
+                                       form_shadow=form, supplement=supplement, current_weight=.75)
+        self.assertEqual(learned['scope'], 'RETROSPECTIVE_RESEARCH')
+        self.assertEqual(learned['component_weights'][model.MODEL_A], .375)
+        self.assertAlmostEqual(learned['component_weights'][trial.CHALLENGER], .25 / 6)
+        self.assertNotEqual(forecast['input_sha256'], learned['input_sha256'])
         self.assertAlmostEqual(sum(forecast['component_weights'].values()), 1.0)
         wrong = pack(results=[result(17, 2)])
         with self.assertRaisesRegex(ValueError, 'COMBINED_FORM_INPUTS'):
