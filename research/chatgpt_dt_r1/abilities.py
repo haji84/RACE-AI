@@ -17,7 +17,8 @@ from .model import _verify_feature_binding, digest, RankModel
 from .observations import Provenance, SourceKind, utc, day, finite
 
 VERSION = 'dt-five-abilities-v1'
-MOTION_SCHEMA = 'dt-reviewed-motion-v1'
+MOTION_SCHEMA = 'dt-reviewed-motion-v2'
+LEGACY_MOTION_SCHEMA = 'dt-reviewed-motion-v1'
 PREFIX = 'history_dt_'
 DISC = PREFIX + 'discovery_'
 # Bounds are validation limits, not population statistics. Units are explicit.
@@ -25,6 +26,11 @@ MOTION = {'mean_speed_m_s': (0,40,20), 'max_speed_m_s': (0,40,20),
           'mean_acceleration_m_s2': (-20,20,5), 'speed_retention_ratio': (0,2,1),
           'exposed_fraction': (0,1,1), 'extra_distance_m': (0,1000,100),
           'tactical_success_fraction': (0,1,1), 'attack_count': (0,30,10)}
+MEASURED_METRICS = {'mean_speed_m_s':'measured_speed_mean_m_s',
+                   'max_speed_m_s':'measured_speed_max_m_s',
+                   'mean_acceleration_m_s2':'measured_acceleration_mean_m_s2'}
+MEASUREMENT_FIELDS = ('measured_motion_segments', 'measured_speed_uncertainty_m_s',
+                      *MEASURED_METRICS.values(), 'measured_acceleration_uncertainty_m_s2')
 CORE = ('form_change','form_change_known','recent_load_proxy','recent_load_known',
         'rival_pressure','rival_pressure_known','rival_strength_gap','rival_strength_known',
         'third_line_opportunity','third_line_known','line_front_exposure_proxy',
@@ -52,6 +58,32 @@ def _sha(v):
     return isinstance(v,str) and re.fullmatch('[0-9a-f]{64}',v) is not None
 
 
+def _measured_metrics(evidence):
+    """Validate the same calibrated evidence at creation and serialized reload."""
+    if not isinstance(evidence,dict) or set(evidence)!=set(MEASUREMENT_FIELDS):
+        raise ValueError('MOTION_MEASUREMENT_EVIDENCE_REQUIRED')
+    segments=evidence['measured_motion_segments']
+    if type(segments) is not int or segments<1:
+        raise ValueError('CALIBRATED_MOTION_SEGMENTS_REQUIRED')
+    finite(evidence['measured_speed_uncertainty_m_s'],'motion uncertainty',low=0,high=5)
+    values={}
+    for dest,src in MEASURED_METRICS.items():
+        value=evidence[src]
+        if dest=='mean_acceleration_m_s2' and value is None:
+            continue
+        lo,hi,_=MOTION[dest]
+        finite(value,dest,low=lo,high=hi)
+        if dest=='mean_acceleration_m_s2':
+            if segments<2:
+                raise ValueError('CALIBRATED_ACCELERATION_SEGMENTS_REQUIRED')
+            finite(evidence['measured_acceleration_uncertainty_m_s2'],
+                   'acceleration uncertainty',low=0,high=5)
+        values[dest]=value
+    if values['max_speed_m_s']<values['mean_speed_m_s']:
+        raise ValueError('MOTION_SPEED_SUMMARY_INVALID')
+    return values
+
+
 def reviewed_motion_record(measurements, *, race_id, rider_id, registration_id, venue_id,
                            event_at, event_day, provenance, identity_receipt_sha256,
                            measurement_receipt_sha256, extra=None):
@@ -64,34 +96,28 @@ def reviewed_motion_record(measurements, *, race_id, rider_id, registration_id, 
     p=Provenance(**provenance)
     if p.kind != SourceKind.REVIEWED_VIDEO:
         raise ValueError('REVIEWED_VIDEO_REQUIRED')
-    if type(measurements.get('measured_motion_segments')) is not int or measurements['measured_motion_segments']<1:
-        raise ValueError('CALIBRATED_MOTION_SEGMENTS_REQUIRED')
-    uncertainty=finite(measurements.get('measured_speed_uncertainty_m_s'),'motion uncertainty',low=0)
-    if uncertainty>5:
-        raise ValueError('MOTION_UNCERTAINTY_TOO_HIGH')
-    values={}
-    for dest,src in (('mean_speed_m_s','measured_speed_mean_m_s'),('max_speed_m_s','measured_speed_max_m_s'),
-                     ('mean_acceleration_m_s2','measured_acceleration_mean_m_s2')):
-        if measurements.get(src) is not None:
-            if dest=='mean_acceleration_m_s2':
-                finite(measurements.get('measured_acceleration_uncertainty_m_s2'),'acceleration uncertainty',low=0,high=5)
-            values[dest]=measurements[src]
+    evidence={key:measurements.get(key) for key in MEASUREMENT_FIELDS}
+    values=_measured_metrics(evidence)
     if extra:
-        if set(extra)&set(values):
-            raise ValueError('DUPLICATE_MOTION_METRIC')
+        if set(extra)&set(MEASURED_METRICS):
+            raise ValueError('MOTION_METRIC_REQUIRES_MEASUREMENT_EVIDENCE')
         values.update(extra)
     result={'schema':MOTION_SCHEMA,'race_id':race_id,'rider_id':rider_id,'registration_id':registration_id,
             'venue_id':venue_id,'event_at':event_at,'event_day':event_day,'provenance':provenance,
             'identity_receipt_sha256':identity_receipt_sha256,'measurement_receipt_sha256':measurement_receipt_sha256,
-            'metrics':values}
+            'measurement_evidence':evidence,'metrics':values}
     result['observation_id']=digest(result)
     validate_motion(result)
     return result
 
 
 def validate_motion(record):
+    if record.get('schema')==LEGACY_MOTION_SCHEMA:
+        # The old shape did not retain quality evidence. Never invent it or
+        # silently rewrite an original into the new reviewed format.
+        raise ValueError('LEGACY_MOTION_REVIEW_REQUIRED')
     required={'schema','race_id','rider_id','registration_id','venue_id','event_at','event_day','provenance',
-              'identity_receipt_sha256','measurement_receipt_sha256','metrics','observation_id'}
+              'identity_receipt_sha256','measurement_receipt_sha256','measurement_evidence','metrics','observation_id'}
     if set(record)!=required or record['schema']!=MOTION_SCHEMA:
         raise ValueError('MOTION_SCHEMA_INVALID')
     if not all(isinstance(record[k],str) and record[k] for k in ('race_id','rider_id','registration_id','venue_id')):
@@ -112,13 +138,16 @@ def validate_motion(record):
     for k,v in metrics.items():
         lo,hi,_=MOTION[k]
         finite(v,k,low=lo,high=hi)
+    measured=_measured_metrics(record['measurement_evidence'])
+    if {k:v for k,v in metrics.items() if k in MEASURED_METRICS}!=measured:
+        raise ValueError('MOTION_MEASUREMENT_MISMATCH')
     return record
 
 
 def split_sidecars(records):
     timing=[]; motion=[]
     for record in records:
-        if isinstance(record,dict) and record.get('schema')==MOTION_SCHEMA:
+        if isinstance(record,dict) and record.get('schema') in (MOTION_SCHEMA,LEGACY_MOTION_SCHEMA):
             motion.append(validate_motion(record))
         else:
             timing.append(record)

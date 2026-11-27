@@ -478,7 +478,7 @@ class OfficialAdmissionAdapter:
         return found
 
     def _feature_proof(self, binding, row):
-        from .features import build_features, require_history_available
+        from .features import build_features, require_history_available, _bind_feature_input, LEGACY_FEATURE_BINDING_SCHEMA
         from .context import augment_features, EXTRA_NAMES
         from .agari import augment_agari, AGARI_NAMES
         from .abilities import augment_abilities, ABILITY_NAMES
@@ -527,6 +527,13 @@ class OfficialAdmissionAdapter:
             featured = augment_agari([featured])[0]
         if schema == digest(list(tuple(featured['feature_names'])+ABILITY_NAMES)):
             featured=augment_abilities([featured])[0]
+        if binding['feature_input_sha256']!=featured['feature_input_sha256']:
+            # Only after reconstruction from independently admitted inputs may
+            # an old original be checked under its exact v2 binding contract.
+            # Do not upgrade or rebind a caller-supplied unverified feature row.
+            legacy=_bind_feature_input(dict(featured,feature_binding_schema=LEGACY_FEATURE_BINDING_SCHEMA))
+            if binding['feature_input_sha256']==legacy['feature_input_sha256']:
+                featured=legacy
         expected = dict(feature_input_sha256=featured['feature_input_sha256'],
             feature_schema_sha256=digest(list(featured['feature_names'])),
             history_snapshot_sha256=history_snapshot,

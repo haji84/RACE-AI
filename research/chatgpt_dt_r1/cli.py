@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import argparse
+from hashlib import sha256
 import json
 import os
 from pathlib import Path
@@ -10,6 +11,15 @@ import sys
 
 def _read(path):
     return json.loads(Path(path).read_text(encoding='utf-8'))
+
+
+def _unique_pin_fields(pairs):
+    result = {}
+    for key, value in pairs:
+        if key in result:
+            raise ValueError('DUPLICATE_PIN_KEY')
+        result[key] = value
+    return result
 
 
 def _context_options(parser):
@@ -51,6 +61,10 @@ def main(argv=None):
     compare.add_argument('--outcomes', type=Path, required=True)
     compare.add_argument('--registry', type=Path, required=True)
     compare.add_argument('--model-id', action='append', required=True)
+    compare.add_argument('--pins', type=Path, help='Existing ledger participant-pin mapping for exactly the declared three entrants.')
+    compare.add_argument('--pins-sha256', help='Externally retained SHA-256 of the pin file bytes; required with --pins.')
+    compare.add_argument('--require-shared-evidence', action='store_true',
+                         help='Strict comparison: bind every forecast to the registry source/history/context snapshots; missing evidence is a counted HOLD.')
     compare.add_argument('--output', type=Path, required=True)
     forecast = sub.add_parser('forecast', help='Predict a normalized record using a pinned model and earlier history.')
     forecast.add_argument('--model', type=Path, required=True)
@@ -64,12 +78,15 @@ def main(argv=None):
     forecast.add_argument('--allow-current-geometry-assumption', action='store_true')
     forecast.add_argument('--phase-bundle', type=Path, help='Optional independently fitted six-phase bundle.')
     forecast.add_argument('--phase-samples', type=int, default=64)
-    selection = sub.add_parser('select', help='Apply the odds/count policy; this command is not independent source attestation.')
+    selection = sub.add_parser('select', help='Apply the odds/count or fixed-K policy; this command is not independent source attestation.')
     selection.add_argument('--forecast', type=Path, required=True)
-    selection.add_argument('--odds', type=Path, help='Missing odds produces HOLD, never inferred prices.')
+    selection_mode = selection.add_mutually_exclusive_group()
+    selection_mode.add_argument('--odds', type=Path, help='Missing odds produces HOLD, never inferred prices.')
+    selection_mode.add_argument('--fixed-k', type=int, help='Probability top-K research selection with the saved fixed-policy calibrator.')
+    selection.add_argument('--market', choices=('trifecta', 'exacta'), help='Fixed-K market (default: trifecta); odds mode uses --policy-config.')
     selection.add_argument('--policy-config', type=Path)
     selection.add_argument('--calibrator', type=Path)
-    selection.add_argument('--at', required=True)
+    selection.add_argument('--at', help='Required in odds mode; fixed-K mode preserves the forecast clock instead.')
     selection.add_argument('--output', type=Path, required=True)
     report = sub.add_parser('report', help='Render aggregate evidence, or explicitly requested private owner details.')
     report.add_argument('--report', type=Path, required=True)
@@ -123,16 +140,29 @@ def main(argv=None):
                           'model_sha256': report['model_sha256'], 'final_period': report['final_period']}, ensure_ascii=False))
     elif args.command == 'compare':
         from .comparison import compare_models
+        from .policy import checked_sha, require
+        require((args.pins is None) == (args.pins_sha256 is None), 'PIN_FILE_AND_EXTERNAL_SHA_REQUIRED')
+        pins, pin_file_sha = None, None
+        if args.pins is not None:
+            checked_sha(args.pins_sha256, 'INVALID_EXTERNAL_PIN_FILE_SHA256')
+            pin_bytes = args.pins.read_bytes()
+            pin_file_sha = sha256(pin_bytes).hexdigest()
+            require(pin_file_sha == args.pins_sha256, 'PIN_FILE_SHA256_MISMATCH')
+            pins = json.loads(pin_bytes, object_pairs_hook=_unique_pin_fields)
+            require(isinstance(pins, dict), 'EXACTLY_THREE_PARTICIPANT_PINS_REQUIRED')
         forecasts = []
         for path in args.forecasts:
             forecasts.extend(json.loads(path.read_text()))
         report = compare_models(forecasts, json.loads(args.outcomes.read_text()),
-                                json.loads(args.registry.read_text()), expected_model_ids=args.model_id)
+                                json.loads(args.registry.read_text()), expected_model_ids=args.model_id,
+                                expected_participant_pins=pins, require_shared_evidence=args.require_shared_evidence)
+        if pin_file_sha is not None:
+            report['participant_manifest']['file_sha256'] = pin_file_sha
         write_private_json(args.output, report)
         print(json.dumps({'status': 'COMPARISON_SAVED', 'expected_models': args.model_id}))
     elif args.command == 'forecast':
         from .features import build_features, require_history_available
-        from .model import RankModel
+        from .model import RankModel, digest
         model = RankModel.from_dict(json.loads(args.model.read_text()))
         row = json.loads(args.record.read_text())
         history = json.loads(args.history.read_text())
@@ -155,6 +185,8 @@ def main(argv=None):
             target=augment_abilities([target])[0]
         prediction = forecast_row(model, target, prediction_at=args.at, full=True)
         prediction['explanation'] = model.explain(target) if prediction['status'] == 'READY' else []
+        if prediction['status'] == 'READY':
+            prediction['feature_schema_sha256'] = digest(target['feature_names'])
         if prediction['status']=='READY' and uses_abilities(model.feature_names):
             prediction['favorite_failure']=favorite_failure(model,target)
         if args.phase_bundle and prediction['status'] == 'READY':
@@ -165,10 +197,16 @@ def main(argv=None):
         write_private_json(args.output, prediction)
         print(json.dumps({'status': prediction['status'], 'private_original_saved': True}))
     elif args.command == 'select':
-        from .policy import select_tickets
+        from .policy import select_tickets, fixed_selection, require
         from .calibration import assess_selection
-        selected = select_tickets(_read(args.forecast), _read(args.odds) if args.odds else None,
-            config=_read(args.policy_config) if args.policy_config else None, decision_at=args.at)
+        if args.fixed_k is not None:
+            require(args.policy_config is None and args.at is None, 'FIXED_K_REJECTS_ODDS_CONFIG_AND_DECISION_CLOCK')
+            selected = fixed_selection(_read(args.forecast), args.fixed_k, args.market or 'trifecta')
+        else:
+            require(args.market is None, 'MARKET_OPTION_REQUIRES_FIXED_K')
+            require(args.at is not None, 'ODDS_DECISION_CLOCK_REQUIRED')
+            selected = select_tickets(_read(args.forecast), _read(args.odds) if args.odds else None,
+                config=_read(args.policy_config) if args.policy_config else None, decision_at=args.at)
         # Keep the sealed selection untouched; assessment is a separate artifact.
         confidence = assess_selection(selected, _read(args.calibrator) if args.calibrator else None)
         write_private_json(args.output, {'schema': 'dt-r1-policy-assessment-v1', 'selection': selected,

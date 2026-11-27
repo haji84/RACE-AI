@@ -1,5 +1,6 @@
 """One-shot owner-requested pinned public archive study. Aggregate stdout only."""
 from __future__ import annotations
+import argparse
 import json
 import os
 from pathlib import Path
@@ -52,7 +53,14 @@ def public_summary(report):
 
 
 def main():
-    private = Path(sys.argv[1]).resolve()
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument('private', type=Path)
+    parser.add_argument('--bundle-dir', type=Path)
+    parser.add_argument('--owner-public-key', type=Path)
+    args = parser.parse_args()
+    if (args.bundle_dir is None) != (args.owner_public_key is None):
+        parser.error('--bundle-dir and --owner-public-key are required together')
+    private = args.private.resolve()
     if not private.is_dir() or any((p/'.git').exists() for p in (private,*private.parents)):
         raise ValueError('PRIVATE_RUNNER_PATH_REQUIRED')
     paths=[]
@@ -92,10 +100,17 @@ def main():
                 if not set(model['fit_meta'])<=set('fit_before_day training_first_day training_last_day training_races input_races no_top3_label ridge use_pairs iterations optimizer_converged optimizer_message objective feature_mask training_fingerprint feature_digest_required created_at cohort parameter_information_end_day temperature_calibration selection context source_code_sha256 five_abilities'.split()):
                     raise ValueError('FROZEN_MODEL_PUBLIC_METADATA_FIELDS')
                 model_bytes=json.dumps(model,sort_keys=True,ensure_ascii=False,separators=(',',':'),allow_nan=False).encode()
+                from .bundle import validate_public_model, export_study
+                validate_public_model(model)
+                bundle_receipt = None
+                if args.bundle_dir is not None:
+                    bundle_receipt = export_study(private/'study', args.bundle_dir, args.owner_public_key.read_bytes())
         except Exception as exc:
             print('HOLD_STUDY_FAILED '+type(exc).__name__,file=sys.__stdout__,flush=True)
             return 4
     print('DT_R1_AGGREGATE '+json.dumps(summary,ensure_ascii=False,sort_keys=True,allow_nan=False),flush=True)
+    if bundle_receipt is not None:
+        print('DT_R1_BUNDLE '+json.dumps(bundle_receipt,sort_keys=True,allow_nan=False),flush=True)
     import base64
     encoded=base64.b64encode(model_bytes).decode('ascii')
     parts=[encoded[i:i+3000] for i in range(0,len(encoded),3000)]

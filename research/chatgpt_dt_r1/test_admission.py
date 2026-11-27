@@ -314,6 +314,41 @@ class AdmissionTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             adapter.source_verifier(binding)
 
+    def test_legacy_v2_original_replays_from_independent_inputs_without_rewriting(self):
+        from research.chatgpt_dt_r1.features import _bind_feature_input
+        row=self.adapter.load_day(DAY)['records'][0]
+        featured=FeatureBuilder().transform(row)
+        featured['feature_binding_schema']='dt-r1-feature-input-v2'
+        _bind_feature_input(featured)
+        binding=runtime_binding(row)
+        binding['feature_input_sha256']=featured['feature_input_sha256']
+        original=deepcopy(binding)
+        self.assertTrue(self.adapter.source_verifier(binding)['verified'])
+        self.assertEqual(binding,original)
+
+    def test_unrelated_motion_has_same_binding_in_full_and_filtered_replay(self):
+        from research.chatgpt_dt_r1.context import augment_features
+        from research.chatgpt_dt_r1.agari import augment_agari
+        from research.chatgpt_dt_r1.abilities import augment_abilities
+        from research.chatgpt_dt_r1.test_abilities import motion_fixture
+        as_of='2030-01-15T04:10:00Z'
+        unrelated=motion_fixture(rider_id='unrelated-rider',registration_id='999999')
+        def verify(support):
+            return dict(verified=True,independent=True,verifier='SYNTHETIC_TEST_ONLY',
+                receipt_sha256='a'*64,payload_sha256=digest(support),source_receipt_sha256s=['b'*64])
+        adapter=admission.OfficialAdmissionAdapter(self.facade,context_as_of=as_of,
+            timing_records=[unrelated],support_verifier=verify)
+        row=adapter.load_day(DAY)['records'][0]
+        featured=augment_abilities(augment_agari(augment_features([FeatureBuilder().transform(row)],
+            timing_records=[unrelated],as_of=as_of)))[0]
+        binding=runtime_binding(row)
+        binding.update(feature_input_sha256=featured['feature_input_sha256'],
+            feature_schema_sha256=digest(list(featured['feature_names'])),
+            context_snapshot_sha256=digest(dict(venue_records=None,timing_records=[unrelated],
+                weather_observation=None,as_of=as_of,allow_current_geometry_assumption=False)),
+            context_evidence=featured['context_evidence'],history_evidence_sha256=digest(featured['history_evidence']))
+        self.assertTrue(adapter.source_verifier(binding)['verified'])
+
     def test_results_only_come_from_replay_and_do_not_change_input_binding(self):
         before = self.adapter.load_day(DAY)['records'][0]
         after = self.adapter.load_day(DAY, include_results=True)['records'][0]

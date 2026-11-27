@@ -344,6 +344,129 @@ class ComparisonTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             self.compare(rows)
 
+    def test_external_participant_pins_reject_unknown_missing_and_changed_model(self):
+        rows = [forecast(model_id=m) for m in MODEL_IDS]
+        policy_sha = POLICY.fixed_selection(rows[0], 1)['policy_sha256']
+        pins = {r['model_id']: {'model_sha256': r['model_sha256'], 'policy_sha256': policy_sha} for r in rows}
+        for invalid in [dict(list(pins.items())[:2]), dict(pins, unknown=pins[MODEL_IDS[0]]),
+                        dict(pins, **{MODEL_IDS[0]: {'model_sha256': 'b' * 64}}),
+                        dict(pins, **{MODEL_IDS[0]: dict(pins[MODEL_IDS[0]], private_value='not-allowed')})]:
+            with self.subTest(invalid=invalid), self.assertRaises(ValueError):
+                self.compare(rows, expected_participant_pins=invalid)
+        pins[MODEL_IDS[0]]['model_sha256'] = 'f' * 64
+        with self.assertRaisesRegex(ValueError, 'MODEL_MANIFEST_MISMATCH'):
+            self.compare(rows, expected_participant_pins=pins)
+
+    def test_pinned_policy_mismatch_holds_actual_selection_without_erasing_distribution(self):
+        f = forecast()
+        f['selection'] = POLICY.fixed_selection(f, 2)
+        one_policy = POLICY.fixed_selection(f, 1)['policy_sha256']
+        pins = {model: {'model_sha256': forecast(model_id=model)['model_sha256'],
+                        'policy_sha256': one_policy} for model in MODEL_IDS}
+        report = self.compare([f], expected_participant_pins=pins)
+        own = report['all_target']['models']['chatgpt-dt-r1']
+        self.assertEqual(own['forecast_n'], 1)
+        self.assertEqual(own['trifecta']['hit_at']['1']['n'], 2)
+        self.assertEqual(own['actual_selection']['presented_n'], 0)
+        self.assertEqual(own['actual_selection']['hold_reasons'], {'POLICY_PIN_MISMATCH': 1})
+        self.assertFalse(report['participant_manifest']['independently_authenticated'])
+        self.assertIsNone(report['verdict']['winner'])
+
+    def test_feature_schema_pin_rejects_changed_or_missing_schema_as_counted_hold(self):
+        f = forecast()
+        pins = {model: {'model_sha256': forecast(model_id=model)['model_sha256'],
+                        'policy_sha256': POLICY.fixed_selection(f, 1)['policy_sha256']} for model in MODEL_IDS}
+        pins['chatgpt-dt-r1']['feature_schema_sha256'] = 'd' * 64
+        for schema in [None, 'e' * 64]:
+            with self.subTest(schema=schema):
+                row = dict(f, feature_schema_sha256=schema)
+                report = self.compare([row], expected_participant_pins=pins)
+                own = report['all_target']['models']['chatgpt-dt-r1']
+                self.assertEqual(own['forecast_n'], 0)
+                self.assertEqual(own['eligible_n'], 2)
+                self.assertEqual(own['hold_reasons']['FEATURE_SCHEMA_PIN_MISMATCH'], 1)
+        report = self.compare([dict(f, feature_schema_sha256='d' * 64)], expected_participant_pins=pins)
+        self.assertEqual(report['all_target']['models']['chatgpt-dt-r1']['forecast_n'], 1)
+
+    def test_conflicting_model_and_participant_manifests_are_not_silently_overridden(self):
+        f = forecast()
+        pins = {model: {'model_sha256': forecast(model_id=model)['model_sha256'],
+                        'policy_sha256': POLICY.fixed_selection(f, 1)['policy_sha256']} for model in MODEL_IDS}
+        with self.assertRaisesRegex(ValueError, 'CONFLICTING_MODEL_MANIFESTS'):
+            self.compare([f], expected_participant_pins=pins,
+                         expected_model_sha256={'chatgpt-dt-r1': 'f' * 64})
+
+    def shared_binding(self):
+        self.registry[0].update(input_sha256='c' * 64, cohort='retrospective', cutoff_at=None,
+            history_snapshot_sha256='1' * 64, dataset_snapshot_sha256='2' * 64,
+            context_snapshot_sha256='3' * 64, context_as_of='2026-11-28T00:00:00Z')
+        return dict(self.registry[0])
+
+    def test_strict_shared_materials_allow_independent_feature_schemas(self):
+        binding = self.shared_binding()
+        shared = POLICY.digest({'schema': 'dt-r1-shared-evidence-v1', **binding})
+        rows = [dict(forecast(model_id=model), shared_evidence_sha256=shared,
+                     feature_input_sha256=str(i + 4) * 64, feature_schema_sha256=str(i + 4) * 64)
+                for i, model in enumerate(MODEL_IDS)]
+        report = self.compare(rows, require_shared_evidence=True)
+        self.assertEqual(report['common_cohort']['eligible_n'], 1)
+        self.assertEqual(report['shared_evidence']['status'], 'ENFORCED')
+        self.assertEqual(report['shared_evidence']['admitted_matching_forecasts'], 3)
+        self.assertFalse(report['shared_evidence']['independently_authenticated'])
+        self.assertIsNone(report['verdict']['winner'])
+
+    def test_strict_prospective_materials_must_exist_at_prediction_time(self):
+        self.shared_binding()
+        self.registry[0].update(cohort='prospective', cutoff_at='2026-10-01T10:30:00Z',
+                                context_as_of='2026-10-01T10:20:00Z')
+        shared = POLICY.shared_evidence_digest(self.registry[0])
+        rows = [dict(forecast(model_id=model, cohort='prospective'), shared_evidence_sha256=shared)
+                for model in MODEL_IDS]
+        report = self.compare(rows, require_shared_evidence=True)
+        self.assertEqual(report['common_cohort']['eligible_n'], 0)
+        self.assertEqual(report['all_target']['eligible_n'], 2)
+        for model in MODEL_IDS:
+            self.assertEqual(report['all_target']['models'][model]['hold_reasons']['SHARED_EVIDENCE_AFTER_PREDICTION'], 1)
+        self.registry[0]['context_as_of'] = rows[0]['prediction_at']
+        for row in rows: row['shared_evidence_sha256'] = POLICY.shared_evidence_digest(self.registry[0])
+        report = self.compare(rows, require_shared_evidence=True)
+        self.assertEqual(report['common_cohort']['eligible_n'], 1)
+
+    def test_strict_shared_materials_bind_history_sources_context_and_clock(self):
+        original = self.shared_binding()
+        shared = POLICY.digest({'schema': 'dt-r1-shared-evidence-v1', **original})
+        rows = [dict(forecast(model_id=model), shared_evidence_sha256=shared) for model in MODEL_IDS]
+        for field, value in [('history_snapshot_sha256', '4' * 64), ('dataset_snapshot_sha256', '4' * 64),
+                             ('context_snapshot_sha256', '4' * 64), ('context_as_of', '2026-11-28T01:00:00Z')]:
+            with self.subTest(field=field):
+                self.registry[0] = dict(original, **{field: value})
+                report = self.compare(rows, require_shared_evidence=True)
+                self.assertEqual(report['all_target']['eligible_n'], 2)
+                self.assertEqual(report['common_cohort']['eligible_n'], 0)
+                for model in MODEL_IDS:
+                    own = report['all_target']['models'][model]
+                    self.assertEqual(own['forecast_n'], 0)
+                    self.assertEqual(own['hold_reasons']['SHARED_EVIDENCE_MISMATCH'], 1)
+
+    def test_strict_shared_materials_missing_evidence_stays_in_denominator(self):
+        binding = self.shared_binding()
+        shared = POLICY.digest({'schema': 'dt-r1-shared-evidence-v1', **binding})
+        rows = [dict(forecast(model_id=model), shared_evidence_sha256=shared) for model in MODEL_IDS]
+        del rows[0]['shared_evidence_sha256']
+        report = self.compare(rows, require_shared_evidence=True)
+        self.assertEqual(report['all_target']['models'][MODEL_IDS[0]]['hold_reasons']['SHARED_EVIDENCE_REQUIRED'], 1)
+        self.assertEqual(report['all_target']['models'][MODEL_IDS[1]]['forecast_n'], 1)
+        self.assertEqual(report['common_cohort']['eligible_n'], 0)
+        del self.registry[0]['history_snapshot_sha256']
+        report = self.compare(rows, require_shared_evidence=True)
+        self.assertEqual(report['all_target']['eligible_n'], 2)
+        for model in MODEL_IDS:
+            self.assertEqual(report['all_target']['models'][model]['hold_reasons']['SHARED_EVIDENCE_BINDING_INCOMPLETE'], 1)
+        legacy = self.compare(rows)
+        self.assertEqual(legacy['common_cohort']['eligible_n'], 1)
+        self.assertEqual(legacy['shared_evidence']['status'], 'NOT_REQUESTED')
+        self.assertIsNone(legacy['shared_evidence']['admitted_matching_forecasts'])
+
     def test_actual_selection_set_coverage_and_verified_payout_are_separate(self):
         f = forecast()
         f["selection"] = POLICY.fixed_selection(f, 2)

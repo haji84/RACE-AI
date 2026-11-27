@@ -1,7 +1,8 @@
 """Independent DT-R1 research comparison; never a production scorer or PDCA authority.
 
 ``compare_models(forecasts, outcomes, registry, expected_model_ids=[...],
-bootstrap_samples=1000, seed=20261128, expected_model_sha256=None)`` uses the
+bootstrap_samples=1000, seed=20261128, expected_model_sha256=None,
+expected_participant_pins=None, require_shared_evidence=False)`` uses the
 explicit THREE entrant IDs, not IDs inferred from available forecasts. Registry
 is the full scheduled-race list of {race_id, day}; optional input_sha256,
 cutoff_at, cohort and condition fields bind admission more tightly. Outcomes
@@ -31,6 +32,17 @@ receipt means no realised-return score, even for a numeric payout. Forecast odds
 never settle returns. Prospective declared clocks alone are SHADOW_UNATTESTED;
 formal verification remains the responsibility of the existing external verifier.
 
+Optional expected_participant_pins uses the same three-entrant model/policy/schema
+mapping as ResearchLedger. It freezes caller-declared identities, not issuer
+authentication. A schema mismatch is a counted forecast HOLD; a policy mismatch
+withholds only actual-selection metrics, preserving valid distribution scores.
+For the strict same-material procedure, require_shared_evidence=True recomputes
+the common digest from the existing registry's card, dataset, history, context
+snapshots and observation clock. Each forecast must declare that same digest.
+Missing or mismatched evidence remains a counted HOLD. Legacy reports do not
+gain strict verification; matching declarations still need external source and
+original authentication and do not prove which materials a rival actually used.
+
 Existing forward/PDCA modules require their own admitted-original contracts and
 normal-result filters. This new all-target research contract is deliberately
 kept separate; it does not duplicate their source authentication or flow grading.
@@ -43,11 +55,13 @@ import math
 import random
 
 try:
-    from .policy import (PolicyError, checked_cars, checked_day, checked_sha, clock,
-                         digest, finite_number, probability, require, validate_forecast)
+    from .policy import (PolicyError, checked_cars, checked_day, checked_sha, checked_participant_pin, clock,
+                         digest, finite_number, probability, require, validate_forecast,
+                         SHARED_EVIDENCE_SCHEMA, shared_evidence_digest)
 except ImportError:
-    from policy import (PolicyError, checked_cars, checked_day, checked_sha, clock,
-                        digest, finite_number, probability, require, validate_forecast)
+    from policy import (PolicyError, checked_cars, checked_day, checked_sha, checked_participant_pin, clock,
+                        digest, finite_number, probability, require, validate_forecast,
+                        SHARED_EVIDENCE_SCHEMA, shared_evidence_digest)
 
 
 POINTS = {"trifecta": (1, 2, 4, 9, 12), "exacta": (1, 2)}
@@ -139,7 +153,7 @@ def _attestation(forecast):
         return "INVALID_ATTESTATION_BINDING"
 
 
-def _selection_score(forecast, outcome):
+def _selection_score(forecast, outcome, *, expected_policy_sha256=None):
     selection = forecast.get("selection")
     if selection is None:
         return {"status": "HOLD", "reason": "NO_ACTUAL_SELECTION"}
@@ -150,6 +164,8 @@ def _selection_score(forecast, outcome):
         for key in ("prediction_at", "cutoff_at"):
             require(_clock_equal(selection.get(key), forecast.get(key)), "SELECTION_CLOCK_MISMATCH")
         checked_sha(selection.get("policy_sha256"), "SELECTION_POLICY_SHA_REQUIRED")
+        if expected_policy_sha256 is not None:
+            require(selection["policy_sha256"] == expected_policy_sha256, "POLICY_PIN_MISMATCH")
         if selection.get("policy") is not None:
             require(digest(selection["policy"]) == selection["policy_sha256"], "SELECTION_POLICY_HASH_MISMATCH")
         if selection.get("selection_sha256") is not None:
@@ -324,16 +340,25 @@ def _paired_bootstrap(common_ids, admitted, model_ids, samples, seed):
 
 
 def compare_models(forecasts, outcomes, registry, *, expected_model_ids, bootstrap_samples=1000,
-                   seed=20261128, expected_model_sha256=None):
+                   seed=20261128, expected_model_sha256=None, expected_participant_pins=None,
+                   require_shared_evidence=False):
     """Compare declared entrants on the full registry and on an exact common cohort."""
     require(isinstance(expected_model_ids, (list, tuple)) and len(expected_model_ids) == 3 and
             all(isinstance(m, str) and bool(m.strip()) for m in expected_model_ids) and
             len(set(expected_model_ids)) == 3, "EXACTLY_THREE_DECLARED_MODEL_IDS_REQUIRED")
     require(isinstance(bootstrap_samples, int) and not isinstance(bootstrap_samples, bool) and 1 <= bootstrap_samples <= 100000, "INVALID_BOOTSTRAP_SAMPLES")
     require(isinstance(seed, int) and not isinstance(seed, bool), "INVALID_BOOTSTRAP_SEED")
+    require(type(require_shared_evidence) is bool, "SHARED_EVIDENCE_MODE_MUST_BE_BOOLEAN")
     ids = list(expected_model_ids)
     scheduled, result_index = _index(registry, "REGISTRY"), _index(outcomes, "OUTCOME")
     require(set(result_index) <= set(scheduled), "UNREGISTERED_OUTCOME")
+    shared_registry, shared_registry_holds = {}, {}
+    if require_shared_evidence:
+        for rid, registered in scheduled.items():
+            try:
+                shared_registry[rid] = shared_evidence_digest(registered)
+            except PolicyError as error:
+                shared_registry_holds[rid] = str(error)
     excluded, eligible, conditions = Counter(), [], {}
     for rid, registered in scheduled.items():
         if registered.get("cohort") is not None:
@@ -364,6 +389,14 @@ def compare_models(forecasts, outcomes, registry, *, expected_model_ids, bootstr
         require(isinstance(expected_model_sha256, dict) and set(expected_model_sha256) <= set(ids), "INVALID_MODEL_MANIFEST")
         for value in expected_model_sha256.values():
             checked_sha(value)
+    pins = {}
+    if expected_participant_pins is not None:
+        require(isinstance(expected_participant_pins, dict) and set(expected_participant_pins) == set(ids),
+                "EXACTLY_THREE_PARTICIPANT_PINS_REQUIRED")
+        pins = {model_id: checked_participant_pin(pin) for model_id, pin in expected_participant_pins.items()}
+        for model_id, value in (expected_model_sha256 or {}).items():
+            require(value == pins[model_id]["model_sha256"], "CONFLICTING_MODEL_MANIFESTS")
+        expected_model_sha256 = {model_id: pin["model_sha256"] for model_id, pin in pins.items()}
     for forecast in forecasts:
         require(isinstance(forecast, dict), "INVALID_FORECAST_ROW")
         rid, model_id = forecast.get("race_id"), forecast.get("model_id")
@@ -389,6 +422,16 @@ def compare_models(forecasts, outcomes, registry, *, expected_model_ids, bootstr
                 continue
             try:
                 f = validate_forecast(supplied[key])
+                if require_shared_evidence:
+                    require(rid not in shared_registry_holds, shared_registry_holds.get(rid, "SHARED_EVIDENCE_BINDING_INCOMPLETE"))
+                    checked_sha(f.get("shared_evidence_sha256"), "SHARED_EVIDENCE_REQUIRED")
+                    require(f["shared_evidence_sha256"] == shared_registry[rid], "SHARED_EVIDENCE_MISMATCH")
+                    if f["cohort"] == "prospective":
+                        require(clock(registered["context_as_of"]) <= clock(f["prediction_at"]),
+                                "SHARED_EVIDENCE_AFTER_PREDICTION")
+                pin = pins.get(model_id, {})
+                if pin.get("feature_schema_sha256") is not None:
+                    require(f.get("feature_schema_sha256") == pin["feature_schema_sha256"], "FEATURE_SCHEMA_PIN_MISMATCH")
                 require(f["day"] == registered["day"], "FORECAST_DAY_MISMATCH")
                 if registered.get("input_sha256") is not None:
                     require(f["input_sha256"] == registered["input_sha256"], "REGISTRY_INPUT_MISMATCH")
@@ -404,7 +447,7 @@ def compare_models(forecasts, outcomes, registry, *, expected_model_ids, bootstr
                                  "prediction_at": f["prediction_at"], "cutoff_at": f["cutoff_at"],
                                  "source_attestation_status": _attestation(supplied[key]),
                                  "markets": {market: _market_score(f, outcome, market) for market in POINTS},
-                                 "selection": _selection_score(f, outcome)}
+                                 "selection": _selection_score(f, outcome, expected_policy_sha256=pin.get("policy_sha256"))}
             except (ValueError, TypeError, KeyError) as error:
                 reasons[key] = str(error) if isinstance(error, PolicyError) else "INVALID_FORECAST"
     common_ids, common_reasons, common_exclusions = [], Counter(), []
@@ -452,6 +495,21 @@ def compare_models(forecasts, outcomes, registry, *, expected_model_ids, bootstr
         "verdict": {"winner": None, "reasons": verdict_reasons},
         "conditional_distribution_caveat": "Forecast distributions exclude dead heats/abnormal completion; settled incident races with valid top3 remain in all-target scoring.",
         "source_attested": False,
+        "shared_evidence": {
+            "status": "ENFORCED" if require_shared_evidence else "NOT_REQUESTED",
+            "required": require_shared_evidence, "binding_schema": SHARED_EVIDENCE_SCHEMA,
+            "registered_complete_bindings": len(shared_registry) if require_shared_evidence else None,
+            "registry_hold_reasons": dict(Counter(shared_registry_holds.values())) if require_shared_evidence else None,
+            "admitted_matching_forecasts": len(admitted) if require_shared_evidence else None,
+            "common_matching_races": len(common_ids) if require_shared_evidence else None,
+            "independently_authenticated": False,
+            "scope": "Snapshot declarations compared; existing external source/support and original readback verification remains required.",
+        },
+        "participant_manifest": {
+            "status": "CALLER_PINNED_IDENTITIES" if pins else "NOT_SUPPLIED",
+            "pins": pins or None, "pins_sha256": digest(pins) if pins else None,
+            "independently_authenticated": False,
+        },
     }
     prospective = [row for row in admitted.values() if row["cohort"] == "prospective"]
     receipt_n = sum(row["source_attestation_status"] == "DECLARED_BOUND_EXTERNAL_RECEIPT" for row in prospective)

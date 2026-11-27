@@ -1,5 +1,6 @@
 """Synthetic tests are contract checks, not real-race accuracy proof."""
 import copy
+import json
 import unittest
 import numpy as np
 from research.chatgpt_dt_r1.abilities import (augment_abilities,discover_features,phase_state_features,
@@ -7,7 +8,7 @@ from research.chatgpt_dt_r1.abilities import (augment_abilities,discover_feature
 from research.chatgpt_dt_r1.features import build_features
 from research.chatgpt_dt_r1.agari import augment_agari
 from research.chatgpt_dt_r1.context import augment_features
-from research.chatgpt_dt_r1.model import RankModel,fit_ranker
+from research.chatgpt_dt_r1.model import RankModel,fit_ranker,digest
 from research.chatgpt_dt_r1.test_agari import records,CLOCK,venue
 from research.chatgpt_dt_r1.phases import _state_row
 
@@ -19,7 +20,65 @@ def extended(rows,sidecars=()):
 def val(row,name):
     return row['features'][:,row['feature_names'].index(name)]
 
+
+def motion_fixture(**overrides):
+    measurements={'measured_motion_segments':2,'measured_speed_uncertainty_m_s':.1,
+        'measured_speed_mean_m_s':15.,'measured_speed_max_m_s':17.,
+        'measured_acceleration_mean_m_s2':1.,'measured_acceleration_uncertainty_m_s2':.2}
+    provenance={'kind':'reviewed_video','source_url':'urn:synthetic:motion','source_sha256':'a'*64,
+        'retrieved_at':'2026-07-02T00:00:00Z','reviewer_id':'synthetic-review',
+        'reviewed_at':'2026-07-02T01:00:00Z','available_at':'2026-07-02T01:00:00Z'}
+    args=dict(race_id='old',rider_id='1',registration_id='1',venue_id='v',
+        event_at='2026-07-01T05:00:00Z',event_day='2026-07-01',provenance=provenance,
+        identity_receipt_sha256='b'*64,measurement_receipt_sha256='c'*64)
+    measurements=overrides.pop('measurements',measurements)
+    return reviewed_motion_record(measurements,**dict(args,**overrides))
+
+
 class AbilityTests(unittest.TestCase):
+    def test_extra_cannot_bypass_calibrated_metric_quality_checks(self):
+        measurements={'measured_motion_segments':2,'measured_speed_uncertainty_m_s':.1,
+            'measured_speed_mean_m_s':15.,'measured_speed_max_m_s':17.}
+        with self.assertRaisesRegex(ValueError,'MOTION_METRIC_REQUIRES_MEASUREMENT'):
+            motion_fixture(measurements=measurements,extra={'mean_acceleration_m_s2':10.})
+
+    def test_serialized_measurements_keep_quality_evidence_and_reject_invalid_reload(self):
+        record=motion_fixture(extra={'attack_count':2})
+        expected={'measured_motion_segments':2,'measured_speed_uncertainty_m_s':.1,
+            'measured_speed_mean_m_s':15.,'measured_speed_max_m_s':17.,
+            'measured_acceleration_mean_m_s2':1.,'measured_acceleration_uncertainty_m_s2':.2}
+        self.assertEqual(record.get('measurement_evidence'),expected)
+        self.assertEqual(split_sidecars(json.loads(json.dumps([record])))[1],[record])
+        changes=(('measured_motion_segments',0),('measured_speed_uncertainty_m_s',6.),
+                 ('measured_acceleration_uncertainty_m_s2',6.),('measured_speed_max_m_s',14.))
+        for field,value in changes:
+            with self.subTest(field=field):
+                bad=copy.deepcopy(record);bad['measurement_evidence'][field]=value
+                bad['observation_id']=digest({k:v for k,v in bad.items() if k!='observation_id'})
+                with self.assertRaises(ValueError):split_sidecars([bad])
+        bad=copy.deepcopy(record);bad['metrics']['mean_acceleration_m_s2']=10.
+        bad['observation_id']=digest({k:v for k,v in bad.items() if k!='observation_id'})
+        with self.assertRaisesRegex(ValueError,'MOTION_MEASUREMENT_MISMATCH'):split_sidecars([bad])
+
+    def test_legacy_motion_without_quality_evidence_requires_review(self):
+        legacy=motion_fixture()
+        legacy.pop('measurement_evidence',None)
+        legacy['schema']='dt-reviewed-motion-v1'
+        legacy['observation_id']=digest({k:v for k,v in legacy.items() if k!='observation_id'})
+        with self.assertRaisesRegex(ValueError,'LEGACY_MOTION_REVIEW_REQUIRED'):split_sidecars([legacy])
+
+    def test_unadmitted_motion_does_not_change_features_or_binding(self):
+        rows=records()
+        for row in rows:
+            for rider in row['riders']:rider['official_registration_id']=str(rider['car'])
+        baseline=extended(rows)
+        for record in (motion_fixture(rider_id='9',registration_id='9'),
+                       motion_fixture(registration_id='9')):
+            with self.subTest(rider=record['rider_id'],registration=record['registration_id']):
+                actual=extended(rows,[record])
+                np.testing.assert_array_equal(actual['features'],baseline['features'])
+                self.assertEqual(actual['feature_input_sha256'],baseline['feature_input_sha256'])
+
     def test_reviewed_motion_only_and_clock(self):
         rows=records()
         for row in rows:

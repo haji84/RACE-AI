@@ -34,6 +34,7 @@ import re
 
 
 RACE_TIMEZONE = timezone(timedelta(hours=9))
+SHARED_EVIDENCE_SCHEMA = "dt-r1-shared-evidence-v1"
 
 
 class PolicyError(ValueError):
@@ -60,6 +61,16 @@ def probability(value, code="INVALID_PROBABILITY"):
 def checked_sha(value, code="INVALID_SHA256"):
     require(isinstance(value, str) and re.fullmatch(r"[0-9a-f]{64}", value) is not None, code)
     return value
+
+
+def checked_participant_pin(pin):
+    """Validate the ledger's shared model/policy/schema pin, without authenticating it."""
+    require(isinstance(pin, dict) and
+            set(pin) <= {"model_sha256", "policy_sha256", "feature_schema_sha256"} and
+            {"model_sha256", "policy_sha256"} <= set(pin), "PARTICIPANT_PIN_FIELDS_REQUIRED")
+    for value in pin.values():
+        checked_sha(value)
+    return dict(pin)
 
 
 def checked_day(value):
@@ -93,6 +104,29 @@ def digest(value):
     except (TypeError, ValueError) as error:
         raise PolicyError("NON_CANONICAL_JSON") from error
     return sha256(payload.encode("utf-8")).hexdigest()
+
+
+def shared_evidence_digest(binding):
+    """Bind existing source/support snapshots independently of model features.
+
+    The official adapter already reconstructs these snapshot hashes and invokes
+    the existing source/support authority. Hashing their declarations here does
+    not authenticate that authority, an original, or any prediction clock.
+    """
+    fields = ("race_id", "day", "input_sha256", "cohort", "cutoff_at",
+              "history_snapshot_sha256", "dataset_snapshot_sha256",
+              "context_snapshot_sha256", "context_as_of")
+    require(isinstance(binding, dict) and set(fields) <= set(binding), "SHARED_EVIDENCE_BINDING_INCOMPLETE")
+    require(isinstance(binding["race_id"], str) and bool(binding["race_id"].strip()), "SHARED_EVIDENCE_RACE_ID_REQUIRED")
+    checked_day(binding["day"])
+    require(binding["cohort"] in ("retrospective", "prospective"), "SHARED_EVIDENCE_COHORT_REQUIRED")
+    for name in ("input_sha256", "history_snapshot_sha256", "dataset_snapshot_sha256", "context_snapshot_sha256"):
+        checked_sha(binding[name], "SHARED_EVIDENCE_INVALID_SNAPSHOT_SHA256")
+    clock(binding["context_as_of"])
+    if binding["cohort"] == "prospective" or binding["cutoff_at"] is not None:
+        check_race_day(binding["day"], binding["cutoff_at"])
+        require(clock(binding["context_as_of"]) < clock(binding["cutoff_at"]), "SHARED_EVIDENCE_CONTEXT_AFTER_CUTOFF")
+    return digest({"schema": SHARED_EVIDENCE_SCHEMA, **{key: binding[key] for key in fields}})
 
 
 def checked_cars(raw, length=None):

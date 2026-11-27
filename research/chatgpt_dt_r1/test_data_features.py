@@ -79,6 +79,23 @@ class DataFeatureContracts(unittest.TestCase):
         pins = archive(path, specs)
         return data.load_archives([path], expected_sha256=pins)
 
+    def test_legacy_bound_rows_and_model_weights_remain_compatible_with_v3(self):
+        from research.chatgpt_dt_r1.test_agari import records
+        from research.chatgpt_dt_r1.model import RankModel, _verify_feature_binding
+        current=features.build_features(records())[-1]
+        self.assertEqual(current.get('feature_binding_schema'),'dt-r1-feature-input-v3')
+        legacy=deepcopy(current)
+        legacy.pop('feature_binding_schema')
+        # Captured from the unchanged v2 fixture before this binding revision.
+        legacy['feature_input_sha256']='6a27f2878995758027afbf7419f8232857e15009977d7c16d76b0d23aa52d652'
+        _verify_feature_binding(legacy)
+        model=RankModel.zero(legacy['feature_names'])
+        model.weights[0,legacy['feature_names'].index('points')]=1.
+        model.fit_meta['feature_digest_required']=True
+        frozen=RankModel.from_dict(model.to_dict())
+        self.assertEqual(frozen.distribution(legacy,full=True),frozen.distribution(current,full=True))
+        self.assertNotEqual(current['feature_input_sha256'],legacy['feature_input_sha256'])
+
     def test_all_races_retained_and_missing_or_contested_lines_stay_unknown(self):
         records, audit = self.load([
             {}, {'rno': 2, 'contested': True}, {'rno': 3, 'lines': []},

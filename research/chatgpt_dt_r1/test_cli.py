@@ -1,5 +1,6 @@
 """CLI integration boundaries, all with synthetic inputs and no remote calls."""
-from contextlib import redirect_stdout
+from contextlib import redirect_stderr, redirect_stdout
+from hashlib import sha256
 import io
 import json
 from pathlib import Path
@@ -7,7 +8,7 @@ import tempfile
 import unittest
 
 from research.chatgpt_dt_r1.cli import main
-from research.chatgpt_dt_r1.test_calibration_policy_comparison import forecast, odds
+from research.chatgpt_dt_r1.test_calibration_policy_comparison import forecast, odds, MODEL_IDS, SPLITS
 
 
 class CLITests(unittest.TestCase):
@@ -42,6 +43,147 @@ class CLITests(unittest.TestCase):
         self.assertFalse(saved['independent_source_attestation'])
         with self.assertRaises(FileExistsError):
             main(list(args))
+
+    def test_fixed_selection_uses_saved_calibrator_without_inventing_clocks(self):
+        from research.chatgpt_dt_r1.policy import fixed_selection
+        from research.chatgpt_dt_r1.calibration import fit_calibrator, audit_calibrator
+        f = forecast()
+        template = fixed_selection(f, 2)
+        def rows(month):
+            return [dict(template, race_id=f'fixture-{month}-{i}',
+                         day=f'2026-{month}-{10 + i % 2}', hit=1) for i in range(80)]
+        fitted = fit_calibrator(rows('08'), split_manifest=SPLITS,
+            lineage={k: template[k] for k in ('model_id', 'model_sha256', 'policy_sha256')},
+            config={'min_calibration_n': 20, 'min_audit_n': 20, 'min_audit_days': 2})
+        calibrator = self.put('calibrator.json', audit_calibrator(fitted, rows('09')))
+        for cohort, label in [('retrospective', 'HOT'), ('prospective', 'HOLD')]:
+            with self.subTest(cohort=cohort):
+                output = self.root / (cohort + '.json')
+                result = self.run_cli('select', '--forecast', self.put('forecast.json', forecast(cohort=cohort)),
+                    '--fixed-k', '2', '--calibrator', calibrator, '--output', str(output))
+                saved = json.loads(output.read_text())
+                selection, confidence = saved['selection'], saved['confidence_assessment']
+                self.assertEqual(selection['policy'], {'version': 'dt-r1-fixed-k-v1',
+                    'market': 'trifecta', 'k': 2, 'tie_break': 'cars_ascending'})
+                self.assertAlmostEqual(selection['raw_coverage'], .7)
+                self.assertEqual(selection['selected_tickets'][0]['cars'], [1, 2, 3])
+                self.assertEqual(result['confidence'], label)
+                self.assertEqual(confidence['audit_n'], 80)
+                self.assertFalse(saved['independent_source_attestation'])
+                if cohort == 'retrospective':
+                    self.assertIsNone(selection['prediction_at'])
+                    self.assertIsNone(selection['decision_at'])
+                else:
+                    self.assertIn('COHORT_TRANSFER_UNVALIDATED', confidence['hold_reasons'])
+
+    def test_fixed_exacta_selection_does_not_use_trifecta_policy(self):
+        output = self.root / 'exacta.json'
+        self.run_cli('select', '--forecast', self.put('f.json', forecast()),
+                     '--fixed-k', '2', '--market', 'exacta', '--output', str(output))
+        selection = json.loads(output.read_text())['selection']
+        self.assertEqual(selection['market'], 'exacta')
+        self.assertEqual([t['cars'] for t in selection['selected_tickets']], [[1, 2], [1, 3]])
+        self.assertEqual(selection['ticket_count'], 2)
+
+    def test_fixed_and_odds_modes_cannot_silently_ignore_options(self):
+        f = forecast(cohort='prospective')
+        base = ['select', '--forecast', self.put('f.json', f), '--fixed-k', '1',
+                '--output', str(self.root / 'choice.json')]
+        for option in [('--odds', self.put('odds.json', odds(f))),
+                       ('--policy-config', self.put('config.json', {})),
+                       ('--at', '2026-10-01T10:04:00Z')]:
+            with self.subTest(option=option[0]), redirect_stderr(io.StringIO()):
+                with self.assertRaises((SystemExit, ValueError)):
+                    main(base + list(option))
+        with self.assertRaisesRegex(ValueError, 'ODDS_DECISION_CLOCK_REQUIRED'):
+            main(['select', '--forecast', str(self.root / 'f.json'),
+                  '--output', str(self.root / 'choice.json')])
+        with self.assertRaisesRegex(ValueError, 'MARKET_OPTION_REQUIRES_FIXED_K'):
+            main(['select', '--forecast', str(self.root / 'f.json'), '--market', 'exacta',
+                  '--at', '2026-10-01T10:04:00Z', '--output', str(self.root / 'choice.json')])
+        self.assertFalse((self.root / 'choice.json').exists())
+
+    def test_compare_uses_external_pin_file_sha_and_preserves_missing_rivals(self):
+        from research.chatgpt_dt_r1.policy import fixed_selection
+        f = forecast()
+        f['selection'] = fixed_selection(f, 1)
+        pins = {model: {'model_sha256': forecast(model_id=model)['model_sha256'],
+                        'policy_sha256': f['selection']['policy_sha256']} for model in MODEL_IDS}
+        pin_file = Path(self.put('pins.json', pins))
+        expected_sha = sha256(pin_file.read_bytes()).hexdigest()
+        output = self.root / 'comparison.json'
+        args = ['compare', '--forecasts', self.put('forecasts.json', [f]),
+            '--outcomes', self.put('outcomes.json', [{'race_id': 'r1', 'day': '2026-10-01',
+                'top3': [1, 2, 3], 'field_size': 3, 'status': 'settled', 'incidents': ['DNF_tail']}]),
+            '--registry', self.put('registry.json', [{'race_id': 'r1', 'day': '2026-10-01',
+                'input_sha256': 'c' * 64, 'cohort': 'retrospective'}]),
+            '--pins', str(pin_file), '--pins-sha256', expected_sha, '--output', str(output)]
+        for model in MODEL_IDS:
+            args.extend(['--model-id', model])
+        self.run_cli(*args)
+        saved = json.loads(output.read_text())
+        self.assertEqual(saved['participant_manifest']['file_sha256'], expected_sha)
+        self.assertEqual(saved['participant_manifest']['pins'], pins)
+        self.assertFalse(saved['participant_manifest']['independently_authenticated'])
+        self.assertEqual(saved['all_target']['eligible_n'], 1)
+        self.assertEqual(saved['all_target']['models']['integrated']['missing_or_held_n'], 1)
+        self.assertEqual(saved['common_cohort']['eligible_n'], 0)
+        self.assertIsNone(saved['verdict']['winner'])
+        self.assertFalse(saved['source_attested'])
+        output.unlink()
+        pin_file.write_text(json.dumps({**pins, 'integrated': dict(pins['integrated'], model_sha256='f' * 64)}))
+        with self.assertRaisesRegex(ValueError, 'PIN_FILE_SHA256_MISMATCH'):
+            main(args)
+        self.assertFalse(output.exists())
+
+    def test_compare_requires_external_sha_when_pin_file_is_requested(self):
+        base = ['compare', '--forecasts', self.put('forecasts.json', []),
+                '--outcomes', self.put('outcomes.json', []), '--registry', self.put('registry.json', []),
+                '--output', str(self.root / 'comparison.json')]
+        for model in MODEL_IDS:
+            base.extend(['--model-id', model])
+        for option in [('--pins', self.put('pins.json', {})), ('--pins-sha256', 'a' * 64)]:
+            with self.subTest(option=option[0]):
+                with self.assertRaisesRegex(ValueError, 'PIN_FILE_AND_EXTERNAL_SHA_REQUIRED'):
+                    main(base + list(option))
+        self.assertFalse((self.root / 'comparison.json').exists())
+
+    def test_compare_strict_option_cannot_count_unbound_card_only_exports(self):
+        args = ['compare', '--forecasts', self.put('forecasts.json', [forecast()]),
+                '--outcomes', self.put('outcomes.json', [{'race_id': 'r1', 'day': '2026-10-01',
+                    'status': 'settled', 'top3': [1, 2, 3], 'field_size': 3}]),
+                '--registry', self.put('registry.json', [{'race_id': 'r1', 'day': '2026-10-01'}]),
+                '--require-shared-evidence', '--output', str(self.root / 'strict.json')]
+        for model in MODEL_IDS:
+            args.extend(['--model-id', model])
+        self.run_cli(*args)
+        report = json.loads((self.root / 'strict.json').read_text())
+        own = report['all_target']['models']['chatgpt-dt-r1']
+        self.assertEqual(own['eligible_n'], 1)
+        self.assertEqual(own['forecast_n'], 0)
+        self.assertEqual(own['hold_reasons'], {'SHARED_EVIDENCE_BINDING_INCOMPLETE': 1})
+        self.assertEqual(report['shared_evidence']['status'], 'ENFORCED')
+        self.assertEqual(report['common_cohort']['eligible_n'], 0)
+
+    def test_compare_rejects_null_or_duplicate_pin_manifests_even_with_matching_file_sha(self):
+        from research.chatgpt_dt_r1.policy import fixed_selection
+        pin = {'model_sha256': 'a' * 64, 'policy_sha256': fixed_selection(forecast(), 1)['policy_sha256']}
+        pins = {model: pin for model in MODEL_IDS}
+        duplicate = '{"integrated":' + json.dumps(pin) + ',' + json.dumps(pins)[1:]
+        base = ['compare', '--forecasts', self.put('forecasts.json', []),
+                '--outcomes', self.put('outcomes.json', []), '--registry', self.put('registry.json', [])]
+        for model in MODEL_IDS:
+            base.extend(['--model-id', model])
+        path = self.root / 'pins.json'
+        for raw, reason in [('null', 'EXACTLY_THREE_PARTICIPANT_PINS_REQUIRED'),
+                            (duplicate, 'DUPLICATE_PIN_KEY')]:
+            with self.subTest(reason=reason):
+                path.write_text(raw)
+                expected_sha = sha256(path.read_bytes()).hexdigest()
+                output = self.root / (reason + '.json')
+                with self.assertRaisesRegex(ValueError, reason), redirect_stdout(io.StringIO()):
+                    main(base + ['--pins', str(path), '--pins-sha256', expected_sha, '--output', str(output)])
+                self.assertFalse(output.exists())
 
     def test_private_cli_output_rejected_under_git(self):
         (self.root / '.git').mkdir()
@@ -89,6 +231,8 @@ class CLITests(unittest.TestCase):
         self.assertEqual(status['status'],'READY')
         out=json.loads((self.root/'agari-prediction.json').read_text())
         self.assertEqual(out['feature_input_sha256'],feature['feature_input_sha256'])
+        from research.chatgpt_dt_r1.policy import digest
+        self.assertEqual(out.get('feature_schema_sha256'), digest(feature['feature_names']))
 
     def test_prospective_cli_rejects_future_or_untimed_history_result(self):
         from research.chatgpt_dt_r1.features import FEATURE_NAMES

@@ -1,0 +1,20 @@
+{
+  "schema": "dt-r1-run-recovery-v1",
+  "run_url": "https://github.com/haji84/RACE-AI/actions/runs/46042572974",
+  "job_id": 140655033595,
+  "code_commit": "412ec390fc80dd705125128b743c7d38aded9ea6",
+  "model_sha256": "e0a95970d3b1d59874728fb637496af69c74a7ba2ce330fdea951ea6664bb6a0",
+  "frozen_model_bytes_sha256": "c8f1f3d4b3b30f01c8f99cb3b9411cd0883c450e65bd632d55c9407d3b58bc67",
+  "model_log_parts": 25,
+  "log_parts_complete_and_ordered": true,
+  "model_internal_digest_verified": true,
+  "aggregate_model_binding_verified": true,
+  "ci": {
+    "run": 187,
+    "passed": 186,
+    "skipped": 1,
+    "skip_reason": "Optional FFmpeg frame extraction; runner dependency unavailable"
+  },
+  "calibrators_and_private_originals_recovered": false,
+  "production_promoted": false
+}

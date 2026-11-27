@@ -55,9 +55,9 @@ import re
 import sqlite3
 import uuid
 
-from .policy import (RACE_TIMEZONE, PolicyError, checked_cars, checked_day, checked_sha,
+from .policy import (RACE_TIMEZONE, PolicyError, checked_cars, checked_day, checked_sha, checked_participant_pin,
                      check_race_day, clock, digest, finite_number, fixed_selection,
-                     probability, require, select_tickets, ticket_cap, validate_forecast)
+                     probability, require, select_tickets, ticket_cap, validate_forecast, shared_evidence_digest)
 
 
 SCHEMA = 'DT_R1_PARTICIPANT_LEDGER_V1'
@@ -318,11 +318,7 @@ class ResearchLedger:
 
     def bind_participant(self, model_id, pin):
         require(model_id in self.participant_ids and isinstance(pin, dict), 'UNKNOWN_PARTICIPANT')
-        require(set(pin) <= {'model_sha256', 'policy_sha256', 'feature_schema_sha256'} and
-                {'model_sha256', 'policy_sha256'} <= set(pin), 'PARTICIPANT_PIN_FIELDS_REQUIRED')
-        for value in pin.values():
-            checked_sha(value)
-        return self._append('participant', model_id, pin)
+        return self._append('participant', model_id, checked_participant_pin(pin))
 
     def bind_calibrator(self, artifact, *, expected_sha256, calibration_verifier):
         """Freeze one independently audited calibrator per participant policy.
@@ -497,6 +493,9 @@ class ResearchLedger:
         require(self._source_admitted(rid, binding), 'SOURCE_NOT_INDEPENDENTLY_ADMITTED')
         require(f['day'] == binding['day'] and f['input_sha256'] == binding['input_sha256'] and
                 f['cohort'] == binding['cohort'] and sorted(f['starters']) == sorted(binding['starters']), 'FORECAST_REGISTRY_BINDING_MISMATCH')
+        if 'shared_evidence_sha256' in f:
+            checked_sha(f['shared_evidence_sha256'], 'SHARED_EVIDENCE_REQUIRED')
+            require(f['shared_evidence_sha256'] == shared_evidence_digest(binding), 'SHARED_EVIDENCE_MISMATCH')
         checked_sha(f.get('feature_input_sha256'), 'FEATURE_INPUT_SHA_REQUIRED')
         if binding.get('feature_model_id', model_id) == model_id and binding.get('feature_input_sha256') is not None:
             require(f['feature_input_sha256'] == binding['feature_input_sha256'], 'REGISTERED_FEATURE_INPUT_MISMATCH')
@@ -830,7 +829,8 @@ def run_shadow_cycle(ledger, records, model, *, source_verifier, result_verifier
                      external_forecasts=(), k=1, history_records=(), venue_store=None, timing_records=(),
                      context_as_of=None, allow_current_geometry_assumption=False,
                      odds_snapshots=None, odds_provider=None, odds_verifier=None, policy_config=None,
-                     calibrators=None, calibrator_sha256=None, calibration_verifier=None):
+                     calibrators=None, calibrator_sha256=None, calibration_verifier=None,
+                     require_shared_evidence=False):
     """Run target races with explicit prior history and evidenced context snapshots.
 
     History and targets must have disjoint race IDs. Future history is rejected;
@@ -843,6 +843,9 @@ def run_shadow_cycle(ledger, records, model, *, source_verifier, result_verifier
     Source verifiers receive dataset/history/context snapshot hashes, actual
     feature-input/schema hashes and upstream provenance, so they can authenticate
     the full inputs, not merely the current racecard.
+    New originals include a common source/support digest without model features.
+    require_shared_evidence enables its strict comparison for all three entrants;
+    older originals remain unchanged and may HOLD under that explicit procedure.
 
     Optional odds mode is enabled by policy_config, odds_snapshots (race_id ->
     complete snapshot), or odds_provider(frozen_forecast). Supply only one odds
@@ -859,12 +862,15 @@ def run_shadow_cycle(ledger, records, model, *, source_verifier, result_verifier
     Each model/policy calibrator is pinned once in the ledger; archive evidence
     cannot certify prospective confidence. Omitted optional inputs keep fixed-K.
     """
-    from .features import build_features, require_history_available
+    from .features import (build_features, require_history_available, _bind_feature_input,
+                           LEGACY_FEATURE_BINDING_SCHEMA)
+    from .data import input_digest
     from .pipeline import forecast_row, _result_key
     from .comparison import compare_models
     from .context import augment_features
     from .agari import augment_agari, uses_agari
     from .abilities import augment_abilities, uses_abilities
+    require(type(require_shared_evidence) is bool, 'SHARED_EVIDENCE_MODE_MUST_BE_BOOLEAN')
     for callback in (source_verifier, result_verifier, readback_verifier):
         require(callable(callback), 'SOURCE_RESULT_READBACK_VERIFIERS_REQUIRED')
     require(odds_snapshots is None or isinstance(odds_snapshots, dict), 'ODDS_SNAPSHOTS_MAPPING_REQUIRED')
@@ -953,6 +959,17 @@ def run_shadow_cycle(ledger, records, model, *, source_verifier, result_verifier
                 runtime_hold='FEATURE_SCHEMA_ABILITIES_HOLD:'+str(error)
         if tuple(row.get('feature_names', ())) != tuple(model.feature_names):
             runtime_hold = runtime_hold or 'FEATURE_SCHEMA_MISMATCH'
+        legacy_retry = False
+        if (prior_original and not runtime_hold and original_binding.get('feature_model_id') == model_id and
+                original_binding.get('feature_input_sha256') != row.get('feature_input_sha256')):
+            # Finish every join under v3 before reconstructing the exact old
+            # digest. Never upgrade an unverified legacy row or create a new
+            # legacy forecast. The current normalized card must also retain its
+            # real digest, so an identity edit cannot hide behind a stale v2 pin.
+            legacy = _bind_feature_input(dict(row, feature_binding_schema=LEGACY_FEATURE_BINDING_SCHEMA))
+            if (legacy['feature_input_sha256'] == original_binding.get('feature_input_sha256') and
+                    input_digest(row) == row['input_sha256']):
+                row, legacy_retry = legacy, True
         schema_sha = digest(list(row.get('feature_names', ())))
         context_snapshot = digest({'venue_records': venue_snapshot, 'timing_records': _snapshot_value(timing_rows),
                                    'weather_observation': _snapshot_value(row.get('weather_observation')),
@@ -969,6 +986,10 @@ def run_shadow_cycle(ledger, records, model, *, source_verifier, result_verifier
                    'context_as_of': effective_as_of, 'context_evidence': _snapshot_value(row.get('context_evidence')),
                    'history_evidence_sha256': digest(_snapshot_value(row.get('history_evidence')))}
         try:
+            if legacy_retry:
+                # Cached admission alone cannot authorize the schema fallback;
+                # re-run the existing official source/support reconstruction.
+                _verified(source_verifier, binding)
             registration = ledger.register_race(binding, source_verifier=source_verifier)
         except (ValueError, TypeError, KeyError) as error:
             registration = ledger._source_hold(row['race_id'], str(error) if isinstance(error, PolicyError) else 'SOURCE_ADMISSION_HOLD')
@@ -981,6 +1002,7 @@ def run_shadow_cycle(ledger, records, model, *, source_verifier, result_verifier
                 f['feature_schema_sha256'] = schema_sha
                 f['context_as_of'] = effective_as_of
                 f['upstream_snapshot_sha256'] = digest(binding)
+                f['shared_evidence_sha256'] = shared_evidence_digest(binding)
             if prior_original:
                 selected = copy.deepcopy(prior_original['selection'])
                 if policy_config is not None:
@@ -1023,7 +1045,8 @@ def run_shadow_cycle(ledger, records, model, *, source_verifier, result_verifier
         require(isinstance(export, dict) and export.get('forecast', {}).get('model_id') != model_id, 'EXTERNAL_FROZEN_EXPORT_REQUIRED')
         ledger.register_forecast(export['forecast'], export['selection'], readback_verifier=readback_verifier)
     report = compare_models(ledger.forecasts(), ledger.latest_results(), ledger.registry(), expected_model_ids=ledger.participant_ids,
-                            expected_model_sha256={m: p['model_sha256'] for m, p in ledger.participant_pins().items()})
+                            expected_model_sha256={m: p['model_sha256'] for m, p in ledger.participant_pins().items()},
+                            require_shared_evidence=require_shared_evidence)
     return {'scope': 'PARTICIPANT_SHADOW_NOT_OFFICIAL_AUTHORITY', 'coverage': ledger.coverage(), 'comparison': report,
             'production_promoted': False, 'direct_network_calls': 0,
             'callback_network_activity': 'caller_controlled_not_measured'}

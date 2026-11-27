@@ -51,6 +51,8 @@ HISTORY_FEATURES = (
 FEATURE_NAMES = CURRENT_FEATURES + HISTORY_FEATURES
 FEATURE_VERSION = 'CHAT_DT_R1_STRICT_PRIOR_DAY_FEATURES_V1'
 FEATURE_INDEX = {name: i for i, name in enumerate(FEATURE_NAMES)}
+FEATURE_BINDING_SCHEMA = 'dt-r1-feature-input-v3'
+LEGACY_FEATURE_BINDING_SCHEMA = 'dt-r1-feature-input-v2'
 
 
 def retired_timing_feature(name):
@@ -65,9 +67,17 @@ def _digest(value):
 
 
 def _bind_feature_input(output):
-    """Bind the actual numeric input and selected prior evidence, never targets."""
-    output['feature_input_sha256'] = _digest({
-        'binding_schema': 'dt-r1-feature-input-v2',
+    """Bind inputs and joins; retain exact v2 verification for saved originals.
+
+    New builders explicitly emit v3. Absence of a schema means legacy v2 and
+    cannot be silently upgraded before consuming unbound external join fields.
+    Identity values remain in the private feature row, never model metadata.
+    """
+    schema=output.get('feature_binding_schema',LEGACY_FEATURE_BINDING_SCHEMA)
+    if schema not in (FEATURE_BINDING_SCHEMA,LEGACY_FEATURE_BINDING_SCHEMA):
+        raise ValueError('FEATURE_BINDING_SCHEMA_INVALID')
+    payload={
+        'binding_schema': schema,
         'input_sha256': output.get('input_sha256'),
         'record_context': {key: output.get(key) for key in (
             'race_id', 'day', 'venue_code', 'race_class', 'cohort', 'cutoff_at',
@@ -85,7 +95,14 @@ def _bind_feature_input(output):
         'history_evidence': output['history_evidence'],
         'feature_status': output['feature_status'],
         'feature_scope': output['feature_scope'],
-    })
+    }
+    if schema==FEATURE_BINDING_SCHEMA:
+        payload['rider_external_inputs']=[{key:rider.get(key) for key in (
+            'car','identity_key','athlete_id','official_registration_id',
+            'identity_usable','identity_status','style')} for rider in output.get('riders',[])]
+        payload['record_external_inputs']={key:output.get(key) for key in (
+            'race_at','event_at','venue_id')}
+    output['feature_input_sha256'] = _digest(payload)
     return output
 
 
@@ -222,7 +239,8 @@ class FeatureBuilder:
             agari_is_half_lap=True, archived_weather_used=False,
         )
         output = dict(record, features=matrix, feature_names=FEATURE_NAMES,
-                      feature_version=FEATURE_VERSION, history_evidence=evidence,
+                      feature_version=FEATURE_VERSION, feature_binding_schema=FEATURE_BINDING_SCHEMA,
+                      history_evidence=evidence,
                       feature_availability_authenticated=False,
                       feature_scope=('PROSPECTIVE_SHADOW_UNATTESTED'
                                      if record.get('cohort') == 'prospective' else 'RETROSPECTIVE_RESEARCH'))

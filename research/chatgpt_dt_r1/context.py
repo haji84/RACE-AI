@@ -15,7 +15,7 @@ from zoneinfo import ZoneInfo
 
 import numpy as np
 
-from .features import _bind_feature_input
+from .features import _bind_feature_input, FEATURE_BINDING_SCHEMA
 from .model import digest
 from .observations import TIMINGS, TimingBook, day, utc
 from .venues import GEOMETRY_FIELDS
@@ -96,6 +96,9 @@ def augment_features(rows, *, venue_store=None, timing_records=(), as_of,
     for original in rows:
         from .model import _verify_feature_binding
         _verify_feature_binding(original)
+        if (venue_store is not None or timing_records or motion_records or original.get('weather_observation') is not None):
+            if original.get('feature_binding_schema')!=FEATURE_BINDING_SCHEMA:
+                raise ValueError('EXTERNAL_FEATURE_JOIN_REQUIRES_V3_REBUILD')
         row = dict(original)
         scope = 'prospective' if row.get('cohort') == 'prospective' else 'retrospective'
         target = (row.get('race_at') or row.get('event_at') or row.get('cutoff_at')) if scope == 'prospective' else row['day']
@@ -106,12 +109,21 @@ def augment_features(rows, *, venue_store=None, timing_records=(), as_of,
             allow_current_geometry_assumption=allow_current_geometry_assumption) if venue_store else {}
         weather, weather_sha = _weather(row, as_of)
         timing_by_rider, admitted_sources = {}, set()
+        target_day=day(row['day'])
         for rider in row['riders']:
             if rider.get('identity_usable') is not True:
                 continue
             identity = str(rider.get('identity_key', rider.get('athlete_id', '')))
             rider_book = books.get((identity, venue))
             if rider_book:
+                # DT-R1 uses only earlier JST race days even when a generic
+                # TimingBook could admit an earlier event on the same day.
+                # Derive the local day from a supplied timestamp before using
+                # a date-only record; UTC midnight must not shift eligibility.
+                rider_book=TimingBook(o for o in rider_book.observations
+                    if o.race_id!=row['race_id'] and
+                    (utc(o.event_at).astimezone(ZoneInfo('Asia/Tokyo')).date()
+                     if o.event_at else day(o.event_day))<target_day)
                 timing_by_rider[identity] = rider_book.features(identity, venue, target, as_of, scope=scope)
                 for observation in rider_book.observations:
                     event_before = (observation.event_at is not None and utc(observation.event_at) < utc(target)) if scope == 'prospective' else day(observation.event_day or observation.event_at) < day(target)
@@ -182,6 +194,8 @@ def augment_features(rows, *, venue_store=None, timing_records=(), as_of,
         row['context_evidence'] = evidence
         row['history_evidence'] = dict(row['history_evidence'], external_context=evidence)
         if motion_records:
-            row['history_evidence']['reviewed_motion'] = motion_history(row, motion_records, as_of)
+            admitted_motion=motion_history(row, motion_records, as_of)
+            if admitted_motion:
+                row['history_evidence']['reviewed_motion'] = admitted_motion
         out.append(_bind_feature_input(row))
     return out

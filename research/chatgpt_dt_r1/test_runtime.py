@@ -170,11 +170,25 @@ class RuntimeTests(unittest.TestCase):
                  pins={f['model_id']: {'model_sha256': f['model_sha256'], 'policy_sha256': s['policy_sha256']}}, now=lambda: self.when)
         self.addCleanup(ledger.close)
         report = runtime.run_shadow_cycle(ledger, records, model, source_verifier=receipt,
-                         result_verifier=receipt, readback_verifier=receipt)
+                         result_verifier=receipt, readback_verifier=receipt, require_shared_evidence=True)
         self.assertEqual(report['coverage']['scheduled_races'], 2)
         self.assertEqual(report['coverage']['verified_forecasts'], 2)
         self.assertEqual(report['coverage']['missing_forecasts'], 4)
+        self.assertEqual(report['comparison']['shared_evidence']['admitted_matching_forecasts'], 2)
+        self.assertEqual(report['comparison']['shared_evidence']['status'], 'ENFORCED')
+        self.assertEqual(report['comparison']['common_cohort']['eligible_n'], 0)
+        self.assertTrue(all(len(row.get('shared_evidence_sha256', '')) == 64 for row in ledger.forecasts()))
         self.assertIsNone(report['comparison']['verdict']['winner'])
+
+    def test_declared_shared_material_digest_must_match_admitted_registry(self):
+        binding = dict(self.binding(), history_snapshot_sha256='1' * 64,
+            dataset_snapshot_sha256='2' * 64, context_snapshot_sha256='3' * 64,
+            context_as_of='2026-10-01T10:00:00Z')
+        self.ledger.register_race(binding, source_verifier=receipt)
+        f = dict(self.f, shared_evidence_sha256='4' * 64)
+        with self.assertRaisesRegex(ValueError, 'SHARED_EVIDENCE_MISMATCH'):
+            self.ledger.register_forecast(f, fixed_selection(f, 1), readback_verifier=receipt)
+        self.assertEqual(self.ledger.coverage()['verified_forecasts'], 0)
 
     def test_candidate_run_is_due_once_and_adoption_never_changes_pins(self):
         self.ledger.schedule_candidate('candidate-1', '2026-10-01T10:00:00Z')
@@ -274,6 +288,59 @@ class RuntimeTests(unittest.TestCase):
         runtime.run_shadow_cycle(ledger, rows[1:], model, history_records=rows[:1], venue_store=store,
                     source_verifier=verify_source, result_verifier=receipt, readback_verifier=receipt)
         self.assertEqual(len(ledger.events()), count)
+
+    def legacy_context_fixture(self, *, initial_readback=receipt):
+        from research.chatgpt_dt_r1.context import augment_features
+        from research.chatgpt_dt_r1.features import _bind_feature_input, LEGACY_FEATURE_BINDING_SCHEMA
+        rows, store, model, ledger, target = self.context_fixture()
+        calls = []
+        def source(payload):
+            calls.append(payload)
+            return receipt(payload)
+        def legacy_context(*args, **kwargs):
+            return [_bind_feature_input(dict(row, feature_binding_schema=LEGACY_FEATURE_BINDING_SCHEMA))
+                    for row in augment_features(*args, **kwargs)]
+        options = dict(history_records=rows[:1], venue_store=store, context_as_of=self.when,
+                       source_verifier=source, result_verifier=receipt, readback_verifier=receipt)
+        with patch('research.chatgpt_dt_r1.context.augment_features', side_effect=legacy_context):
+            runtime.run_shadow_cycle(ledger, rows[1:], model, **dict(options, readback_verifier=initial_readback))
+        self.assertEqual(len(ledger.forecasts(include_unverified=True)), 1)
+        self.assertNotEqual(ledger.registry()[0]['feature_input_sha256'], target['feature_input_sha256'])
+        return rows, model, ledger, options, calls
+
+    def test_v3_runtime_retries_exact_v2_original_without_new_events(self):
+        rows, model, ledger, options, calls = self.legacy_context_fixture()
+        before = ledger.events()
+        original = ledger.forecasts()[0]
+        report = runtime.run_shadow_cycle(ledger, rows[1:], model, **options)
+        self.assertEqual(report['coverage']['verified_forecasts'], 1)
+        self.assertEqual(ledger.events(), before)
+        self.assertEqual(ledger.forecasts()[0], original)
+        # An exact old digest still requires re-admission of the reconstructed
+        # source/support, rather than trusting a stale cached source receipt.
+        self.assertEqual(len(calls), 2)
+
+    def test_v2_retry_does_not_hide_identity_change_behind_stale_input_digest(self):
+        rows, model, ledger, options, _ = self.legacy_context_fixture()
+        original = ledger.forecasts()[0]
+        changed = copy.deepcopy(rows[1:])
+        changed[0]['riders'][0]['official_registration_id'] = '999999'
+        runtime.run_shadow_cycle(ledger, changed, model, **options)
+        self.assertEqual(ledger.forecasts(), [original])
+        self.assertEqual(ledger.events('source_hold')[-1]['body']['reason'], 'IMMUTABLE_RACE_BINDING_MISMATCH')
+        self.assertEqual(ledger.events('hold')[-1]['body']['reason'], 'SOURCE_ADMISSION_HOLD')
+
+    def test_v2_retry_requires_fresh_source_support_receipt_and_can_recover_readback(self):
+        rows, model, ledger, options, _ = self.legacy_context_fixture(initial_readback=lambda _: True)
+        original = copy.deepcopy(ledger.events('forecast')[0])
+        self.assertEqual(len(ledger.forecasts()), 0)
+        failed = runtime.run_shadow_cycle(ledger, rows[1:], model, **dict(options, source_verifier=lambda _: True))
+        self.assertEqual(failed['coverage']['verified_forecasts'], 0)
+        self.assertEqual(ledger.events('forecast'), [original])
+        recovered = runtime.run_shadow_cycle(ledger, rows[1:], model, **options)
+        self.assertEqual(recovered['coverage']['verified_forecasts'], 1)
+        self.assertEqual(ledger.events('forecast'), [original])
+        self.assertEqual(len(ledger.events('readback_verified')), 1)
 
     def test_runtime_rebuilds_agari_interactions_for_new_frozen_schema(self):
         rows, store, model, ledger, target = self.context_fixture(agari=True)
