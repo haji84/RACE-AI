@@ -225,7 +225,7 @@ class RuntimeTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             self.ledger.register_forecast(self.f, self.s, readback_verifier=receipt)
 
-    def context_fixture(self):
+    def context_fixture(self, *, agari=False):
         from research.chatgpt_dt_r1.test_data_features import archive
         from research.chatgpt_dt_r1.data import load_archives
         from research.chatgpt_dt_r1.features import build_features
@@ -241,6 +241,9 @@ class RuntimeTests(unittest.TestCase):
                     'circumference_m': 400.0, 'straight_m': 60.0, 'cant_deg': 30.0}])
         featured = augment_features(build_features(rows), venue_store=store, as_of=self.when)
         self.assertEqual(len(featured[1]['feature_names']), 224)
+        if agari:
+            from research.chatgpt_dt_r1.agari import augment_agari
+            featured = augment_agari(featured)
         model = RankModel.zero(featured[1]['feature_names'])
         model.fit_meta['context'] = {'venue_file_sha256': 'b' * 64, 'timing_file_sha256': None}
         from research.chatgpt_dt_r1.pipeline import forecast_row
@@ -271,6 +274,13 @@ class RuntimeTests(unittest.TestCase):
         runtime.run_shadow_cycle(ledger, rows[1:], model, history_records=rows[:1], venue_store=store,
                     source_verifier=verify_source, result_verifier=receipt, readback_verifier=receipt)
         self.assertEqual(len(ledger.events()), count)
+
+    def test_runtime_rebuilds_agari_interactions_for_new_frozen_schema(self):
+        rows, store, model, ledger, target = self.context_fixture(agari=True)
+        report = runtime.run_shadow_cycle(ledger, rows[1:], model, history_records=rows[:1], venue_store=store,
+                    context_as_of=self.when, source_verifier=receipt, result_verifier=receipt, readback_verifier=receipt)
+        self.assertEqual(report['coverage']['verified_forecasts'],1)
+        self.assertEqual(ledger.forecasts()[0]['feature_input_sha256'],target['feature_input_sha256'])
 
     def test_required_context_missing_is_hold_and_future_or_duplicate_history_rejected(self):
         rows, store, model, ledger, _ = self.context_fixture()

@@ -108,6 +108,13 @@ def freeze_evaluation_contract(directory, splits, source_audit):
     if source_audit.get('context_requested'):
         contract['candidates'].append({'name': 'without_context_with_pairs', 'history': True,
                                        'pairs': True, 'context': False, 'ridge': .01})
+    if source_audit.get('agari_interactions'):
+        contract['agari_interactions'] = source_audit['agari_interactions']
+        contract['candidates'].append({'name': 'without_agari_interactions_with_pairs', 'history': True,
+                                       'pairs': True, 'agari': False, 'ridge': .01})
+        if source_audit.get('context_requested'):
+            contract['candidates'].append({'name': 'without_context_or_agari_with_pairs', 'history': True,
+                                           'pairs': True, 'agari': False, 'context': False, 'ridge': .01})
     contract['input_context'] = source_audit.get('context', {})
     contract['contract_sha256'] = digest(contract)
     write_private_json(directory / 'evaluation_contract.json', contract)
@@ -301,7 +308,7 @@ def _calibration_rows(forecasts, rows, k, market):
 
 
 def run_study(paths, directory, *, splits=None, max_iter=160, progress=None,
-              venue_path=None, timing_path=None, analysis_at=None, allow_current_geometry_assumption=False):
+              venue_path=None, timing_path=None, weather_path=None, analysis_at=None, allow_current_geometry_assumption=False):
     """Complete archive admission -> fitting -> calibration -> frozen evaluation.
 
     This function never dispatches a workflow, places a bet, publishes raw
@@ -310,6 +317,7 @@ def run_study(paths, directory, *, splits=None, max_iter=160, progress=None,
     """
     from .data import load_archives
     from .features import build_features
+    from .agari import augment_agari, VERSION as AGARI_VERSION, AGARI_NAMES, uses_agari, CONTEXT_PREFIX
     from .calibration import fit_calibrator, audit_calibrator, assess_selection
     from .policy import fixed_selection
     splits = DEFAULT_SPLITS if splits is None else splits
@@ -317,11 +325,14 @@ def run_study(paths, directory, *, splits=None, max_iter=160, progress=None,
     start = time.monotonic()
     directory = Path(directory)
     records, source_audit = load_archives(paths)
-    context_enabled = venue_path is not None or timing_path is not None
+    context_enabled = venue_path is not None or timing_path is not None or weather_path is not None
     # Hash and parse exactly the same bytes. Do not let a mutable path swap data
     # between contract freezing and feature construction.
     venue_bytes = Path(venue_path).read_bytes() if venue_path else None
     timing_bytes = Path(timing_path).read_bytes() if timing_path else None
+    weather_bytes = Path(weather_path).read_bytes() if weather_path else None
+    source_audit['agari_interactions'] = {'version': AGARI_VERSION, 'columns': list(AGARI_NAMES),
+                                         'official_half_lap_only': True}
     if allow_current_geometry_assumption and venue_path is None:
         raise ValueError('GEOMETRY_FILE_REQUIRED_FOR_ASSUMPTION')
     analysis_at = analysis_at or datetime.now(timezone.utc).isoformat()
@@ -330,12 +341,18 @@ def run_study(paths, directory, *, splits=None, max_iter=160, progress=None,
         source_audit['context'] = {'analysis_at': analysis_at,
             'venue_file_sha256': sha256(venue_bytes).hexdigest() if venue_bytes is not None else None,
             'timing_file_sha256': sha256(timing_bytes).hexdigest() if timing_bytes is not None else None,
+            'weather_file_sha256': sha256(weather_bytes).hexdigest() if weather_bytes is not None else None,
             'current_geometry_for_history_is_assumption': bool(allow_current_geometry_assumption)}
     code_files = ('data.py', 'features.py', 'model.py', 'pipeline.py', 'policy.py', 'calibration.py', 'comparison.py',
-                  'context.py', 'observations.py', 'venues.py', 'runtime.py')
+                  'context.py', 'observations.py', 'venues.py', 'runtime.py', 'agari.py')
     source_code_sha256 = {name: sha256(Path(__file__).with_name(name).read_bytes()).hexdigest() for name in code_files}
     contract = freeze_evaluation_contract(directory, splits, source_audit)
     report_progress(f'Admitted {len(records)} archived races; retrospective scope only.')
+    if weather_bytes is not None:
+        weather_records = json.loads(weather_bytes)
+        if not isinstance(weather_records, dict) or any(not isinstance(k, str) or not isinstance(v, dict) for k, v in weather_records.items()):
+            raise ValueError('WEATHER_RACE_ID_MAPPING_REQUIRED')
+        records = [dict(r, weather_observation=weather_records[r['race_id']]) if r['race_id'] in weather_records else r for r in records]
     featured = build_features(records)
     context_summary = {'enabled': False, 'timing_records': 0, 'historical_geometry_assumption': False}
     if context_enabled:
@@ -352,6 +369,7 @@ def run_study(paths, directory, *, splits=None, max_iter=160, progress=None,
             'historical_geometry_assumption': bool(allow_current_geometry_assumption),
             'geometry_assumption_races': sum(r['context_evidence']['current_geometry_assumption'] for r in featured),
             'races_with_measured_timing': sum(r['context_evidence']['measured_timing_rider_count'] > 0 for r in featured)}
+    featured = augment_agari(featured)
     for row in featured:
         row['dataset_sha256'] = source_audit.get('dataset_sha256')
     groups = partition(featured, splits)
@@ -372,7 +390,9 @@ def run_study(paths, directory, *, splits=None, max_iter=160, progress=None,
         fitted_at = time.monotonic()
         mask = np.asarray(history_mask if not candidate['history'] else [True] * len(names))
         if candidate.get('context') is False:
-            mask &= np.asarray([not n.startswith(('context_', 'history_observed_')) for n in names])
+            mask &= np.asarray([not n.startswith(('context_', 'history_observed_', CONTEXT_PREFIX)) for n in names])
+        if candidate.get('agari') is False:
+            mask &= np.asarray([not uses_agari((n,)) for n in names])
         model = fit_ranker(train, before=splits['tune']['start'], ridge=candidate['ridge'],
                            use_pairs=candidate['pairs'], max_iter=max_iter,
                            feature_mask=mask)
@@ -380,7 +400,7 @@ def run_study(paths, directory, *, splits=None, max_iter=160, progress=None,
         candidate_reports[name] = {'tune_joint_top3_log_loss': loss,
                                    'fit_seconds': time.monotonic() - fitted_at,
                                    'fit_meta': model.fit_meta,
-                                   'masked_features': [n for n, keep in zip(names, mask) if not keep]}
+                                   'masked_features': [n for n, keep in zip(names, model.fit_meta['feature_mask']) if not keep]}
         models[name] = model
         write_private_json(directory / (name + '.model.json'), model.to_dict())
         report_progress(f'{name}: July top3 log loss={loss:.6f}; optimizer converged={model.fit_meta["optimizer_converged"]}.')

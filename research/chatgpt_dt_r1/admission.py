@@ -386,13 +386,16 @@ def _held_record(rid, day, state, archive_commit, registry_meta, list_row):
 class OfficialAdmissionAdapter:
     """Normalize only records returned by trusted existing admission code."""
     def __init__(self, facade, *, history_records=(), venue_store=None, timing_records=(),
-                 context_as_of=None, support_verifier=None, allow_current_geometry_assumption=False):
+                 context_as_of=None, support_verifier=None, allow_current_geometry_assumption=False,
+                 weather_records=None):
         _need(callable(getattr(facade, 'load_day', None)) and callable(getattr(facade, 'replay_result', None)),
               'TRUSTED_ADMISSION_FACADE_REQUIRED')
         self.facade = facade
         self.history_records = deepcopy(list(history_records))
         self.venue_store = deepcopy(venue_store)
         self.timing_records = deepcopy(list(timing_records))
+        _need(weather_records is None or (isinstance(weather_records, dict) and all(isinstance(k, str) and isinstance(v, dict) for k, v in weather_records.items())), 'WEATHER_RACE_ID_MAPPING_REQUIRED')
+        self.weather_records = deepcopy(weather_records or {})
         self.context_as_of = context_as_of
         self.support_verifier = support_verifier
         self.allow_current_geometry_assumption = bool(allow_current_geometry_assumption)
@@ -443,6 +446,8 @@ class OfficialAdmissionAdapter:
                             origin_receipt_sha256=proof['evidence_sha256'], snapshot_sha256=digest(snapshot)))
                     row.update(_lines(snapshot, [r['car'] for r in riders], race_class))
                     row['input_sha256'] = input_digest(row)
+                    if rid in self.weather_records:
+                        row['weather_observation'] = deepcopy(self.weather_records[rid])
                 except Exception:
                     # Do not retain a partly projected row after any proof fails.
                     row = _held_record(rid, day, states[rid], commit, registry_meta, listed.get(rid, {}))
@@ -474,7 +479,8 @@ class OfficialAdmissionAdapter:
 
     def _feature_proof(self, binding, row):
         from .features import build_features, require_history_available
-        from .context import augment_features
+        from .context import augment_features, EXTRA_NAMES
+        from .agari import augment_agari, AGARI_NAMES
         _need(_FEATURE_BINDING <= set(binding), 'COMPLETE_FEATURE_BINDING_REQUIRED')
         _need(type(binding['feature_model_id']) is str and bool(binding['feature_model_id']), 'FEATURE_MODEL_REQUIRED')
         as_of = binding['context_as_of']
@@ -492,10 +498,10 @@ class OfficialAdmissionAdapter:
         timing_snapshot = _json_value(self.timing_records)
         support = dict(schema='CHAT_DT_R1_ADMITTED_SUPPORT_SNAPSHOT_V1', race_id=row['race_id'], day=row['day'],
             history_records=_json_value(history), venue_records=venue_snapshot, timing_records=timing_snapshot,
-            weather_observation=None, as_of=as_of,
+            weather_observation=_json_value(row.get('weather_observation')), as_of=as_of,
             allow_current_geometry_assumption=self.allow_current_geometry_assumption)
         receipt = None
-        if history or self.venue_store is not None or self.timing_records or self.allow_current_geometry_assumption:
+        if history or self.venue_store is not None or self.timing_records or row.get('weather_observation') is not None or self.allow_current_geometry_assumption:
             _need(callable(self.support_verifier), 'INDEPENDENT_SUPPORT_VERIFIER_REQUIRED')
             receipt = self.support_verifier(deepcopy(support))
             _need(isinstance(receipt, dict) and receipt.get('verified') is True and receipt.get('independent') is True and
@@ -508,12 +514,16 @@ class OfficialAdmissionAdapter:
             for source in source_receipts:
                 _sha(source)
         featured = next(r for r in build_features(history + [row]) if r['race_id'] == row['race_id'])
-        if binding['feature_schema_sha256'] != digest(list(featured['feature_names'])):
+        base_names = tuple(featured['feature_names'])
+        schema = binding['feature_schema_sha256']
+        if schema in (digest(list(base_names + EXTRA_NAMES)), digest(list(base_names + EXTRA_NAMES + AGARI_NAMES))):
             identities = {str(r['identity_key']) for r in row['riders'] if r['identity_usable'] is True}
             usable_timings = [r for r in self.timing_records if str(_json_value(r).get('rider_id',
                 _json_value(r).get('identity_key', ''))) in identities]
             featured = augment_features([featured], venue_store=self.venue_store, timing_records=usable_timings,
                 as_of=as_of, allow_current_geometry_assumption=self.allow_current_geometry_assumption)[0]
+        if schema == digest(list(tuple(featured['feature_names']) + AGARI_NAMES)):
+            featured = augment_agari([featured])[0]
         expected = dict(feature_input_sha256=featured['feature_input_sha256'],
             feature_schema_sha256=digest(list(featured['feature_names'])),
             history_snapshot_sha256=history_snapshot,
@@ -521,7 +531,7 @@ class OfficialAdmissionAdapter:
                 declared_dataset_sha256=row.get('dataset_sha256'), source_sha256=row.get('source_sha256'),
                 history_snapshot_sha256=history_snapshot)),
             context_snapshot_sha256=digest(dict(venue_records=venue_snapshot, timing_records=timing_snapshot,
-                weather_observation=None, as_of=as_of, allow_current_geometry_assumption=self.allow_current_geometry_assumption)),
+                weather_observation=_json_value(row.get('weather_observation')), as_of=as_of, allow_current_geometry_assumption=self.allow_current_geometry_assumption)),
             context_evidence=_json_value(featured.get('context_evidence')),
             history_evidence_sha256=digest(_json_value(featured['history_evidence'])))
         _need(all(binding[key] == value for key, value in expected.items()), 'FEATURE_OR_SUPPORT_BINDING_MISMATCH')

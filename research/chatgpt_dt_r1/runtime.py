@@ -863,6 +863,7 @@ def run_shadow_cycle(ledger, records, model, *, source_verifier, result_verifier
     from .pipeline import forecast_row, _result_key
     from .comparison import compare_models
     from .context import augment_features
+    from .agari import augment_agari, uses_agari
     for callback in (source_verifier, result_verifier, readback_verifier):
         require(callable(callback), 'SOURCE_RESULT_READBACK_VERIFIERS_REQUIRED')
     require(odds_snapshots is None or isinstance(odds_snapshots, dict), 'ODDS_SNAPSHOTS_MAPPING_REQUIRED')
@@ -910,6 +911,7 @@ def run_shadow_cycle(ledger, records, model, *, source_verifier, result_verifier
     timing_rows = list(timing_records)
     venue_snapshot = _snapshot_value(list(venue_store.records)) if venue_store is not None else None
     context_required = any(name.startswith(('context_', 'history_observed_')) for name in model.feature_names)
+    agari_required = uses_agari(model.feature_names)
     declared_context = model.fit_meta.get('context', {})
     missing_context = (context_required and (
         (bool(declared_context.get('venue_file_sha256')) and venue_store is None) or
@@ -938,6 +940,11 @@ def run_shadow_cycle(ledger, records, model, *, source_verifier, result_verifier
                         as_of=effective_as_of, allow_current_geometry_assumption=allow_current_geometry_assumption)[0]
             except (ValueError, TypeError, KeyError) as error:
                 runtime_hold = 'FEATURE_SCHEMA_CONTEXT_HOLD:' + str(error)
+        if agari_required and not runtime_hold and row.get('feature_status') == 'READY':
+            try:
+                row = augment_agari([row])[0]
+            except (ValueError, TypeError, KeyError) as error:
+                runtime_hold = 'FEATURE_SCHEMA_AGARI_HOLD:' + str(error)
         if tuple(row.get('feature_names', ())) != tuple(model.feature_names):
             runtime_hold = runtime_hold or 'FEATURE_SCHEMA_MISMATCH'
         schema_sha = digest(list(row.get('feature_names', ())))

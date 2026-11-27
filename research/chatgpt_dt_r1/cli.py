@@ -18,8 +18,8 @@ def _context_options(parser):
     parser.add_argument('--allow-current-geometry-assumption', action='store_true')
 
 
-def _context(rows, args, at):
-    if not (args.venues or args.timings):
+def _context(rows, args, at, *, force=False):
+    if not (args.venues or args.timings or force):
         return rows
     if not at:
         raise ValueError('ACTUAL_CONTEXT_ANALYSIS_CLOCK_REQUIRED')
@@ -43,6 +43,7 @@ def main(argv=None):
     study.add_argument('--splits', type=Path)
     study.add_argument('--venues', type=Path, help='Source-bound geometry JSON, not assumed historical by default.')
     study.add_argument('--timings', type=Path, help='Reviewed/official timing observations with provenance.')
+    study.add_argument('--weather', type=Path, help='Race-ID mapping of timestamped weather evidence; no same-day archive leakage.')
     study.add_argument('--allow-current-geometry-assumption', action='store_true',
                        help='Disclose current nominal geometry as an assumption for historical research.')
     compare = sub.add_parser('compare', help='Compare real frozen exports of all three participants.')
@@ -108,12 +109,13 @@ def main(argv=None):
     candidates.add_argument('--splits', type=Path, help='New chronological contract; a future promotion still needs independent evidence.')
     candidates.add_argument('--max-iter', type=int, default=160)
     _context_options(candidates)
+    candidates.add_argument('--weather', type=Path)
     args = parser.parse_args(argv)
     from .pipeline import run_study, write_private_json, forecast_row
     if args.command == 'study':
         splits = json.loads(args.splits.read_text()) if args.splits else None
         report = run_study(args.archive, args.output_dir, splits=splits, max_iter=args.max_iter,
-                           venue_path=args.venues, timing_path=args.timings,
+                           venue_path=args.venues, timing_path=args.timings, weather_path=args.weather, weather_path=args.weather,
                            allow_current_geometry_assumption=args.allow_current_geometry_assumption,
                            progress=lambda message: print(message, flush=True))
         print(json.dumps({'status': 'RETROSPECTIVE_STUDY_COMPLETE',
@@ -139,7 +141,12 @@ def main(argv=None):
             require_history_available(history, args.at)
         features = build_features(history + [row])
         target = next(r for r in features if r['race_id'] == row['race_id'])
-        target = _context([target], args, args.at or args.analysis_at)[0]
+        from .agari import augment_agari, uses_agari
+        target = _context([target], args, args.at or args.analysis_at,
+            force=any(n.startswith(('context_', 'history_observed_')) for n in model.feature_names)
+                  and not (model.fit_meta.get('context', {}).get('venue_file_sha256') or model.fit_meta.get('context', {}).get('timing_file_sha256')))[0]
+        if uses_agari(model.feature_names):
+            target = augment_agari([target])[0]
         prediction = forecast_row(model, target, prediction_at=args.at, full=True)
         prediction['explanation'] = model.explain(target) if prediction['status'] == 'READY' else []
         if args.phase_bundle and prediction['status'] == 'READY':
