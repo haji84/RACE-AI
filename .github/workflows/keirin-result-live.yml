@@ -7,6 +7,8 @@ on:
       - '.github/workflows/keirin-result-live.yml'
       - 'scripts/keirin_dt_r1_owner_restore.py'
       - 'tests/test_keirin_dt_r1_owner_restore.py'
+      - 'scripts/keirin_dt_r1_future_*.py'
+      - 'tests/test_keirin_dt_r1_future_*.py'
       - 'race_ai/keirin_result_*.py'
       - 'race_ai/keirin_saved_source_comparison.py'
       - 'race_ai/keirin_frozen_forecast_view.py'
@@ -65,6 +67,8 @@ on:
       - '.github/workflows/keirin-nationwide-ab-auto.yml'
       - 'scripts/keirin_dt_r1_owner_restore.py'
       - 'tests/test_keirin_dt_r1_owner_restore.py'
+      - 'scripts/keirin_dt_r1_future_*.py'
+      - 'tests/test_keirin_dt_r1_future_*.py'
       - 'race_ai/keirin_result_*.py'
       - 'race_ai/keirin_saved_source_comparison.py'
       - 'race_ai/keirin_frozen_forecast_view.py'
@@ -130,7 +134,7 @@ on:
         type: choice
         required: true
         default: test
-        options: [test, saved-only, observe, rider-dossiers, dossier-context, measure-results, combined-study, learned-replay, dt-r1-restore]
+        options: [test, saved-only, observe, rider-dossiers, dossier-context, measure-results, combined-study, learned-replay, dt-r1-restore, dt-r1-shadow, dt-r1-readback]
       dossier_day:
         type: string
         description: JST day for source-free dossier replay or measurement
@@ -142,6 +146,10 @@ on:
       combined_holdout_from:
         type: string
         description: ISO-8601 cutoff of the first combined-study evaluation race, with timezone
+        required: false
+      dt_r1_producer_run:
+        type: string
+        description: Actual main DT shadow producer run ID for independent readback
         required: false
   schedule:
     # Start/recover the bounded observer during 08:00-23:59 JST.
@@ -196,6 +204,7 @@ jobs:
             tests.test_keirin_official_learned_replay \
             tests.test_keirin_learned_official_inputs \
             tests.test_keirin_dt_r1_owner_restore \
+            tests.test_keirin_dt_r1_future_workflow \
             tests.test_keirin_official_condition_trial \
             tests.test_keirin_official_condition_scoring \
             tests.test_keirin_official_paired_measurement \
@@ -255,7 +264,8 @@ jobs:
       (github.event_name == 'schedule' ||
        (github.event_name == 'workflow_dispatch' && needs.tests.result == 'success' &&
         (inputs.mode == 'saved-only' || inputs.mode == 'observe' || inputs.mode == 'dossier-context' ||
-         inputs.mode == 'combined-study' || inputs.mode == 'learned-replay' || inputs.mode == 'dt-r1-restore')))
+         inputs.mode == 'combined-study' || inputs.mode == 'learned-replay' || inputs.mode == 'dt-r1-restore' ||
+         inputs.mode == 'dt-r1-shadow' || inputs.mode == 'dt-r1-readback')))
     runs-on: ubuntu-24.04
     timeout-minutes: 15
     permissions:
@@ -273,7 +283,7 @@ jobs:
           persist-credentials: true
       - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
         with:
-          python-version: ${{ inputs.mode == 'dt-r1-restore' && '3.12' || '3.11' }}
+          python-version: ${{ (inputs.mode == 'dt-r1-restore' || inputs.mode == 'dt-r1-shadow' || inputs.mode == 'dt-r1-readback') && '3.12' || '3.11' }}
       - name: Observe admitted results and publish each encrypted update
         shell: bash
         env:
@@ -294,6 +304,26 @@ jobs:
               --private-root "$root/private" --day "$DOSSIER_DAY" \
               --owner-public-pem "$GITHUB_WORKSPACE/docs/evidence/2026-11-18/keirin_owner_existing_rsa_public_spki3072.pem" \
               | tee "$root/safe/summary.json" "$GITHUB_STEP_SUMMARY"
+            exit 0
+          fi
+          if [[ "$RESULT_MODE" = dt-r1-shadow || "$RESULT_MODE" = dt-r1-readback ]]; then
+            umask 077
+            env -u RACE_AI_KEIRIN_PRIVATE_RSA_PEM -u GITHUB_TOKEN \
+              python -m pip install --disable-pip-version-check --only-binary=:all: \
+                -r research/chatgpt_dt_r1/requirements.txt 'beautifulsoup4>=4.12,<5'
+            if [ "$RESULT_MODE" = dt-r1-shadow ]; then
+              [[ -n "$DOSSIER_DAY" ]]
+              python -m scripts.keirin_dt_r1_future_shadow --repo "$GITHUB_WORKSPACE" \
+                --private-root "$root/private" --output "$root/safe/dt-future-cipher" --day "$DOSSIER_DAY" \
+                --owner-public-pem "$GITHUB_WORKSPACE/docs/evidence/2026-11-18/keirin_owner_existing_rsa_public_spki3072.pem" \
+                | tee "$root/safe/summary.json" "$GITHUB_STEP_SUMMARY"
+            else
+              producer_run=$(jq -r '.inputs.dt_r1_producer_run // empty' "$GITHUB_EVENT_PATH")
+              [[ "$producer_run" =~ ^[1-9][0-9]*$ ]]
+              env -u RACE_AI_KEIRIN_PRIVATE_RSA_PEM \
+                python -m scripts.keirin_dt_r1_future_readback --repo "$GITHUB_WORKSPACE" \
+                  --producer-run "$producer_run" | tee "$root/safe/summary.json" "$GITHUB_STEP_SUMMARY"
+            fi
             exit 0
           fi
           python -m pip install --disable-pip-version-check 'cryptography>=44,<48' 'beautifulsoup4>=4.12,<5'
@@ -367,6 +397,17 @@ jobs:
           path: ${{ runner.temp }}/keirin-result-live-${{ github.run_id }}/safe/official-learned-replay-forecasts.sealed.json
           retention-days: 21
           if-no-files-found: warn
+      # Every byte in this folder is a strict public manifest or owner ciphertext.
+      # It is separate from private sources and never includes a decrypted forecast.
+      - name: Retain the newly sealed DT future shadow ciphertext
+        if: always() && github.event_name == 'workflow_dispatch' && inputs.mode == 'dt-r1-shadow'
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: keirin-dt-r1-future-cipher-${{ github.run_id }}
+          path: ${{ runner.temp }}/keirin-result-live-${{ github.run_id }}/safe/dt-future-cipher/
+          retention-days: 21
+          if-no-files-found: warn
+          compression-level: 0
       - name: Destroy ephemeral plaintext
         if: always()
         shell: bash
