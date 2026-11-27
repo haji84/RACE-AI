@@ -1,10 +1,15 @@
 """Discover replay candidates from the existing published schedule and results."""
 from collections import Counter
 from datetime import date, timedelta
+import os
 import re
+from selectors import DefaultSelector, EVENT_READ
+import subprocess
+from time import monotonic
 from urllib.error import HTTPError
 from zoneinfo import ZoneInfo
 
+from race_ai import keirin_comparison_snapshot as snapshot
 from race_ai.keirin_official_public_source import _aware
 from scripts import keirin_mac_shadow_result as published
 from scripts.keirin_video_census import compact_id
@@ -13,6 +18,65 @@ JST = ZoneInfo('Asia/Tokyo')
 FORECAST_REF = 'git/ref/heads/state/keirin-public-forecasts'
 DAY_FILE = re.compile(r'(\d{4}-\d{2}-\d{2})\.json')
 CANCELLED = {'SPECIAL_CANCELLED_REFUND_CONFIRMED', 'cancelled_refund'}
+CONTENTS_ROUTE = re.compile(
+    rf'contents/(?:rosters|(?:forecasts|rosters|results)/{DAY_FILE.pattern})\?ref={published.GIT_SHA.pattern}')
+HTTP_STATUS = re.compile(rb'HTTP/(?:1\.[01]|2(?:\.0)?|3(?:\.0)?) ([1-5][0-9]{2})(?: [^\r\n]*)?')
+GITHUB_TIMEOUT = 12
+MAX_HEADER_BYTES = 16 * 1024
+
+
+def _gh_response(command):
+    env = os.environ.copy()
+    for name in ('GH_TOKEN', 'GITHUB_TOKEN', 'GH_ENTERPRISE_TOKEN', 'GITHUB_ENTERPRISE_TOKEN', 'GH_DEBUG'):
+        env.pop(name, None)
+    env.update(GH_PROMPT_DISABLED='1', GH_NO_UPDATE_NOTIFIER='1')
+    limit = published.MAX_RECEIPT_BYTES + MAX_HEADER_BYTES
+    deadline = monotonic() + GITHUB_TIMEOUT
+    body = bytearray()
+    with subprocess.Popen(command, stdin=subprocess.DEVNULL, stdout=subprocess.PIPE,
+                          stderr=subprocess.DEVNULL, env=env) as process, DefaultSelector() as selector:
+        try:
+            selector.register(process.stdout, EVENT_READ)
+            while True:
+                remaining = deadline - monotonic()
+                if remaining <= 0 or not selector.select(remaining):
+                    raise subprocess.TimeoutExpired(command, GITHUB_TIMEOUT)
+                chunk = os.read(process.stdout.fileno(), min(65536, limit - len(body) + 1))
+                if not chunk:
+                    break
+                body.extend(chunk)
+                if len(body) > limit:
+                    raise ValueError('CALENDAR_GITHUB_RESPONSE_TOO_LARGE')
+            return process.wait(timeout=max(0, deadline - monotonic())), bytes(body)
+        finally:
+            if process.poll() is None:
+                process.kill()
+
+
+def _github_json(path, *, raw=False):
+    if path not in (FORECAST_REF, published.GITHUB_REF) and not CONTENTS_ROUTE.fullmatch(path):
+        raise ValueError('CALENDAR_GITHUB_ROUTE_INVALID')
+    url = published.GITHUB_API + path
+    accept = 'application/vnd.github.raw+json' if raw else 'application/vnd.github+json'
+    code, response = _gh_response([
+        'gh', 'api', '--hostname', 'github.com', '--method', 'GET', '--include',
+        '--header', f'Accept: {accept}', url.removeprefix('https://api.github.com'),
+    ])
+    parts = re.split(rb'\r?\n\r?\n', response, maxsplit=1)
+    if len(parts) != 2:
+        raise ValueError('CALENDAR_GITHUB_RESPONSE_INVALID')
+    head, body = parts
+    status_line = HTTP_STATUS.fullmatch(head.split(b'\n', 1)[0].rstrip(b'\r'))
+    if status_line is None or len(head) > MAX_HEADER_BYTES:
+        raise ValueError('CALENDAR_GITHUB_RESPONSE_INVALID')
+    status = int(status_line[1])
+    if status >= 400 and code == 1:
+        raise HTTPError(url, status, 'CALENDAR_GITHUB_REQUEST_FAILED', None, None)
+    if status != 200 or code != 0:
+        raise ValueError('CALENDAR_GITHUB_RESPONSE_INVALID')
+    if len(body) > published.MAX_RECEIPT_BYTES:
+        raise ValueError('CALENDAR_GITHUB_RESPONSE_TOO_LARGE')
+    return snapshot._json(body, 'CALENDAR_GITHUB_JSON_INVALID')
 
 
 def combine(day, forecast, roster, results, now):
@@ -93,7 +157,7 @@ def _read_day(get, folder, day, commit):
         raise
 
 
-def refresh(db, now, *, get=published._public_github_json):
+def refresh(db, now, *, get=_github_json):
     today = now.astimezone(JST).date()
     yesterday = today - timedelta(days=1)
     forecasts = _head(get, FORECAST_REF)

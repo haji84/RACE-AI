@@ -4,10 +4,14 @@ from hashlib import sha256
 from itertools import permutations
 import json
 from pathlib import Path
+import sqlite3
+import subprocess
+import sys
 from tempfile import TemporaryDirectory
 from types import SimpleNamespace
 import unittest
 from unittest.mock import MagicMock, patch
+from urllib.error import HTTPError
 from urllib.parse import parse_qs, urlsplit
 
 from PIL import Image
@@ -363,6 +367,55 @@ class MacCycleTests(unittest.TestCase):
         self.assertEqual(calls, [(NOW+timedelta(minutes=offset), mode)
                                  for offset, mode in ((0, True), (30, True), (60, False), (90, False),
                                                       (135, False))])
+
+    def test_calendar_default_transport_preserves_authenticated_denial(self):
+        from scripts import keirin_mac_replay_calendar as calendar
+
+        launch = subprocess.Popen
+        with sqlite3.connect(':memory:') as db, patch(
+                'subprocess.Popen', side_effect=lambda *args, **kwargs: launch(
+                    [sys.executable, '-c',
+                     "import os; os.write(1, b'HTTP/2.0 403 Forbidden\\r\\n\\r\\n{}'); raise SystemExit(1)"],
+                    **kwargs)) as gh:
+            with self.assertRaises(HTTPError) as raised:
+                calendar.refresh(db, NOW)
+        self.assertEqual(raised.exception.code, 403)
+        args = gh.call_args.args[0]
+        self.assertEqual(args[:2], ['gh', 'api'])
+        self.assertEqual(args[args.index('--hostname') + 1], 'github.com')
+        self.assertEqual(args[args.index('--method') + 1], 'GET')
+        self.assertIn('--include', args)
+        self.assertEqual(args[-1], '/repos/haji84/RACE-AI/' + calendar.FORECAST_REF)
+        self.assertEqual(gh.call_args.kwargs['env']['GH_PROMPT_DISABLED'], '1')
+        gh.assert_called_once()
+
+    def test_calendar_transport_binds_missing_days_and_limits_output(self):
+        from scripts import keirin_mac_replay_calendar as calendar
+
+        launch = subprocess.Popen
+        commit = 'a' * 40
+        samples = [
+            (b'HTTP/2.0 404 Not Found\r\n\r\n{}', 1, None),
+            (b'HTTP/2.0 200 OK\nContent-Type: application/json\r\n\r\n{"races":[]}', 0, {'races': []}),
+        ]
+        for response, code, expected in samples:
+            with self.subTest(response=response), patch(
+                    'subprocess.Popen', side_effect=lambda *args, **kwargs: launch(
+                        [sys.executable, '-c', f'import os; os.write(1, {response!r}); raise SystemExit({code})'],
+                        **kwargs)) as gh:
+                self.assertEqual(calendar._read_day(calendar._github_json, 'rosters', '2026-11-26', commit),
+                                 expected)
+                self.assertIn('Accept: application/vnd.github.raw+json', gh.call_args.args[0])
+        with patch('subprocess.Popen') as gh, self.assertRaises(ValueError):
+            calendar._github_json('contents/rosters?ref=' + commit + '&evil=value')
+        gh.assert_not_called()
+
+        response = b'HTTP/2.0 200 OK\r\n\r\n' + b'x' * 80
+        with patch.object(calendar.published, 'MAX_RECEIPT_BYTES', 64), patch(
+                'subprocess.Popen', side_effect=lambda *args, **kwargs: launch(
+                    [sys.executable, '-c', f'import os; os.write(1, {response!r})'], **kwargs)):
+            with self.assertRaisesRegex(ValueError, 'TOO_LARGE'):
+                calendar._github_json(calendar.FORECAST_REF)
 
     def test_published_calendar_retains_future_cancelled_and_verified_result_candidates(self):
         from scripts import keirin_mac_replay_calendar as calendar
