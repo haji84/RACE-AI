@@ -1,0 +1,90 @@
+{
+  "schema": "DT_R1_GITHUB_RETENTION_RECEIPT_V1",
+  "repository": "haji84/RACE-AI",
+  "state_ref": "refs/heads/state/keirin-encrypted-history",
+  "archive_commit": "410596da678beddcef6f8ca645cdc4e970f2d0fb",
+  "parent_commit": "3523e23734e79c721c4c32ceb88f6d3fc65e618a",
+  "path": "research/chatgpt-dt-r1/20261128/497154664f90725024836fbfe7cc84def152ccadb13868ccae0edb7b14c8cc4f",
+  "source_artifact_id": 15225390143,
+  "source_run_id": 46049489264,
+  "zip_sha256": "4a505164a76897ad3978cdf96625bf00f7b40fc68df235cf433083f2cf7e777e",
+  "manifest_sha256": "497154664f90725024836fbfe7cc84def152ccadb13868ccae0edb7b14c8cc4f",
+  "existing_leaves_preserved": 1798,
+  "added_files": [
+    {
+      "name": "dashboard.html",
+      "bytes": 93261,
+      "sha256": "b4b4a66e5d8963a1691cc9a002bc2f50521de95d6345df5011b77733cf5bffb0",
+      "git_blob": "b29ebb56dd1516c34cf70d7fc6e9ccbad224843e"
+    },
+    {
+      "name": "frozen_model.json",
+      "bytes": 54355,
+      "sha256": "dab8c7f014c41ac18e4fed1ae28ac9b36e994611d1fcf5992f8b06e31a4c618b",
+      "git_blob": "1012088b18ddb15e2e1a1fc051a19e520f34e1db"
+    },
+    {
+      "name": "manifest.json",
+      "bytes": 5577,
+      "sha256": "497154664f90725024836fbfe7cc84def152ccadb13868ccae0edb7b14c8cc4f",
+      "git_blob": "a8f43a05ab4dbc7e063692ece7b9641da6882ba9"
+    },
+    {
+      "name": "public_report.json",
+      "bytes": 61539,
+      "sha256": "c2257a1189c28e1440fda5c72ab0420945a5e8008bbf8176225c87165f642d94",
+      "git_blob": "644f72ab3ba6391cc2feaca1625d6f7d2b5b359f"
+    },
+    {
+      "name": "shard-000000.sealed.json",
+      "bytes": 3729742,
+      "sha256": "3cf7c56fa7abb4b907af8fada654a5d1eb1b06ce1494b88b6e0224094504158f",
+      "git_blob": "6fc1bb15d6345a4353b6f9dd6544b65d7fc4a7a2"
+    },
+    {
+      "name": "shard-000001.sealed.json",
+      "bytes": 3729742,
+      "sha256": "3a6b57812497ecc7775c66c569626f1003d8dc3c91a747cf20162eca4929b4bd",
+      "git_blob": "207fa26b37b5d2f27b2f38c5ffdf32de85921c69"
+    },
+    {
+      "name": "shard-000002.sealed.json",
+      "bytes": 3729742,
+      "sha256": "8c2ed32f20c20908b10d9621a501234310b85c267ea375e627969b0328164830",
+      "git_blob": "7a1f9b06797a0dda74a69811c20d05948a43500b"
+    },
+    {
+      "name": "shard-000003.sealed.json",
+      "bytes": 3729742,
+      "sha256": "367b382e9aa38fae7a67284952f7aaeb62aaf97d222313e8d4cd7f31974b19a7",
+      "git_blob": "1cbb4ede39060d65e42f2147d5eb8eaaf1d0c5fa"
+    },
+    {
+      "name": "shard-000004.sealed.json",
+      "bytes": 3729742,
+      "sha256": "df7782a5689be78da5c384bb4b6ea0c18aa23968d1f027be1bb8dbabde17e5c3",
+      "git_blob": "aab5f0c99cb4fa10c3d7e276000171f5c68aa5a3"
+    },
+    {
+      "name": "shard-000005.sealed.json",
+      "bytes": 3729742,
+      "sha256": "ab1d72b70378a62b9717623c94009dd98dac5fec19c82ed8b4d7e3273f637bb8",
+      "git_blob": "e293177de2c6dae070e8be9e4b0ea8d1df5efe24"
+    },
+    {
+      "name": "shard-000006.sealed.json",
+      "bytes": 3729742,
+      "sha256": "cb44951640fce12ef9fd4fa5e44e8c086ae99bfafa2374324d980c21a604be4f",
+      "git_blob": "f0a4d4ff4484f75d6c997ee619bb41c3804d9ef4"
+    },
+    {
+      "name": "shard-000007.sealed.json",
+      "bytes": 2592090,
+      "sha256": "2ccee13afbf0421d3107e363a3c4a8e15eb619ec059261cf9e21b11654df3453",
+      "git_blob": "8a2c4e6535de91c9b2489ff47ab3e43f7307bebc"
+    }
+  ],
+  "owner_decryption_verified": false,
+  "source_authenticated": false,
+  "production_promoted": false
+}

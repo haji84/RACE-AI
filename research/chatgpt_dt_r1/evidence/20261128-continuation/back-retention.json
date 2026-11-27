@@ -1,0 +1,34 @@
+{
+  "schema": "DT_R1_RETAINED_BACK_RECEIPT_V1",
+  "repository": "haji84/RACE-AI",
+  "archive_commit": "b33be58a4b0920003f40fd75157ecbd79272c9ad",
+  "path": "research/chatgpt-dt-r1/20261128-back/36952b78e652c0c5acb74ca6aeb38f882b3e8bab77121dee6071f50c9f2c8682",
+  "source_code_commit": "418130cc11993615f21545ad370e2c726c056ea5",
+  "source_code_sha256": {
+    "abilities.py": "9d12d668057722a28e32bfb64733f3cabf066b7277f6c48697a7b8cd0fc9a12e",
+    "agari.py": "e8d15d3efb0fb696773ee8bb58a956cbe9c879cd3de9b95bd558400e5fd7a674",
+    "back_candidate.py": "a315dc0d67b2fcb8ac7ef763273a5ae62d7abe959d2f108be5f3328e7d2e08b3",
+    "back_phase_study.py": "7eeb1b74de675f592d2c5713cbfbc50a153088d93108d15ae8809569c6446e42",
+    "data.py": "a8f5330c945b521dd95c6c2e65d6388c2982ea867dc48c1abac0449861afa030",
+    "features.py": "a1ce8b183e2ad2441c1599f36631ab20de59785ef8c842fba0ea97c0f696640d",
+    "model.py": "61dd9da80e78cab0f1d6b53943c085827e0e17644da42230fbb3c72f7dc26719",
+    "observations.py": "0d9dd3fe18018ab8326e0c153d9d4b42f33ade0bf0a739baa1884419cc504de7",
+    "pipeline.py": "50618fc328da8c07901ab9cce0960428c217761796b155ff3a70ca5abbc36a99",
+    "policy.py": "9a5e58c3ca9f3dd63152e05b6449e6bc15f9c229df1d108e82576ae14e3a43b1",
+    "requirements.txt": "9373943720e246f94ea4d0f68e0e2a17cd65cc30780c296c5ae06536f8107ce6",
+    "runtime.py": "65b012f8da8f2d5fd37456663f0cf40a4946ac758b515039116e1031ee6bb72b"
+  },
+  "manifest": {
+    "file": "manifest.json",
+    "bytes": 889,
+    "sha256": "36952b78e652c0c5acb74ca6aeb38f882b3e8bab77121dee6071f50c9f2c8682"
+  },
+  "cipher": {
+    "bytes": 157634,
+    "file": "candidate.sealed.json",
+    "sha256": "98ea7275d4ae78ad56a8a622ad81465802c689884d2b4db0c296d1dced13f9c6"
+  },
+  "candidate_bytes_sha256": "1ce3c29bf278dc2e662b4531d5d9c86bc1ad775cd0582a4cdea5c4171f497784",
+  "artifact_sha256": "f1be40a98fdfe792628163b9e0a82f25a4ba583609517219f9b80a86b999c9e6",
+  "dataset_sha256": "9bc3fbda8339b32ba178f5c9c39d6623216ad5c2d5519774870ac5491ba0a847"
+}

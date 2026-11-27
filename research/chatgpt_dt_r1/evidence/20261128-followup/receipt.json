@@ -1,0 +1,326 @@
+{
+  "schema": "dt-r1-continuation-receipt-v1",
+  "recorded_jst": "2026-11-28",
+  "tested_commit": "cfe1bfeeb059a7c06a1678889ce47395f4f516b1",
+  "run_id": 46077103288,
+  "contracts_job_id": 140767285913,
+  "followup_job_id": 140767602922,
+  "artifact_id": 15234972579,
+  "artifact_zip_sha256": "d53198222aea67f184ba13638ac8f1e6f5e03d634eece64120436557d40d9a7b",
+  "contracts": {
+    "run": 238,
+    "passed": 237,
+    "skipped": 1
+  },
+  "source": "actual Actions stdout; aggregate only",
+  "actual": {
+    "all_targets": {
+      "five_abilities": {
+        "evaluable": 326,
+        "exacta": {
+          "1": {
+            "all_target_rate": 0.24233128834355827,
+            "hits": 79,
+            "predicted_rate": 0.24233128834355827
+          },
+          "2": {
+            "all_target_rate": 0.3834355828220859,
+            "hits": 125,
+            "predicted_rate": 0.3834355828220859
+          }
+        },
+        "holds": {},
+        "not_evaluable": {
+          "DEAD_HEAT": 2,
+          "SPECIAL_OR_INCOMPLETE": 1
+        },
+        "predicted_evaluable": 326,
+        "prediction_coverage": 1,
+        "proper_scores": {
+          "exacta_log_loss": 2.723246688600814,
+          "joint_top3_log_loss": 4.058004216512849,
+          "multiclass_brier": 0.9484894924284601,
+          "n": 326
+        },
+        "registered": 329,
+        "trifecta": {
+          "1": {
+            "all_target_rate": 0.12269938650306748,
+            "hits": 40,
+            "predicted_rate": 0.12269938650306748
+          },
+          "2": {
+            "all_target_rate": 0.2147239263803681,
+            "hits": 70,
+            "predicted_rate": 0.2147239263803681
+          },
+          "4": {
+            "all_target_rate": 0.3343558282208589,
+            "hits": 109,
+            "predicted_rate": 0.3343558282208589
+          },
+          "9": {
+            "all_target_rate": 0.4785276073619632,
+            "hits": 156,
+            "predicted_rate": 0.4785276073619632
+          },
+          "12": {
+            "all_target_rate": 0.5245398773006135,
+            "hits": 171,
+            "predicted_rate": 0.5245398773006135
+          }
+        }
+      },
+      "initial": {
+        "evaluable": 326,
+        "exacta": {
+          "1": {
+            "all_target_rate": 0.2331288343558282,
+            "hits": 76,
+            "predicted_rate": 0.2331288343558282
+          },
+          "2": {
+            "all_target_rate": 0.3803680981595092,
+            "hits": 124,
+            "predicted_rate": 0.3803680981595092
+          }
+        },
+        "holds": {},
+        "not_evaluable": {
+          "DEAD_HEAT": 2,
+          "SPECIAL_OR_INCOMPLETE": 1
+        },
+        "predicted_evaluable": 326,
+        "prediction_coverage": 1,
+        "proper_scores": {
+          "exacta_log_loss": 2.7256573667173054,
+          "joint_top3_log_loss": 4.061900354912162,
+          "multiclass_brier": 0.9497568565435024,
+          "n": 326
+        },
+        "registered": 329,
+        "trifecta": {
+          "1": {
+            "all_target_rate": 0.11042944785276074,
+            "hits": 36,
+            "predicted_rate": 0.11042944785276074
+          },
+          "2": {
+            "all_target_rate": 0.19631901840490798,
+            "hits": 64,
+            "predicted_rate": 0.19631901840490798
+          },
+          "4": {
+            "all_target_rate": 0.34049079754601225,
+            "hits": 111,
+            "predicted_rate": 0.34049079754601225
+          },
+          "9": {
+            "all_target_rate": 0.48466257668711654,
+            "hits": 158,
+            "predicted_rate": 0.48466257668711654
+          },
+          "12": {
+            "all_target_rate": 0.5306748466257669,
+            "hits": 173,
+            "predicted_rate": 0.5306748466257669
+          }
+        }
+      }
+    },
+    "baseline_runtime": "current compatible schema; external context and retired full-lap weights are zero; not original runtime byte identity",
+    "common_evaluable": 326,
+    "common_targets": {
+      "five_abilities": {
+        "evaluable": 326,
+        "exacta": {
+          "1": {
+            "all_target_rate": 0.24233128834355827,
+            "hits": 79,
+            "predicted_rate": 0.24233128834355827
+          },
+          "2": {
+            "all_target_rate": 0.3834355828220859,
+            "hits": 125,
+            "predicted_rate": 0.3834355828220859
+          }
+        },
+        "holds": {},
+        "not_evaluable": {},
+        "predicted_evaluable": 326,
+        "prediction_coverage": 1,
+        "proper_scores": {
+          "exacta_log_loss": 2.723246688600814,
+          "joint_top3_log_loss": 4.058004216512849,
+          "multiclass_brier": 0.9484894924284601,
+          "n": 326
+        },
+        "registered": 326,
+        "trifecta": {
+          "1": {
+            "all_target_rate": 0.12269938650306748,
+            "hits": 40,
+            "predicted_rate": 0.12269938650306748
+          },
+          "2": {
+            "all_target_rate": 0.2147239263803681,
+            "hits": 70,
+            "predicted_rate": 0.2147239263803681
+          },
+          "4": {
+            "all_target_rate": 0.3343558282208589,
+            "hits": 109,
+            "predicted_rate": 0.3343558282208589
+          },
+          "9": {
+            "all_target_rate": 0.4785276073619632,
+            "hits": 156,
+            "predicted_rate": 0.4785276073619632
+          },
+          "12": {
+            "all_target_rate": 0.5245398773006135,
+            "hits": 171,
+            "predicted_rate": 0.5245398773006135
+          }
+        }
+      },
+      "initial": {
+        "evaluable": 326,
+        "exacta": {
+          "1": {
+            "all_target_rate": 0.2331288343558282,
+            "hits": 76,
+            "predicted_rate": 0.2331288343558282
+          },
+          "2": {
+            "all_target_rate": 0.3803680981595092,
+            "hits": 124,
+            "predicted_rate": 0.3803680981595092
+          }
+        },
+        "holds": {},
+        "not_evaluable": {},
+        "predicted_evaluable": 326,
+        "prediction_coverage": 1,
+        "proper_scores": {
+          "exacta_log_loss": 2.7256573667173054,
+          "joint_top3_log_loss": 4.061900354912162,
+          "multiclass_brier": 0.9497568565435024,
+          "n": 326
+        },
+        "registered": 326,
+        "trifecta": {
+          "1": {
+            "all_target_rate": 0.11042944785276074,
+            "hits": 36,
+            "predicted_rate": 0.11042944785276074
+          },
+          "2": {
+            "all_target_rate": 0.19631901840490798,
+            "hits": 64,
+            "predicted_rate": 0.19631901840490798
+          },
+          "4": {
+            "all_target_rate": 0.34049079754601225,
+            "hits": 111,
+            "predicted_rate": 0.34049079754601225
+          },
+          "9": {
+            "all_target_rate": 0.48466257668711654,
+            "hits": 158,
+            "predicted_rate": 0.48466257668711654
+          },
+          "12": {
+            "all_target_rate": 0.5306748466257669,
+            "hits": 173,
+            "predicted_rate": 0.5306748466257669
+          }
+        }
+      }
+    },
+    "confidence": "HOLD_UNVALIDATED_TRANSFER",
+    "history_policy": "original pinned history through November 22, then only earlier days of new window",
+    "model_weights_retrained": false,
+    "models": {
+      "five_abilities": "5e022092a35c0258954090c6f3d0f8fa14f03f22511b28d6aa9183f5a38c381c",
+      "initial": "562b14ecee281be26660b5a1659e14e9fa08b9a34ff4baca8fa31d7ce13491fa"
+    },
+    "odds": "NOT_EVALUATED",
+    "private_forecast_bytes_sha256": "852a7b9499837b9e56c123c6fad145ec95fbf787f733d9143c79adcd8886608b",
+    "private_forecasts_retained": false,
+    "production_promoted": false,
+    "prospective_races": 0,
+    "registered": 329,
+    "registered_by_day": {
+      "2026-11-23": 89,
+      "2026-11-24": 81,
+      "2026-11-25": 75,
+      "2026-11-26": 84
+    },
+    "reviewed_video_races": 0,
+    "schema": "dt-r1-frozen-followup-v1",
+    "scope": "NEW_DATE_WINDOW_RETROSPECTIVE_NOT_PROSPECTIVE_NOT_OFFICIAL",
+    "selection_after_score": false,
+    "source": {
+      "new_bytes": 48734208,
+      "new_commit": "5068110588614856c1bd27b96d437ea55815af57",
+      "new_dataset_sha256": "6e4dd3598186eed561915f2bfab1eb03ee3536851c401c06ca5e556b5a7bf526",
+      "new_git_blob": "306a2ea072e4341bc25a35403d165f8c987c2b98",
+      "new_sha256": "099bef6582b538156cdb03f6b08a18080fd79eb8c2d741122772e3a669e13acd",
+      "old_commit": "2a1260fb0940ad11160b56a36f9c24cc4fb2f6d2",
+      "old_dataset_sha256": "9bc3fbda8339b32ba178f5c9c39d6623216ad5c2d5519774870ac5491ba0a847"
+    },
+    "three_way_contest_races": 0,
+    "window": {
+      "end": "2026-11-26",
+      "start": "2026-11-23"
+    }
+  },
+  "assessment": {
+    "main_metric_delta_hits": 4,
+    "main_metric_denominator": 326,
+    "main_metric_delta_percentage_points": 1.2269938650306749,
+    "conclusion": "Mixed retrospective improvement; no individual ability attribution or statistically established gain; no prospective acceptance; keep candidate frozen and unpromoted.",
+    "limitations": [
+      "11/23–26 races occurred before model creation; no cutoff-time proof",
+      "old baseline executed with compatible current runtime, not original runtime byte identity",
+      "individual forecasts intentionally not retained; only SHA and aggregate, so paired significance not computed",
+      "Codex has examined overlapping dates; not an untouched three-way test",
+      "no odds, official payout, or newly reviewed video input"
+    ],
+    "retention": {
+      "archive_commit": "410596da678beddcef6f8ca645cdc4e970f2d0fb",
+      "manifest_sha256": "497154664f90725024836fbfe7cc84def152ccadb13868ccae0edb7b14c8cc4f",
+      "independent_readback_run": 46076680144,
+      "independent_readback_job": 140765922314,
+      "files": 12,
+      "encrypted_shards": 8,
+      "owner_decryption_verified": false
+    },
+    "b_phase": {
+      "completed_run": 46049762970,
+      "weights_retained": false,
+      "old_window_retrain_repeated": false
+    },
+    "mac": {
+      "pr": 409,
+      "recording_permission_expired": true,
+      "new_saved_videos": 0,
+      "reviewed_training_observations": 3,
+      "future_video_comparison_races": 0
+    },
+    "contest": {
+      "state": "BLOCKED_NO_COMMON_PROSPECTIVE_FREEZES",
+      "owner_requested_baseline": "existing integrated A/B equal weights 50% each",
+      "candidate_404": "A/B each 25%, research models 50%; not equivalent",
+      "codex_model_candidate_source": "PR #406; #67 comment 7225921370 records current tree and calibration hash separately",
+      "codex_tree_sha256": "17d8fddfbe4f6ba25871c9e869175e5ca2ca5e7475e96ab5f5b6a19e1bf0d7c6",
+      "codex_calibration_sha256": "634a75078328fc061d2ed92e4f0ab0fb1fc00e9a4331d4842887a923b758deb8",
+      "codex_missing_input_candidate_sha256": "0b6522b609648d9e30c9af8fc39f76856bf3f9a521f3e0ee505aed204f2dc813",
+      "dt_r1_candidate_sha256": "5e022092a35c0258954090c6f3d0f8fa14f03f22511b28d6aa9183f5a38c381c",
+      "races": 0,
+      "required": "Resolve exact approved baseline and Codex model/policy hashes; owner restore and authorized source pipeline; same race list and cutoff-time input, frozen policy, matched point counts, encrypted original plus independent readback before official results; no model selection on contest outcomes."
+    },
+    "remaining": "Owner-key restore, recover or fit and preserve B weights only in new justified study, authorized Mac capture and independently checked six-phase motion, individual feature ablations on non-overlapping predeclared interval, 3-way future pre-cutoff freeze and official scoring, odds/payout calibration, promotion approval. No main merge, new secret, paid service, bypass, or purchase."
+  }
+}

@@ -1,0 +1,11 @@
+{
+  "schema": "dt-r1-owner-request-pinned-retrain-v1",
+  "scope": "retrospective_only",
+  "source_commit": "2a1260fb0940ad11160b56a36f9c24cc4fb2f6d2",
+  "baseline_model_sha256": "562b14ecee281be26660b5a1659e14e9fa08b9a34ff4baca8fa31d7ce13491fa",
+  "baseline_code_commit": "bf751a01de54055ff2170f24585f1e432f87590e",
+  "expected_races": 30713,
+  "expected_evaluable_test": 3480,
+  "production_promoted": false,
+  "request": "Run the agari interaction pipeline on the same pinned archive and chronological splits. Do not replace the prior artifact. Retain only reviewed aggregates and model parameters, no source/forecast rows."
+}

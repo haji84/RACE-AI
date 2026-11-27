@@ -1,0 +1,285 @@
+{
+  "agari_interactions": {
+    "feature_count": 91,
+    "prior_agari_races": 30520,
+    "same_input_ablation": "without_agari_interactions_with_pairs",
+    "same_venue_agari_races": 27756,
+    "version": "agari-interactions-v1",
+    "weather_admitted_races": 0
+  },
+  "code_commit": "c0bf7b1621dd434ba81cd527e83a01330a1afa76",
+  "confidence": {
+    "exacta_1": {
+      "HIGH": {
+        "hits": 0,
+        "n": 0
+      },
+      "HOLD": {
+        "hits": 214,
+        "n": 718
+      },
+      "HOT": {
+        "hits": 0,
+        "n": 0
+      },
+      "LOW": {
+        "hits": 640,
+        "n": 2762
+      },
+      "MEDIUM": {
+        "hits": 0,
+        "n": 0
+      }
+    },
+    "exacta_2": {
+      "HIGH": {
+        "hits": 0,
+        "n": 0
+      },
+      "HOLD": {
+        "hits": 644,
+        "n": 1344
+      },
+      "HOT": {
+        "hits": 0,
+        "n": 0
+      },
+      "LOW": {
+        "hits": 677,
+        "n": 2136
+      },
+      "MEDIUM": {
+        "hits": 0,
+        "n": 0
+      }
+    },
+    "trifecta_1": {
+      "HIGH": {
+        "hits": 0,
+        "n": 0
+      },
+      "HOLD": {
+        "hits": 167,
+        "n": 863
+      },
+      "HOT": {
+        "hits": 0,
+        "n": 0
+      },
+      "LOW": {
+        "hits": 253,
+        "n": 2617
+      },
+      "MEDIUM": {
+        "hits": 0,
+        "n": 0
+      }
+    },
+    "trifecta_12": {
+      "HIGH": {
+        "hits": 0,
+        "n": 0
+      },
+      "HOLD": {
+        "hits": 994,
+        "n": 1895
+      },
+      "HOT": {
+        "hits": 0,
+        "n": 0
+      },
+      "LOW": {
+        "hits": 562,
+        "n": 1432
+      },
+      "MEDIUM": {
+        "hits": 115,
+        "n": 153
+      }
+    },
+    "trifecta_2": {
+      "HIGH": {
+        "hits": 0,
+        "n": 0
+      },
+      "HOLD": {
+        "hits": 345,
+        "n": 1299
+      },
+      "HOT": {
+        "hits": 0,
+        "n": 0
+      },
+      "LOW": {
+        "hits": 330,
+        "n": 2181
+      },
+      "MEDIUM": {
+        "hits": 0,
+        "n": 0
+      }
+    },
+    "trifecta_4": {
+      "HIGH": {
+        "hits": 0,
+        "n": 0
+      },
+      "HOLD": {
+        "hits": 314,
+        "n": 924
+      },
+      "HOT": {
+        "hits": 0,
+        "n": 0
+      },
+      "LOW": {
+        "hits": 683,
+        "n": 2556
+      },
+      "MEDIUM": {
+        "hits": 0,
+        "n": 0
+      }
+    },
+    "trifecta_9": {
+      "HIGH": {
+        "hits": 0,
+        "n": 0
+      },
+      "HOLD": {
+        "hits": 574,
+        "n": 1087
+      },
+      "HOT": {
+        "hits": 0,
+        "n": 0
+      },
+      "LOW": {
+        "hits": 806,
+        "n": 2221
+      },
+      "MEDIUM": {
+        "hits": 114,
+        "n": 172
+      }
+    }
+  },
+  "contract_sha256": "7733296a4ba81b07bad563f7f04633cc45f46a6092f68e85ecb08c0448f5c8b9",
+  "dataset_sha256": "9bc3fbda8339b32ba178f5c9c39d6623216ad5c2d5519774870ac5491ba0a847",
+  "feature_count": 462,
+  "five_abilities": {
+    "competition_proxy_races": 26063,
+    "discovered_feature_names": [
+      "history_dt_discovery_52",
+      "history_dt_discovery_47",
+      "history_dt_discovery_34",
+      "history_dt_discovery_21",
+      "history_dt_discovery_62",
+      "history_dt_discovery_41",
+      "history_dt_discovery_23",
+      "history_dt_discovery_24",
+      "history_dt_discovery_29",
+      "history_dt_discovery_32",
+      "history_dt_discovery_60",
+      "history_dt_discovery_22"
+    ],
+    "discovery_receipt_sha256": "9035d7cf5694698b3da4795768135bf73bffcd918b41f0bf5d396479128d9a3c",
+    "discovery_score_count": 63,
+    "feature_count": 147,
+    "physical_energy_measured": false,
+    "reviewed_motion_races": 0,
+    "version": "dt-five-abilities-v1"
+  },
+  "forecast_originals_published": false,
+  "historical_weather_sidecar_supplied": false,
+  "metrics": {
+    "exacta": {
+      "1": {
+        "delta_percentage_points": 0.40229885057471265,
+        "hits": 854,
+        "n": 3480,
+        "old_hits": 840,
+        "rate": 0.2454022988505747
+      },
+      "2": {
+        "delta_percentage_points": 0.25862068965517243,
+        "hits": 1321,
+        "n": 3480,
+        "old_hits": 1312,
+        "rate": 0.3795977011494253
+      }
+    },
+    "trifecta": {
+      "1": {
+        "delta_percentage_points": -0.028735632183908046,
+        "hits": 420,
+        "n": 3480,
+        "old_hits": 421,
+        "rate": 0.1206896551724138
+      },
+      "2": {
+        "delta_percentage_points": -0.1724137931034483,
+        "hits": 675,
+        "n": 3480,
+        "old_hits": 681,
+        "rate": 0.1939655172413793
+      },
+      "4": {
+        "delta_percentage_points": 0.43103448275862066,
+        "hits": 997,
+        "n": 3480,
+        "old_hits": 982,
+        "rate": 0.2864942528735632
+      },
+      "9": {
+        "delta_percentage_points": 0.603448275862069,
+        "hits": 1494,
+        "n": 3480,
+        "old_hits": 1473,
+        "rate": 0.42931034482758623
+      },
+      "12": {
+        "delta_percentage_points": -0.3448275862068966,
+        "hits": 1671,
+        "n": 3480,
+        "old_hits": 1683,
+        "rate": 0.48017241379310344
+      }
+    }
+  },
+  "model_sha256": "5e022092a35c0258954090c6f3d0f8fa14f03f22511b28d6aa9183f5a38c381c",
+  "production_promoted": false,
+  "proper_scores": {
+    "exacta_log_loss": 2.7840566772489637,
+    "joint_top3_log_loss": 4.1678686260687945,
+    "multiclass_brier": 0.9589756709132276,
+    "n": 3480
+  },
+  "registered_archive": 30713,
+  "runtime_seconds": 1067.6323869510002,
+  "scope": "REUSED_RETROSPECTIVE_ARCHIVE_NOT_FUTURE_PROOF",
+  "selected_candidate": "five_abilities_discovery",
+  "selection_losses": {
+    "five_abilities_discovery": 4.1755850431808215,
+    "five_abilities_no_discovery": 4.1796980817383815,
+    "full_with_pairs": 4.180631863736545,
+    "full_without_pairs": 4.427506154766688,
+    "without_agari_interactions_with_pairs": 4.183819427333598,
+    "without_context_or_agari_with_pairs": 4.183717610227419,
+    "without_context_with_pairs": 4.180673649086055,
+    "without_history_with_pairs": 4.221222948919806
+  },
+  "split_counts": {
+    "audit": 2186,
+    "calibration": 2350,
+    "fit": 20253,
+    "outside": 0,
+    "test": 3508,
+    "tune": 2416
+  },
+  "test_evaluable": 3480,
+  "test_predicted_evaluable": 3480,
+  "test_registered": 3508,
+  "three_way_contest_proven": false,
+  "video_labels_supplied": 0
+}

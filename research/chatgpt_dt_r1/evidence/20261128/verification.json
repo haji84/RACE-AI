@@ -1,0 +1,48 @@
+{
+  "archive_run": {
+    "new_untouched_test": false,
+    "numeric_weights_and_metrics_match_prior_run": true,
+    "seconds": 388.81709480000063,
+    "source_unchanged_during_run": true,
+    "status": "RETROSPECTIVE_STUDY_COMPLETE"
+  },
+  "code_commit": "352578a43dcc41dcf67a39ab52c9debd5dab988e",
+  "code_commit_scope": "Training sources at the recorded commit; dashboard projection corrected subsequently without changing any of the eleven training sources.",
+  "dashboard": {
+    "candidate_projection_regression": "All four candidates including selected no-context candidate are rendered; temperature-calibration stages labelled separately.",
+    "javascript_syntax": "passed",
+    "privacy_and_injection_tests": "passed",
+    "reason": "Local Chromium absent; normal Playwright browser download returned HTTP 403. No access controls were bypassed.",
+    "source_sha256": "c406c9d13487b995c69024536e7ee8eeb9be24536b5073381ccc87fda284e886",
+    "visual_browser_check": "not_completed"
+  },
+  "github_ci": {
+    "commit": "352578a43dcc41dcf67a39ab52c9debd5dab988e",
+    "conclusion": "success",
+    "passed": 170,
+    "run": 171,
+    "skip_reason": "optional ffmpeg unavailable in runner",
+    "skipped": 1,
+    "url": "https://github.com/haji84/RACE-AI/actions/runs/46037864627"
+  },
+  "independent_review": {
+    "scope": "new data/model/temporal/phase/CLI/runtime/admission boundaries; synthetic adversarial reproductions",
+    "unresolved_confirmed_P0_P1_P2": 0
+  },
+  "local_tests": {
+    "command": "OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 python -m unittest discover -s research/chatgpt_dt_r1 -p 'test_*.py' -v",
+    "passed": 172,
+    "run": 172,
+    "skipped": 0
+  },
+  "not_established": [
+    "live owner-key/source authentication",
+    "real rider video accuracy",
+    "unseen future performance",
+    "three-way winner",
+    "production acceptance",
+    "complete nationwide scheduled coverage"
+  ],
+  "schema": "dt-r1-verification-v1",
+  "scope": "research implementation and retrospective evidence"
+}

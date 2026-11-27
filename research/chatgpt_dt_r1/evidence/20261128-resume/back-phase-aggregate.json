@@ -1,0 +1,100 @@
+{
+  "archive_races": 30713,
+  "artifact_sha256": "2ae55ee63a58ad688744bfede2b9bc816f2a42b1143a8efd29bed0d8d2a5e8df",
+  "full_phase_order_measured": false,
+  "optimizers_converged": {
+    "conditional": true,
+    "direct": true,
+    "leader": true
+  },
+  "production_promoted": false,
+  "schema": "dt-r1-back-latent-mixture-v1",
+  "scope": "REUSED_RETROSPECTIVE_ARCHIVE_NOT_PROSPECTIVE",
+  "source_definition": "https://keirin.jp/pc/static/beginner/basics/racecard.html",
+  "test": {
+    "B_evaluable": 3503,
+    "B_label_counts": {
+      "NO_EXPLICIT_B": 5,
+      "UNIQUE_ARCHIVED_B": 3503
+    },
+    "B_log_loss": 0.8801449180842557,
+    "B_top1_hits": 2211,
+    "B_top1_rate": 0.6311732800456752,
+    "finish": {
+      "direct": {
+        "exacta_hits": {
+          "1": 837,
+          "2": 1322
+        },
+        "top3_log_loss": 4.173514415962512,
+        "trifecta_hits": {
+          "1": 415,
+          "2": 677,
+          "4": 996,
+          "9": 1484,
+          "12": 1672
+        }
+      },
+      "mixture": {
+        "exacta_hits": {
+          "1": 841,
+          "2": 1332
+        },
+        "top3_log_loss": 4.157817725238745,
+        "trifecta_hits": {
+          "1": 415,
+          "2": 697,
+          "4": 1011,
+          "9": 1481,
+          "12": 1674
+        }
+      }
+    },
+    "finish_evaluable": 3480,
+    "registered": 3508
+  },
+  "training_labeled": 20041,
+  "tune": {
+    "B_evaluable": 2414,
+    "B_label_counts": {
+      "NO_EXPLICIT_B": 2,
+      "UNIQUE_ARCHIVED_B": 2414
+    },
+    "B_log_loss": 0.9078826334857546,
+    "B_top1_hits": 1472,
+    "B_top1_rate": 0.6097763048881525,
+    "finish": {
+      "direct": {
+        "exacta_hits": {
+          "1": 553,
+          "2": 890
+        },
+        "top3_log_loss": 4.179759782743512,
+        "trifecta_hits": {
+          "1": 275,
+          "2": 446,
+          "4": 691,
+          "9": 1017,
+          "12": 1139
+        }
+      },
+      "mixture": {
+        "exacta_hits": {
+          "1": 564,
+          "2": 909
+        },
+        "top3_log_loss": 4.152592714826121,
+        "trifecta_hits": {
+          "1": 278,
+          "2": 454,
+          "4": 696,
+          "9": 1032,
+          "12": 1158
+        }
+      }
+    },
+    "finish_evaluable": 2393,
+    "registered": 2416
+  },
+  "video_kinematics_measured": false
+}

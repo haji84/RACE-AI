@@ -1,0 +1,9 @@
+# DT-R1 acceptance continuation, 2026-11-28
+
+The owner requested completion of the five abilities and remaining development. The previous real-data run 46042572974 completed with 30,713 archive races and 3,480 evaluable test races; its recovered model and summary are immutable under evidence/20261128-five-abilities-run. It selected five_abilities_discovery, but trifecta Hit@1 420/3480 and high/hot=0 do not meet the goal.
+
+The subsequent code 2eab33e2eeccb1f36d9eb391324909b3b2e67e30 added identity and time guards, strict shared-evidence comparison, fixed-K calibrated selection and owner-encrypted study export/restore. The research CI and desktop/mobile browser check succeeded (46046631226); its archive retrain job was skipped by the exact-message gate. Therefore run the already implemented one-shot retrain on the unchanged code, retain the verified aggregate and owner-encrypted study, and independently verify manifest and bytes. This is not promotion, future validation or proof of an actual owner-key decrypt.
+
+Remaining real evidence: registered rider/video identity and calibrated measured motion, full intermediate order labels with reviewed timestamps; actual same-clock independent predictions for the integrated entrant and Codex entrant; official results and independent reader; full same-time odds and payout receipts. Do not turn partial checkpoints or historical ranking labels into measured kinematics. Preserve 90/80/60 thresholds and all prior originals. No new permission, storage provider, paid resource, schedule, or production pin. No rival forecast is used in training.
+
+Do not claim a completed run on the basis of a trigger or CI. The seven fixed-K calibrators and private forecast originals must remain owner-encrypted; short-lived artifacts alone are not durable preservation.
