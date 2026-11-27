@@ -1,8 +1,9 @@
 """Official SP watchdog safety decisions with a fake gh transport."""
 
+from base64 import b64encode
 from datetime import datetime, timedelta, timezone
 import fcntl
-from hashlib import sha256
+from hashlib import sha1, sha256
 import importlib
 import io
 import json
@@ -212,6 +213,61 @@ class PublicationFailureGithub(Github):
         return json.dumps({"jobs": jobs, "total_count": len(jobs)}).encode()
 
 
+class ArchiveTimeoutGithub(PublicationFailureGithub):
+    day = "2026-11-26"
+    archive_head = "f" * 40
+    lease_path = "state/keirin/ab/official-source-continuation/v1/leases/" + day
+
+    def __init__(self, *, age=75):
+        super().__init__(age=age)
+        self.captures[7] = age, "failure"
+        self.receipt.update(state="HOLD_OFFICIAL_SP_CAPTURE_ARCHIVE_FETCH_TIMEOUT", statuses={},
+                            source_requests=0, registered_races=0, new_A_B_sealed=0,
+                            new_A_B_git_archived=0, new_conditioned_A_B_git_archived=0,
+                            new_encrypted_originals=[], paired_comparable_races=0)
+        self.job_changes = {
+            "official-sp-independent-readback": {"conclusion": "skipped"},
+            "official-sp-publish": {"conclusion": "skipped"},
+            "official-sp-settle": {"started_at": timestamp(age - 2), "completed_at": timestamp(age - 6)},
+        }
+        self.settlement.update(state="OFFICIAL_SP_RESULT_POLL_COMPLETE", source_requests=7,
+                               no_provider_tick=False)
+        self.artifact_changes["keirin-official-sp-settlement-7"] = {"created_at": timestamp(age - 5)}
+        identity = dict(event_day=self.day, run_id="7", job="official-sp-settle", attempt_id="a" * 32,
+                        source_commit="b" * 40, policy="EXISTING_OFFICIAL_PUBLIC_SP_20261121_V1",
+                        general_source_release=False)
+        self.claim = dict(identity, schema="RACE_AI_KEIRIN_OFFICIAL_SOURCE_CONTINUATION_CLAIM_V1",
+                          started_at=timestamp(age - 3), max_source_requests=300)
+        self.finish = dict(identity, schema="RACE_AI_KEIRIN_OFFICIAL_SOURCE_CONTINUATION_FINISH_V1",
+                           state="PARTIAL", finished_at=timestamp(age - 5), requests_consumed=7)
+        self.leases = {"7.official-sp-settle.claim.json": self.claim, "7.official-sp-settle.finish.json": self.finish}
+        self.files = ["race_ai/keirin_nationwide_cipher_history.py", "scripts/keirin_official_nationwide_continuation.py"]
+        self.blobs = {}
+
+    def __call__(self, args):
+        path = args[-1]
+        base = "repos/haji84/RACE-AI"
+        if path == f"{base}/compare/{'b' * 40}...{MAIN}?per_page=1":
+            data = {"status": "ahead", "merge_base_commit": {"sha": "b" * 40},
+                    "files": [{"filename": name, "status": "modified"} for name in self.files]}
+        elif path == f"{base}/branches/state%2Fkeirin-encrypted-history":
+            data = {"name": "state/keirin-encrypted-history", "commit": {"sha": self.archive_head}}
+        elif path == f"{base}/contents/{self.lease_path}?ref={self.archive_head}":
+            data = []
+            for name, document in self.leases.items():
+                raw = json.dumps(document).encode()
+                digest = sha1(f"blob {len(raw)}\0".encode() + raw).hexdigest()
+                data.append({"type": "file", "name": name, "sha": digest, "size": len(raw)})
+                self.blobs[digest] = {"sha": digest, "size": len(raw), "encoding": "base64",
+                                      "content": b64encode(raw).decode()}
+        elif path.startswith(f"{base}/git/blobs/"):
+            data = self.blobs[path.rsplit("/", 1)[1]]
+        else:
+            return super().__call__(args)
+        self.calls.append(tuple(args))
+        return json.dumps(data).encode()
+
+
 class WatchdogTests(unittest.TestCase):
     def setUp(self):
         # The first cycle intentionally fails here, before the CLI exists.
@@ -222,8 +278,51 @@ class WatchdogTests(unittest.TestCase):
         self.addCleanup(self.folder.cleanup)
         self.state = Path(self.folder.name) / "private"
 
-    def supervise(self, client, *, dispatch=False, now=NOW):
-        return self.watchdog.supervise(client, now=now, dispatch=dispatch, state_dir=self.state)
+    def supervise(self, client, *, dispatch=False, now=NOW, **options):
+        return self.watchdog.supervise(client, now=now, dispatch=dispatch, state_dir=self.state, **options)
+
+    def test_pre_source_timeout_requires_opt_in_and_allows_one_guarded_recovery(self):
+        gh = ArchiveTimeoutGithub()
+        self.assertEqual(self.supervise(gh, dispatch=True)["decision"], "HOLD_CAPTURE_JOB_FAILED")
+        proof = self.supervise(gh, recovery=(7, MAIN))
+        self.assertEqual(proof["decision"], "WOULD_DISPATCH_OFFICIAL_CONTINUE")
+        self.assertTrue(proof["pre_source_archive_timeout_verified"])
+        self.assertNotIn(WRITE, gh.calls)
+        self.assertEqual(self.supervise(gh, dispatch=True, recovery=(7, MAIN))["decision"],
+                         "DISPATCHED_OFFICIAL_CONTINUE")
+        self.assertEqual(self.supervise(gh, dispatch=True, recovery=(7, MAIN))["decision"],
+                         "HOLD_LOCAL_ATTEMPT_RECENT")
+        self.assertEqual(gh.calls.count(WRITE), 1)
+
+    def test_recovery_refuses_missing_or_inconsistent_source_proof(self):
+        for issue in ("different_failure", "source_work", "capture_lease", "missing_finish", "wrong_finish",
+                      "provider_denial", "unrepaired_main", "wrong_main", "wrong_run", "new_day", "recent"):
+            with self.subTest(issue=issue):
+                gh = ArchiveTimeoutGithub(age=40 if issue == "recent" else 75)
+                now, request = NOW, (7, MAIN)
+                if issue == "different_failure":
+                    gh.receipt["state"] = "HOLD_OTHER_FAILURE"
+                elif issue == "source_work":
+                    gh.receipt["source_requests"] = 1
+                elif issue == "capture_lease":
+                    gh.leases["7.official-sp-capture.claim.json"] = gh.claim
+                elif issue == "missing_finish":
+                    gh.leases.pop("7.official-sp-settle.finish.json")
+                elif issue == "wrong_finish":
+                    gh.finish["requests_consumed"] = 6
+                elif issue == "provider_denial":
+                    gh.settlement["provider_denied"] = True
+                elif issue == "unrepaired_main":
+                    gh.files.pop()
+                elif issue == "wrong_main":
+                    request = (7, "e" * 40)
+                elif issue == "wrong_run":
+                    request = (8, MAIN)
+                elif issue == "new_day":
+                    now += timedelta(hours=12)
+                decision = self.supervise(gh, dispatch=True, now=now, recovery=request)["decision"]
+                self.assertTrue(decision.startswith("HOLD_") or decision == "SKIP_RECENT_OFFICIAL_SP_CAPTURE")
+                self.assertNotIn(WRITE, gh.calls)
 
     def test_stale_safe_capture_is_read_only_by_default(self):
         gh = Github()

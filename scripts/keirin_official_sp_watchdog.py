@@ -3,10 +3,12 @@
 from __future__ import annotations
 
 import argparse
+from base64 import b64decode
+from binascii import Error as Base64Error
 from contextlib import contextmanager
 from datetime import date, datetime, timedelta, timezone
 import fcntl
-from hashlib import sha256
+from hashlib import sha1, sha256
 import io
 import json
 import os
@@ -15,6 +17,7 @@ import re
 import stat
 import subprocess
 import tempfile
+from typing import NamedTuple
 import zipfile
 import zlib
 
@@ -50,6 +53,18 @@ LOCAL_HOLD = "HOLD_UNSAFE_LOCAL_RECEIPT"
 ARTIFACT_LIMIT = 64 * 1024
 RUNS_LIMIT = 100
 JOB_LOOKUP_LIMIT = 12
+ARCHIVE_BRANCH = "state/keirin-encrypted-history"
+LEASE_ROOT = "state/keirin/ab/official-source-continuation/v1/leases"
+LEASE_SCHEMA = "RACE_AI_KEIRIN_OFFICIAL_SOURCE_CONTINUATION"
+LEASE_POLICY = "EXISTING_OFFICIAL_PUBLIC_SP_20261121_V1"
+ARCHIVE_TIMEOUT = "HOLD_OFFICIAL_SP_CAPTURE_ARCHIVE_FETCH_TIMEOUT"
+REPAIR_FILES = frozenset(("race_ai/keirin_nationwide_cipher_history.py",
+                          "scripts/keirin_official_nationwide_continuation.py"))
+
+
+class ArchiveTimeoutEvidence(NamedTuple):
+    capture_job_end: datetime
+    settlement_window: tuple[datetime, datetime]
 
 
 class Hold(ValueError):
@@ -153,12 +168,11 @@ def require_idle(gh, workflow_id):
             raise Hold("HOLD_ACTIVE_OFFICIAL_SP_WORKFLOW")
 
 
-def publication_failure_jobs(jobs, run, now, created, updated, capture_started, capture_finished):
-    """Identify the failed display job and the exact successful source evidence windows."""
+def failed_run_jobs(jobs, run, failed_job):
     require(run.get("conclusion") == "failure" and
             all(job.get("status") == "completed" and
                 job.get("conclusion") in ("success", "skipped", "failure") for job in jobs) and
-            [job.get("name") for job in jobs if job.get("conclusion") == "failure"] == [PUBLISH_JOB],
+            [job.get("name") for job in jobs if job.get("conclusion") == "failure"] == [failed_job],
             JOB_HOLD)
     roles = (CAPTURE_JOB, READBACK_JOB, PUBLISH_JOB, SETTLE_JOB)
     selected = [job for job in jobs if job.get("name") in roles]
@@ -168,16 +182,24 @@ def publication_failure_jobs(jobs, run, now, created, updated, capture_started, 
                     and job.get("run_attempt") == run["run_attempt"]
                     and job.get("head_sha") == run["head_sha"] for job in selected)
             and len({job["id"] for job in selected}) == len(roles), JOB_HOLD)
-    by_name = {job["name"]: job for job in selected}
+    return {job["name"]: job for job in selected}
+
+
+def job_window(job, now, created, updated):
+    started = utc(job.get("started_at"), now, JOB_HOLD)
+    finished = utc(job.get("completed_at"), now, JOB_HOLD)
+    require(created <= started <= finished <= updated, JOB_HOLD)
+    return started, finished
+
+
+def publication_failure_jobs(jobs, run, now, created, updated, capture_started, capture_finished):
+    """Identify the failed display job and the exact successful source evidence windows."""
+    by_name = failed_run_jobs(jobs, run, PUBLISH_JOB)
     require(by_name[CAPTURE_JOB]["conclusion"] == by_name[READBACK_JOB]["conclusion"] == "success",
             JOB_HOLD)
 
     def window(name):
-        job = by_name[name]
-        started = utc(job.get("started_at"), now, JOB_HOLD)
-        finished = utc(job.get("completed_at"), now, JOB_HOLD)
-        require(created <= started <= finished <= updated, JOB_HOLD)
-        return started, finished
+        return job_window(by_name[name], now, created, updated)
 
     capture_job = window(CAPTURE_JOB)
     readback = window(READBACK_JOB)
@@ -189,7 +211,18 @@ def publication_failure_jobs(jobs, run, now, created, updated, capture_started, 
     return capture_job[1], readback, window(SETTLE_JOB) if settlement == "success" else None
 
 
-def capture_times(gh, run, now, created, updated):
+def archive_timeout_jobs(jobs, run, now, created, updated, started, finished):
+    by_name = failed_run_jobs(jobs, run, CAPTURE_JOB)
+    require(run["event"] == "workflow_dispatch" and run["run_attempt"] == 1
+            and by_name[SETTLE_JOB]["conclusion"] == "success"
+            and by_name[READBACK_JOB]["conclusion"] == by_name[PUBLISH_JOB]["conclusion"] == "skipped", JOB_HOLD)
+    capture = job_window(by_name[CAPTURE_JOB], now, created, updated)
+    settlement = job_window(by_name[SETTLE_JOB], now, created, updated)
+    require(capture[0] <= started <= finished <= capture[1] <= settlement[0], JOB_HOLD)
+    return ArchiveTimeoutEvidence(capture[1], settlement)
+
+
+def capture_times(gh, run, now, created, updated, recovery_run_id=None):
     path = f"{REPO_API}/actions/runs/{run['id']}/attempts/{run['run_attempt']}/jobs?per_page=100"
     jobs, total = listing(metadata(gh, path), "jobs", 100, METADATA_HOLD)
     captures = [job for job in jobs if job.get("name") == CAPTURE_JOB]
@@ -199,8 +232,9 @@ def capture_times(gh, run, now, created, updated):
             and capture.get("head_sha") == run["head_sha"] and capture.get("status") == "completed",
             OUTCOME_HOLD)
     outer_success = run.get("conclusion") in ("success", "skipped")
+    recovery_failure = run["id"] == recovery_run_id and capture.get("conclusion") == "failure"
     require(capture.get("conclusion") == "success" or
-            (outer_success and capture.get("conclusion") == "skipped"), JOB_HOLD)
+            (outer_success and capture.get("conclusion") == "skipped") or recovery_failure, JOB_HOLD)
     if capture["conclusion"] == "skipped":
         return None
     steps = capture.get("steps")
@@ -208,16 +242,19 @@ def capture_times(gh, run, now, created, updated):
             OUTCOME_HOLD)
     step = [row for row in steps if row.get("name") == CAPTURE_STEP]
     require(len(step) == 1 and step[0].get("status") == "completed"
-            and step[0].get("conclusion") == "success", OUTCOME_HOLD)
+            and step[0].get("conclusion") == ("failure" if recovery_failure else "success"), OUTCOME_HOLD)
     started = utc(step[0].get("started_at"), now, OUTCOME_HOLD)
     finished = utc(step[0].get("completed_at"), now, OUTCOME_HOLD)
     require(created <= started <= finished <= updated, OUTCOME_HOLD)
-    evidence = None if outer_success else publication_failure_jobs(jobs, run, now, created, updated,
-                                                                  started, finished)
+    evidence = None
+    if recovery_failure:
+        evidence = archive_timeout_jobs(jobs, run, now, created, updated, started, finished)
+    elif not outer_success:
+        evidence = publication_failure_jobs(jobs, run, now, created, updated, started, finished)
     return started, finished, evidence
 
 
-def latest_capture(gh, workflow_id, now):
+def latest_capture(gh, workflow_id, now, recovery_run_id=None):
     path = f"{WORKFLOW_API}/runs?branch=main&per_page={RUNS_LIMIT}"
     rows, total = listing(metadata(gh, path), "workflow_runs", RUNS_LIMIT, METADATA_HOLD)
     trusted, dates, seen = [], [], set()
@@ -244,7 +281,7 @@ def latest_capture(gh, workflow_id, now):
         if latest and updated < latest[2]:
             break
         require(number < JOB_LOOKUP_LIMIT, "HOLD_CAPTURE_LOOKUP_LIMIT")
-        times = capture_times(gh, run, now, created, updated)
+        times = capture_times(gh, run, now, created, updated, recovery_run_id)
         if times and (latest is None or times[1] > latest[2]):
             latest = run, *times
     require(latest is not None, "HOLD_NO_VERIFIED_CAPTURE_HISTORY")
@@ -322,6 +359,91 @@ def require_publication_failure_proof(gh, run, now, summary, evidence):
             and type(requests) is int and 0 <= requests <= 300 and type(no_provider_tick) is bool
             and (not no_provider_tick or requests == 0)
             and (no_lease or lease_failed is False), "HOLD_CAPTURE_STOPPING_STATE")
+
+
+def archive_lease_receipt(gh, entry):
+    require(isinstance(entry, dict) and entry.get("type") == "file" and sha(entry.get("sha"))
+            and type(entry.get("size")) is int and 0 < entry["size"] <= 8192, OUTCOME_HOLD)
+    digest, size = entry["sha"], entry["size"]
+    blob = metadata(gh, f"{REPO_API}/git/blobs/{digest}")
+    content = blob.get("content")
+    require(blob.get("sha") == digest and blob.get("size") == size and blob.get("encoding") == "base64"
+            and isinstance(content, str) and len(content) <= 12000, OUTCOME_HOLD)
+    try:
+        raw = b64decode("".join(content.splitlines()), validate=True)
+    except (Base64Error, ValueError):
+        raise Hold(OUTCOME_HOLD) from None
+    require(len(raw) == size and sha1(f"blob {size}\0".encode() + raw).hexdigest() == digest, OUTCOME_HOLD)
+    return decode(raw, 8192, OUTCOME_HOLD)
+
+
+def require_closed_settlement_lease(gh, run, now, day, evidence, requests):
+    branch = metadata(gh, f"{REPO_API}/branches/{ARCHIVE_BRANCH.replace('/', '%2F')}")
+    commit = branch.get("commit")
+    require(branch.get("name") == ARCHIVE_BRANCH and isinstance(commit, dict) and sha(commit.get("sha")), OUTCOME_HOLD)
+    raw = api(gh, f"{REPO_API}/contents/{LEASE_ROOT}/{day}?ref={commit['sha']}")
+    require(type(raw) is bytes and len(raw) <= 1_000_000, OUTCOME_HOLD)
+    try:
+        listing = json.loads(raw)
+    except (ValueError, UnicodeError):
+        raise Hold(OUTCOME_HOLD) from None
+    # The contents endpoint lists at most 1,000 entries. A truncated day cannot establish absence.
+    require(type(listing) is list and len(listing) < 1000
+            and all(isinstance(row, dict) and type(row.get("name")) is str for row in listing), OUTCOME_HOLD)
+    entries = {row["name"]: row for row in listing}
+    run_id = str(run["id"])
+    require(len(entries) == len(listing) and not any(name.startswith(f"{run_id}.{CAPTURE_JOB}.") for name in entries),
+            OUTCOME_HOLD)
+    prefix = f"{run_id}.{SETTLE_JOB}"
+    claim = archive_lease_receipt(gh, entries.get(prefix + ".claim.json"))
+    finish = archive_lease_receipt(gh, entries.get(prefix + ".finish.json"))
+    attempt_id = claim.get("attempt_id")
+    identity = {"event_day": day, "run_id": run_id, "job": SETTLE_JOB, "source_commit": run["head_sha"],
+                "attempt_id": attempt_id, "policy": LEASE_POLICY}
+    start, end = evidence.settlement_window
+    maximum = claim.get("max_source_requests")
+    require(claim.get("schema") == f"{LEASE_SCHEMA}_CLAIM_V1" and finish.get("schema") == f"{LEASE_SCHEMA}_FINISH_V1"
+            and type(attempt_id) is str and re.fullmatch(r"[a-f0-9]{32}", attempt_id)
+            and all(claim.get(key) == finish.get(key) == value for key, value in identity.items())
+            and claim.get("general_source_release") is finish.get("general_source_release") is False
+            and finish.get("state") in ("COMPLETED", "PARTIAL")
+            and type(finish.get("requests_consumed")) is int and finish["requests_consumed"] == requests
+            and type(maximum) is int and requests <= maximum <= 300
+            and start <= utc(claim.get("started_at"), now, OUTCOME_HOLD)
+            <= utc(finish.get("finished_at"), now, OUTCOME_HOLD) <= end, OUTCOME_HOLD)
+
+
+def require_pre_source_recovery(gh, capture, now, head):
+    run, started, finished, evidence = capture
+    day = now.astimezone(JST).date().isoformat()
+    require(started.astimezone(JST).date().isoformat() == finished.astimezone(JST).date().isoformat() == day,
+            "HOLD_CAPTURE_JST_DAY_CHANGED_NO_DISPATCH")
+    comparison = metadata(gh, f"{REPO_API}/compare/{run['head_sha']}...{head}?per_page=1")
+    base, files = comparison.get("merge_base_commit"), comparison.get("files")
+    require(comparison.get("status") == "ahead" and isinstance(base, dict) and base.get("sha") == run["head_sha"]
+            and type(files) is list and all(isinstance(row, dict) and type(row.get("filename")) is str for row in files)
+            and REPAIR_FILES <= {row["filename"] for row in files if row.get("status") == "modified"},
+            "HOLD_ARCHIVE_REPAIR_NOT_IN_MAIN")
+    summary = safe_job_report(gh, run, now, "receipt", "summary.json", finished, evidence.capture_job_end)
+    require(summary.get("provider_denied") is not True, "HOLD_CAPTURE_PROVIDER_STOP")
+    sent = ("source_requests", "registered_races", "new_A_B_sealed", "new_A_B_git_archived",
+            "new_conditioned_A_B_git_archived", "paired_comparable_races")
+    require(summary.get("schema") == CAPTURE_SCHEMA and summary.get("state") == ARCHIVE_TIMEOUT
+            and summary.get("day_jst") == day and summary.get("provider_denied") is False
+            and summary.get("source_or_forecast_plaintext_exposed") is False
+            and summary.get("source_lease_finish_failed", False) is False
+            and all(type(summary.get(key)) is int and summary[key] == 0 for key in sent)
+            and summary.get("new_encrypted_originals") == [] and summary.get("statuses") == {}, OUTCOME_HOLD)
+    settlement = safe_job_report(gh, run, now, "settlement", "summary.json", *evidence.settlement_window)
+    requests = settlement.get("source_requests")
+    require(settlement.get("provider_denied") is not True
+            and settlement.get("state") != "HOLD_OFFICIAL_SP_PROVIDER_STOP", "HOLD_CAPTURE_PROVIDER_STOP")
+    require(settlement.get("day_jst") == day and settlement.get("state") == "OFFICIAL_SP_RESULT_POLL_COMPLETE"
+            and settlement.get("provider_denied") is settlement.get("source_unavailable") is False
+            and settlement.get("source_lease_finish_failed", False) is False
+            and settlement.get("no_provider_tick") is False and type(requests) is int and 0 < requests <= 300,
+            "HOLD_CAPTURE_STOPPING_STATE")
+    require_closed_settlement_lease(gh, run, now, day, evidence, requests)
 
 
 def require_safe_capture(gh, capture, now):
@@ -416,18 +538,20 @@ def save_attempt(folder, directory, now, status):
         Path(temporary.name).unlink(missing_ok=True)
 
 
-def supervised_dispatch(gh, report, state_dir, now, capture, workflow_id, head, *, delay, clock):
+def supervised_dispatch(gh, report, state_dir, now, capture, workflow_id, head, *, delay, clock, recovery_run_id=None):
     try:
         with attempt_lock(state_dir) as directory:
             require_local_clear(directory, now, capture[1], delay)
             require(active_workflow(gh) == workflow_id, "HOLD_WORKFLOW_METADATA")
-            require(latest_capture(gh, workflow_id, now) == capture, "HOLD_CAPTURE_HISTORY_MOVED_NO_DISPATCH")
+            require(latest_capture(gh, workflow_id, now, recovery_run_id) == capture,
+                    "HOLD_CAPTURE_HISTORY_MOVED_NO_DISPATCH")
             require_idle(gh, workflow_id)
             require(main_head(gh) == head, "HOLD_MAIN_MOVED_NO_DISPATCH")
             attempted = clock() if clock is not None else now
             require(isinstance(attempted, datetime) and attempted.utcoffset() is not None
                     and attempted >= now, "HOLD_CAPTURE_CLOCK_CHANGED_NO_DISPATCH")
-            require(delay == RECENT or attempted.astimezone(JST).date() == now.astimezone(JST).date(),
+            require((delay == RECENT and recovery_run_id is None)
+                    or attempted.astimezone(JST).date() == now.astimezone(JST).date(),
                     "HOLD_CAPTURE_JST_DAY_CHANGED_NO_DISPATCH")
             save_attempt(state_dir, directory, attempted, "unconfirmed")
             report["dispatch_attempted"] = True
@@ -442,7 +566,7 @@ def supervised_dispatch(gh, report, state_dir, now, capture, workflow_id, head, 
     return "DISPATCHED_OFFICIAL_CONTINUE"
 
 
-def supervise(gh, *, now, dispatch=False, state_dir=None, clock=None):
+def supervise(gh, *, now, dispatch=False, state_dir=None, clock=None, recovery=None):
     report = {"schema": SCHEMA, "dispatch_attempted": False}
     try:
         repo = metadata(gh, REPO_API)
@@ -451,15 +575,25 @@ def supervise(gh, *, now, dispatch=False, state_dir=None, clock=None):
                 and repo.get("disabled") is False, "HOLD_REPOSITORY_IDENTITY")
         head = main_head(gh)
         report["main_sha"] = head
+        recovery_run_id = None
+        if recovery is not None:
+            recovery_run_id, repair_main = recovery
+            require(positive_id(recovery_run_id) and head == repair_main, "HOLD_ARCHIVE_REPAIR_NOT_IN_MAIN")
         workflow_id = active_workflow(gh)
         require_idle(gh, workflow_id)
-        capture = latest_capture(gh, workflow_id, now)
+        capture = latest_capture(gh, workflow_id, now, recovery_run_id)
         run, _, finished, evidence = capture
         report.update(last_actual_capture_run_id=run["id"], last_actual_capture_at=finished.isoformat())
-        delay = require_safe_capture(gh, capture, now)
+        if recovery is not None:
+            require(run["id"] == recovery_run_id and isinstance(evidence, ArchiveTimeoutEvidence), JOB_HOLD)
+            require_pre_source_recovery(gh, capture, now, head)
+            report["pre_source_archive_timeout_verified"] = True
+            delay = RECENT
+        else:
+            delay = require_safe_capture(gh, capture, now)
+            if evidence is not None:
+                report["publication_only_failure_verified"] = True
         report["recovery_delay_minutes"] = delay // timedelta(minutes=1)
-        if evidence is not None:
-            report["publication_only_failure_verified"] = True
         if now - finished <= delay:
             decision = "SKIP_RECENT_OFFICIAL_SP_CAPTURE"
         elif not dispatch:
@@ -468,7 +602,7 @@ def supervise(gh, *, now, dispatch=False, state_dir=None, clock=None):
             if state_dir is None:
                 state_dir = Path.home() / "Library/Application Support/RACE-AI/keirin-production-watch/state"
             decision = supervised_dispatch(gh, report, state_dir, now, capture, workflow_id, head,
-                                           delay=delay, clock=clock)
+                                           delay=delay, clock=clock, recovery_run_id=recovery_run_id)
     except Hold as exc:
         decision = str(exc)
     except (OSError, subprocess.SubprocessError):
@@ -481,12 +615,20 @@ def main(argv=None):
     parser = argparse.ArgumentParser(description=__doc__, allow_abbrev=False)
     parser.add_argument("--dispatch", action="store_true",
                         help="Allow the existing official-continue dispatch when all checks pass")
+    parser.add_argument("--recover-archive-timeout", nargs=2, metavar=("FAILED_RUN_ID", "REPAIRED_MAIN_SHA"),
+                        help="Verify one pre-source archive timeout on an explicitly selected repaired main")
     args = parser.parse_args(argv)
+    recovery = None
+    if args.recover_archive_timeout:
+        run_id, head = args.recover_archive_timeout
+        if re.fullmatch(r"[1-9][0-9]{0,17}", run_id) is None or not sha(head):
+            parser.error("--recover-archive-timeout requires a GitHub run ID and full commit SHA")
+        recovery = (int(run_id), head)
 
     def clock():
         return datetime.now(timezone.utc)
 
-    report = supervise(call_gh, now=clock(), dispatch=args.dispatch, clock=clock)
+    report = supervise(call_gh, now=clock(), dispatch=args.dispatch, clock=clock, recovery=recovery)
     print(json.dumps(report, sort_keys=True))
     return 0
 
