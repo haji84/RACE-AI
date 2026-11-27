@@ -27,6 +27,8 @@ CANDIDATES = {
     'without_context_with_pairs': '外部資料なし・履歴とライン相互作用あり',
     'without_agari_interactions_with_pairs': '上がり相互作用なし・同一入力',
     'without_context_or_agari_with_pairs': '外部資料・上がり相互作用なし',
+    'five_abilities_no_discovery':'5機能・探索なし',
+    'five_abilities_discovery':'5機能・学習期間の自動探索あり',
 }
 CLASS_LABELS = {'S': 'S級', 'A12': 'A級1・2班', 'A3': 'A級3班', 'L1': 'L級',
                 'MIXED': '混在', 'UNKNOWN': '級班不明'}

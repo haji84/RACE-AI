@@ -864,6 +864,7 @@ def run_shadow_cycle(ledger, records, model, *, source_verifier, result_verifier
     from .comparison import compare_models
     from .context import augment_features
     from .agari import augment_agari, uses_agari
+    from .abilities import augment_abilities, uses_abilities
     for callback in (source_verifier, result_verifier, readback_verifier):
         require(callable(callback), 'SOURCE_RESULT_READBACK_VERIFIERS_REQUIRED')
     require(odds_snapshots is None or isinstance(odds_snapshots, dict), 'ODDS_SNAPSHOTS_MAPPING_REQUIRED')
@@ -945,6 +946,11 @@ def run_shadow_cycle(ledger, records, model, *, source_verifier, result_verifier
                 row = augment_agari([row])[0]
             except (ValueError, TypeError, KeyError) as error:
                 runtime_hold = 'FEATURE_SCHEMA_AGARI_HOLD:' + str(error)
+        if uses_abilities(model.feature_names) and not runtime_hold and row.get('feature_status') == 'READY':
+            try:
+                row=augment_abilities([row])[0]
+            except (ValueError, TypeError, KeyError) as error:
+                runtime_hold='FEATURE_SCHEMA_ABILITIES_HOLD:'+str(error)
         if tuple(row.get('feature_names', ())) != tuple(model.feature_names):
             runtime_hold = runtime_hold or 'FEATURE_SCHEMA_MISMATCH'
         schema_sha = digest(list(row.get('feature_names', ())))

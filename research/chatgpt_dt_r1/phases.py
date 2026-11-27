@@ -20,7 +20,7 @@ from .observations import PhaseObservation, Provenance, SourceKind, utc
 PHASES = ('INITIAL', 'BELL', 'FINAL_HOME', 'FINAL_BACK', 'FOURTH_CORNER', 'GOAL')
 
 
-def _state_row(row, previous, origin):
+def _state_row(row, previous, origin, *, past_orders=None):
     _verify_feature_binding(row)
     cars = [r['car'] for r in row['riders']]
     if previous is not None and (len(previous) != len(cars) or set(previous) != set(cars)):
@@ -31,6 +31,15 @@ def _state_row(row, previous, origin):
                feature_version=row.get('feature_version', 'supplied-features') + '+phase-state-v1',
                feature_status=row.get('feature_status', 'READY'), feature_scope='CONDITIONAL_PHASE_STATE',
                history_evidence=dict(row.get('history_evidence', {}), phase_state={'order': previous, 'origin': origin}))
+    from .abilities import uses_abilities, phase_state_features, STATE_NAMES
+    if uses_abilities(row['feature_names']):
+        orders=[] if past_orders is None else past_orders
+        if (orders[-1] if orders else None)!=previous:
+            raise ValueError('DYNAMIC_PHASE_PREVIOUS_ORDER_MISMATCH')
+        out['features']=np.concatenate((out['features'],phase_state_features(row,orders)),axis=1)
+        out['feature_names']+=STATE_NAMES
+        out['feature_version']+='+dynamic-state-v1'
+        out['history_evidence']['phase_state']['past_orders']=orders
     return _bind_feature_input(out)
 
 
@@ -81,7 +90,12 @@ def fit_phase_bundle(rows, observations, *, train_before, available_by, min_race
             previous = accepted.get((rid, PHASES[i - 1])) if i else None
             if label is None or i and previous is None or row.get('feature_status', 'READY') != 'READY':
                 continue
-            state = _state_row(row, list(previous.order) if previous else None, 'observed_training_state')
+            from .abilities import uses_abilities
+            earlier=[accepted.get((rid,p)) for p in PHASES[:i]]
+            if uses_abilities(row['feature_names']) and any(p is None for p in earlier):
+                continue
+            state = _state_row(row, list(previous.order) if previous else None, 'observed_training_state',
+                past_orders=[list(p.order) for p in earlier if p is not None])
             state.update(finish=list(label.order), top3=list(label.order[:3]))
             training.append(state)
         coverage[phase] = {'usable_label_pairs': len(training), 'status': 'HOLD'}
@@ -101,7 +115,7 @@ def fit_phase_bundle(rows, observations, *, train_before, available_by, min_race
     return artifact
 
 
-def forecast_phase_paths(bundle, row, *, prediction_at=None, samples=64, seed=731):
+def forecast_phase_paths(bundle, row, *, prediction_at=None, samples=64, seed=731, favorite_car=None):
     from .pipeline import validate_prediction_inputs
     _verify_feature_binding(row)
     validate_prediction_inputs(row, prediction_at=prediction_at)
@@ -125,10 +139,13 @@ def forecast_phase_paths(bundle, row, *, prediction_at=None, samples=64, seed=73
     paths = Counter()
     cars = [r['car'] for r in row['riders']]
     counts = {phase: np.zeros((len(cars), len(cars))) for phase in PHASES}
+    if favorite_car is not None and favorite_car not in cars:
+        raise ValueError('FAVORITE_NOT_IN_ROSTER')
+    failure_counts=Counter(); condition_counts=Counter(); finish_counts=Counter()
     for _ in range(samples):
         previous, path = None, []
         for phase in PHASES:
-            state = _state_row(row, previous, 'sampled_predictive_state')
+            state = _state_row(row, previous, 'sampled_predictive_state',past_orders=[list(o) for o in path])
             _, base, pairs = models[phase]._prepared(state)
             mask, order = 0, []
             for rank in range(len(cars)):
@@ -140,6 +157,12 @@ def forecast_phase_paths(bundle, row, *, prediction_at=None, samples=64, seed=73
             path.append(tuple(order))
             previous = order
         paths[tuple(path)] += 1
+        finish_counts[path[-1][:3]]+=1
+        if favorite_car is not None:
+            lost=path[-1][0]!=favorite_car
+            for phase,order in zip(PHASES[:-1],path[:-1]):
+                label=(phase,'front' if order[0]==favorite_car else 'not_front')
+                condition_counts[label]+=1;failure_counts[label]+=int(lost)
     return {'status': 'SAMPLED_UNVALIDATED', 'confidence': 'HOLD', 'samples': samples, 'seed': seed,
             'scope': 'statistical phase paths, no measured speed/power/fatigue; frequencies are not calibrated confidence',
             'paths': [{'phases': [{'phase': phase, 'order': list(order)} for phase, order in zip(PHASES, path)],
@@ -147,4 +170,8 @@ def forecast_phase_paths(bundle, row, *, prediction_at=None, samples=64, seed=73
                       for path, n in paths.most_common(8)],
             'phase_marginals': {phase: [{'car': car, 'position_probabilities': (matrix[i] / samples).tolist()}
                                        for i, car in enumerate(cars)] for phase, matrix in counts.items()},
+            'finish_samples':[{'cars':list(k),'sample_count':v,'sample_fraction':v/samples} for k,v in finish_counts.most_common()],
+            'favorite_failure_paths':{'favorite_car':favorite_car,'scope':'sampled conditional associations, not causal or calibrated',
+                'conditions':[{'phase':k[0],'position':k[1],'sample_count':v,'loss_count':failure_counts[k],
+                    'sample_loss_fraction':failure_counts[k]/v} for k,v in sorted(condition_counts.items())]},
             'artifact_sha256': bundle['artifact_sha256']}

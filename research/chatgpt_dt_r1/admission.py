@@ -481,6 +481,7 @@ class OfficialAdmissionAdapter:
         from .features import build_features, require_history_available
         from .context import augment_features, EXTRA_NAMES
         from .agari import augment_agari, AGARI_NAMES
+        from .abilities import augment_abilities, ABILITY_NAMES
         _need(_FEATURE_BINDING <= set(binding), 'COMPLETE_FEATURE_BINDING_REQUIRED')
         _need(type(binding['feature_model_id']) is str and bool(binding['feature_model_id']), 'FEATURE_MODEL_REQUIRED')
         as_of = binding['context_as_of']
@@ -516,14 +517,16 @@ class OfficialAdmissionAdapter:
         featured = next(r for r in build_features(history + [row]) if r['race_id'] == row['race_id'])
         base_names = tuple(featured['feature_names'])
         schema = binding['feature_schema_sha256']
-        if schema in (digest(list(base_names + EXTRA_NAMES)), digest(list(base_names + EXTRA_NAMES + AGARI_NAMES))):
+        if schema in tuple(digest(list(base_names + EXTRA_NAMES + suffix)) for suffix in ((), AGARI_NAMES, AGARI_NAMES+ABILITY_NAMES)):
             identities = {str(r['identity_key']) for r in row['riders'] if r['identity_usable'] is True}
             usable_timings = [r for r in self.timing_records if str(_json_value(r).get('rider_id',
                 _json_value(r).get('identity_key', ''))) in identities]
             featured = augment_features([featured], venue_store=self.venue_store, timing_records=usable_timings,
                 as_of=as_of, allow_current_geometry_assumption=self.allow_current_geometry_assumption)[0]
-        if schema == digest(list(tuple(featured['feature_names']) + AGARI_NAMES)):
+        if schema in tuple(digest(list(tuple(featured['feature_names'])+AGARI_NAMES+suffix)) for suffix in ((),ABILITY_NAMES)):
             featured = augment_agari([featured])[0]
+        if schema == digest(list(tuple(featured['feature_names'])+ABILITY_NAMES)):
+            featured=augment_abilities([featured])[0]
         expected = dict(feature_input_sha256=featured['feature_input_sha256'],
             feature_schema_sha256=digest(list(featured['feature_names'])),
             history_snapshot_sha256=history_snapshot,

@@ -84,6 +84,8 @@ def augment_features(rows, *, venue_store=None, timing_records=(), as_of,
     substituted for a historical publication or cutoff clock.
     """
     utc(as_of)
+    from .abilities import split_sidecars, motion_history
+    timing_records, motion_records = split_sidecars(timing_records)
     book = TimingBook.from_records(timing_records)
     indexed = defaultdict(list)
     for observation in book.observations:
@@ -179,5 +181,7 @@ def augment_features(rows, *, venue_store=None, timing_records=(), as_of,
                     'measured_timing_rider_count': sum(any(t.get(metric + '_count', 0) for metric in ACTIVE_TIMINGS) for t in timing_by_rider.values())}
         row['context_evidence'] = evidence
         row['history_evidence'] = dict(row['history_evidence'], external_context=evidence)
+        if motion_records:
+            row['history_evidence']['reviewed_motion'] = motion_history(row, motion_records, as_of)
         out.append(_bind_feature_input(row))
     return out

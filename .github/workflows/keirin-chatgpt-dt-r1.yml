@@ -44,7 +44,7 @@ jobs:
         run: python -m research.chatgpt_dt_r1.cli --help
 
   owner-pinned-archive-retrain:
-    if: github.event_name == 'push' && github.ref == 'refs/heads/research/chatgpt-dt-r1-pipeline-20261128' && github.event.head_commit.message == 'Run owner-requested pinned agari archive retraining'
+    if: github.event_name == 'push' && github.ref == 'refs/heads/research/chatgpt-dt-r1-pipeline-20261128' && (github.event.head_commit.message == 'Run owner-requested pinned agari archive retraining' || github.event.head_commit.message == 'Implement five DT-R1 abilities and run pinned archive study')
     needs: contracts
     runs-on: ubuntu-24.04
     timeout-minutes: 30

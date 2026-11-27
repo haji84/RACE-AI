@@ -81,6 +81,7 @@ def main(argv=None):
     phase.add_argument('--before', required=True)
     phase.add_argument('--available-by', required=True)
     phase.add_argument('--output', type=Path, required=True)
+    phase.add_argument('--five-abilities', action='store_true',help='Train the new agari and dynamic-state schema.')
     _context_options(phase)
     init = sub.add_parser('ledger-init', help='Explicitly initialize a NEW private three-participant research ledger.')
     init.add_argument('--path', type=Path, required=True)
@@ -149,12 +150,18 @@ def main(argv=None):
             force=bool(declared.get('weather_file_sha256')) and any(n.startswith(('context_', 'history_observed_')) for n in model.feature_names))[0]
         if uses_agari(model.feature_names):
             target = augment_agari([target])[0]
+        from .abilities import augment_abilities, uses_abilities, favorite_failure
+        if uses_abilities(model.feature_names):
+            target=augment_abilities([target])[0]
         prediction = forecast_row(model, target, prediction_at=args.at, full=True)
         prediction['explanation'] = model.explain(target) if prediction['status'] == 'READY' else []
+        if prediction['status']=='READY' and uses_abilities(model.feature_names):
+            prediction['favorite_failure']=favorite_failure(model,target)
         if args.phase_bundle and prediction['status'] == 'READY':
             from .phases import forecast_phase_paths
             prediction['phase_paths'] = forecast_phase_paths(_read(args.phase_bundle), target,
-                prediction_at=args.at, samples=args.phase_samples)
+                prediction_at=args.at, samples=args.phase_samples,
+                favorite_car=prediction.get('favorite_failure',{}).get('favorite_car'))
         write_private_json(args.output, prediction)
         print(json.dumps({'status': prediction['status'], 'private_original_saved': True}))
     elif args.command == 'select':
@@ -179,6 +186,10 @@ def main(argv=None):
         from .features import build_features
         from .phases import fit_phase_bundle
         rows = _context(build_features(_read(args.history)), args, args.available_by)
+        if args.five_abilities:
+            from .agari import augment_agari
+            from .abilities import augment_abilities
+            rows=augment_abilities(augment_agari(rows))
         raw = _read(args.observations)
         observations = raw['records'] if isinstance(raw, dict) else raw
         bundle = fit_phase_bundle(rows, observations, train_before=args.before, available_by=args.available_by)

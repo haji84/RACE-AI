@@ -115,6 +115,11 @@ def freeze_evaluation_contract(directory, splits, source_audit):
         if source_audit.get('context_requested'):
             contract['candidates'].append({'name': 'without_context_or_agari_with_pairs', 'history': True,
                                            'pairs': True, 'agari': False, 'context': False, 'ridge': .01})
+    if source_audit.get('five_abilities'):
+        contract['five_abilities'] = source_audit['five_abilities']
+        contract['candidates'].extend([
+            {'name':'five_abilities_no_discovery','history':True,'pairs':True,'abilities':True,'discovery':False,'ridge':.01},
+            {'name':'five_abilities_discovery','history':True,'pairs':True,'abilities':True,'discovery':True,'ridge':.01}])
     contract['input_context'] = source_audit.get('context', {})
     contract['contract_sha256'] = digest(contract)
     write_private_json(directory / 'evaluation_contract.json', contract)
@@ -318,6 +323,7 @@ def run_study(paths, directory, *, splits=None, max_iter=160, progress=None,
     from .data import load_archives
     from .features import build_features
     from .agari import augment_agari, VERSION as AGARI_VERSION, AGARI_NAMES, uses_agari, CONTEXT_PREFIX
+    from .abilities import augment_abilities, discover_features, VERSION as ABILITY_VERSION, ABILITY_NAMES, DISC, DISCOVERY_CONFIG, uses_abilities
     from .calibration import fit_calibrator, audit_calibrator, assess_selection
     from .policy import fixed_selection
     splits = DEFAULT_SPLITS if splits is None else splits
@@ -333,6 +339,7 @@ def run_study(paths, directory, *, splits=None, max_iter=160, progress=None,
     weather_bytes = Path(weather_path).read_bytes() if weather_path else None
     source_audit['agari_interactions'] = {'version': AGARI_VERSION, 'columns': list(AGARI_NAMES),
                                          'official_half_lap_only': True}
+    source_audit['five_abilities'] = {'version':ABILITY_VERSION,'columns':list(ABILITY_NAMES),'discovery':DISCOVERY_CONFIG}
     if allow_current_geometry_assumption and venue_path is None:
         raise ValueError('GEOMETRY_FILE_REQUIRED_FOR_ASSUMPTION')
     analysis_at = analysis_at or datetime.now(timezone.utc).isoformat()
@@ -344,7 +351,7 @@ def run_study(paths, directory, *, splits=None, max_iter=160, progress=None,
             'weather_file_sha256': sha256(weather_bytes).hexdigest() if weather_bytes is not None else None,
             'current_geometry_for_history_is_assumption': bool(allow_current_geometry_assumption)}
     code_files = ('data.py', 'features.py', 'model.py', 'pipeline.py', 'policy.py', 'calibration.py', 'comparison.py',
-                  'context.py', 'observations.py', 'venues.py', 'runtime.py', 'agari.py')
+                  'context.py', 'observations.py', 'venues.py', 'runtime.py', 'agari.py', 'abilities.py')
     source_code_sha256 = {name: sha256(Path(__file__).with_name(name).read_bytes()).hexdigest() for name in code_files}
     contract = freeze_evaluation_contract(directory, splits, source_audit)
     report_progress(f'Admitted {len(records)} archived races; retrospective scope only.')
@@ -369,7 +376,7 @@ def run_study(paths, directory, *, splits=None, max_iter=160, progress=None,
             'historical_geometry_assumption': bool(allow_current_geometry_assumption),
             'geometry_assumption_races': sum(r['context_evidence']['current_geometry_assumption'] for r in featured),
             'races_with_measured_timing': sum(r['context_evidence']['measured_timing_rider_count'] > 0 for r in featured)}
-    featured = augment_agari(featured)
+    featured = augment_abilities(augment_agari(featured))
     for row in featured:
         row['dataset_sha256'] = source_audit.get('dataset_sha256')
     groups = partition(featured, splits)
@@ -381,6 +388,8 @@ def run_study(paths, directory, *, splits=None, max_iter=160, progress=None,
         raise ValueError('TRAIN_AND_TUNE_PERIODS_REQUIRED')
     names = tuple(train[0]['feature_names'])
     models, candidate_reports = {}, {}
+    discovery = discover_features(train,before=splits['tune']['start'])
+    write_private_json(directory / 'discovery_receipt.json', discovery)
     # Feature-group metadata, when available, makes ablations explicit.
     history_mask = [not (name.startswith(('hist_', 'history_', 'recent_', 'venue_history_', 'rest_', 'starts_', 'past_'))
                          or name.startswith(('agari_', 'half_lap_', 'form_'))) for name in names]
@@ -393,6 +402,11 @@ def run_study(paths, directory, *, splits=None, max_iter=160, progress=None,
             mask &= np.asarray([not n.startswith(('context_', 'history_observed_', CONTEXT_PREFIX)) for n in names])
         if candidate.get('agari') is False:
             mask &= np.asarray([not uses_agari((n,)) for n in names])
+        if not candidate.get('abilities'):
+            mask &= np.asarray([not uses_abilities((n,)) for n in names])
+        else:
+            selected_discovery=set(discovery['selected']) if candidate.get('discovery') else set()
+            mask &= np.asarray([not n.startswith(DISC) or n in selected_discovery for n in names])
         model = fit_ranker(train, before=splits['tune']['start'], ridge=candidate['ridge'],
                            use_pairs=candidate['pairs'], max_iter=max_iter,
                            feature_mask=mask)
@@ -410,6 +424,7 @@ def run_study(paths, directory, *, splits=None, max_iter=160, progress=None,
                                       'criterion': 'joint_top3_log_loss', 'contract_sha256': contract['contract_sha256']}
     selected.fit_meta['context'] = source_audit.get('context', {})
     selected.fit_meta['source_code_sha256'] = source_code_sha256
+    selected.fit_meta['five_abilities'] = {'version':ABILITY_VERSION,'discovery_selected':discovery['selected'] if winner=='five_abilities_discovery' else [],'discovery_receipt_sha256':digest(discovery)}
     frozen = selected.to_dict()
     write_private_json(directory / 'frozen_model.json', frozen)
     write_private_json(directory / 'selection_receipt.json', {
@@ -487,6 +502,11 @@ def run_study(paths, directory, *, splits=None, max_iter=160, progress=None,
             'same_venue_agari_races': sum(r['history_evidence']['agari_interactions']['same_venue_riders'] > 0 for r in featured),
             'weather_admitted_races': sum(bool((r.get('context_evidence') or {}).get('weather_source')) for r in featured),
             'same_input_ablation': 'without_agari_interactions_with_pairs'},
+        'five_abilities': {'version':ABILITY_VERSION,'feature_count':len(ABILITY_NAMES),
+            'reviewed_motion_races':sum(r['history_evidence']['five_abilities']['reviewed_motion_riders']>0 for r in featured),
+            'competition_proxy_races':sum(r['history_evidence']['five_abilities']['competition_proxy_riders']>0 for r in featured),
+            'discovered_feature_names':discovery['selected'],'discovery_receipt_sha256':digest(discovery),
+            'discovery_score_count':len(discovery['scores']),'physical_energy_measured':False},
         'selected_candidate': winner, 'model_sha256': frozen['model_sha256'],
         'candidate_selection': candidate_reports, 'distribution_temperature': selected.temperature,
         'final_period': main_metrics, 'subgroups': subgroup_metrics(predictions, groups['test']),

@@ -41,6 +41,7 @@ def public_summary(report):
             'split_counts': report['split_counts'], 'selected_candidate': report['selected_candidate'],
             'model_sha256': report['model_sha256'], 'contract_sha256': report['evaluation_contract']['contract_sha256'],
             'feature_count': report['feature_count'], 'agari_interactions': report['agari_interactions'],
+            'five_abilities':report.get('five_abilities'),
             'selection_losses': {k:v['tune_joint_top3_log_loss'] for k,v in report['candidate_selection'].items()},
             'test_registered': final['registered'], 'test_evaluable': final['evaluable'],
             'test_predicted_evaluable':final['predicted_evaluable'], 'metrics':metrics,
@@ -80,10 +81,27 @@ def main():
                     venue_path=Path(__file__).with_name('fixtures')/'venue_geometry.json',
                     allow_current_geometry_assumption=True,progress=lambda s:print(s,flush=True))
                 summary=public_summary(report)
+                # Retain only a verified frozen parameter artifact (no raw history or tickets).
+                model=json.loads((private/'study'/'frozen_model.json').read_text())
+                from .model import RankModel
+                RankModel.from_dict(model)
+                if model['model_sha256']!=summary['model_sha256']:
+                    raise ValueError('FROZEN_MODEL_REPORT_MISMATCH')
+                if set(model)!={'schema','model_id','feature_names','pair_names','mean','scale','weights','pair_weights','temperature','fit_meta','model_sha256'}:
+                    raise ValueError('FROZEN_MODEL_PUBLIC_FIELDS')
+                if not set(model['fit_meta'])<=set('fit_before_day training_first_day training_last_day training_races input_races no_top3_label ridge use_pairs iterations optimizer_converged optimizer_message objective feature_mask training_fingerprint feature_digest_required created_at cohort parameter_information_end_day temperature_calibration selection context source_code_sha256 five_abilities'.split()):
+                    raise ValueError('FROZEN_MODEL_PUBLIC_METADATA_FIELDS')
+                model_bytes=json.dumps(model,sort_keys=True,ensure_ascii=False,separators=(',',':'),allow_nan=False).encode()
         except Exception as exc:
             print('HOLD_STUDY_FAILED '+type(exc).__name__,file=sys.__stdout__,flush=True)
             return 4
     print('DT_R1_AGGREGATE '+json.dumps(summary,ensure_ascii=False,sort_keys=True,allow_nan=False),flush=True)
+    import base64
+    encoded=base64.b64encode(model_bytes).decode('ascii')
+    parts=[encoded[i:i+3000] for i in range(0,len(encoded),3000)]
+    print('DT_R1_FROZEN_MODEL_BYTES_SHA256 '+sha256(model_bytes).hexdigest(),flush=True)
+    for i,part in enumerate(parts,1):
+        print(f'DT_R1_FROZEN_MODEL_PART {i}/{len(parts)} {part}',flush=True)
     if os.environ.get('GITHUB_STEP_SUMMARY'):
         with open(os.environ['GITHUB_STEP_SUMMARY'],'a',encoding='utf-8') as out:
             out.write('## DT-R1 pinned archive retrospective result\n\n```json\n'+json.dumps(summary,ensure_ascii=False,indent=2,allow_nan=False)+'\n```\n')
