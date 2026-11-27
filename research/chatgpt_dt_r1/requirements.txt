@@ -1,0 +1,6 @@
+# Verified research runtime used for the 2026-11-28 archive study (Python 3.12).
+# No OpenAI API, paid service, external model weights or new secret is required.
+numpy==2.3.5
+scipy==1.17.0
+cryptography==50.0.0
+Pillow==13.0.0
