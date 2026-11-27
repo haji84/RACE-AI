@@ -115,7 +115,7 @@ def main(argv=None):
     if args.command == 'study':
         splits = json.loads(args.splits.read_text()) if args.splits else None
         report = run_study(args.archive, args.output_dir, splits=splits, max_iter=args.max_iter,
-                           venue_path=args.venues, timing_path=args.timings, weather_path=args.weather, weather_path=args.weather,
+                           venue_path=args.venues, timing_path=args.timings, weather_path=args.weather,
                            allow_current_geometry_assumption=args.allow_current_geometry_assumption,
                            progress=lambda message: print(message, flush=True))
         print(json.dumps({'status': 'RETROSPECTIVE_STUDY_COMPLETE',
@@ -142,9 +142,11 @@ def main(argv=None):
         features = build_features(history + [row])
         target = next(r for r in features if r['race_id'] == row['race_id'])
         from .agari import augment_agari, uses_agari
+        declared = model.fit_meta.get('context', {})
+        if (declared.get('venue_file_sha256') and not args.venues) or (declared.get('timing_file_sha256') and not args.timings):
+            raise ValueError('FEATURE_SCHEMA_CONTEXT_SIDECARS_REQUIRED')
         target = _context([target], args, args.at or args.analysis_at,
-            force=any(n.startswith(('context_', 'history_observed_')) for n in model.feature_names)
-                  and not (model.fit_meta.get('context', {}).get('venue_file_sha256') or model.fit_meta.get('context', {}).get('timing_file_sha256')))[0]
+            force=bool(declared.get('weather_file_sha256')) and any(n.startswith(('context_', 'history_observed_')) for n in model.feature_names))[0]
         if uses_agari(model.feature_names):
             target = augment_agari([target])[0]
         prediction = forecast_row(model, target, prediction_at=args.at, full=True)
@@ -207,7 +209,7 @@ def main(argv=None):
                 def fit_candidate(*, study_directory):
                     result = run_study(args.archive, study_directory / 'run',
                         splits=_read(args.splits) if args.splits else None, max_iter=args.max_iter,
-                        venue_path=args.venues, timing_path=args.timings,
+                        venue_path=args.venues, timing_path=args.timings, weather_path=args.weather,
                         allow_current_geometry_assumption=args.allow_current_geometry_assumption)
                     return {'model_sha256': result['model_sha256'], 'study_manifest_sha256': digest(result),
                         'scope': result['scope'], 'production_promoted': False}

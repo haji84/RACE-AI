@@ -62,7 +62,7 @@ def augment_agari(rows):
         def col(k):
             return cols.get(k, zero)
         def valid(k, missing):
-            return (col(missing) == 0) & (k in cols) & (missing in cols)
+            return (row.get('feature_status') == 'READY') & (col(missing) == 0) & (k in cols) & (missing in cols)
         def relative(v, known):
             if np.count_nonzero(known) < 2:
                 return zero.copy(), zero.copy()
@@ -71,8 +71,8 @@ def augment_agari(rows):
             return np.clip(np.expm1(col(log_col) * np.log(21.)) / 20., 0., 1.)
         overall = col('history_half_lap_mean')
         venue = col('history_venue_half_lap_mean')
-        has_overall = valid('history_half_lap_mean', 'history_half_lap_missing')
-        has_venue = valid('history_venue_half_lap_mean', 'history_venue_half_lap_missing')
+        has_overall = valid('history_half_lap_mean', 'history_half_lap_missing') & (overall > 0.)
+        has_venue = valid('history_venue_half_lap_mean', 'history_venue_half_lap_missing') & (venue > 0.)
         og, og_ok = relative(overall, has_overall)
         vg, vg_ok = relative(venue, has_venue)
         values = {
@@ -103,7 +103,7 @@ def augment_agari(rows):
             values[f'{signal}_x_line_size'] = v * col('line_size_fraction') * known_line
         obs = 'history_observed_agari_half_seconds_'
         observed = col(obs + 'mean')
-        present = valid(obs + 'mean', obs + 'mean_missing')
+        present = valid(obs + 'mean', obs + 'mean_missing') & (observed > 0.)
         ov, ov_ok = relative(observed, present)
         cv = {
             'observed_venue_relative': ov,

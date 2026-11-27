@@ -97,6 +97,16 @@ class PipelineTests(unittest.TestCase):
             with self.assertRaises(FileExistsError):
                 freeze_evaluation_contract(root, DEFAULT_SPLITS, {'sources': ['b' * 64]})
 
+    def test_agari_ablation_is_registered_before_training(self):
+        with tempfile.TemporaryDirectory() as d:
+            contract = freeze_evaluation_contract(Path(d) / 'run', DEFAULT_SPLITS,
+                {'sources': [], 'context_requested': True, 'agari_interactions': {'version': 'agari-interactions-v1'}})
+            arms = {a['name']: a for a in contract['candidates']}
+            self.assertFalse(arms['without_agari_interactions_with_pairs']['agari'])
+            self.assertTrue(arms['full_with_pairs']['pairs'])
+            self.assertFalse(arms['without_context_or_agari_with_pairs']['context'])
+            self.assertFalse(arms['without_context_or_agari_with_pairs']['agari'])
+
     def test_private_original_cannot_be_written_in_git(self):
         with tempfile.TemporaryDirectory() as d:
             root = Path(d); (root / '.git').mkdir()

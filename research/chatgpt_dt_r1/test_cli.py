@@ -75,6 +75,21 @@ class CLITests(unittest.TestCase):
         self.assertEqual(response['mode'], 'aggregate')
         self.assertNotIn('NEVER_PUBLIC', (self.root / 'aggregate.html').read_text())
 
+    def test_forecast_cli_rebuilds_agari_schema(self):
+        from research.chatgpt_dt_r1.agari import augment_agari
+        from research.chatgpt_dt_r1.features import build_features
+        from research.chatgpt_dt_r1.model import RankModel
+        from research.chatgpt_dt_r1.test_agari import records
+        history, row = records()
+        feature = augment_agari(build_features([history, row]))[-1]
+        model = RankModel.zero(feature['feature_names'])
+        status = self.run_cli('forecast', '--model', self.put('agari-model.json',model.to_dict()),
+            '--record',self.put('target.json',row),'--history',self.put('history.json',[history]),
+            '--output',str(self.root/'agari-prediction.json'))
+        self.assertEqual(status['status'],'READY')
+        out=json.loads((self.root/'agari-prediction.json').read_text())
+        self.assertEqual(out['feature_input_sha256'],feature['feature_input_sha256'])
+
     def test_prospective_cli_rejects_future_or_untimed_history_result(self):
         from research.chatgpt_dt_r1.features import FEATURE_NAMES
         from research.chatgpt_dt_r1.model import RankModel
