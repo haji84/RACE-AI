@@ -199,6 +199,20 @@ class FutureSettlementTests(unittest.TestCase):
                          (3, 0, 0))
         self.assertEqual(paired['replay_holds'], {'BACK_STUDY_RESTORE_UNVERIFIED': 1})
 
+    def test_profile_study_failure_preserves_the_authenticated_original_score(self):
+        rid = RACES[0]
+        def failed_profile_report(*_):
+            raise RuntimeError('private fixture scoring error')
+
+        report = settle._score_registered(RACES, DAY, self.entries(), [shadow.slot(DAY, rid)],
+            {shadow.slot(DAY, RACES[1]): 'SERVER_READBACK_AFTER_T15'},
+            lambda entry, race: forecast(race),
+            lambda race: dict(race_id=race, day=DAY, result_status='VERIFIED_NORMAL', top3=[1, 2, 3]),
+            personal_report=failed_profile_report)
+        self.assertEqual(report['metrics']['trifecta']['1']['hits'], 1)
+        self.assertEqual(report['metrics']['personal_history_study'],
+            dict(state='HOLD_PROFILE_STUDY_SCORING_UNVERIFIED', prospectively_sealed=False))
+
     def test_actual_v4_cipher_replays_both_arms_with_or_without_official_history(self):
         from research.chatgpt_dt_r1 import test_back_official_shadow as back_fixtures
         from tests import test_keirin_dt_r1_future_shadow as shadow_fixtures
@@ -321,13 +335,15 @@ class FutureSettlementTests(unittest.TestCase):
                                        cipher_path='verified/later.sealed.json')}
         events = []
         def forecast_replay(entry, raw, manifest, source, rid, *args, history_sources, history_controls,
-                            back_trial, back_pairs, back_holds, feature_rows):
+                            back_trial, back_pairs, back_holds, feature_rows, personal_add):
             events.append(('forecast', rid, source.head))
             self.assertEqual(raw, b'first' if rid == legacy_rid else b'later')
             self.assertEqual(history_sources, {})
+            personal_add(race_id=rid)
             feature_rows[rid] = (rid, None)
             if rid == later_rid:
                 history_controls[rid] = forecast(rid)
+                back_pairs[rid] = {name: forecast(rid) for name in settle.BACK_ARMS}
             return forecast(rid)
         def result_replay(source, rid, key, original_meta, now):
             events.append(('result', rid, source.head))
@@ -348,10 +364,17 @@ class FutureSettlementTests(unittest.TestCase):
                 patch.object(settle, '_result_row', side_effect=result_replay),
             ):
                 seen = []
+                adds = []
+                def failed_profile_add(**fields):
+                    adds.append(fields['race_id'])
+                    raise RuntimeError('private fixture replay error')
+
+                personal = SimpleNamespace(add=failed_profile_add, report=lambda *_: self.fail('failed profile scored'))
                 audit = SimpleNamespace(add=lambda row, _: seen.append(row),
                                         report=lambda: {'audited_races': len(seen)})
                 report = settle._score_archived_day(None, current, b'', None, None, None, lambda: None, legacy,
-                                                   feature_audit=audit)
+                                                   feature_audit=audit, personal_study=personal)
+                self.assertEqual(adds, [legacy_rid])
                 additional[legacy_slot] = additional[later_slot]
                 with self.assertRaisesRegex(ValueError, 'DUPLICATE_FIRST_SLOT'):
                     settle._score_archived_day(None, current, b'', None, None, None, lambda: None, legacy)
@@ -362,6 +385,9 @@ class FutureSettlementTests(unittest.TestCase):
         self.assertEqual(report['registered_races'], 4)
         self.assertEqual(report['owner_originals_replayed'], 2)
         self.assertEqual(report['metrics']['predicted_evaluable'], 2)
+        self.assertEqual(report['metrics']['paired_back']['official_scorable_pairs'], 1)
+        self.assertEqual(report['metrics']['personal_history_study'],
+                         dict(state='HOLD_PROFILE_STUDY_SCORING_UNVERIFIED', prospectively_sealed=False))
         paired = report['metrics']['paired_history']
         self.assertEqual((paired['registered_day'], paired['retained_pairs']), (4, 1))
         self.assertEqual(paired['official_history']['predicted_evaluable'], 1)
