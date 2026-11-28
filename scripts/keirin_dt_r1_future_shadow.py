@@ -2,7 +2,8 @@
 
 The existing protected main/manual study runtime remains the authority. This
 module fetches only the existing GitHub archive and its independent source
-evidence, never a provider or result document. Every registered race survives
+evidence. Prior-day official results may supply history after independent
+verification. It never reads a target-day result or calls a provider. Every registered race survives
 as a saved candidate or HOLD. New model computation and local cipher readback
 use actual clocks; original A/B clocks are never relabelled. Local readback is
 not independent forecast admission, a three-way contest, or model promotion.
@@ -31,6 +32,7 @@ from research.chatgpt_dt_r1.abilities import augment_abilities
 from research.chatgpt_dt_r1.agari import augment_agari
 from research.chatgpt_dt_r1.context import augment_features
 from research.chatgpt_dt_r1.model import RankModel
+from research.chatgpt_dt_r1.official_history import OfficialHistory, POLICY as HISTORY_POLICY
 from research.chatgpt_dt_r1.pipeline import forecast_row, validate_prediction_inputs
 from research.chatgpt_dt_r1.policy import clock as parse_clock, digest
 from research.chatgpt_dt_r1.venues import VenueStore
@@ -41,6 +43,8 @@ from scripts import keirin_official_nationwide_continuation as continuation
 SCHEMA = 'DT_R1_FUTURE_SHADOW_MANIFEST_V1'
 PRIVATE_SCHEMA = 'DT_R1_FUTURE_SHADOW_ORIGINAL_V1'
 SUMMARY_SCHEMA = 'DT_R1_FUTURE_SHADOW_SUMMARY_V1'
+LEGACY_MATERIAL_SCHEMA = 'DT_R1_SHARED_FUTURE_MATERIAL_V1'
+HISTORY_MATERIAL_SCHEMA = 'DT_R1_SHARED_FUTURE_MATERIAL_V2'
 MODEL_FILE = 'research/chatgpt_dt_r1/evidence/20261128-resume/frozen_model.json'
 MODEL_FILE_SHA = 'dab8c7f014c41ac18e4fed1ae28ac9b36e994611d1fcf5992f8b06e31a4c618b'
 MODEL_SHA = '5e022092a35c0258954090c6f3d0f8fa14f03f22511b28d6aa9183f5a38c381c'
@@ -156,11 +160,12 @@ def _source_verifier(store, payload, private, client, cache, proof_sink):
     return verify
 
 
-def _candidate(*, store, payload, original, trained, venues, private, client, cache, clock):
+def _candidate(*, store, payload, original, trained, venues, private, client, cache, clock, official_history=None):
     at = _observe(clock).isoformat()
     proofs = {}
+    history = official_history.arguments(payload, original, at) if official_history is not None else {}
     row = official_inputs.prepare(payload, original, prediction_at=at,
-        source_verifier=_source_verifier(store, payload, private, client, cache, proofs), history_records=())
+        source_verifier=_source_verifier(store, payload, private, client, cache, proofs), **history)
     # The actual fixed sidecar must already exist by this input clock. The
     # existing store handles absent venues as explicit missing feature values.
     need(all(parse_clock(v.retrieved_at) <= parse_clock(at) for v in venues.records), 'CONTEXT_FROM_FUTURE')
@@ -169,6 +174,23 @@ def _candidate(*, store, payload, original, trained, venues, private, client, ca
     need(tuple(row['feature_names']) == trained.feature_names and row['features'].shape[1] == 462,
          'FEATURE_SCHEMA_CHANGED')
     return row, at, proofs
+
+
+def _shared_material(row, payload, original, store, proof):
+    support = row['history_evidence']['official_support']
+    shared = dict(schema=LEGACY_MATERIAL_SCHEMA,
+        source_projection_sha256=digest(official_inputs.source_projection(payload, original)),
+        source_projection_schema=official_inputs.SCHEMA, source_archive_commit=store.head,
+        source_original_reference=store.index['originals'][row['race_id']], source_verification=proof,
+        input_sha256=row['input_sha256'], context_identity=dict(venue_file_sha256=VENUE_SHA,
+            timing_records=0, motion_records=0, weather_records=0),
+        context_evidence=row['context_evidence'], history_status=support['status'],
+        history_races=support['history_races'])
+    if support['history_races']:
+        shared.update(schema=HISTORY_MATERIAL_SCHEMA, history_policy=HISTORY_POLICY,
+                      history_snapshot_sha256=support['history_snapshot_sha256'],
+                      history_verification_receipt_sha256=support['verification_receipt_sha256'])
+    return shared
 
 
 def _save_forecast(*, output, entry, row, forecast, payload, original, store, public, private,
@@ -182,13 +204,7 @@ def _save_forecast(*, output, entry, row, forecast, payload, original, store, pu
     if not _timely(seal_at, cutoff):
         return dict(entry, reason='POST_GENERATION_T15_MARGIN')
     feature_row = dict(row, features=row['features'].tolist(), feature_names=list(row['feature_names']))
-    shared = dict(schema='DT_R1_SHARED_FUTURE_MATERIAL_V1',
-        source_projection_sha256=digest(official_inputs.source_projection(payload, original)),
-        source_projection_schema=official_inputs.SCHEMA, source_archive_commit=store.head,
-        source_original_reference=store.index['originals'][row['race_id']], source_verification=proof,
-        input_sha256=row['input_sha256'], context_identity=dict(venue_file_sha256=VENUE_SHA,
-            timing_records=0, motion_records=0, weather_records=0),
-        context_evidence=row['context_evidence'], history_status='MISSING_HISTORY', history_races=0)
+    shared = _shared_material(row, payload, original, store, proof)
     private_payload = dict(schema=PRIVATE_SCHEMA, day_jst=store.day, race_id=row['race_id'],
         observed_at=seal_at.isoformat(), reader_code_commit=code_commit, reader_run_id=os.environ['GITHUB_RUN_ID'],
         source_archive_commit=store.head, source_registry_reference=store.index['registry'],
@@ -238,7 +254,7 @@ def _source_failure(stage, error):
 
 def produce_day(*, store, repo, output, owner_public_pem, owner_private_pem, code_commit,
                 origin_client, clock=continuation.now_utc, source_diagnostics=None,
-                _ciphertext_byte_cap=None, accepted_slots=()):
+                _ciphertext_byte_cap=None, accepted_slots=(), official_history=None):
     """Internal protected owner-job worker. A private cap can lower the default budget."""
     started = _observe(clock)
     need(_same_day(started, store.day), 'ACTUAL_JST_DAY_REQUIRED')
@@ -267,7 +283,7 @@ def produce_day(*, store, repo, output, owner_public_pem, owner_private_pem, cod
         trained, venues = load_frozen(repo)
     except Exception:
         trained, venues = None, None
-    entries, cache = [], {}
+    entries, cache, history_uses = [], {}, 0
     # RecordStore validates each published cutoff. Compare actual instants
     # before any source replay, so even failed attempts follow deadline order.
     # A missing original has no trusted cutoff; retain its registered slot.
@@ -303,7 +319,7 @@ def produce_day(*, store, repo, output, owner_public_pem, owner_private_pem, cod
         try:
             row, input_at, proof = _candidate(store=store, payload=payload, original=original,
                 trained=trained, venues=venues, private=owner_private_pem, client=origin_client,
-                cache=cache, clock=clock)
+                cache=cache, clock=clock, official_history=official_history)
             entry['context_geometry_present'] = bool(row['context_evidence']['venue_sources'])
         except Exception:
             entries.append(dict(entry, reason='INPUT_PROJECTION_UNVERIFIED')); continue
@@ -337,6 +353,7 @@ def produce_day(*, store, repo, output, owner_public_pem, owner_private_pem, cod
             remaining_cipher_bytes=remaining_cipher_bytes)
         if saved['cipher'] is not None:
             remaining_cipher_bytes -= saved['cipher']['bytes']
+            history_uses += row['history_evidence']['official_support']['history_races']
         entries.append(saved)
     eligible = sum(r['state'] == READY for r in entries)
     report = dict(schema=SUMMARY_SCHEMA, scope='DT_ONLY_FUTURE_SHADOW', day_jst=store.day,
@@ -348,7 +365,7 @@ def produce_day(*, store, repo, output, owner_public_pem, owner_private_pem, cod
         held_races=len(race_ids) - eligible, hold_reasons=dict(sorted(Counter(r['reason'] for r in entries if r['state'] == 'HOLD').items())),
         day_inventory_complete=registry['day_inventory_complete'], frozen_model_verified=trained is not None,
         venue_missing_forecasts=sum(r['cipher'] is not None and r['context_geometry_present'] is False for r in entries),
-        history_races=0, reviewed_motion_records=0, weather_records=0, confidence='HOLD',
+        history_races=history_uses, reviewed_motion_records=0, weather_records=0, confidence='HOLD',
         formal_three_way_races=0, independently_admitted_new_forecasts=0,
         provider_source_requests=0, result_reads=0, training_runs=0, state_writes=0, production_promoted=False)
     manifest = dict(schema=SCHEMA, model=_model_identity(), summary=report,
@@ -383,7 +400,7 @@ def verify_output(directory, *, expected_manifest_sha256=None):
          all(_sha(v) for v in manifest['registry'].values()), 'REGISTRY_PINS')
     need(type(entries) is list and 0 < len(entries) <= records.MAX_RACES and
          type(report['registered_races']) is int and len(entries) == report['registered_races'], 'REGISTERED_DENOMINATOR')
-    need(all(type(report[key]) is int and report[key] == 0 for key in ('history_races', 'reviewed_motion_records', 'weather_records',
+    need(all(type(report[key]) is int and report[key] == 0 for key in ('reviewed_motion_records', 'weather_records',
         'formal_three_way_races', 'independently_admitted_new_forecasts', 'provider_source_requests',
         'result_reads', 'training_runs', 'state_writes')), 'UNSUPPORTED_SCOPE_CLAIM')
     need(type(report['day_inventory_complete']) is bool and type(report['frozen_model_verified']) is bool,
@@ -443,6 +460,8 @@ def verify_output(directory, *, expected_manifest_sha256=None):
     need(all(type(report[k]) is int and report[k] == v for k, v in counts.items()) and
          type(report['saved_originals']) is int and counts['source_admitted_races'] <= report['saved_originals'] <= len(entries) and
          report['hold_reasons'] == dict(Counter(r['reason'] for r in entries if r['state'] == 'HOLD')), 'SUMMARY_COUNT_MISMATCH')
+    need(type(report['history_races']) is int and 0 <= report['history_races'] <=
+         100_000 * counts['new_encrypted_forecasts'], 'HISTORY_COUNT_BOUND')
     expected_state = ('DT_SHADOW_SAVED_PENDING_INDEPENDENT_READBACK' if counts['locally_saved_before_t15'] else
                       'HOLD_DT_SHADOW_NO_TIMELY_LOCAL_ORIGINAL')
     need(report['state'] == expected_state and
@@ -475,7 +494,8 @@ def run_future_shadow(*, repo, private_root, output, owner_public_pem, owner_pri
         return produce_day(store=store, repo=repo, output=output, owner_public_pem=public,
             owner_private_pem=owner_private_pem, code_commit=commit, origin_client=client,
             clock=clock, source_diagnostics=source_diagnostics,
-            accepted_slots=accepted | (legacy & provisioned))
+            accepted_slots=accepted | (legacy & provisioned),
+            official_history=OfficialHistory(store, owner_private_pem))
 
 
 def main(argv=None):

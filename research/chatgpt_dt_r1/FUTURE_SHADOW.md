@@ -18,11 +18,21 @@ under a Git checkout cannot pass. The requested day must also be the actual
 current JST day; historical replay is not a mode of this script.
 
 The script uses the existing `RecordStore`, pinned to one fetched archive
-commit, and reads only its registry and original records. It reparses the saved
-registry and retains **every registered race** in the denominator. It never
-reads a result envelope, fetches a provider page, acquires a provider lease,
-trains, changes a source-access gate, publishes state or schedules anything.
-An index may contain results; their presence does not enable result reads.
+commit. It reparses the saved registry and retains **every registered race** in
+the denominator. The target-day reader consumes the registry and saved
+pre-race originals. The separately scoped official history reader replays
+only results from the seven earlier JST dates at the same archive commit.
+The protected forecast job uses the existing GitHub access and does not
+fetch provider pages or change the key, permissions or schedule.
+
+History joins use official registration IDs and results independently replayed
+from saved source bytes. A revision must have been sealed by the actual input
+clock. Forecasts using official history seal the selection policy, history SHA,
+and verification receipt in the encrypted shared material. Settlement rebuilds
+it at the original input clock and archive commit. A pre-history original
+replays through its original empty-history path. The report's `history_races`
+counts the number of prior race records used across sealed forecasts, including
+reuses. The `result_reads` counter refers to target-day results and remains zero.
 
 Each usable original must pass the existing `records.admit_original` with the
 real `GitHubEvidenceClient`. `official_inputs.prepare` then requires a second
@@ -45,11 +55,10 @@ files must still match the model's frozen source hashes. The comparison module
 is not part of this prediction path and is not called. The approved research
 runtime is Python 3.12 with `research/chatgpt_dt_r1/requirements.txt` installed.
 
-Official registration IDs come from the same admitted source bytes. The first
-version deliberately has **zero admitted historical races**, no reviewed motion
-records and no weather records. It does not join archive composite identities,
-names or car numbers to histories. These inputs remain explicit missing values,
-and every forecast's confidence remains `HOLD`.
+Official registration IDs come from the same admitted source bytes. New
+originals use verified prior races for those IDs when available. Reviewed motion,
+weather, and unobserved official timing or S/B fields remain explicitly missing.
+Every forecast's confidence remains `HOLD`.
 
 The existing feature path is `official_inputs.prepare` (106 columns),
 `augment_features` using the pinned `VenueStore`, `augment_agari`, then

@@ -171,6 +171,49 @@ class FutureShadowTests(unittest.TestCase):
     def manifest(self):
         return json.loads((self.output / 'manifest.json').read_bytes())
 
+    def test_official_history_changes_the_input_and_replays_from_the_sealed_policy(self):
+        from research.chatgpt_dt_r1.test_official_inputs import OfficialInputTests
+        from scripts import keirin_dt_r1_future_settle as settlement
+
+        fixture = OfficialInputTests()
+        fixture.setUp()
+        historical_race = fixture.history(fixture.project())
+        calls = []
+
+        def arguments(payload, original, prediction_at):
+            calls.append(prediction_at)
+            self.assertEqual(payload['race_id'], self.rid)
+            self.assertEqual(original['race_id'], self.rid)
+            return dict(history_records=[historical_race], history_verifier=fixture.verifier)
+
+        official_history = SimpleNamespace(arguments=arguments)
+        report = self.produce(official_history=official_history)
+        self.assertEqual(report['history_races'], 1)
+        self.assertEqual(report['result_reads'], 0)
+        manifest = self.manifest()
+        entry = next(row for row in manifest['entries'] if row['state'] == self.api.READY)
+        ciphertext = (self.output / entry['cipher']['file']).read_bytes()
+        original = codec.decrypt_evidence(ciphertext, self.private)
+        material = original['shared_material']
+        self.assertEqual(material['schema'], self.api.HISTORY_MATERIAL_SCHEMA)
+        self.assertEqual(material['history_status'], 'INDEPENDENTLY_VERIFIED')
+        self.assertEqual(material['history_races'], 1)
+        self.assertEqual(material['history_snapshot_sha256'], digest([historical_race]))
+        self.assertEqual(original['feature_row']['result_rows'], [])
+        self.assertEqual(self.reads, ['registry', 'original'])
+
+        model, venues = self.api.load_frozen(ROOT)
+        cold, _, _ = self.api._candidate(store=self.store, payload=self.payload,
+            original=self.original, trained=model, venues=venues, private=self.private,
+            client=object(), cache={}, clock=lambda: self.current)
+        self.assertNotEqual(cold['feature_input_sha256'], original['feature_row']['feature_input_sha256'])
+        with patch.object(settlement, 'OfficialHistory', return_value=official_history) as reader:
+            replayed = settlement._forecast_from_original(entry, ciphertext, manifest,
+                self.store, self.rid, self.private, model, venues, object(), {})
+        reader.assert_called_once_with(self.store, self.private)
+        self.assertEqual(replayed, original['forecast'])
+        self.assertEqual(calls, [NOW.isoformat(), NOW.isoformat()])
+
     def test_repeated_producer_skips_a_previously_retained_timely_slot(self):
         accepted = self.api.slot(self.day, self.rid)
         report = self.produce(accepted_slots={accepted})
