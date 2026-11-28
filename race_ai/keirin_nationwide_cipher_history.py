@@ -244,6 +244,32 @@ def read_blob_bytes(repo, ref, path, *, max_bytes=MAX_BYTES):
     return done.stdout
 
 
+def prefetch_pinned_blobs(repo, head, paths, prefixes):
+    """Warm a partial reader from the exact encrypted objects it will verify."""
+    need(type(head) is str and COMMIT.fullmatch(head), "IMMUTABLE_PREFETCH_COMMIT_REQUIRED")
+    if not paths:
+        return "NO_PRIOR_OBJECTS"
+    _, listing = _cmd(repo, "--no-replace-objects", "ls-tree", "-r",
+                      "--format=%(objectname)%x09%(path)", head, "--", *prefixes)
+    selected = set()
+    for line in listing.splitlines():
+        oid, _, path = line.partition("\t")
+        if path in paths and COMMIT.fullmatch(oid):
+            selected.add(oid)
+    selected = sorted(selected)
+    for start in range(0, len(selected), 128):
+        try:
+            subprocess.run(
+                ["git", "-c", "fetch.negotiationAlgorithm=noop", "fetch", "--no-tags",
+                 "--filter=blob:none", "--no-write-fetch-head", "origin", "--stdin"],
+                cwd=repo, input=("\n".join(selected[start:start + 128]) + "\n").encode(),
+                stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, timeout=60, check=True,
+                env=dict(os.environ, GIT_TERMINAL_PROMPT="0"))
+        except (subprocess.SubprocessError, OSError):
+            return "BOUNDED_LAZY_READ_FALLBACK"
+    return "PINNED_BATCH_FETCHED"
+
+
 def _read_at(repo, ref, race_id, expected_sha):
     cipher_path, receipt_path = _refs(race_id)
     stored=read_blob_bytes(repo,ref,cipher_path)

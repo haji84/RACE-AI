@@ -41,6 +41,14 @@ recomputes both sides from the same snapshot and clock before opening any
 target outcome. Its paired report uses fixed points and the same admissible
 race set on both sides, and preserves the independently timed day denominator.
 
+The existing protected `dt-r1-shadow` dispatch can additionally compare the
+retained final-back candidate by selecting `dt_r1_compare_back`. Both the
+back-conditioned and direct variants use the same official snapshot, clock,
+and 148-column input. The producer encrypts the receipt and exact distribution
+hashes. Owner settlement replays both predictions before reading the target
+outcome and scores their common officially verified finishes. Measuring the
+final-back leader itself requires an authenticated race-phase observation.
+
 Each usable original must pass the existing `records.admit_original` with the
 real `GitHubEvidenceClient`. `official_inputs.prepare` then requires a second
 re-admission and an exact digest comparison of its private source/normalized

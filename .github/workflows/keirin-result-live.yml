@@ -161,6 +161,11 @@ on:
         type: string
         description: Completed independent main readback run ID for DT batch retention
         required: false
+      dt_r1_compare_back:
+        type: boolean
+        description: Compare the retained DT-R1 final-back candidate in dt-r1-shadow
+        default: false
+        required: false
   schedule:
     # Start/recover the bounded observer during 08:00-23:59 JST.
     # GitHub may delay starts; this is not a push or wall-clock latency SLA.
@@ -306,6 +311,7 @@ jobs:
           RACE_AI_KEIRIN_PRIVATE_RSA_PEM: ${{ secrets.RACE_AI_KEIRIN_PRIVATE_RSA_PEM }}
           RESULT_MODE: ${{ inputs.mode || 'observe' }}
           DOSSIER_DAY: ${{ inputs.dossier_day }}
+          DT_R1_COMPARE_BACK: ${{ inputs.dt_r1_compare_back || false }}
         run: |
           set -euo pipefail
           root="$RUNNER_TEMP/keirin-result-live-$GITHUB_RUN_ID"
@@ -358,9 +364,14 @@ jobs:
                 -r research/chatgpt_dt_r1/requirements.txt 'beautifulsoup4>=4.12,<5'
             if [ "$RESULT_MODE" = dt-r1-shadow ]; then
               [[ -n "$DOSSIER_DAY" ]]
+              dt_shadow_args=()
+              if [ "$DT_R1_COMPARE_BACK" = true ]; then
+                dt_shadow_args+=(--compare-back)
+              fi
               python -m scripts.keirin_dt_r1_future_shadow --repo "$GITHUB_WORKSPACE" \
                 --private-root "$root/private" --output "$root/safe/dt-future-cipher" --day "$DOSSIER_DAY" \
                 --owner-public-pem "$GITHUB_WORKSPACE/docs/evidence/2026-11-18/keirin_owner_existing_rsa_public_spki3072.pem" \
+                "${dt_shadow_args[@]}" \
                 | tee "$root/safe/summary.json" "$GITHUB_STEP_SUMMARY"
             else
               producer_run=$(jq -r '.inputs.dt_r1_producer_run // empty' "$GITHUB_EVENT_PATH")

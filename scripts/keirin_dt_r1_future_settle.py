@@ -21,7 +21,7 @@ from race_ai import keirin_official_nationwide_records as records
 from race_ai import keirin_official_run_history as codec
 from race_ai.keirin_github_evidence_client import GitHubEvidenceClient
 from race_ai.keirin_official_paired_measurement import REPLAY_CODES
-from research.chatgpt_dt_r1 import future_batch_retention as batch_retention
+from research.chatgpt_dt_r1 import back_official_shadow, future_batch_retention as batch_retention
 from research.chatgpt_dt_r1.future_retention_gate import (
     FIRST_DAY as DAY, FIRST_PRODUCER as PRODUCER, FIRST_READER as READER,
     FIRST_SOURCE_PARENT as PARENT, read_legacy_first_retention)
@@ -31,12 +31,14 @@ from research.chatgpt_dt_r1.policy import clock, digest, validate_forecast
 from scripts import keirin_dt_r1_future_shadow as shadow
 from scripts import keirin_dt_r1_future_readback as reader
 from scripts import keirin_official_nationwide_continuation as continuation
+from scripts.keirin_dt_r1_owner_restore import BACK_RECEIPT
 
 SCHEMA = 'DT_R1_FIRST_FUTURE_SETTLEMENT_V1'
 DAY_SCHEMA = 'DT_R1_ARCHIVED_DAY_SETTLEMENT_V1'
 FIRST_SCOPE = 'FIRST_PINNED_DT_ONLY_COHORT'
 DAY_SCOPE = 'REGISTERED_DAY_FIRST_T15_ORIGINALS'
 PDCA_TRIFECTA_POINTS = 4
+BACK_ARMS = ('back_mixture', 'direct')
 
 
 class SettlementError(ValueError):
@@ -65,7 +67,8 @@ def _same(a, b):
 
 
 def _forecast_from_original(entry, raw, manifest, source, rid, private, trained, venues, client, cache,
-                            *, history_sources=None, history_controls=None):
+                            *, history_sources=None, history_controls=None, back_trial=None, back_pairs=None,
+                            back_holds=None):
     meta = source.index['originals'][rid]
     need(sha256(raw).hexdigest() == entry['cipher']['sha256'], 'FORECAST_CIPHER_CHANGED')
     with _stage('FORECAST_DECRYPT_UNVERIFIED'):
@@ -91,21 +94,29 @@ def _forecast_from_original(entry, raw, manifest, source, rid, private, trained,
          'FEATURE_OR_SOURCE_REPLAY_CHANGED')
     # The old input clock is used ONLY to reproduce already sealed bytes.
     with _stage('FEATURE_REPLAY_UNVERIFIED'):
+        material_schema = shared['schema']
+        back_material = material_schema == shadow.BACK_STUDY_MATERIAL_SCHEMA
+        has_history = material_schema in (shadow.HISTORY_MATERIAL_SCHEMA, shadow.PAIRED_HISTORY_MATERIAL_SCHEMA)
+        has_control = material_schema == shadow.PAIRED_HISTORY_MATERIAL_SCHEMA
+        if back_material:
+            has_history = 'history_policy' in shared
+            has_control = 'no_history_control' in shared
+            need('back_study' in shared and (has_history or not has_control), 'BACK_STUDY_MATERIAL_CHANGED')
+        need(back_material or has_history or material_schema == shadow.LEGACY_MATERIAL_SCHEMA,
+             'FEATURE_MATERIAL_SCHEMA')
         prior = None
-        if shared['schema'] in (shadow.HISTORY_MATERIAL_SCHEMA, shadow.PAIRED_HISTORY_MATERIAL_SCHEMA):
+        if has_history:
             need(shared.get('history_policy') == HISTORY_POLICY, 'HISTORY_POLICY_CHANGED')
             history_sources = {} if history_sources is None else history_sources
             if source.head not in history_sources:
                 history_sources[source.head] = OfficialHistory(source, private)
             prior = history_sources[source.head]
-        else:
-            need(shared['schema'] == shadow.LEGACY_MATERIAL_SCHEMA, 'FEATURE_MATERIAL_SCHEMA')
         row, replay_at, proof = shadow._candidate(
             store=source, payload=payload, original=original, trained=trained,
             venues=venues, private=private, client=client, cache=cache,
             clock=lambda: clock(clocks['input_at']), official_history=prior)
         control = None
-        if shared['schema'] == shadow.PAIRED_HISTORY_MATERIAL_SCHEMA:
+        if has_control:
             control = shadow._no_history_forecast(store=source, payload=payload, original=original,
                 trained=trained, venues=venues, private=private, client=client, cache=cache,
                 input_at=clocks['input_at'], prediction_started_at=clocks['prediction_started_at'])
@@ -115,9 +126,15 @@ def _forecast_from_original(entry, raw, manifest, source, rid, private, trained,
          _same(feature_row, saved['feature_row']) and
          row['input_sha256'] == entry['bindings']['input_sha256'] and
          row['feature_input_sha256'] == entry['bindings']['feature_input_sha256'] and
-         row['source_attestation_sha256'] == entry['bindings']['source_receipt_sha256'] and
-         _same(shared, shadow._shared_material(row, payload, original, source, proof, control=control)),
+         row['source_attestation_sha256'] == entry['bindings']['source_receipt_sha256'],
          'FEATURE_OR_SOURCE_REPLAY_CHANGED')
+    expected = shadow._shared_material(row, payload, original, source, proof, control=control)
+    if back_material:
+        base = {key: value for key, value in shared.items() if key != 'back_study'}
+        base['schema'] = expected['schema']
+    else:
+        base = shared
+    need(_same(base, expected), 'FEATURE_OR_SOURCE_REPLAY_CHANGED')
     replay = forecast_row(trained, row, prediction_at=clocks['prediction_started_at'], full=True)
     replay.update(prediction_at=clocks['prediction_at'],
         scope='DT_ONLY_FUTURE_SHADOW_PENDING_INDEPENDENT_READBACK',
@@ -129,6 +146,26 @@ def _forecast_from_original(entry, raw, manifest, source, rid, private, trained,
          'FORECAST_ROSTER_CHANGED')
     if control is not None and history_controls is not None:
         history_controls[rid] = dict(control, prediction_at=clocks['prediction_at'])
+    if back_material:
+        try:
+            with _stage('BACK_STUDY_RESTORE_UNVERIFIED'):
+                need(callable(back_trial), 'BACK_STUDY_RESTORE_UNVERIFIED')
+                restored = back_trial()
+            with _stage('BACK_STUDY_REPLAY_UNVERIFIED'):
+                pair = shadow._back_study_pair(restored, store=source, payload=payload, original=original,
+                    private=private, client=client, cache=cache, input_at=clocks['input_at'],
+                    official_history=prior)
+                expected = shadow._shared_material(row, payload, original, source, proof,
+                                                   control=control, back_study=pair)
+                need(_same(shared, expected), 'BACK_STUDY_MATERIAL_CHANGED')
+                if back_pairs is not None:
+                    back_pairs[rid] = {name: dict(race_id=rid, day=source.day, status='READY',
+                        input_sha256=row['input_sha256'], trifectas=pair['arms'][name]['trifectas'],
+                        exactas=pair['arms'][name]['exactas']) for name in BACK_ARMS}
+        except SettlementError as error:
+            if back_holds is not None:
+                back_holds[rid] = error.reason if error.reason in (
+                    'BACK_STUDY_RESTORE_UNVERIFIED', 'BACK_STUDY_MATERIAL_CHANGED') else 'BACK_STUDY_REPLAY_UNVERIFIED'
     return saved['forecast']
 
 
@@ -199,8 +236,26 @@ def _placing_pdca(rid, forecast, outcome, entry):
         verify_observation=lambda _: False)
 
 
+def _score_back_pairs(admitted, outcomes, back_pairs, back_holds):
+    paired_races = admitted.keys() & back_pairs.keys()
+    held_races = admitted.keys() & back_holds.keys()
+    need(not paired_races & held_races, 'BACK_STUDY_PAIR_PARTITION')
+    if not paired_races and not held_races:
+        return None
+    paired_rows = [r for r in outcomes if r['race_id'] in paired_races and r['result_status'] == 'VERIFIED_NORMAL']
+    summary = dict(registered_day=len(outcomes), retained_pairs=len(paired_races),
+                   official_scorable_pairs=len(paired_rows), back_leader_observations=0,
+                   replay_holds=dict(Counter(back_holds[rid] for rid in held_races)))
+    for name in BACK_ARMS:
+        scored = summarize_predictions([back_pairs[rid][name] for rid in sorted(paired_races)], paired_rows)
+        need(scored['predicted_evaluable'] == len(paired_rows), 'BACK_STUDY_PAIR_DENOMINATOR')
+        summary[name] = {market: {k: cell['hits'] for k, cell in scored[market].items()}
+                         for market in ('trifecta', 'exacta')}
+    return summary
+
+
 def _score_registered(race_ids, day, entries, eligible, reader_holds, forecast_loader, result_loader,
-                      *, history_controls=None):
+                      *, history_controls=None, back_pairs=None, back_holds=None):
     """Reverify all admitted forecast originals before opening any outcome."""
     need(len(race_ids) == len(set(race_ids)), 'DUPLICATE_REGISTRY')
     slots = {shadow.slot(day, rid): rid for rid in race_ids}
@@ -255,6 +310,9 @@ def _score_registered(race_ids, day, entries, eligible, reader_holds, forecast_l
              'HISTORY_PAIR_DENOMINATOR')
         metrics['paired_history'] = dict(policy=shadow.HISTORY_CONTROL_POLICY,
                                          registered_day=len(race_ids), retained_pairs=len(paired_races), **paired)
+    paired_back = _score_back_pairs(admitted, outcomes, back_pairs or {}, back_holds or {})
+    if paired_back is not None:
+        metrics['paired_back'] = paired_back
     return dict(registered_races=len(race_ids), independently_timed_candidates=len(eligible),
                 owner_originals_replayed=len(admitted), forecast_holds=dict(holds),
                 result_states=dict(Counter(row['result_status'] for row in outcomes)),
@@ -282,7 +340,7 @@ def _load_registry(store, private, manifest=None):
     return registry
 
 
-def _score_archived_day(work, current, private, trained, venues, client, now, legacy):
+def _score_archived_day(work, current, private, trained, venues, client, now, legacy, *, back_trial=None):
     day = current.day
     with _stage('REGISTRY_REPLAY_UNVERIFIED'):
         registry = _load_registry(current, private)
@@ -318,7 +376,7 @@ def _score_archived_day(work, current, private, trained, venues, client, now, le
                 need(set(original_registry['registered_race_ids']) <= race_set, 'REGISTRY_LINEAGE')
                 sources[run] = source
     entries, pinned_originals = [], {}
-    cache, history_sources, history_controls = {}, {}, {}
+    cache, history_sources, history_controls, back_pairs, back_holds = {}, {}, {}, {}, {}
     for slot, rid in slots.items():
         if slot in selected:
             candidate = selected[slot]
@@ -341,11 +399,12 @@ def _score_archived_day(work, current, private, trained, venues, client, now, le
                                          max_bytes=batch_retention.MAX_ARCHIVE_BYTES + 1)
         source = sources[manifest['summary']['reader_run_id']]
         return _forecast_from_original(entry, raw, manifest, source, rid, private, trained, venues, client, cache,
-                                       history_sources=history_sources, history_controls=history_controls)
+                                       history_sources=history_sources, history_controls=history_controls,
+                                       back_trial=back_trial, back_pairs=back_pairs, back_holds=back_holds)
 
     result = _score_registered(races, day, entries, [slot for slot in slots if slot in selected], {},
         forecast_loader, lambda rid: _result_row(current, rid, private, pinned_originals.get(rid), now()),
-        history_controls=history_controls)
+        history_controls=history_controls, back_pairs=back_pairs, back_holds=back_holds)
     return dict(result, day_inventory_complete=registry['day_inventory_complete'],
                 missing_venues=len(registry['missing_venues']),
                 timed_originals=dict(legacy=legacy_count, additional=len(additional)),
@@ -364,6 +423,22 @@ def _legacy_batch(work, tip, client, contexts):
          manifest['summary']['day_jst'] == DAY and
          origin['manifest_sha256'] == retention['manifest_sha256'], 'BATCH_PIN')
     return verified, origin, retention
+
+
+def _lazy_back_trial(contexts, repo, root, private):
+    restored = None
+    attempted = False
+
+    def restore():
+        nonlocal restored, attempted
+        if not attempted:
+            attempted = True
+            restored = contexts.enter_context(back_official_shadow.restored_candidate(
+                Path(repo) / BACK_RECEIPT, root, owner_private_pem=private))
+        need(callable(restored), 'BACK_STUDY_RESTORE_UNVERIFIED')
+        return restored
+
+    return restore
 
 
 def run_settlement(*, repo, private_root, owner_public_pem, owner_private_pem, day=DAY,
@@ -389,7 +464,8 @@ def run_settlement(*, repo, private_root, owner_public_pem, owner_private_pem, d
             current = records.RecordStore(work, day, index_commit=tip)
         if archived_day:
             result = _score_archived_day(work, current, owner_private_pem, trained, venues,
-                                         client, now, legacy[:2] if legacy else None)
+                                         client, now, legacy[:2] if legacy else None,
+                                         back_trial=_lazy_back_trial(contexts, repo, root, owner_private_pem))
             scope_fields = dict(schema=DAY_SCHEMA, scope=DAY_SCOPE)
         else:
             verified, origin, retention = legacy

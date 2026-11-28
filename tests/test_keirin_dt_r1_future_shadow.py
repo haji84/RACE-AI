@@ -245,6 +245,35 @@ class FutureShadowTests(unittest.TestCase):
         self.assertEqual(held['reason'], 'PREVIOUS_T15_ORIGINAL_PRESERVED')
         self.assertIsNone(held['cipher'])
 
+    def test_back_study_is_sealed_privately_with_the_existing_history_control(self):
+        from research.chatgpt_dt_r1.test_back_official_shadow import BackOfficialShadowTests
+
+        fixture = BackOfficialShadowTests()
+        fixture.setUpClass()
+        fixture.setUp()
+        self.addCleanup(fixture.doCleanups)
+        prior = SimpleNamespace(arguments=lambda *_: dict(history_records=[fixture.history],
+                                                        history_verifier=fixture.official.verifier))
+        with fixture.restored() as pair, patch.object(storage, 'PINNED_OWNER_SPKI_SHA256', self.pin):
+            report = self.produce(official_history=prior, back_trial=pair)
+            self.assertEqual(report['new_encrypted_forecasts'], 1)
+            manifest = self.manifest()
+            entry = next(row for row in manifest['entries'] if row['state'] == self.api.READY)
+            saved = codec.decrypt_evidence((self.output / entry['cipher']['file']).read_bytes(), self.private)
+        material = saved['shared_material']
+        self.assertEqual(material['schema'], self.api.BACK_STUDY_MATERIAL_SCHEMA)
+        self.assertIn('no_history_control', material)
+        trial = material['back_study']
+        self.assertEqual(trial['prediction_at'], entry['clocks']['input_at'])
+        self.assertEqual(trial['input_sha256'], saved['forecast']['input_sha256'])
+        self.assertEqual(trial['history']['history_races'], 1)
+        self.assertEqual(set(trial['arms']), {'back_mixture', 'direct'})
+        self.assertEqual(set(trial['arms']['back_mixture']), {
+            'model_sha256', 'distribution_sha256', 'trifecta_top12', 'exacta_top2'})
+        self.assertEqual(set(trial['back_leader_estimate']), {'estimate_sha256', 'observed'})
+        self.assertFalse(trial['back_leader_estimate']['observed'])
+        self.assertNotIn('back_study', json.dumps(manifest))
+
     def test_pdca_accepts_the_sealed_native_forecast_without_a_starters_alias(self):
         from scripts.keirin_dt_r1_future_settle import _placing_pdca
 

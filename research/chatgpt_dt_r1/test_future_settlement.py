@@ -1,4 +1,7 @@
 """Synthetic checks only, never actual-race evidence."""
+from contextlib import ExitStack, contextmanager
+from copy import deepcopy
+from hashlib import sha256
 from itertools import permutations
 from pathlib import Path
 from tempfile import TemporaryDirectory
@@ -154,6 +157,145 @@ class FutureSettlementTests(unittest.TestCase):
                 lambda e,r:self.fail('unexpected forecast'),
                 lambda r:dict(race_id='different',day=DAY,result_status='MISSING_SAVED_RESULT'))
 
+    def test_back_study_uses_matched_arms_without_probabilities_or_extra_results(self):
+        arms = {}
+        def forecast_loader(entry, rid):
+            controls = {name: forecast(rid) for name in ('back_mixture', 'direct')}
+            if rid == RACES[0]:
+                controls['direct']['trifectas'][0]['probability'] = 0.
+                controls['direct']['trifectas'][1]['probability'] = 1/3
+            arms[rid] = controls
+            return forecast(rid)
+
+        def outcome(rid):
+            if rid == RACES[1]:
+                return dict(race_id=rid, day=DAY, result_status='MISSING_SAVED_RESULT')
+            return dict(race_id=rid, day=DAY, result_status='VERIFIED_NORMAL', top3=[1, 2, 3])
+
+        report = settle._score_registered(RACES, DAY, self.entries(),
+            [shadow.slot(DAY, rid) for rid in RACES[:2]], {}, forecast_loader, outcome, back_pairs=arms)
+        paired = report['metrics']['paired_back']
+        self.assertEqual((paired['registered_day'], paired['retained_pairs'], paired['official_scorable_pairs']),
+                         (3, 2, 1))
+        self.assertEqual(paired['back_leader_observations'], 0)
+        self.assertEqual(paired['back_mixture']['trifecta']['1'], 1)
+        self.assertEqual(paired['direct']['trifecta']['1'], 0)
+        self.assertEqual(paired['direct']['exacta']['1'], 1)
+        self.assertEqual(set(paired['direct']), {'trifecta', 'exacta'})
+        self.assertNotIn('probability', str(paired))
+        self.assertNotIn(RACES[0], str(paired))
+
+    def test_back_replay_hold_keeps_the_frozen_result(self):
+        rid = RACES[0]
+        report = settle._score_registered(RACES, DAY, self.entries(), [shadow.slot(DAY, rid)],
+            {shadow.slot(DAY, RACES[1]): 'SERVER_READBACK_AFTER_T15'},
+            lambda entry, race: forecast(race),
+            lambda race: dict(race_id=race, day=DAY, result_status='VERIFIED_NORMAL', top3=[1, 2, 3]),
+            back_holds={rid: 'BACK_STUDY_RESTORE_UNVERIFIED'})
+        self.assertEqual(report['owner_originals_replayed'], 1)
+        self.assertEqual(report['metrics']['trifecta']['1']['hits'], 1)
+        paired = report['metrics']['paired_back']
+        self.assertEqual((paired['registered_day'], paired['retained_pairs'], paired['official_scorable_pairs']),
+                         (3, 0, 0))
+        self.assertEqual(paired['replay_holds'], {'BACK_STUDY_RESTORE_UNVERIFIED': 1})
+
+    def test_actual_v4_cipher_replays_both_arms_with_or_without_official_history(self):
+        from research.chatgpt_dt_r1 import test_back_official_shadow as back_fixtures
+        from tests import test_keirin_dt_r1_future_shadow as shadow_fixtures
+
+        back_fixtures.BackOfficialShadowTests.setUpClass()
+        back = back_fixtures.BackOfficialShadowTests()
+        back.setUp()
+        self.addCleanup(back.doCleanups)
+        shadow_fixtures.FutureShadowTests.setUpClass()
+        for warm in (False, True):
+            with self.subTest(warm=warm):
+                fixture = shadow_fixtures.FutureShadowTests()
+                fixture.setUp()
+                try:
+                    prior = SimpleNamespace(arguments=lambda *_: dict(history_records=[back.history],
+                                                              history_verifier=back.official.verifier))
+                    with (
+                        patch.object(settle.codec.storage, 'PINNED_OWNER_SPKI_SHA256', back.candidate.owner_pin),
+                        back.restored() as trial,
+                        patch.object(settle.codec.storage, 'PINNED_OWNER_SPKI_SHA256', fixture.pin),
+                    ):
+                        fixture.produce(official_history=prior if warm else None, back_trial=trial)
+                        manifest = fixture.manifest()
+                        entry = next(row for row in manifest['entries'] if row['state'] == shadow.READY)
+                        sealed = (fixture.output / entry['cipher']['file']).read_bytes()
+                        saved = settle.codec.decrypt_evidence(sealed, fixture.private)
+                        self.assertEqual(saved['shared_material']['schema'], shadow.BACK_STUDY_MATERIAL_SCHEMA)
+                        self.assertEqual('no_history_control' in saved['shared_material'], warm)
+                        trained, venues = shadow.load_frozen(shadow_fixtures.ROOT)
+                        pairs, controls = {}, {}
+                        with patch.object(settle, 'OfficialHistory', return_value=prior) as source:
+                            replayed = settle._forecast_from_original(entry, sealed, manifest,
+                                fixture.store, fixture.rid, fixture.private, trained, venues, object(), {},
+                                history_controls=controls, back_trial=lambda: trial, back_pairs=pairs)
+                        self.assertEqual(replayed, saved['forecast'])
+                        self.assertEqual(source.call_count, int(warm))
+                        self.assertEqual(bool(controls), warm)
+                        self.assertEqual(set(pairs[fixture.rid]), {'back_mixture', 'direct'})
+                        self.assertEqual(pairs[fixture.rid]['direct']['input_sha256'], replayed['input_sha256'])
+                        tampered = deepcopy(entry)
+                        saved['shared_material']['back_study']['arms']['direct']['distribution_sha256'] = '0' * 64
+                        tampered['bindings']['shared_material_sha256'] = settle.digest(saved['shared_material'])
+                        altered = settle.codec.seal_evidence(settle.records.wire(saved), fixture.public, fixture.day,
+                                                             entry['clocks']['seal_started_at'])
+                        tampered['cipher']['sha256'] = sha256(altered).hexdigest()
+                        pairs.clear()
+                        controls.clear()
+                        study_holds = {}
+                        with patch.object(settle, 'OfficialHistory', return_value=prior):
+                            verified = settle._forecast_from_original(tampered, altered, manifest, fixture.store,
+                                fixture.rid, fixture.private, trained, venues, object(), {}, history_controls=controls,
+                                back_trial=lambda: trial, back_pairs=pairs, back_holds=study_holds)
+                        self.assertEqual(verified, replayed)
+                        self.assertFalse(pairs)
+                        self.assertEqual(bool(controls), warm)
+                        self.assertEqual(study_holds, {fixture.rid: 'BACK_STUDY_MATERIAL_CHANGED'})
+                        controls.clear()
+                        study_holds.clear()
+                        with patch.object(settle, 'OfficialHistory', return_value=prior):
+                            verified = settle._forecast_from_original(entry, sealed, manifest, fixture.store,
+                                fixture.rid, fixture.private, trained, venues, object(), {}, history_controls=controls,
+                                back_trial=None, back_pairs=pairs, back_holds=study_holds)
+                        self.assertEqual(verified, replayed)
+                        self.assertEqual(bool(controls), warm)
+                        self.assertEqual(study_holds, {fixture.rid: 'BACK_STUDY_RESTORE_UNVERIFIED'})
+                finally:
+                    fixture.doCleanups()
+
+    def test_back_restore_is_lazy_once_even_after_a_failed_restore(self):
+        for fails in (False, True):
+            with self.subTest(fails=fails), ExitStack() as stack:
+                cleanup = []
+                trial = lambda: 'fixture'
+
+                @contextmanager
+                def restore(*_args, **_kwargs):
+                    if fails:
+                        raise ValueError('fixture')
+                    yield trial
+                    cleanup.append(True)
+
+                with patch.object(settle.back_official_shadow, 'restored_candidate', side_effect=restore) as call:
+                    lazy = settle._lazy_back_trial(stack, '/repo', '/private', b'fixture')
+                    call.assert_not_called()
+                    if fails:
+                        with self.assertRaisesRegex(ValueError, 'fixture'):
+                            lazy()
+                        with self.assertRaisesRegex(settle.SettlementError, 'BACK_STUDY_RESTORE_UNVERIFIED'):
+                            lazy()
+                    else:
+                        self.assertIs(lazy(), trial)
+                        self.assertIs(lazy(), trial)
+                    call.assert_called_once_with(Path('/repo') / settle.BACK_RECEIPT, '/private',
+                                                 owner_private_pem=b'fixture')
+                stack.close()
+                self.assertEqual(cleanup, [] if fails else [True])
+
     def test_archived_day_combines_first_slots_and_keeps_latest_registered_denominator(self):
         legacy_rid, later_rid, hold_rid = RACES
         added_rid = '202611282404'
@@ -178,7 +320,8 @@ class FutureSettlementTests(unittest.TestCase):
         additional = {later_slot: dict(entry=later_manifest['entries'][1], manifest=later_manifest,
                                        cipher_path='verified/later.sealed.json')}
         events = []
-        def forecast_replay(entry, raw, manifest, source, rid, *args, history_sources, history_controls):
+        def forecast_replay(entry, raw, manifest, source, rid, *args, history_sources, history_controls,
+                            back_trial, back_pairs, back_holds):
             events.append(('forecast', rid, source.head))
             self.assertEqual(raw, b'first' if rid == legacy_rid else b'later')
             self.assertEqual(history_sources, {})
