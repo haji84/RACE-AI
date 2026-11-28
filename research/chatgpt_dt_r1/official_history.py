@@ -94,6 +94,14 @@ class OfficialHistory:
         self._verified = {}
         self._prefetch_attempted = False
 
+    def for_day(self, store):
+        """Share immutable archive replays across targets without sharing their clocks."""
+        _need(store.repo == self._repo and store.head == self._head)
+        selected = OfficialHistory(store, self._private_pem)
+        selected._days = self._days
+        selected._verified = self._verified
+        return selected
+
     def _store(self, day):
         if day not in self._days:
             selected = records.RecordStore(self._repo, day, index_commit=self._head)
@@ -138,12 +146,13 @@ class OfficialHistory:
             folder = f'{records.ROOT}/{store.day}'
             folders.extend((folder, f'{archive.ROOT}/{store.day}'))
             for rid, versions in store.index['results'].items():
-                available = [revision for revision in versions if clock(revision['observed_at']) <= at]
+                original = store.index['originals'][rid]
+                available = [revision for revision in versions if clock(revision['observed_at']) <= at and
+                    (store.day, original['evidence_sha256'], revision['evidence_sha256']) not in self._verified]
                 if not available:
                     continue
                 paths.update(archive._refs(rid))
                 paths.update(archive._form_refs(rid))
-                original = store.index['originals'][rid]
                 paths.update(f"{folder}/{meta['evidence_sha256']}.sealed.json"
                              for meta in (original, *available))
         try:

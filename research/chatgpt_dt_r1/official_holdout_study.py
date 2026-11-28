@@ -107,6 +107,7 @@ def run_holdout(work, *, owner_private_pem, trained, client, now, day=None, prog
     stores, registries, paired = {}, {}, {}
     holds, by_day, cache = Counter(), {}, {}
     day_holds = {}
+    history = None
 
     # Freeze every calculable pair before any target result is opened for scoring.
     # The existing prior-day history adapter may use earlier days as features.
@@ -123,7 +124,7 @@ def run_holdout(work, *, owner_private_pem, trained, client, now, day=None, prog
         if progress is not None:
             progress('ORIGINALS_PREFETCH', target_day, prefetch)
         guard = Counter()
-        history = OfficialHistory(store, owner_private_pem)
+        history = OfficialHistory(store, owner_private_pem) if history is None else history.for_day(store)
         for rid in ids:
             meta = store.index['originals'].get(rid)
             if meta is None:
