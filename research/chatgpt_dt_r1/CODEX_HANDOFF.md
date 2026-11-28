@@ -4,6 +4,10 @@
 
 ## 11月29日の締切前検証の再開地点
 
+03:24 JSTまでに追加の公式事前資料3枠で、DT-R1とCodex独自の締切前予想を生成した。モデルごとに別ランナーの暗号文読戻しと締切15分前の時刻確認を経て、登録54枠のうち同じ31枠をGitHubに暗号保全した。両モデルで以前の28枠の参照が同一であることと、追加3枠が両モデルで一致することをGitの固定索引で照合した。追加のDT-R1予想では公式7日履歴を延べ10レース分使用した。[公式資料の追加と読戻し](https://github.com/haji84/RACE-AI/actions/runs/46172359439) · [DT-R1保全](evidence/20261128-engine-history-followup/nov29-sixth-dt-r1-prospective-retention.json) · [Codex保全](evidence/20261128-engine-history-followup/nov29-sixth-codex-prospective-retention.json) · [共通31枠の固定索引](https://github.com/haji84/RACE-AI/commit/f03dd43795f5a457037cdf072570a6eb3910dbb7)
+
+この予想で参照した公式資料の固定索引には事前原本31件、公式結果0件がある。残る23枠の内訳は公式取得上限による保留18枠と、公式ライン表記の確認待ち5枠。既存Mac監視が次回の取得を起動し、その独立読戻しで新規資料を確認したら締切前に後続予想を保全する。最早08:47 JST締切枠の公式結果が暗号索引に保存されたら、同じ原本を `codex-settle` で採点する。三連単と二車単の1点的中率差と探索的な名目95%区間は、公式7日履歴、長期個人履歴、最終バック候補、Codex独自との共通枠で記録する。まず11月28日の保存済み実レースを使い、集計差が各方式の的中数と一致することを保護runnerで検証する。[公式資料31件の固定索引](https://github.com/haji84/RACE-AI/commit/7c654c3bbfec1a71e66fa9ba091a99d648e6c3cb) · [採点の規則](PROSPECTIVE_CONTEST_INTEGRATION.md)
+
 02:52 JSTまでにDT-R1とCodex独自の同じ7枠を追加した。独立読戻しとT−15認証後、両モデルそれぞれで既存21枠の参照バイトを維持し、同じ28枠をGitHubに暗号保全した。新規7予想でDT-R1が参照した公式7日履歴は延べ21レース。登録54件のうち現時点の公式事前資料28件に予想原本が揃い、公式結果は0件。独立した所有者鍵での先行再現は初回7組を確認済み。後続21組は公式着順が保存された後の保護採点で再現する。[DT-R1保全レシート](evidence/20261128-engine-history-followup/nov29-fifth-dt-r1-prospective-retention.json) · [Codex保全レシート](evidence/20261128-engine-history-followup/nov29-fifth-codex-prospective-retention.json) · [共通28枠の固定索引](https://github.com/haji84/RACE-AI/commit/0a47c14d5969c011af92f26ff3fb40f68a289620)
 
 次の再開信号は二つある。02:47 JSTに既存Mac監視が前回の公式取得と20分の間隔を確認し、次の公式取得をGitHubへ起動した。その取得と別ランナーの独立読戻しが終わり、新規事前資料があれば締切前に後続予想を保全する。正式採点は最早08:47 JST締切枠の公式着順が暗号索引に保存された時点で開始する。定期結果監視の設定は08:02〜23:57 JSTの5分ごと。必要時は公表後に現在の保全枠を対象に観測する。[次の公式取得run](https://github.com/haji84/RACE-AI/actions/runs/46172359439) · [既存の監視条件](../../scripts/keirin_official_sp_watchdog.py)
