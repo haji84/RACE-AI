@@ -11,7 +11,7 @@ import unittest
 from unittest.mock import patch, Mock
 
 from tests.test_keirin_official_nationwide_records import NationwideRecordTests
-from tests.test_keirin_official_nationwide_extension import NationwideExtensionTests
+from tests.test_keirin_official_nationwide_extension import NationwideExtensionTests, line_fixture, parse_lines
 from tests.test_keirin_official_schedule import meeting, page, venue
 from tests.test_keirin_official_sp_receipt import AT, DAY, detail_data, html, list_data
 from race_ai import keirin_official_nationwide_extension as extension
@@ -188,6 +188,24 @@ class RunnerTests(unittest.TestCase):
                       extension.OfficialExtensionError('OFFICIAL_EXTENSION_PRIVATEINPUT123'),
                       extension.OfficialExtensionError(code + ': private-input')):
             self.assertEqual(api._baseline_hold_reason(error), 'BASELINE_VALIDATION_OR_OPERATION_HELD')
+
+    def test_baseline_line_hold_report_distinguishes_layout_and_label_checks(self):
+        api = self.api()
+        for label, contiguous, expected in (
+            ('四分戦', True, 'LINE_LAYOUT_GROUP_COUNT_UNSUPPORTED'),
+            ('未知表示', False, 'LINE_LABEL_UNRECOGNIZED'),
+            ('三分戦', False, 'LINE_LABEL_GROUP_COUNT_MISMATCH'),
+        ):
+            with self.subTest(expected=expected):
+                data, script = line_fixture()
+                line = data['SJ0314']['narabiyoso']
+                line['lineKeitai'] = label
+                if contiguous:
+                    for i, row in enumerate(line['shaban'], 1):
+                        row['ichi'] = str(i)
+                with self.assertRaises(extension.OfficialExtensionError) as raised:
+                    parse_lines(data, script)
+                self.assertEqual(api._baseline_hold_reason(raised.exception), 'OFFICIAL_EXTENSION_' + expected)
 
     def test_verified_nearby_cutoff_precedes_far_future_races_despite_previous_attempts(self):
         inventory, _ = cutoff_fixture((98, 99))
