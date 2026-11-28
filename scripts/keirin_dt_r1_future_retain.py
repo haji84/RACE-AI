@@ -1,5 +1,6 @@
 """Archive an independently witnessed DT-R1 batch through the existing Git store."""
 import argparse
+from functools import partial
 import json
 import os
 from pathlib import Path
@@ -25,7 +26,8 @@ def retain(repo, producer_run, readback_run, *, client=None):
         day = verified['manifest']['summary']['day_jst']
         tip = archive._refresh(repo, retry_on_timeout=True, blobless=True)
         legacy = legacy_timely_slots(repo, tip, day, model_sha256=shadow.MODEL_SHA, client=client)
-        report = append_verified_batch(repo, verified, origin, legacy_accepted_slots=legacy)
+        report = append_verified_batch(repo, verified, origin, legacy_accepted_slots=legacy,
+                                        authenticate_batch=partial(reader.verify_saved_batch, client=client))
     return dict(report, retention_run_id=run_id, retention_code_commit=code_commit,
                 provider_source_requests=0, owner_plaintext_opened=False,
                 production_promoted=False, formal_three_way_races=0)

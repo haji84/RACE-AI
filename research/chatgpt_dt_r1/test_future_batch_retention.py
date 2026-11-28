@@ -21,6 +21,7 @@ from tests.test_keirin_nationwide_cipher_history import git
 
 DAY = '2030-01-15'
 SLOT = shadow.slot(DAY, '203001159801')
+SLOT_2 = shadow.slot(DAY, '203001159802')
 STEM = 'research/chatgpt-dt-r1/future/20300115/' + shadow.MODEL_SHA
 POINTER = STEM + '/first-slots/' + SLOT + '.json'
 LEGACY = STEM + '/first-accepted.json'
@@ -59,10 +60,19 @@ class FutureBatchRetentionTests(unittest.TestCase):
         git(self.root, 'clone', str(self.remote), str(self.other))
 
     @contextmanager
-    def verified_batch(self, run='456', *, read_run='789', late=False, source_head=None):
+    def verified_batch(self, run='456', *, read_run='789', late=False, source_head=None, two_slots=False):
         fixture = shadow_tests.FutureShadowTests()
         fixture.setUp()
         fixture.store.head = source_head or self.source_head
+        if two_slots:
+            payload, original = shadow_tests.second_race_original()
+            rid = original['race_id']
+            fixture.store.index['originals'][rid] = dict(fixture.original_meta, race_id=rid)
+            read = fixture.store.read
+            fixture.store.read = lambda meta, private: (
+                deepcopy(payload) if meta.get('race_id') == rid else read(meta, private))
+            fixture.admit.side_effect = lambda source, row, *a, **k: (
+                deepcopy(original if row['race_id'] == rid else fixture.original), {'synthetic': True})
         try:
             with patch.dict(os.environ, {'GITHUB_RUN_ID': run}):
                 summary = fixture.produce()
@@ -88,9 +98,9 @@ class FutureBatchRetentionTests(unittest.TestCase):
         finally:
             fixture.doCleanups()
 
-    def append(self, verified, origin, *, repo=None, legacy=()):
+    def append(self, verified, origin, *, repo=None, legacy=(), **kwargs):
         return retention.append_verified_batch(
-            repo or self.writer, verified, origin, legacy_accepted_slots=legacy, synthetic_local=True)
+            repo or self.writer, verified, origin, legacy_accepted_slots=legacy, synthetic_local=True, **kwargs)
 
     def head(self, repo=None):
         return archive._refresh(repo or self.writer, blobless=True)
@@ -156,7 +166,7 @@ class FutureBatchRetentionTests(unittest.TestCase):
         with self.verified_batch() as (verified, origin):
             self.append(verified, origin)
         original_head = self.head()
-        for damaged in (POINTER, batch_path('456', SLOT + '.sealed.json'), batch_path('456', 'readback.json')):
+        for damaged in (batch_path('456', SLOT + '.sealed.json'), batch_path('456', 'readback.json'), POINTER):
             with self.subTest(path=damaged):
                 saved = archive.read_blob_bytes(self.writer, original_head, damaged)
                 status, broken = archive._push_archive_files(
@@ -172,6 +182,113 @@ class FutureBatchRetentionTests(unittest.TestCase):
                 restored, _ = archive._push_archive_files(
                     self.writer, broken, {damaged: saved}, 'restore synthetic fixture', replace_path=damaged)
                 self.assertEqual(restored, 0)
+                if damaged == POINTER:
+                    with self.assertRaisesRegex(ValueError, 'ARCHIVE_POINTER_CHANGED'):
+                        self.retained()
+                else:
+                    self.assertEqual(self.retained(), {SLOT})
+
+    def delete_archive_file(self, path):
+        head = self.head()
+        with TemporaryDirectory() as temporary:
+            index = Path(temporary) / 'index'
+            archive._cmd(self.writer, 'read-tree', head, index_path=index)
+            archive._cmd(self.writer, 'update-index', '--force-remove', '--', path, index_path=index)
+            tree = archive._cmd(self.writer, 'write-tree', index_path=index)[1]
+        commit = git(self.writer, 'commit-tree', tree, '-p', head, '-m', 'delete a synthetic archive path')
+        git(self.writer, 'push', 'origin', f'{commit}:refs/heads/{archive.BRANCH}')
+        return commit
+
+    def test_deleted_pointer_in_ancestry_blocks_recreation(self):
+        with self.verified_batch() as (verified, origin):
+            self.append(verified, origin)
+        deleted = self.delete_archive_file(POINTER)
+        self.assertIsNone(archive.read_blob_bytes(self.writer, deleted, POINTER))
+        with self.assertRaises(ValueError):
+            self.retained()
+        with self.verified_batch(run='457', read_run='790') as (verified, origin):
+            with self.assertRaises(ValueError):
+                self.append(verified, origin)
+        self.assertEqual(self.head(), deleted)
+
+    def test_coherent_replacement_with_new_valid_batch_is_refused(self):
+        with self.verified_batch() as (verified, origin):
+            first = self.append(verified, origin)['write_commit']
+        with self.verified_batch(run='457', read_run='790') as (verified, origin):
+            manifest = (verified['directory'] / 'manifest.json').read_bytes()
+            receipt = codec._canonical(origin)
+            cipher = (verified['directory'] / (SLOT + '.sealed.json')).read_bytes()
+            pointer = codec._json(archive.read_blob_bytes(self.writer, first, POINTER))
+            pointer.update(producer_run_id='457', manifest_sha256=sha256(manifest).hexdigest(),
+                           readback_sha256=sha256(receipt).hexdigest(), cipher_sha256=sha256(cipher).hexdigest())
+            status, replacement = archive._push_archive_files(self.writer, first, {
+                POINTER: codec._canonical(pointer), batch_path('457', 'manifest.json'): manifest,
+                batch_path('457', 'readback.json'): receipt, batch_path('457', SLOT + '.sealed.json'): cipher,
+            }, 'synthetic coherent pointed-batch replacement', replace_path=POINTER)
+            self.assertEqual(status, 0)
+            with self.assertRaises(ValueError):
+                self.retained()
+            with self.assertRaises(ValueError):
+                self.append(verified, origin)
+        self.assertEqual(self.head(), replacement)
+
+    def test_manifest_only_modification_breaks_identical_introduction(self):
+        with self.verified_batch() as (verified, origin):
+            first = self.append(verified, origin)['write_commit']
+        manifest = batch_path('456', 'manifest.json')
+        changed = codec._json(archive.read_blob_bytes(self.writer, first, manifest))
+        changed['summary']['day_inventory_complete'] = False
+        status, _ = archive._push_archive_files(
+            self.writer, first, {manifest: codec._canonical(changed)}, 'synthetic manifest edit',
+            replace_path=manifest)
+        self.assertEqual(status, 0)
+        with self.assertRaisesRegex(ValueError, 'ARCHIVE_INTRODUCTION_MISMATCH'):
+            self.retained()
+
+    def test_shallow_state_history_cannot_hide_a_deleted_pointer(self):
+        with self.verified_batch() as (verified, origin):
+            self.append(verified, origin)
+        deleted = self.delete_archive_file(POINTER)
+        shallow = self.root / 'shallow-state'
+        git(self.root, 'clone', '--depth=1', self.remote.as_uri(), str(shallow))
+        with self.assertRaisesRegex(ValueError, 'ARCHIVE_ANCESTRY_TRUNCATED'):
+            retention.retained_slots(shallow, deleted, DAY, shadow.MODEL_SHA, [SLOT])
+
+    def test_shallow_unrelated_checkout_allows_complete_state_history(self):
+        with self.verified_batch() as (verified, origin):
+            head = self.append(verified, origin)['archive_commit']
+        tree = git(self.writer, 'rev-parse', head + '^{tree}')
+        main = git(self.writer, 'commit-tree', tree, '-m', 'fixture unrelated checkout')
+        git(self.writer, 'push', 'origin', f'{main}:refs/heads/fixture-main')
+        checkout = self.root / 'shallow-main'
+        git(self.root, 'clone', '--depth=1', '--branch', 'fixture-main', self.remote.as_uri(), str(checkout))
+        self.assertEqual(git(checkout, 'rev-parse', '--is-shallow-repository'), 'true')
+        self.assertEqual(archive._refresh(checkout, blobless=True), head)
+        self.assertEqual(retention.retained_slots(checkout, head, DAY, shadow.MODEL_SHA, [SLOT]), {SLOT})
+
+    def test_batch_authentication_once_per_batch_and_required_for_no_op(self):
+        with self.verified_batch(two_slots=True) as (verified, origin):
+            saved = self.append(verified, origin)
+            seen = []
+
+            def authenticate(manifest, readback, manifest_sha):
+                seen.append((manifest, readback, manifest_sha))
+
+            self.assertEqual(retention.retained_slots(
+                self.other, self.head(self.other), DAY, shadow.MODEL_SHA, [SLOT, SLOT_2],
+                authenticate_batch=authenticate), {SLOT, SLOT_2})
+            self.assertEqual(seen, [(verified['manifest'], origin, verified['manifest_sha256'])])
+            seen.clear()
+            replay = self.append(verified, origin, authenticate_batch=authenticate)
+            self.assertEqual(replay['already_accepted_slots'], 2)
+            self.assertEqual(len(seen), 1)
+
+            def rejected(*args):
+                raise ValueError('synthetic authenticated proof mismatch')
+
+            with self.assertRaisesRegex(ValueError, 'authenticated proof mismatch'):
+                self.append(verified, origin, authenticate_batch=rejected)
+            self.assertEqual(self.head(), saved['archive_commit'])
 
     def test_verified_batch_from_unrelated_source_history_cannot_write(self):
         start = self.head()
@@ -182,6 +299,25 @@ class FutureBatchRetentionTests(unittest.TestCase):
                 self.append(verified, origin)
         self.assertEqual(self.head(), start)
         self.assertIsNone(archive.read_blob_bytes(self.writer, start, POINTER))
+
+    def test_acknowledged_write_requires_same_files_at_the_observed_tip(self):
+        real_push = archive._push_archive_files
+        manifest = batch_path('456', 'manifest.json')
+
+        def change_after_ack(repo, parent, files, message):
+            status, commit = real_push(repo, parent, files, message)
+            self.assertEqual(status, 0)
+            changed = codec._json(files[manifest])
+            changed['summary']['day_inventory_complete'] = False
+            alter_status, _ = real_push(repo, commit, {manifest: codec._canonical(changed)},
+                'synthetic later manifest edit', replace_path=manifest)
+            self.assertEqual(alter_status, 0)
+            return status, commit
+
+        with self.verified_batch() as (verified, origin):
+            with patch.object(archive, '_push_archive_files', side_effect=change_after_ack):
+                with self.assertRaisesRegex(ValueError, 'ARCHIVE_READBACK_MISMATCH'):
+                    self.append(verified, origin)
 
     def test_non_fast_forward_loser_replays_and_preserves_the_winning_slot(self):
         real_push = archive._push_archive_files

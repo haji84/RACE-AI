@@ -110,6 +110,58 @@ def _check_cipher(raw, entry, day):
     return raw
 
 
+def _require_complete_history(repo, head):
+    if archive._cmd(repo, 'rev-parse', '--is-shallow-repository')[1] != 'true':
+        return
+    shallow_path = archive._cmd(repo, 'rev-parse', '--path-format=absolute', '--git-path', 'shallow')[1]
+    root = archive._cmd(repo, '--no-replace-objects', 'rev-list', '--first-parent',
+                        '--max-parents=0', head)[1]
+    _need(archive.COMMIT.fullmatch(root) and root not in Path(shallow_path).read_text().splitlines(),
+          'ARCHIVE_ANCESTRY_TRUNCATED')
+
+
+def _tree_entries(repo, commit, paths):
+    result = archive._cmd(repo, '--no-replace-objects', 'ls-tree', '--full-tree', '-z',
+                          commit, '--', *sorted(paths))[1]
+    entries = {}
+    for line in result.split('\0'):
+        if line:
+            meta, sep, path = line.partition('\t')
+            _need(sep and path in paths and path not in entries, 'ARCHIVE_TREE_ENTRY')
+            entries[path] = meta
+    return entries
+
+
+def _pointer_introductions(repo, head, paths):
+    # Walk first-parent state updates exactly once for the requested roster.
+    # Name-only output avoids hydrating blobs for absent slots.
+    result = archive._cmd(repo, '--no-replace-objects', 'log', '--first-parent', '--full-history',
+        '--diff-merges=first-parent', '--no-renames', '--no-show-signature',
+        '--format=%x00%H', '--name-only', f'--max-count={len(paths) + 1}', head, '--', *sorted(paths))[1]
+    intro = {}
+    pieces = result.split('\0')
+    _need(pieces[0] == '', 'ARCHIVE_POINTER_HISTORY_FORMAT')
+    _need(len(pieces) <= len(paths) + 1, 'ARCHIVE_POINTER_CHANGED')
+    for piece in pieces[1:]:
+        commit, *changed = piece.split()
+        _need(archive.COMMIT.fullmatch(commit), 'ARCHIVE_POINTER_HISTORY_FORMAT')
+        for path in changed:
+            _need(path in paths and path not in intro, 'ARCHIVE_POINTER_CHANGED')
+            intro[path] = commit
+    _need(intro.keys() == _tree_entries(repo, head, paths).keys(), 'ARCHIVE_POINTER_MISSING_OR_UNPINNED')
+    return intro
+
+
+def _check_introduction(repo, head, commit, paths):
+    parents = archive._cmd(repo, '--no-replace-objects', 'rev-list', '--parents', '-n', '1', commit)[1].split()
+    _need(len(parents) == 2 and parents[0] == commit and archive.COMMIT.fullmatch(parents[1]),
+          'ARCHIVE_INTRODUCTION_PARENT')
+    files = _tree_entries(repo, commit, paths)
+    _need(not _tree_entries(repo, parents[1], paths) and files.keys() == paths and
+          all(meta.startswith('100644 blob ') for meta in files.values()) and
+          files == _tree_entries(repo, head, paths), 'ARCHIVE_INTRODUCTION_MISMATCH')
+
+
 def _batch_metadata(repo, head, stem, day, model_sha256, pointer):
     from scripts import keirin_dt_r1_future_shadow as shadow
 
@@ -124,19 +176,24 @@ def _batch_metadata(repo, head, stem, day, model_sha256, pointer):
     run = pointer['producer_run_id']
     entries = _manifest_entries(manifest, day, model_sha256, run)
     eligible = _checked_origin(origin, manifest, run=run, manifest_sha256=manifest_sha, entries=entries)
-    return manifest_sha, origin_sha, entries, eligible
+    return manifest_sha, origin_sha, entries, eligible, manifest, origin
 
 
-def retained_slots(repo, head, day, model_sha256, slots):
-    """Replay only requested pointers at one pinned archive commit."""
+def retained_slots(repo, head, day, model_sha256, slots, *, authenticate_batch=None):
+    """Replay first-parent introductions and optionally reauthenticate each batch."""
     _need(type(head) is str and archive.COMMIT.fullmatch(head), 'ARCHIVE_HEAD_PIN')
+    _need(authenticate_batch is None or callable(authenticate_batch), 'ARCHIVE_AUTHENTICATOR')
     prefix = _prefix(day, model_sha256)
-    found, batches = set(), {}
-    for slot in sorted(_slots(slots)):
-        raw = archive.read_blob_bytes(repo, head, f'{prefix}/first-slots/{slot}.json',
-                                      max_bytes=MAX_POINTER_BYTES + 1)
-        if raw is None:
-            continue
+    paths = {f'{prefix}/first-slots/{slot}.json': slot for slot in sorted(_slots(slots))}
+    if not paths:
+        return set()
+    _require_complete_history(repo, head)
+    introductions = _pointer_introductions(repo, head, paths)
+    pointers, introduced_files = {}, {}
+    for path, commit in introductions.items():
+        slot = paths[path]
+        raw = archive.read_blob_bytes(repo, head, path, max_bytes=MAX_POINTER_BYTES + 1)
+        _need(raw is not None, 'ARCHIVE_POINTER_MISSING_OR_UNPINNED')
         pointer = codec._json(raw)
         _need(type(pointer) is dict and set(pointer) == POINTER_FIELDS and pointer['schema'] == POINTER_SCHEMA and
               pointer['day_jst'] == day and pointer['model_sha256'] == model_sha256 and
@@ -145,20 +202,33 @@ def retained_slots(repo, head, day, model_sha256, slots):
               'POINTER_SCHEMA_OR_IDENTITY')
         run = pointer['producer_run_id']
         stem = f'{prefix}/batches/{run}'
+        introduced_files.setdefault(commit, set()).update(
+            (path, f'{stem}/manifest.json', f'{stem}/readback.json', f'{stem}/{slot}.sealed.json'))
+        pointers[slot] = pointer
+    for commit, files in introduced_files.items():
+        _check_introduction(repo, head, commit, files)
+
+    batches = {}
+    for slot, pointer in pointers.items():
+        run = pointer['producer_run_id']
+        stem = f'{prefix}/batches/{run}'
         if run not in batches:
             batches[run] = _batch_metadata(repo, head, stem, day, model_sha256, pointer)
-        manifest_sha, origin_sha, entries, eligible = batches[run]
+        manifest_sha, origin_sha, entries, eligible, _, _ = batches[run]
         _need(pointer['manifest_sha256'] == manifest_sha and pointer['readback_sha256'] == origin_sha and
               slot in eligible and pointer['cipher_sha256'] == entries[slot]['cipher']['sha256'],
               'POINTER_BATCH_BINDING')
         cipher = archive.read_blob_bytes(repo, head, f'{stem}/{slot}.sealed.json',
                                          max_bytes=MAX_ARCHIVE_BYTES + 1)
         _check_cipher(cipher, entries[slot], day)
-        found.add(slot)
-    return found
+    if authenticate_batch is not None:
+        for manifest_sha, _, _, _, manifest, origin in batches.values():
+            authenticate_batch(manifest, origin, manifest_sha)
+    return set(pointers)
 
 
-def append_verified_batch(repo, verified, origin, *, legacy_accepted_slots=(), synthetic_local=False):
+def append_verified_batch(repo, verified, origin, *, legacy_accepted_slots=(), synthetic_local=False,
+                          authenticate_batch=None):
     """Append a batch and its previously unaccepted slots in one normal Git push."""
     from scripts import keirin_dt_r1_future_shadow as shadow
 
@@ -192,7 +262,8 @@ def append_verified_batch(repo, verified, origin, *, legacy_accepted_slots=(), s
         if previous is not None:
             _need(previous != head and archive._cmd(repo, '--no-replace-objects', 'merge-base',
                 '--is-ancestor', previous, head, okay=True)[0] == 0, 'ARCHIVE_PUSH_UNACKNOWLEDGED')
-        retained = retained_slots(repo, head, day, model_sha, eligible)
+        retained = retained_slots(repo, head, day, model_sha, eligible,
+                                  authenticate_batch=authenticate_batch)
         new = eligible - legacy - retained
         counts = dict(report, already_accepted_slots=len(eligible) - len(new),
                       new_first_slots=len(new))
@@ -215,9 +286,12 @@ def append_verified_batch(repo, verified, origin, *, legacy_accepted_slots=(), s
             continue
         observed = archive._refresh(repo, blobless=True)
         _need(archive._cmd(repo, '--no-replace-objects', 'merge-base',
-                          '--is-ancestor', commit, observed, okay=True)[0] == 0 and
-              all(archive.read_blob_bytes(repo, observed, path, max_bytes=len(raw) + 1) == raw
-                  for path, raw in files.items()), 'ARCHIVE_READBACK_MISMATCH')
+                          '--is-ancestor', commit, observed, okay=True)[0] == 0, 'ARCHIVE_READBACK_MISMATCH')
+        if observed != commit:
+            committed = _tree_entries(repo, commit, files)
+            _need(committed.keys() == files.keys() and committed == _tree_entries(repo, observed, files),
+                  'ARCHIVE_READBACK_MISMATCH')
+        _need(retained_slots(repo, observed, day, model_sha, new) == new, 'ARCHIVE_READBACK_MISMATCH')
         return dict(counts, state='DT_R1_FUTURE_BATCH_APPENDED', archive_commit=observed,
                     write_commit=commit, retained_files=len(files))
     raise ValueError('DT_R1_FUTURE_BATCH_CONCURRENT_PUSH_RETRY_EXHAUSTED')

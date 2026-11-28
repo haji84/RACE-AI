@@ -12,6 +12,7 @@ from __future__ import annotations
 import argparse
 from collections import Counter
 from datetime import timedelta
+from functools import partial
 from hashlib import sha256
 import json
 import os
@@ -464,10 +465,12 @@ def run_future_shadow(*, repo, private_root, output, owner_public_pem, owner_pri
         store = records.RecordStore(reader, day, index_commit=head)
         from research.chatgpt_dt_r1.future_batch_retention import retained_slots
         from research.chatgpt_dt_r1.future_retention_gate import legacy_timely_slots
+        from scripts.keirin_dt_r1_future_readback import verify_saved_batch
 
         client = GitHubEvidenceClient()
         provisioned = {slot(day, rid) for rid in store.index['originals']}
-        accepted = retained_slots(reader, head, day, MODEL_SHA, provisioned)
+        accepted = retained_slots(reader, head, day, MODEL_SHA, provisioned,
+                                  authenticate_batch=partial(verify_saved_batch, client=client))
         legacy = legacy_timely_slots(reader, head, day, model_sha256=MODEL_SHA, client=client)
         return produce_day(store=store, repo=repo, output=output, owner_public_pem=public,
             owner_private_pem=owner_private_pem, code_commit=commit, origin_client=client,
