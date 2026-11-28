@@ -1,0 +1,34 @@
+{
+  "day_jst": "2026-11-28",
+  "official_phase_source_audit": {
+    "marker_token_fields": {},
+    "phase_semantics_verified": false,
+    "races_with_unlisted_fields": 50,
+    "races_with_unlisted_result_scripts": 50,
+    "result_view_scripts": {
+      "/sp/static/js/SJ0326.js": 50,
+      "/sp/static/js/SJ0326_v.js": 50
+    },
+    "row_fields": {
+      "agari": 50,
+      "kojinStateItemSubData": 50,
+      "syaban": 50,
+      "tyaku": 50
+    },
+    "schema": "DT_R1_OFFICIAL_PHASE_FIELD_AUDIT_V1",
+    "scorer_verified_normal_results": 50,
+    "uncounted_result_shapes": 0,
+    "unlisted_marker_token_races": {
+      "B": 50
+    },
+    "unverified_result_shapes": 0,
+    "verified_result_shapes": 50
+  },
+  "official_result_renderer_sha256": "97bcd07542bbad2d4d9432cd9a4c39122d888a5a7aa43ad3d4305d01d9cb3009",
+  "reader_code_commit": "f371a16223811ed8ca92fb0b173c7d5a8401a012",
+  "reader_run_id": 46188746926,
+  "receipt_artifact_id": 15281381087,
+  "receipt_json_sha256": "580a3d7ee51261384a0cafbcddc47b7cb47737b1fa172c836d29e9f75a8649a4",
+  "receipt_zip_sha256": "a0e41a1c7ebb168325d51cbadca393c20486016442c49fbd72c3bc0cfbb1a8f9",
+  "result_archive_commit": "073ae2c1da338aa7914745aa610a381d93f8e57f"
+}
