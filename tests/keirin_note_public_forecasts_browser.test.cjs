@@ -208,8 +208,8 @@ describe('KEIRIN anonymous forecast page', { skip: !chromium }, () => {
       rows: [
         { lane: 'official', arm: 'A', points: 8, state: 'GRADED', probability: .35, grade: 'LOW',
           fit: { hits: 14, n: 40, days: 4 }, validation: { hits: 30, n: 80, days: 3 }, ci95: [.2769, .4845] },
-        { lane: 'official', arm: 'B', points: 8, state: 'HOLD_CALIBRATION_INSUFFICIENT', probability: null, grade: null,
-          fit: { hits: 4, n: 22, days: 3 }, validation: { hits: 4, n: 16, days: 2 }, ci95: [.1018, .4950] }
+        { lane: 'official', arm: 'B', points: 8, state: 'HOLD_CALIBRATION_ERROR', probability: null, grade: null,
+          fit: { hits: 2, n: 27, days: 4 }, validation: { hits: 30, n: 103, days: 3 }, ci95: [.2123, .3852] }
       ],
     };
     try {
@@ -217,7 +217,8 @@ describe('KEIRIN anonymous forecast page', { skip: !chromium }, () => {
       const official = page.locator('article').filter({ hasText: '西武園 1R' });
       await official.getByText(/的中確率\s*35\.0%/).waitFor();
       assert.match(await official.innerText(), /信頼度\s*低[\s\S]*8点[\s\S]*30\s*\/\s*80/);
-      assert.match(await official.innerText(), /B[\s\S]*8点[\s\S]*検証[\s\S]*16件/);
+      assert.match(await official.innerText(), /B[\s\S]*8点[\s\S]*検証実績 30 \/ 103件（29\.1%）/);
+      assert.match(await official.innerText(), /校正用 2 \/ 27件[\s\S]*検証期間での差が大きい/);
       assert.doesNotMatch(await official.innerText(), /未校正|不明/);
     } finally {
       delete serve.supplement;
