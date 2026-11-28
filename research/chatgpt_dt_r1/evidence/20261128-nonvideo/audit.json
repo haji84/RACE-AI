@@ -1,0 +1,47 @@
+{
+  "schema": "DT_R1_NONVIDEO_CONTINUATION_AUDIT_V1",
+  "date_jst": "2026-11-28",
+  "main_head": "c4d4c25ffdb93faf5d9921a2336dc2f05c4b4324",
+  "retention": {
+    "archive_commit": "ad17c6edccaa2dc05497fc99c7c653a08fd37cf2",
+    "first_pin_sha256": "093c8d02779a33b46f516d475e3d5549654eadb18c3b62f208c4a865b8cc3c4a",
+    "manifest_sha256": "90b275d6b0fafd1fd69983a7c17e3efe5d4d64ea0f31eb1baa8b1b1703305ba2",
+    "retained_manifest_and_cipher_files": 18,
+    "verified_sha256_and_size": 18,
+    "bytes": 1476673,
+    "method": "Fetched all actual retained ASCII bytes at fixed archive commit via GitHub and compared SHA-256/length to first pin. No decryption."
+  },
+  "producer": {
+    "run": 46082459814,
+    "job": 140785180592,
+    "completed_at": "2026-11-27T23:31:35Z",
+    "runner": 1000058559,
+    "registered": 78,
+    "encrypted": 17,
+    "missing_saved_original": 38,
+    "source_unverified": 23
+  },
+  "reader": {
+    "run": 46083220254,
+    "job": 140787395385,
+    "runner": 1000058564,
+    "completed_at": "2026-11-27T23:36:34Z",
+    "cipher_verified": 17,
+    "deadline_candidates": 16,
+    "deadline_hold": 1,
+    "late_cutoff_jst": "2026-11-28T08:47:00+09:00",
+    "method": "Cross-checked recorded readback JSON and GitHub job completion time against manifest cutoff minus 900s; not execution of authenticated artifact verifier",
+    "artifact_sha256": "f50e505339b25e44a6a1f99d89373737d6761e131a74a97db738abcf8661eafa"
+  },
+  "formal_three_way_races": 0,
+  "official_settlement_verified": false,
+  "owner_decryption_of_forecasts_verified": false,
+  "artifact_server_verifier_executed_in_this_turn": false,
+  "video_dependency_on_nonvideo_settlement": false,
+  "main_changed": false,
+  "fixture_test": {
+    "test_methods": 1,
+    "valid_case_and_rejections": 6,
+    "passed": true
+  }
+}
