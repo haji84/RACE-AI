@@ -36,6 +36,7 @@ POLICY = origin.OriginPolicy(
     producer_report_member='summary.json', readback_report_member='summary.json',
     minimum_margin_seconds=900)
 CIPHER_ARTIFACT = 'keirin-dt-r1-future-cipher-{run_id}'
+CODEX_CIPHER_ARTIFACT = 'keirin-codex-future-cipher-{run_id}'
 SCHEMA = 'DT_R1_FUTURE_SHADOW_READBACK_V1'
 MAX_EXPANDED_BYTES = 128_000_000
 
@@ -84,8 +85,9 @@ def fetch_report(client, run_id):
     return result
 
 
-def _cipher_packet(client, run_id, producer):
-    packet = _packet(client, run_id, CIPHER_ARTIFACT.format(run_id=run_id))
+def _cipher_packet(client, run_id, producer, *, codex=False):
+    template = CODEX_CIPHER_ARTIFACT if codex else CIPHER_ARTIFACT
+    packet = _packet(client, run_id, template.format(run_id=run_id))
     artifact = packet['artifact']; reference = producer['packet']['artifact']
     _need(packet['run'] == producer['packet']['run'] and
           packet['job'] == producer['packet']['job'] and
@@ -130,22 +132,41 @@ def _extract(raw, directory):
         raise ValueError('DT_R1_FUTURE_READBACK_ZIP_INVALID') from None
 
 
+def _check_peer(client, manifest, scope_ready):
+    summary = manifest['summary']
+    with verified_producer(summary['dt_producer_run_id'], client=client) as peer:
+        original = peer['manifest']
+        _need(summary['dt_manifest_sha256'] == peer['manifest_sha256'] and
+              manifest['registry'] == original['registry'] and
+              all(summary[key] == original['summary'][key] for key in ('day_jst', 'source_archive_commit')),
+              'CODEX_PEER_SOURCE_BINDING')
+        _need({entry['slot_sha256'] for entry in manifest['entries']} ==
+              {entry['slot_sha256'] for entry in original['entries']}, 'CODEX_PEER_REGISTRY_DENOMINATOR')
+        eligible = {entry['slot_sha256']: (entry['bindings']['input_sha256'], origin._time(entry['clocks']['cutoff_at']))
+                    for entry in original['entries'] if entry['state'] == scope_ready}
+        _need(all(eligible.get(entry['slot_sha256']) == (entry['bindings']['input_sha256'],
+                                                        origin._time(entry['clocks']['cutoff_at'])) and
+                  peer['producer']['completed_at'] <= origin._time(entry['clocks']['input_at'])
+                  for entry in manifest['entries'] if entry['cipher'] is not None), 'CODEX_PEER_INPUT_BINDING')
+
+
 @contextmanager
-def verified_producer(producer_run_id, *, client=None):
+def verified_producer(producer_run_id, *, client=None, codex=False):
     """Yield only verified ciphertext; cleanup occurs even if the caller fails."""
     from scripts import keirin_dt_r1_future_shadow as producer_code
     client = client or GitHubEvidenceClient()
     producer = fetch_report(client, producer_run_id)
     report = producer['report']
-    _need(type(report) is dict and report.get('schema') == producer_code.SUMMARY_SCHEMA and
+    expected_schema = producer_code.CODEX_SUMMARY_SCHEMA if codex else producer_code.SUMMARY_SCHEMA
+    _need(type(report) is dict and report.get('schema') == expected_schema and
           type(report.get('manifest_sha256')) is str and
           re.fullmatch('[0-9a-f]{64}', report['manifest_sha256']) is not None,
           'PRODUCER_SUMMARY_REQUIRED')
-    cipher = _cipher_packet(client, producer_run_id, producer)
+    cipher = _cipher_packet(client, producer_run_id, producer, codex=codex)
     with TemporaryDirectory(prefix='dt-future-cipher-readback-') as temporary:
         directory = Path(temporary)
         _extract(cipher['archive_bytes'], directory)
-        manifest = producer_code.verify_output(directory, expected_manifest_sha256=report['manifest_sha256'])
+        manifest = producer_code.verify_output(directory, expected_manifest_sha256=report['manifest_sha256'], codex=codex)
         saved = [entry['cipher'] for entry in manifest['entries'] if entry['cipher'] is not None]
         expected_report = dict(manifest['summary'], manifest_sha256=report['manifest_sha256'],
             manifest_bytes=(directory / 'manifest.json').stat().st_size,
@@ -154,6 +175,8 @@ def verified_producer(producer_run_id, *, client=None):
               report['reader_run_id'] == producer_run_id and report['reader_code_commit'] == producer['commit'] and
               producer['started_at'] <= origin._time(report['started_at']) <=
               origin._time(report['finished_at']) <= producer['completed_at'], 'PRODUCER_IDENTITY_OR_CLOCK')
+        if codex:
+            _check_peer(client, manifest, producer_code.READY)
         yield dict(directory=directory, manifest=manifest, manifest_sha256=report['manifest_sha256'],
                    producer=producer, cipher_packet=cipher)
 
@@ -191,10 +214,10 @@ def _receipt(verified, reader_run_id, reader_code_commit, observed):
         confidence='HOLD', formal_three_way_races=0)
 
 
-def readback(producer_run_id, *, reader_run_id, reader_code_commit, client=None,
+def readback(producer_run_id, *, reader_run_id, reader_code_commit, client=None, codex=False,
              clock=lambda: datetime.now(timezone.utc)):
     _need(_run_id(reader_run_id) != _run_id(producer_run_id), 'DISTINCT_LATER_RUN_REQUIRED')
-    with verified_producer(producer_run_id, client=client) as verified:
+    with verified_producer(producer_run_id, client=client, codex=codex) as verified:
         observed = origin._time(clock().isoformat())
         return _receipt(verified, reader_run_id, reader_code_commit, observed)
 
@@ -235,9 +258,9 @@ def verify_readback(verified, readback_run_id, *, client=None):
         source_authenticated=False, official_result_verified=False, production_promoted=False)
 
 
-def verify_saved_batch(manifest, saved_origin, manifest_sha256, *, client):
+def verify_saved_batch(manifest, saved_origin, manifest_sha256, *, client, codex=False):
     """Bind a retained batch to the same authenticated GitHub receipts again."""
-    with verified_producer(saved_origin['producer_run_id'], client=client) as verified:
+    with verified_producer(saved_origin['producer_run_id'], client=client, codex=codex) as verified:
         _need(verified['manifest_sha256'] == manifest_sha256 and verified['manifest'] == manifest,
               'ARCHIVED_MANIFEST_CHANGED')
         actual = verify_readback(verified, saved_origin['readback_run_id'], client=client)
@@ -263,11 +286,12 @@ def main(argv=None):
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--repo', type=Path, required=True)
     parser.add_argument('--producer-run', required=True)
+    parser.add_argument('--codex', action='store_true')
     args = parser.parse_args(argv)
     os.environ.pop('RACE_AI_KEIRIN_PRIVATE_RSA_PEM', None)
     try:
         run, commit = _runtime(args.repo)
-        report = readback(args.producer_run, reader_run_id=run, reader_code_commit=commit)
+        report = readback(args.producer_run, reader_run_id=run, reader_code_commit=commit, codex=args.codex)
     except Exception:
         report = dict(schema=SCHEMA, state='HOLD_CIPHERTEXT_OR_RUNTIME_UNVERIFIED',
             confidence='HOLD', independent_server_timing_verified=False, owner_decryption_verified=False,

@@ -240,12 +240,13 @@ def retained_slots(repo, head, day, model_sha256, slots, *, authenticate_batch=N
 
 def append_verified_batch(repo, verified, origin, *, legacy_accepted_slots=(), synthetic_local=False,
                           authenticate_batch=None):
-    """Append a batch and its previously unaccepted slots in one normal Git push."""
+    """Append a batch and its previously unaccepted model-specific slots in one Git push."""
     from scripts import keirin_dt_r1_future_shadow as shadow
 
     folder = Path(verified['directory'])
     manifest_sha = verified['manifest_sha256']
-    manifest = shadow.verify_output(folder, expected_manifest_sha256=manifest_sha)
+    codex = verified['manifest']['summary']['schema'] == shadow.CODEX_SUMMARY_SCHEMA
+    manifest = shadow.verify_output(folder, expected_manifest_sha256=manifest_sha, codex=codex)
     producer = verified['producer']
     run = str(producer['run_id'])
     _need(manifest == verified['manifest'] and _id(producer['run_id']) and _run(run), 'VERIFIED_MANIFEST_BINDING')
@@ -291,7 +292,8 @@ def append_verified_batch(repo, verified, origin, *, legacy_accepted_slots=(), s
                 schema=POINTER_SCHEMA, day_jst=day, model_sha256=model_sha, slot_sha256=slot,
                 producer_run_id=run, manifest_sha256=manifest_sha, readback_sha256=origin_sha,
                 cipher_sha256=entry['cipher']['sha256']))
-        status, commit = archive._push_archive_files(repo, head, files, 'archive(keirin): retain verified DT-R1 batch')
+        model_name = 'Codex' if codex else 'DT-R1'
+        status, commit = archive._push_archive_files(repo, head, files, f'archive(keirin): retain verified {model_name} batch')
         if status != 0:
             previous = head
             continue

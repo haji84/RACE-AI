@@ -1,7 +1,7 @@
 """Synthetic server metadata only; no real forecast timing attestation."""
 from copy import deepcopy
 from contextlib import redirect_stdout
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from hashlib import sha256
 from importlib import import_module, util
 from io import BytesIO
@@ -119,20 +119,94 @@ class FutureReadbackTests(unittest.TestCase):
                 self.api.fetch_report(fixture.client, run_id)
             self.assertEqual(fixture.calls, [])
 
-    def produced(self):
+    def produced(self, prepared=None):
         case = import_module('tests.test_keirin_dt_r1_future_shadow').FutureShadowTests
         if not hasattr(case, 'private'):
             case.setUpClass()
         producer = case(); producer.setUp(); self.addCleanup(producer.doCleanups)
+        if prepared is not None:
+            prepared(producer)
         report = producer.produce()
-        first = packet('456', report=report, head='c' * 40)
+        return producer, *self.producer_packets(producer, report, '456')
+
+    def producer_packets(self, producer, report, run, *, codex=False, minute=1):
+        first = packet(run, report=report, minute=minute, head='c' * 40)
         cipher = deepcopy(first)
-        cipher['artifact'].update(id=2457, name='keirin-dt-r1-future-cipher-456',
-            url=API + '/actions/artifacts/2457', archive_download_url=API + '/actions/artifacts/2457/zip')
+        ident = int(run) + 2001
+        template = self.api.CODEX_CIPHER_ARTIFACT if codex else self.api.CIPHER_ARTIFACT
+        url = API + '/actions/artifacts/' + str(ident)
+        cipher['artifact'].update(id=ident, name=template.format(run_id=run), url=url, archive_download_url=url + '/zip')
         raw = zip_bytes({path.name: path.read_bytes() for path in producer.output.iterdir()})
         cipher['archive_bytes'] = raw
         cipher['artifact'].update(digest='sha256:' + sha256(raw).hexdigest(), size_in_bytes=len(raw))
-        return producer, first, cipher
+        return first, cipher
+
+    def test_codex_uses_the_same_peer_input_and_independent_ciphertext_reader(self):
+        from research.chatgpt_dt_r1 import codex_future_candidate as candidate
+        from research.chatgpt_dt_r1.test_codex_future_candidate import CodexFutureCandidateTests
+        from scripts import keirin_dt_r1_future_shadow as shadow
+
+        fixture = CodexFutureCandidateTests()
+        fixture.setUp()
+        frozen = fixture.load()
+
+        def use_full_proof(producer):
+            producer.payload, producer.original = fixture.payload, fixture.original
+            producer.original_meta.update(fixture.meta)
+
+        producer, peer_receipt, peer_cipher = self.produced(prepared=use_full_proof)
+        peer_manifest = producer.manifest()
+        peer_entry = next(row for row in peer_manifest['entries'] if row['state'] == shadow.READY)
+        peer_client = FixtureAPI([peer_receipt, peer_cipher]).client
+        with patch.dict(os.environ, {'GITHUB_RUN_ID': '610'}):
+            source, registry, peer, inputs = shadow._codex_source(producer.day, '456', peer_client)
+        self.assertEqual((source, registry), (producer.store.head, peer_manifest['registry']))
+        self.assertEqual(inputs, {peer_entry['slot_sha256']: (peer_entry['bindings']['input_sha256'],
+                                                            peer_entry['clocks']['cutoff_at'])})
+        producer.current = datetime.fromisoformat('2030-01-15T02:03:00+00:00')
+        producer.output = producer.root / 'independent'
+        producer.reads.clear()
+        with (patch.dict(os.environ, {'GITHUB_RUN_ID': '610'}),
+              patch.object(candidate, 'load_frozen', return_value=frozen),
+              patch.object(shadow, 'load_frozen', side_effect=AssertionError('DT-R1 model must not be loaded'))):
+            report = producer.produce(codex_peer=peer, codex_inputs=inputs)
+        self.assertEqual(report['schema'], shadow.CODEX_SUMMARY_SCHEMA)
+        self.assertEqual(report['registered_races'], 78)
+        self.assertEqual((report['cipher_files'], report['result_reads']), (1, 0))
+        self.assertEqual(producer.reads, ['registry', 'original'])
+        codex_receipt, codex_cipher = self.producer_packets(producer, report, '610', codex=True, minute=3)
+        packets = [peer_receipt, peer_cipher, codex_receipt, codex_cipher]
+        with self.assertRaisesRegex(ValueError, 'PRODUCER_SUMMARY_REQUIRED'):
+            with self.api.verified_producer('610', client=FixtureAPI(packets).client):
+                self.fail('Codex ciphertext admitted as DT-R1')
+        with self.api.verified_producer('610', client=FixtureAPI(packets).client, codex=True) as verified:
+            self.assertEqual(verified['manifest']['model'], candidate.model_identity())
+            entry = next(row for row in verified['manifest']['entries'] if row['state'] == shadow.READY)
+            raw = (verified['directory'] / entry['cipher']['file']).read_bytes()
+            saved = shadow.codec.decrypt_evidence(raw, producer.private)
+            self.assertEqual(saved['schema'], shadow.CODEX_PRIVATE_SCHEMA)
+            self.assertEqual(saved['forecast']['model_id'], candidate.model_identity()['model_id'])
+            self.assertEqual(saved['forecast']['input_sha256'], peer_entry['bindings']['input_sha256'])
+            self.assertNotIn('codex_features', json.dumps(verified['manifest']))
+            delay = datetime.fromisoformat(entry['clocks']['cutoff_at']) + timedelta(minutes=7)
+            for section, key, value in (('bindings', 'input_sha256', '0' * 64),
+                                        ('clocks', 'cutoff_at', delay.isoformat())):
+                altered = deepcopy(verified['manifest'])
+                next(row for row in altered['entries'] if row['state'] == shadow.READY)[section][key] = value
+                with self.assertRaisesRegex(ValueError, 'CODEX_PEER_INPUT_BINDING'):
+                    self.api._check_peer(FixtureAPI(packets).client, altered, shadow.READY)
+            altered = deepcopy(verified['manifest'])
+            altered['entries'].pop()
+            with self.assertRaisesRegex(ValueError, 'CODEX_PEER_REGISTRY_DENOMINATOR'):
+                self.api._check_peer(FixtureAPI(packets).client, altered, shadow.READY)
+        fixture_client = FixtureAPI(packets).client
+        read_at = datetime.fromisoformat('2030-01-15T02:05:20+00:00')
+        receipt = self.api.readback('610', reader_run_id='990', reader_code_commit='d' * 40,
+                                    client=fixture_client, codex=True, clock=lambda: read_at)
+        packets.append(packet('990', report=receipt, minute=5, head='d' * 40))
+        with self.api.verified_producer('610', client=FixtureAPI(packets).client, codex=True) as verified:
+            origin = self.api.verify_readback(verified, '990', client=FixtureAPI(packets).client)
+            self.assertEqual(origin['eligible_slots'], [peer_entry['slot_sha256']])
 
     def test_verified_producer_opens_only_exact_temporary_cipher_inventory(self):
         producer, first, cipher = self.produced()
