@@ -134,7 +134,7 @@ on:
         type: choice
         required: true
         default: test
-        options: [test, saved-only, observe, rider-dossiers, dossier-context, measure-results, combined-study, learned-replay, dt-r1-restore, dt-r1-shadow, dt-r1-readback]
+        options: [test, saved-only, observe, rider-dossiers, dossier-context, measure-results, combined-study, learned-replay, dt-r1-restore, dt-r1-shadow, dt-r1-readback, dt-r1-settle]
       dossier_day:
         type: string
         description: JST day for source-free dossier replay or measurement
@@ -265,7 +265,7 @@ jobs:
        (github.event_name == 'workflow_dispatch' && needs.tests.result == 'success' &&
         (inputs.mode == 'saved-only' || inputs.mode == 'observe' || inputs.mode == 'dossier-context' ||
          inputs.mode == 'combined-study' || inputs.mode == 'learned-replay' || inputs.mode == 'dt-r1-restore' ||
-         inputs.mode == 'dt-r1-shadow' || inputs.mode == 'dt-r1-readback')))
+         inputs.mode == 'dt-r1-shadow' || inputs.mode == 'dt-r1-readback' || inputs.mode == 'dt-r1-settle')))
     runs-on: ubuntu-24.04
     timeout-minutes: 15
     permissions:
@@ -283,7 +283,7 @@ jobs:
           persist-credentials: true
       - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
         with:
-          python-version: ${{ (inputs.mode == 'dt-r1-restore' || inputs.mode == 'dt-r1-shadow' || inputs.mode == 'dt-r1-readback') && '3.12' || '3.11' }}
+          python-version: ${{ (inputs.mode == 'dt-r1-restore' || inputs.mode == 'dt-r1-shadow' || inputs.mode == 'dt-r1-readback' || inputs.mode == 'dt-r1-settle') && '3.12' || '3.11' }}
       - name: Observe admitted results and publish each encrypted update
         shell: bash
         env:
@@ -302,6 +302,17 @@ jobs:
                 -r research/chatgpt_dt_r1/requirements.txt 'beautifulsoup4>=4.12,<5' 'lightgbm==4.6.0'
             python -m scripts.keirin_dt_r1_owner_restore --repo "$GITHUB_WORKSPACE" \
               --private-root "$root/private" --day "$DOSSIER_DAY" \
+              --owner-public-pem "$GITHUB_WORKSPACE/docs/evidence/2026-11-18/keirin_owner_existing_rsa_public_spki3072.pem" \
+              | tee "$root/safe/summary.json" "$GITHUB_STEP_SUMMARY"
+            exit 0
+          fi
+          if [ "$RESULT_MODE" = dt-r1-settle ]; then
+            umask 077
+            env -u RACE_AI_KEIRIN_PRIVATE_RSA_PEM -u GITHUB_TOKEN \
+              python -m pip install --disable-pip-version-check --only-binary=:all: \
+                -r research/chatgpt_dt_r1/requirements.txt 'beautifulsoup4>=4.12,<5'
+            python -m scripts.keirin_dt_r1_future_settle --repo "$GITHUB_WORKSPACE" \
+              --private-root "$root/private" --day 2026-11-28 \
               --owner-public-pem "$GITHUB_WORKSPACE/docs/evidence/2026-11-18/keirin_owner_existing_rsa_public_spki3072.pem" \
               | tee "$root/safe/summary.json" "$GITHUB_STEP_SUMMARY"
             exit 0
