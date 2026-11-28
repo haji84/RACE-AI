@@ -245,6 +245,110 @@ class FutureShadowTests(unittest.TestCase):
         self.assertEqual(held['reason'], 'PREVIOUS_T15_ORIGINAL_PRESERVED')
         self.assertIsNone(held['cipher'])
 
+    def test_personal_history_trial_is_sealed_replayed_and_scored_only_with_verified_results(self):
+        from research.chatgpt_dt_r1 import official_personal_history as profiles
+        from research.chatgpt_dt_r1.test_official_inputs import OfficialInputTests
+        from scripts import keirin_dt_r1_future_settle as settlement
+
+        fixture = OfficialInputTests()
+        fixture.setUp()
+        historical_race = fixture.history(fixture.project())
+        prior = SimpleNamespace(arguments=lambda *_: dict(history_records=[historical_race],
+                                                         history_verifier=fixture.verifier))
+
+        def profile(_, target, *, prediction_at):
+            self.assertEqual(prediction_at, NOW.isoformat())
+            return dict(status='READY', policy=profiles.POLICY, proof_sha256='e' * 64, events=[dict(
+                identity_key=target['riders'][0]['identity_key'], race_id='203001059801', rank=1,
+                field_size=7, source_sha256='f' * 64, published_at='2030-01-05T04:00:00+00:00')])
+
+        with patch.object(profiles, 'profile_finishes', side_effect=profile):
+            report = self.produce(official_history=prior, compare_personal_history=True)
+        self.assertEqual(report['new_encrypted_forecasts'], 1)
+        self.assertEqual(self.reads, ['registry', 'original'])
+        manifest = self.manifest()
+        entry = next(row for row in manifest['entries'] if row['state'] == self.api.READY)
+        ciphertext = (self.output / entry['cipher']['file']).read_bytes()
+        saved = codec.decrypt_evidence(ciphertext, self.private)
+        shared = saved['shared_material']
+        self.assertEqual(shared['schema'], self.api.PERSONAL_STUDY_MATERIAL_SCHEMA)
+        self.assertEqual(entry['bindings']['shared_material_sha256'], digest(shared))
+        self.assertEqual(shared['frozen_material']['schema'], self.api.PAIRED_HISTORY_MATERIAL_SCHEMA)
+        self.assertEqual(shared['personal_history_trial']['profile_proof_sha256'], 'e' * 64)
+        self.assertNotIn('personal_history_trial', json.dumps(manifest))
+        model, venues = self.api.load_frozen(ROOT)
+        controls, pairs, holds = {}, {}, {}
+
+        def replay():
+            return settlement._forecast_from_original(entry, ciphertext, manifest, self.store,
+                self.rid, self.private, model, venues, object(), {}, history_controls=controls,
+                personal_pairs=pairs, personal_holds=holds)
+
+        verified_result = dict(race_id=self.rid, day=self.day, result_status='VERIFIED_NORMAL',
+                               top3=saved['forecast']['trifectas'][0]['cars'])
+        with (patch.object(settlement, 'OfficialHistory', return_value=prior),
+              patch.object(profiles, 'profile_finishes', side_effect=profile)):
+            scored = settlement._score_registered(self.ids, self.day, manifest['entries'],
+                [entry['slot_sha256']], {}, lambda *_: replay(),
+                lambda rid: verified_result if rid == self.rid else dict(race_id=rid, day=self.day,
+                    result_status='MISSING_SAVED_RESULT'), personal_pairs=pairs, personal_holds=holds)
+        self.assertEqual(set(controls), {self.rid})
+        self.assertEqual(set(pairs), {self.rid})
+        self.assertFalse(holds)
+        paired = scored['metrics']['paired_personal_history']
+        self.assertEqual((paired['registered_day'], paired['retained_pairs'], paired['official_scorable_pairs']),
+                         (78, 1, 1))
+        self.assertEqual(paired['archive_seven']['trifecta']['1'], 1)
+        self.assertNotIn('probability', str(paired))
+        self.assertNotIn(self.rid, str(paired))
+
+        cap = len(codec.seal_evidence(self.api.records.wire(dict(saved, shared_material=shared['frozen_material'])),
+            self.public, self.day, entry['clocks']['seal_started_at']))
+        self.assertLess(cap, len(ciphertext))
+        self.output = self.root / 'bounded-personal'
+        diagnostics = Counter()
+        with (patch.object(profiles, 'profile_finishes', side_effect=profile),
+              patch.object(self.api.capture_files, '_save_once', wraps=self.api.capture_files._save_once) as save):
+            bounded = self.produce(official_history=prior, compare_personal_history=True,
+                                   _ciphertext_byte_cap=cap, source_diagnostics=diagnostics)
+        self.assertEqual(bounded['new_encrypted_forecasts'], 1)
+        self.assertEqual(diagnostics, {'PERSONAL_STUDY_UPLOAD_BYTE_RESERVE': 1})
+        small_entry = next(row for row in self.manifest()['entries'] if row['state'] == self.api.READY)
+        self.assertEqual([call.args[0].name for call in save.call_args_list],
+                         [small_entry['cipher']['file'], 'manifest.json'])
+        small = codec.decrypt_evidence((self.output / small_entry['cipher']['file']).read_bytes(), self.private)
+        self.assertEqual(small, dict(saved, shared_material=shared['frozen_material']))
+
+        pairs.clear()
+        with (patch.object(settlement, 'OfficialHistory', return_value=prior),
+              patch.object(profiles, 'profile_finishes', return_value=dict(status='NO_AUTHENTICATED_PROFILE'))):
+            self.assertEqual(replay(), saved['forecast'])
+        self.assertFalse(pairs)
+        self.assertEqual(holds, {self.rid: 'PERSONAL_STUDY_REPLAY_UNVERIFIED'})
+
+        self.output = self.root / 'last-seconds-personal'
+        self.current = datetime.fromisoformat(self.original_meta['cutoff_at']) - timedelta(seconds=901)
+        with patch.object(profiles, 'profile_finishes') as attempted:
+            near_seal = self.produce(official_history=prior, compare_personal_history=True,
+                                     source_diagnostics=diagnostics)
+        attempted.assert_not_called()
+        self.assertEqual(near_seal['new_encrypted_forecasts'], 1)
+        self.assertEqual(diagnostics['PERSONAL_STUDY_DEADLINE_RESERVE'], 1)
+
+    def test_missing_personal_profile_preserves_the_original_and_history_control(self):
+        from research.chatgpt_dt_r1.test_official_inputs import OfficialInputTests
+
+        fixture = OfficialInputTests()
+        fixture.setUp()
+        historical_race = fixture.history(fixture.project())
+        prior = SimpleNamespace(arguments=lambda *_: dict(history_records=[historical_race],
+                                                         history_verifier=fixture.verifier))
+        report = self.produce(official_history=prior, compare_personal_history=True)
+        self.assertEqual(report['new_encrypted_forecasts'], 1)
+        entry = next(row for row in self.manifest()['entries'] if row['state'] == self.api.READY)
+        saved = codec.decrypt_evidence((self.output / entry['cipher']['file']).read_bytes(), self.private)
+        self.assertEqual(saved['shared_material']['schema'], self.api.PAIRED_HISTORY_MATERIAL_SCHEMA)
+
     def test_back_study_is_sealed_privately_with_the_existing_history_control(self):
         from research.chatgpt_dt_r1.test_back_official_shadow import BackOfficialShadowTests
 

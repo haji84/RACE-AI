@@ -170,7 +170,7 @@ on:
         required: false
       dt_r1_compare_personal:
         type: boolean
-        description: Compare DT-R1's official profile history in retrospective day settlement
+        description: Seal a DT-R1 personal-history pair in shadow, or request as-of profile replay in day settlement
         default: false
         required: false
       dt_r1_earlier_holdout:
@@ -409,6 +409,9 @@ jobs:
               dt_shadow_args=()
               if [ "$DT_R1_COMPARE_BACK" = true ]; then
                 dt_shadow_args+=(--compare-back)
+              fi
+              if [[ "$DT_R1_COMPARE_PERSONAL" == true ]]; then
+                dt_shadow_args+=(--compare-personal-history)
               fi
               python -m scripts.keirin_dt_r1_future_shadow --repo "$GITHUB_WORKSPACE" \
                 --private-root "$root/private" --output "$root/safe/dt-future-cipher" --day "$DOSSIER_DAY" \

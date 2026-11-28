@@ -69,7 +69,8 @@ def _same(a, b):
 
 def _forecast_from_original(entry, raw, manifest, source, rid, private, trained, venues, client, cache,
                             *, history_sources=None, history_controls=None, back_trial=None, back_pairs=None,
-                            back_holds=None, feature_rows=None, personal_add=None):
+                            back_holds=None, feature_rows=None, personal_add=None, personal_pairs=None,
+                            personal_holds=None):
     meta = source.index['originals'][rid]
     need(sha256(raw).hexdigest() == entry['cipher']['sha256'], 'FORECAST_CIPHER_CHANGED')
     with _stage('FORECAST_DECRYPT_UNVERIFIED'):
@@ -90,9 +91,14 @@ def _forecast_from_original(entry, raw, manifest, source, rid, private, trained,
                                              packet_cache=cache)
     need(original['race_id'] == rid and original['day_jst'] == source.day and
          original['snapshot']['published_cutoff_at'] == clocks['cutoff_at'], 'SOURCE_REPLAY_CHANGED')
-    shared = saved['shared_material']
-    need(type(shared) is dict and digest(shared) == entry['bindings']['shared_material_sha256'],
+    sealed = saved['shared_material']
+    need(type(sealed) is dict and digest(sealed) == entry['bindings']['shared_material_sha256'],
          'FEATURE_OR_SOURCE_REPLAY_CHANGED')
+    personal_material = sealed.get('schema') == shadow.PERSONAL_STUDY_MATERIAL_SCHEMA
+    shared = sealed.get('frozen_material') if personal_material else sealed
+    if personal_material:
+        need(type(shared) is dict and shared.get('schema') in (shadow.PAIRED_HISTORY_MATERIAL_SCHEMA,
+             shadow.BACK_STUDY_MATERIAL_SCHEMA) and 'no_history_control' in shared, 'FEATURE_MATERIAL_SCHEMA')
     # The old input clock is used ONLY to reproduce already sealed bytes.
     with _stage('FEATURE_REPLAY_UNVERIFIED'):
         material_schema = shared['schema']
@@ -171,6 +177,20 @@ def _forecast_from_original(entry, raw, manifest, source, rid, private, trained,
             if back_holds is not None:
                 back_holds[rid] = error.reason if error.reason in (
                     'BACK_STUDY_RESTORE_UNVERIFIED', 'BACK_STUDY_MATERIAL_CHANGED') else 'BACK_STUDY_REPLAY_UNVERIFIED'
+    if personal_material:
+        try:
+            with _stage('PERSONAL_STUDY_REPLAY_UNVERIFIED'):
+                trial, hold = shadow.personal_trial(trained=trained, venues=venues, payload=payload,
+                    original=original, baseline=row, prior=prior, prediction_at=clocks['input_at'])
+                need(trial is not None and hold is None, 'PERSONAL_STUDY_REPLAY_UNVERIFIED')
+                expected = shadow._personal_study_material(trial, row, trained, clocks['prediction_at'])
+                need(set(sealed) == {'schema', 'frozen_material', 'personal_history_trial'} and
+                     _same(sealed['personal_history_trial'], expected), 'PERSONAL_STUDY_MATERIAL_CHANGED')
+                if personal_pairs is not None:
+                    personal_pairs[rid] = dict(trial['forecast'], used_finishes=trial['used_finishes'])
+        except SettlementError as error:
+            if personal_holds is not None:
+                personal_holds[rid] = error.reason
     return saved['forecast']
 
 
@@ -241,6 +261,12 @@ def _placing_pdca(rid, forecast, outcome, entry):
         verify_observation=lambda _: False)
 
 
+def _fixed_point_hits(forecasts, results, error):
+    score = summarize_predictions(forecasts, results)
+    need(score['predicted_evaluable'] == len(results), error)
+    return {market: {k: cell['hits'] for k, cell in score[market].items()} for market in ('trifecta', 'exacta')}
+
+
 def _score_back_pairs(admitted, outcomes, back_pairs, back_holds):
     paired_races = admitted.keys() & back_pairs.keys()
     held_races = admitted.keys() & back_holds.keys()
@@ -252,15 +278,33 @@ def _score_back_pairs(admitted, outcomes, back_pairs, back_holds):
                    official_scorable_pairs=len(paired_rows), back_leader_observations=0,
                    replay_holds=dict(Counter(back_holds[rid] for rid in held_races)))
     for name in BACK_ARMS:
-        scored = summarize_predictions([back_pairs[rid][name] for rid in sorted(paired_races)], paired_rows)
-        need(scored['predicted_evaluable'] == len(paired_rows), 'BACK_STUDY_PAIR_DENOMINATOR')
-        summary[name] = {market: {k: cell['hits'] for k, cell in scored[market].items()}
-                         for market in ('trifecta', 'exacta')}
+        summary[name] = _fixed_point_hits([back_pairs[rid][name] for rid in sorted(paired_races)],
+                                          paired_rows, 'BACK_STUDY_PAIR_DENOMINATOR')
     return summary
 
 
+def _score_personal_pairs(admitted, outcomes, personal_pairs, personal_holds):
+    paired_races = sorted(admitted.keys() & personal_pairs.keys())
+    held_races = admitted.keys() & personal_holds.keys()
+    need(not set(paired_races) & held_races, 'PERSONAL_STUDY_PAIR_PARTITION')
+    if not paired_races and not held_races:
+        return None
+    paired = [r for r in outcomes if r['race_id'] in personal_pairs and r['race_id'] in admitted]
+    scorable = [r for r in paired if r['result_status'] == 'VERIFIED_NORMAL']
+    error = 'PERSONAL_STUDY_PAIR_DENOMINATOR'
+    return dict(policy=shadow.PERSONAL_HISTORY_POLICY, prospectively_sealed=True,
+        registered_day=len(outcomes), sealed_trials=len(paired_races) + len(held_races),
+        retained_pairs=len(paired_races), official_scorable_pairs=len(scorable),
+        pair_result_states=dict(Counter(r['result_status'] for r in paired)),
+        replay_holds=dict(Counter(personal_holds[rid] for rid in held_races)),
+        official_prior_personal_finish_exposures=sum(personal_pairs[rid]['used_finishes'] for rid in paired_races),
+        archive_seven=_fixed_point_hits([admitted[rid] for rid in paired_races], scorable, error),
+        seven_and_personal_days_8_to_30=_fixed_point_hits([personal_pairs[rid] for rid in paired_races], scorable, error))
+
+
 def _score_registered(race_ids, day, entries, eligible, reader_holds, forecast_loader, result_loader,
-                      *, history_controls=None, back_pairs=None, back_holds=None, personal_report=None):
+                      *, history_controls=None, back_pairs=None, back_holds=None, personal_report=None,
+                      personal_pairs=None, personal_holds=None):
     """Reverify all admitted forecast originals before opening any outcome."""
     need(len(race_ids) == len(set(race_ids)), 'DUPLICATE_REGISTRY')
     slots = {shadow.slot(day, rid): rid for rid in race_ids}
@@ -318,6 +362,12 @@ def _score_registered(race_ids, day, entries, eligible, reader_holds, forecast_l
     paired_back = _score_back_pairs(admitted, outcomes, back_pairs or {}, back_holds or {})
     if paired_back is not None:
         metrics['paired_back'] = paired_back
+    try:
+        paired_personal = _score_personal_pairs(admitted, outcomes, personal_pairs or {}, personal_holds or {})
+        if paired_personal is not None:
+            metrics['paired_personal_history'] = paired_personal
+    except Exception:
+        metrics['paired_personal_history'] = dict(state='HOLD_PERSONAL_STUDY_SCORING_UNVERIFIED')
     if personal_report is not None:
         try:
             metrics['personal_history_study'] = personal_report(admitted, outcomes)
@@ -389,6 +439,7 @@ def _score_archived_day(work, current, private, trained, venues, client, now, le
                 sources[run] = source
     entries, pinned_originals = [], {}
     cache, history_sources, history_controls, back_pairs, back_holds = {}, {}, {}, {}, {}
+    personal_pairs, personal_holds = {}, {}
     feature_rows = {} if feature_audit is not None else None
     personal_failed = False
     for slot, rid in slots.items():
@@ -428,11 +479,13 @@ def _score_archived_day(work, current, private, trained, venues, client, now, le
                                        history_sources=history_sources, history_controls=history_controls,
                                        back_trial=back_trial, back_pairs=back_pairs, back_holds=back_holds,
                                        feature_rows=feature_rows,
-                                       personal_add=add_personal if personal_study is not None else None)
+                                       personal_add=add_personal if personal_study is not None else None,
+                                       personal_pairs=personal_pairs, personal_holds=personal_holds)
 
     result = _score_registered(races, day, entries, [slot for slot in slots if slot in selected], {},
         forecast_loader, lambda rid: _result_row(current, rid, private, pinned_originals.get(rid), now()),
         history_controls=history_controls, back_pairs=back_pairs, back_holds=back_holds,
+        personal_pairs=personal_pairs, personal_holds=personal_holds,
         personal_report=report_personal if personal_study is not None else None)
     if feature_audit is not None:
         for row, original in feature_rows.values():

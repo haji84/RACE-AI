@@ -6,10 +6,11 @@ from unittest.mock import patch
 import numpy as np
 
 from research.chatgpt_dt_r1.features import FeatureBuilder
-from research.chatgpt_dt_r1.model import RankModel
+from research.chatgpt_dt_r1.model import RankModel, _verify_feature_binding
 from research.chatgpt_dt_r1 import official_personal_study as study
 from research.chatgpt_dt_r1.test_official_personal_history import AT, RID, fixture
 from research.chatgpt_dt_r1.official_feature_audit import NAMES
+from research.chatgpt_dt_r1.policy import digest
 from research.chatgpt_dt_r1.venues import VenueStore
 
 
@@ -56,6 +57,51 @@ class PersonalFinishFeaturesTests(unittest.TestCase):
         self.assertFalse(report['prospectively_sealed'])
         self.assertNotIn('proper_scores', report['archive_seven'])
         self.assertNotIn(RID, str(report))
+
+
+class PersonalTrialTests(unittest.TestCase):
+    def setUp(self):
+        self.original, self.target = fixture()
+        self.support = dict(history_races=1)
+        self.baseline = dict(self.target, source_attestation_sha256='a' * 64, source_verified_at=AT,
+            source_available_at_verified=True, source_admission_status='ADMITTED',
+            pre_cutoff_authenticated=True, source_proof={}, history_evidence={'official_support': self.support},
+            features=np.ones((len(self.target['riders']), len(NAMES))))
+        self.opts = dict(trained=RankModel.zero(NAMES), venues=VenueStore.from_records(()), payload={},
+            original=self.original, baseline=self.baseline, prediction_at=AT,
+            prior=SimpleNamespace(arguments=lambda *_: dict(history_records=[], history_verifier=None)))
+
+    def test_binds_replayable_features_and_both_complete_markets(self):
+        with (patch.object(study.official_inputs, 'verification_payload',
+                           return_value={'normalized_input': self.target}),
+              patch.object(study.official_inputs, '_history', return_value=([], self.support))):
+            computed, hold = study.personal_trial(**self.opts)
+            repeated, repeated_hold = study.personal_trial(**self.opts)
+        self.assertIsNone(hold)
+        self.assertIsNone(repeated_hold)
+        self.assertEqual(set(computed), {'row', 'forecast', 'used_finishes'})
+        _verify_feature_binding(computed['row'], required=True)
+        self.assertEqual(computed['row']['feature_input_sha256'], repeated['row']['feature_input_sha256'])
+        self.assertEqual(digest(computed['forecast']), digest(repeated['forecast']))
+        for market, choices in (('trifectas', 60), ('exactas', 20)):
+            tickets = computed['forecast'][market]
+            self.assertEqual(len(tickets), choices)
+            self.assertEqual(len({tuple(ticket['cars']) for ticket in tickets}), choices)
+            np.testing.assert_allclose([ticket['probability'] for ticket in tickets], 1 / choices)
+        self.assertEqual(computed['used_finishes'], 2)
+
+    def test_distinguishes_unavailable_baseline_missing_profile_and_invalid_replay(self):
+        self.assertEqual(study.personal_trial(**dict(self.opts, prior=None)),
+                         (None, 'NO_REPLAYED_SEVEN_DAY_HISTORY'))
+        with (patch.object(study.official_inputs, 'verification_payload',
+                           return_value={'normalized_input': self.target}),
+              patch.object(study.official_inputs, '_history', return_value=([], dict(history_races=2)))):
+            self.assertEqual(study.personal_trial(**self.opts),
+                             (None, 'PROFILE_EVIDENCE_OR_FEATURE_REPLAY_UNVERIFIED'))
+            self.original.update(condition_state='NO_CONDITIONED_ORIGINAL', conditioned=None, supplement=None,
+                                 conditioned_cipher_sha256=None, conditioned_sealed_at=None)
+            self.original['origin_receipts']['condition_origin'] = None
+            self.assertEqual(study.personal_trial(**self.opts), (None, 'NO_AUTHENTICATED_PROFILE'))
 
 
 if __name__ == '__main__':

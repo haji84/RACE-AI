@@ -56,15 +56,20 @@ class FutureWorkflowTests(unittest.TestCase):
         self.assertNotIn('scripts.keirin_result_watch', branch)
         self.assertNotIn('RACE_AI_KEIRIN_OFFICIAL_SOURCE_ENABLED', branch)
 
-    def test_optional_personal_study_reuses_only_the_manual_settlement_job(self):
+    def test_personal_study_is_opt_in_for_protected_shadow_and_retrospective_settlement(self):
         self.assertIn('dt_r1_compare_personal:', self.text.split('  schedule:', 1)[0])
         start = self.job.index('if [ "$RESULT_MODE" = dt-r1-settle ]; then')
         end = self.job.index('if [ "$RESULT_MODE" = dt-r1-official-holdout ]; then', start)
-        self.assertEqual(self.job.count('--compare-personal-history'), 1)
+        self.assertEqual(self.job.count('--compare-personal-history'), 2)
         branch = self.job[start:end]
         self.assertIn('if [[ "$DT_R1_COMPARE_PERSONAL" == true ]]; then', branch)
         self.assertIn('[[ -n "$DOSSIER_DAY" ]]', branch)
         self.assertIn('day_arg+=(--compare-personal-history)', branch)
+        shadow_start = self.job.index('if [ "$RESULT_MODE" = dt-r1-shadow ]; then')
+        shadow_end = self.job.index('python -m scripts.keirin_dt_r1_future_shadow', shadow_start)
+        self.assertIn('[[ -n "$DOSSIER_DAY" ]]', self.job[shadow_start:shadow_end])
+        self.assertIn('if [[ "$DT_R1_COMPARE_PERSONAL" == true ]]; then', self.job[shadow_start:shadow_end])
+        self.assertIn('dt_shadow_args+=(--compare-personal-history)', self.job[shadow_start:shadow_end])
 
     def test_earlier_holdout_batch_is_distinct_from_the_single_day_argument(self):
         start = self.job.index('if [ "$RESULT_MODE" = dt-r1-official-holdout ]; then')

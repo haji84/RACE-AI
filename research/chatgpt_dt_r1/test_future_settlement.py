@@ -213,6 +213,22 @@ class FutureSettlementTests(unittest.TestCase):
         self.assertEqual(report['metrics']['personal_history_study'],
             dict(state='HOLD_PROFILE_STUDY_SCORING_UNVERIFIED', prospectively_sealed=False))
 
+    def test_sealed_profile_scoring_failure_preserves_frozen_and_back_scores(self):
+        rid = RACES[0]
+        approved = [shadow.slot(DAY, r) for r in RACES[:2]]
+
+        def result(race):
+            return dict(race_id=race, day=DAY, top3=[1, 2, 3], result_status='VERIFIED_NORMAL')
+
+        with patch.object(settle, '_score_personal_pairs', side_effect=RuntimeError('synthetic scorer failure')):
+            report = settle._score_registered(RACES, DAY, self.entries(), approved, {}, lambda _, r: forecast(r),
+                result, back_pairs={rid: {name: forecast(rid) for name in settle.BACK_ARMS}},
+                personal_pairs={rid: dict(forecast(rid), used_finishes=1)})
+        self.assertEqual(report['metrics']['trifecta']['1']['hits'], 2)
+        self.assertEqual(report['metrics']['paired_back']['official_scorable_pairs'], 1)
+        self.assertEqual(report['metrics']['paired_personal_history'],
+                         {'state': 'HOLD_PERSONAL_STUDY_SCORING_UNVERIFIED'})
+
     def test_actual_v4_cipher_replays_both_arms_with_or_without_official_history(self):
         from research.chatgpt_dt_r1 import test_back_official_shadow as back_fixtures
         from tests import test_keirin_dt_r1_future_shadow as shadow_fixtures
@@ -335,7 +351,8 @@ class FutureSettlementTests(unittest.TestCase):
                                        cipher_path='verified/later.sealed.json')}
         events = []
         def forecast_replay(entry, raw, manifest, source, rid, *args, history_sources, history_controls,
-                            back_trial, back_pairs, back_holds, feature_rows, personal_add):
+                            back_trial, back_pairs, back_holds, feature_rows, personal_add,
+                            personal_pairs, personal_holds):
             events.append(('forecast', rid, source.head))
             self.assertEqual(raw, b'first' if rid == legacy_rid else b'later')
             self.assertEqual(history_sources, {})
@@ -344,6 +361,7 @@ class FutureSettlementTests(unittest.TestCase):
             if rid == later_rid:
                 history_controls[rid] = forecast(rid)
                 back_pairs[rid] = {name: forecast(rid) for name in settle.BACK_ARMS}
+                personal_pairs[rid] = dict(forecast(rid), used_finishes=2)
             return forecast(rid)
         def result_replay(source, rid, key, original_meta, now):
             events.append(('result', rid, source.head))
@@ -386,6 +404,8 @@ class FutureSettlementTests(unittest.TestCase):
         self.assertEqual(report['owner_originals_replayed'], 2)
         self.assertEqual(report['metrics']['predicted_evaluable'], 2)
         self.assertEqual(report['metrics']['paired_back']['official_scorable_pairs'], 1)
+        self.assertEqual(report['metrics']['paired_personal_history']['official_scorable_pairs'], 1)
+        self.assertEqual(report['metrics']['paired_personal_history']['official_prior_personal_finish_exposures'], 2)
         self.assertEqual(report['metrics']['personal_history_study'],
                          dict(state='HOLD_PROFILE_STUDY_SCORING_UNVERIFIED', prospectively_sealed=False))
         paired = report['metrics']['paired_history']
