@@ -108,7 +108,8 @@ if (typeof window === 'object' && typeof location === 'object') window.RaceNoteI
       }
       const status = research ? (inTime ? "research" : "late-research") : "reference";
       records.set(row.race_id, { race_id: row.race_id, a: row.a, b: row.b, status,
-        cutoff_at: row.cutoff_at, saved_at: created, published_at: snapshot.published_at });
+        cutoff_at: row.cutoff_at, saved_at: created, published_at: snapshot.published_at,
+        starter_cars: row.starter_cars });
     }
     return records;
   }
@@ -157,6 +158,49 @@ if (typeof window === 'object' && typeof location === 'object') window.RaceNoteI
     return entries;
   }
 
+  async function replayConfidenceRows(packet, day, research) {
+    const entries = new Map();
+    const digest = globalThis.RaceKeirinConfidence?.digest;
+    if (!digest || packet?.schema !== "RACE_AI_KEIRIN_PUBLIC_RACECARD_REPLAY_V1" ||
+        packet.scope !== "RETROSPECTIVE_REPLAY" || packet.day !== day || !validClock(packet.assessed_at) ||
+        !validClock(packet.forecast_published_at) || Date.parse(packet.forecast_published_at) > Date.parse(packet.assessed_at) ||
+        jstToday(new Date(packet.assessed_at)) !== day || !/^[a-f0-9]{40}$/.test(packet.forecast_commit) ||
+        !/^[a-f0-9]{64}$/.test(packet.tree_sha256) || !/^[a-f0-9]{64}$/.test(packet.archive_sha256) ||
+        !Array.isArray(packet.races) || packet.races.length > 300 ||
+        !Array.isArray(packet.bins) || packet.bins.length > 4 ||
+        !Array.isArray(packet.replay_window) || packet.replay_window.length !== 2) return entries;
+    const [start, end] = packet.replay_window;
+    if (typeof start !== "string" || typeof end !== "string" ||
+        !validDay(start) || !validDay(end) || start > end || end >= day) return entries;
+    const windowDays = 1 + (Date.parse(end) - Date.parse(start)) / 86400000;
+    const intervals = [[0, .15], [.15, .25], [.25, .35], [.35, .60]];
+    const bands = new Map();
+    for (const band of packet.bins) {
+      const index = intervals.findIndex(([lo, hi]) => band?.lower === lo && band?.upper === hi);
+      if (index < 0 || bands.has(index) || !Number.isInteger(band.n) || band.n < 30 ||
+          !Number.isInteger(band.days) || band.days < 3 || band.days > Math.min(windowDays, band.n) ||
+          band.n > 300 * band.days || !Number.isInteger(band.hits) || band.hits <= 0 || band.hits > band.n ||
+          !probability(band.mean_probability) || band.mean_probability < band.lower || band.mean_probability >= band.upper ||
+          Math.abs(band.mean_probability - band.hits / band.n) > .10 ||
+          !Array.isArray(band.ci95) || band.ci95.length !== 2 || !band.ci95.every(probability) ||
+          band.ci95[0] > band.mean_probability || band.ci95[1] < band.mean_probability) return entries;
+      bands.set(index, band);
+    }
+    const seen = new Set(), prefix = day.replaceAll("-", ""), assessed = Date.parse(packet.assessed_at);
+    for (const row of packet.races) {
+      if (!validRaceId(row?.race_id, prefix, seen) || row.points !== 8 ||
+          !probability(row.probability) || !/^[a-f0-9]{64}$/.test(row.ticket_sha256)) return new Map();
+      const band = bands.get(intervals.findIndex(([lo, hi]) => row.probability >= lo && row.probability < hi));
+      const original = research.get(row.race_id);
+      if (!band || original?.status !== "research" || original.starter_cars.length !== 7 || original.b.length ||
+          Date.parse(original.published_at) < Date.parse(packet.forecast_published_at) ||
+          original.a.length !== row.points || assessed < Date.parse(original.saved_at) ||
+          assessed >= Date.parse(original.cutoff_at) || (await digest(original.a).catch(() => null)) !== row.ticket_sha256) continue;
+      entries.set(row.race_id, { probability: row.probability, band });
+    }
+    return entries;
+  }
+
   function element(tag, className, label) {
     const result = document.createElement(tag);
     if (className) result.className = className;
@@ -195,12 +239,17 @@ if (typeof window === 'object' && typeof location === 'object') window.RaceNoteI
       (reasons[rating.state] || "信頼度の認定基準に未達");
   }
 
-  function ticketList(arm, tickets, rating) {
+  function ticketList(arm, tickets, rating, replay) {
     const group = element("div", "keirin-public-model");
     group.append(element("h3", "", arm));
     if (!tickets.length) {
       group.append(element("p", "", "保留"));
       return group;
+    }
+    if (replay && rating?.state !== "GRADED") {
+      const { band } = replay;
+      group.append(element("p", "keirin-public-clocks", "過去再現の推定的中率 " + percent(replay.probability) +
+        " · " + tickets.length + "点。同じ推定帯の過去再現 " + band.hits + " / " + band.n + "件的中"));
     }
     group.append(element("p", "keirin-public-clocks", confidenceText(tickets.length, rating)));
     const list = element("ol");
@@ -210,7 +259,7 @@ if (typeof window === 'object' && typeof location === 'object') window.RaceNoteI
     return group;
   }
 
-  function raceCard(row, day, ratings) {
+  function raceCard(row, day, ratings, replayRatings) {
     const venueCode = row.race_id.slice(8, 10);
     const name = (venues[venueCode] || "開催コード " + venueCode) + " " + Number(row.race_id.slice(-2)) + "R";
     const card = element("article", "keirin-public-race");
@@ -232,14 +281,15 @@ if (typeof window === 'object' && typeof location === 'object') window.RaceNoteI
       const lane = row.status === "saved" ? "official" : row.status === "reference" ? "reference" : "racecard";
       for (const [arm, tickets] of [["A", row.a], ["B", row.b]]) {
         const rating = row.status === "late-research" ? null : ratings.get(confidenceKey(lane, arm, tickets.length));
-        arms.append(ticketList(arm, tickets, rating));
+        const replay = row.status === "research" && arm === "A" ? replayRatings.get(row.race_id) : undefined;
+        arms.append(ticketList(arm, tickets, rating, replay));
       }
       card.append(arms);
     }
     return card;
   }
 
-  function render(snapshot, referencePacket, researchPacket, confidencePacket) {
+  async function render(snapshot, referencePacket, researchPacket, confidencePacket, request) {
     const references = publicCandidates(referencePacket, snapshot.day, false);
     const research = publicCandidates(researchPacket, snapshot.day, true);
     const ratings = confidenceRows(confidencePacket, snapshot.day);
@@ -251,6 +301,12 @@ if (typeof window === 'object' && typeof location === 'object') window.RaceNoteI
     }).sort((a, b) =>
       (a.cutoff_at === null ? Infinity : Date.parse(a.cutoff_at)) -
       (b.cutoff_at === null ? Infinity : Date.parse(b.cutoff_at)) || a.race_id.localeCompare(b.race_id));
+    let replay = new Map();
+    if (ordered.some(row => row.status === "research" && row.starter_cars.length === 7 && row.a.length === 8 && !row.b.length)) {
+      const packet = await fetchDay("measurements", "replay-confidence-" + snapshot.day, request).catch(() => null);
+      replay = await replayConfidenceRows(packet, snapshot.day, research);
+    }
+    if (currentRequest !== request) return;
     const saved = ordered.filter(row => row.status === "saved").length;
     const pending = ordered.filter(row => row.status === "pending").length;
     const available = ordered.length - pending;
@@ -262,7 +318,7 @@ if (typeof window === 'object' && typeof location === 'object') window.RaceNoteI
       Date.parse(row.published_at) > Date.parse(time) ? row.published_at : time, snapshot.published_at);
     updated.replaceChildren("公開データ更新 ", clock(latest), " JST");
     updated.hidden = false;
-    races.replaceChildren(...ordered.map(row => raceCard(row, snapshot.day, ratings)));
+    races.replaceChildren(...ordered.map(row => raceCard(row, snapshot.day, ratings, replay)));
   }
 
   async function fetchDay(lane, day, request) {
@@ -308,7 +364,7 @@ if (typeof window === 'object' && typeof location === 'object') window.RaceNoteI
         ? ["references", "research"].map(lane => fetchDay(lane, day, request).catch(() => null))
         : [null, null];
       const packets = await Promise.all([...supplements, fetchDay("measurements", "confidence-" + day, request).catch(() => null)]);
-      if (currentRequest === request) render(snapshot, ...packets);
+      if (currentRequest === request) await render(snapshot, ...packets, request);
     } catch {
       if (currentRequest === request) status.textContent = "公開予想を取得できませんでした。再読み込みで確認できます。";
     } finally {

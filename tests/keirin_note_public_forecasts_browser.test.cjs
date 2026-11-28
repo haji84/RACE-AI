@@ -2,6 +2,7 @@
 
 const { after, before, describe, test } = require('node:test');
 const assert = require('node:assert/strict');
+const { createHash } = require('node:crypto');
 const fs = require('node:fs');
 const http = require('node:http');
 const path = require('node:path');
@@ -223,5 +224,39 @@ describe('KEIRIN anonymous forecast page', { skip: !chromium }, () => {
     } finally {
       delete serve.supplement;
     }
+  });
+
+  test('shows replay estimates only for the exact pre-cutoff racecard A shortlist', async t => {
+    const serve = day => {
+      const official = snapshot(day);
+      official.races.push(...['8303', '8304'].map(id => ({ ...official.races[1], race_id: '20261126' + id })));
+      return official;
+    };
+    const research = { cutoff_at: TODAY + 'T22:00:00+09:00', generated_at: TODAY + 'T12:10:00+09:00',
+      starter_cars: [1, 2, 3, 4, 5, 6, 7], a: A, b: [] };
+    const ticketHash = createHash('sha256').update(JSON.stringify(A)).digest('hex');
+    serve.supplement = (lane, key) => {
+      if (lane === 'research') return {
+        schema: 'RACE_AI_KEIRIN_PUBLIC_RESULT_UNREAD_AB_V1', day: TODAY, published_at: TODAY + 'T12:15:00+09:00',
+        races: [{ ...research, race_id: '202611268303' }, { ...research, race_id: '202611268304', a: A.slice().reverse() }]
+      };
+      if (lane === 'measurements' && key === 'replay-confidence-' + TODAY) return {
+        schema: 'RACE_AI_KEIRIN_PUBLIC_RACECARD_REPLAY_V1', scope: 'RETROSPECTIVE_REPLAY', day: TODAY,
+        assessed_at: TODAY + 'T12:25:00+09:00', forecast_commit: 'a'.repeat(40), forecast_published_at: TODAY + 'T12:15:00+09:00',
+        tree_sha256: 'b'.repeat(64), archive_sha256: 'c'.repeat(64), replay_window: ['2026-11-17', '2026-11-25'],
+        bins: [{ lower: .15, upper: .25, n: 100, hits: 20, days: 9,
+          mean_probability: .20, ci95: [.1333669333310325, .2888291655931589] }],
+        races: ['2601', '8303', '8304'].map(id => ({ race_id: '20261126' + id,
+          points: 8, probability: .205, ticket_sha256: ticketHash }))
+      };
+      return null;
+    };
+    const { page, calls } = await open(t, '#keirin-public', serve);
+    const matched = page.locator('article').filter({ hasText: '久留米 3R' });
+    await matched.getByText(/過去再現の推定的中率 20\.5%/).waitFor();
+    assert.match(await matched.innerText(), /過去再現の推定的中率 20\.5%[\s\S]*8点[\s\S]*20 \/ 100件的中/);
+    assert.equal(await page.getByText(/過去再現の推定的中率/).count(), 1);
+    assert.equal(await page.getByText(/信頼度 低/).count(), 0);
+    assert.ok(calls.includes(BASE + 'measurements/replay-confidence-' + TODAY + '.json'));
   });
 });
