@@ -21,6 +21,7 @@ EXACTA_K = (1, 2)
 ENTRANTS = (('existing-integrated', '既存統合モデル'), ('codex-new', 'Codex 新モデル'),
             ('chatgpt-dt-r1', 'ChatGPT DT-R1'))
 NATIVE_MODEL_DISPLAY_IDS = {
+    'official-ab-equal-weight-v1': 'existing-integrated',
     'official-and-research-ensemble-v1': 'existing-integrated',
     'keirin-conditional-order-trees-v1': 'codex-new',
     'chatgpt-dt-r1': 'chatgpt-dt-r1',
@@ -47,12 +48,12 @@ def _mapping(value):
     return value if isinstance(value, dict) else {}
 
 
-def _display_models(value):
+def _display_models(value, native_ids):
     """Project exact native IDs or legacy aliases without changing originals.
 
-    The aliases identify dashboard cards, not authenticated model manifests.
-    A native ID and its alias in one aggregate are ambiguous even if their
-    values agree or both have zero forecasts. Never choose one or add them.
+    Dashboard cards use display aliases. Two rows for one alias in the same
+    aggregate are ambiguous. All-target and common-cohort counts on each
+    card must also agree on any explicitly supplied native ID.
     """
     aliases = {model_id for model_id, _ in ENTRANTS}
     output = {}
@@ -61,6 +62,8 @@ def _display_models(value):
         if display_id not in aliases:
             continue
         if display_id in output:
+            raise ValueError('AMBIGUOUS_CONTEST_MODEL_ALIAS')
+        if model_id in NATIVE_MODEL_DISPLAY_IDS and native_ids.setdefault(display_id, model_id) != model_id:
             raise ValueError('AMBIGUOUS_CONTEST_MODEL_ALIAS')
         output[display_id] = metrics
     return output
@@ -190,9 +193,10 @@ def _project(report):
             if valid:
                 groups[dimension][key] = _metrics(value)
     contest = _mapping(report.get('three_way_contest'))
-    all_models = _display_models(_mapping(contest.get('all_target')).get('models'))
+    native_ids = {}
+    all_models = _display_models(_mapping(contest.get('all_target')).get('models'), native_ids)
     common = _mapping(contest.get('common_cohort'))
-    common_models = _display_models(common.get('models'))
+    common_models = _display_models(common.get('models'), native_ids)
     common_n = _count(common.get('eligible_n'))
     entrants = []
     for model_id, label in ENTRANTS:

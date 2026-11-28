@@ -14,14 +14,16 @@ def forecast(rid):
     triples = [dict(cars=list(t), probability=1/6) for t in permutations((1,2,3), 3)]
     exactas = [dict(cars=list(t), probability=1/6) for t in permutations((1,2,3), 2)]
     return dict(race_id=rid, day=DAY, status='READY', model_sha256=shadow.MODEL_SHA,
-                input_sha256='a'*64, trifectas=triples, exactas=exactas)
+                input_sha256='a'*64, riders=[{'car': car} for car in (1, 2, 3)],
+                trifectas=triples, exactas=exactas)
 
 
 class FutureSettlementTests(unittest.TestCase):
     def entries(self):
         return [dict(slot_sha256=shadow.slot(DAY, rid),
                      state=shadow.READY if i < 2 else 'HOLD',
-                     reason=None if i < 2 else 'SAVED_ORIGINAL_MISSING')
+                     reason=None if i < 2 else 'SAVED_ORIGINAL_MISSING',
+                     clocks=dict(seal_started_at=DAY + 'T01:00:00Z', cutoff_at=DAY + 'T01:30:00Z'))
                 for i,rid in enumerate(RACES)]
 
     def test_originals_before_results_and_holds_remain_in_denominator(self):
@@ -47,6 +49,9 @@ class FutureSettlementTests(unittest.TestCase):
         self.assertEqual(report['forecast_holds'], {
             'SAVED_ORIGINAL_MISSING': 1, 'FORECAST_REPLAY_UNVERIFIED': 1})
         self.assertNotIn('proper_scores', report['metrics'])
+        self.assertEqual(report['pdca'], {
+            'fixed_trifecta_points': 4, 'placing_checked': 1, 'flow_checked': 0,
+            'grade_counts': {'E': 1}})
 
     def late_slots(self):
         return {shadow.slot(DAY, rid): 'SERVER_READBACK_AFTER_T15' for rid in RACES[:2]}
@@ -68,7 +73,9 @@ class FutureSettlementTests(unittest.TestCase):
                          'NO_SAVED_OFFICIAL_ORIGINAL')
 
     def test_unverified_latest_revision_never_falls_back(self):
-        original, old, latest = {'original': 1}, {'revision': 1}, {'revision': 2}
+        original = {'original': 1}
+        old = {'revision': 1, 'observed_at': DAY + 'T02:00:00Z'}
+        latest = {'revision': 2, 'observed_at': DAY + 'T03:00:00Z'}
         store = SimpleNamespace(day=DAY, index=dict(
             originals={RACES[0]: original}, results={RACES[0]: [old, latest]}))
         seen = []
@@ -80,8 +87,32 @@ class FutureSettlementTests(unittest.TestCase):
         with patch.object(settle.records, '_replay_saved_result', side_effect=replay):
             row = settle._result_row(store, RACES[0], b'', original, None)
         self.assertEqual(row['result_status'], 'RESULT_REPLAY_UNVERIFIED')
+        self.assertEqual(row['result_hold_reason'], 'OFFICIAL_RESULT_REPLAY_FAILED')
         self.assertEqual(seen, [latest])
         self.assertNotIn('top3', row)
+
+    def test_result_replay_reuses_existing_safe_failure_classification(self):
+        original = {'original': 1}
+        latest = {'observed_at': DAY + 'T03:00:00Z'}
+        store = SimpleNamespace(day=DAY, index=dict(
+            originals={RACES[0]: original}, results={RACES[0]: [latest]}))
+        with patch.object(settle.records, '_replay_saved_result',
+                          side_effect=ValueError('OFFICIAL_SP_RECORD_SAVED_RESULT_NOT_REPRODUCIBLE')):
+            row = settle._result_row(store, RACES[0], b'', original, None)
+        self.assertEqual(row['result_hold_reason'], 'SAVED_SCORE_REPLAY_HELD')
+
+    def test_out_of_order_result_revisions_are_held_before_opening_any_result(self):
+        original = {'original': 1}
+        newer = {'observed_at': DAY + 'T03:00:00Z'}
+        older = {'observed_at': DAY + 'T02:00:00Z'}
+        store = SimpleNamespace(day=DAY, index=dict(
+            originals={RACES[0]: original}, results={RACES[0]: [newer, older]}))
+        with patch.object(settle.records, '_replay_saved_result',
+                          side_effect=AssertionError('Unordered revisions must not be opened')) as replay:
+            row = settle._result_row(store, RACES[0], b'', original, None)
+        self.assertEqual(row['result_status'], 'RESULT_REPLAY_UNVERIFIED')
+        self.assertEqual(row['result_hold_reason'], 'RESULT_REVISION_ORDER_UNVERIFIED')
+        replay.assert_not_called()
 
     def test_pending_result_does_not_become_miss(self):
         report = settle._score_registered(RACES, DAY, self.entries(), [], self.late_slots(),

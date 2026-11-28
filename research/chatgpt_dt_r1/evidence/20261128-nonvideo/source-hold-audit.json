@@ -1,0 +1,16 @@
+{
+  "current_official_sp_cipher_and_job_proof_verified": 21,
+  "current_public_verification_holds": {
+    "GITHUB_CONTENT_FETCH_FAILED": 1,
+    "GITHUB_EVIDENCE_UNAVAILABLE": 1
+  },
+  "day_jst": "2026-11-28",
+  "distinct_official_sp_producer_runs": 9,
+  "first_dt_hold_root_cause_confirmed": false,
+  "first_dt_producer_run": "46082459814",
+  "method": "Authenticated live GitHub run, job, and artifact metadata and immutable official A/B ciphertext at the source pin. No owner decryption, provider access, class details, or race-level output.",
+  "official_sp_reader_completed_before_dt_start": 23,
+  "registered_source_admission_holds": 23,
+  "schema": "DT_R1_OFFICIAL_SOURCE_HOLD_AUDIT_V1",
+  "source_original_archive_commit": "15dd32600fbf5865df3eca340e41377e6f9caa19"
+}
