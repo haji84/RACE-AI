@@ -1,0 +1,69 @@
+{
+  "day_jst": "2026-11-29",
+  "earlier_same_source_originals": 31,
+  "earliest_official_cutoff_jst": "2026-11-29T08:47:00+09:00",
+  "earliest_original_deadline_jst": "2026-11-29T08:32:00+09:00",
+  "final_joint_archive_commit": "4fd4541417e635e892d53958f6edee35132c5b32",
+  "matched_new_slots": 5,
+  "matched_total_slots": 36,
+  "models": {
+    "chatgpt-dt-r1": {
+      "archive_commit": "396c5ce795292ae4224c787d33bd520855423ab9",
+      "manifest_sha256": "9e959eb6ea84940f12eba13e783dc1ee339cdd99c908d71157ca8c96dcc35925",
+      "new_independently_timed_originals": 5,
+      "preserved_prior_pointer_count": 31,
+      "producer_code_commit": "533ac6d3fd622bd52a42bc21c120b6a7f16b45ff",
+      "receipt_evidence": {
+        "independent_reader": {
+          "artifact_id": 15283546826,
+          "run_id": 46195693853,
+          "sha256": "fc5bd97cfdfce32526add47cb028360d3dd3efad1bf02c38ee1a3bba583bb225"
+        },
+        "producer": {
+          "artifact_id": 15282949576,
+          "run_id": 46194900102,
+          "sha256": "05daa500a85be5c0b8dd53807c974321be3ebe4eba3e01da2a46b3c87382acd5"
+        },
+        "retention": {
+          "artifact_id": 15284050942,
+          "run_id": 46195960401,
+          "sha256": "037b95acca1da405337c5068604718896481f104a3b0fb6812efb38a4bea1cb9"
+        }
+      },
+      "retained_first_originals": 36,
+      "retention_code_commit": "b42d511ec7930c04ebd05a655e4d8a75903bfe84"
+    },
+    "keirin-conditional-order-trees-v1": {
+      "archive_commit": "4fd4541417e635e892d53958f6edee35132c5b32",
+      "manifest_sha256": "a43b24947cd4b116e8edb21d229055e9e07a87ff5325ff9c8d59186b8a24f72b",
+      "new_independently_timed_originals": 5,
+      "preserved_prior_pointer_count": 31,
+      "producer_code_commit": "b42d511ec7930c04ebd05a655e4d8a75903bfe84",
+      "receipt_evidence": {
+        "independent_reader": {
+          "artifact_id": 15283912695,
+          "run_id": 46196592432,
+          "sha256": "ab63cac601ac98113c4fa0eefff7e15c32b0a6779ead255fa7cbac5a7bfa8215"
+        },
+        "producer": {
+          "artifact_id": 15284330390,
+          "run_id": 46196232484,
+          "sha256": "0637242ce67ad266ca8fd688ae74ed40fe97cd65393413a07f35c349ce9aaf91"
+        },
+        "retention": {
+          "artifact_id": 15284027674,
+          "run_id": 46196822316,
+          "sha256": "7117e5e86599414d76b6b6294831562b5ea12dbe64ea65bca42ed8610dda1c52"
+        }
+      },
+      "retained_first_originals": 36,
+      "retention_code_commit": "b42d511ec7930c04ebd05a655e4d8a75903bfe84"
+    }
+  },
+  "official_source_archive_commit": "14107b2babfff624c93c08ac50f60839f252e0c8",
+  "original_archive_before": "9173af36e9597c624f3d7a792e4ef5c77ef673b6",
+  "registered_races": 54,
+  "result_reads_during_production": 0,
+  "schema": "DT_R1_CODEX_36_SAME_SOURCE_PRE_RACE_ORIGINALS_V1",
+  "verified_official_sources_for_batch": 36
+}
