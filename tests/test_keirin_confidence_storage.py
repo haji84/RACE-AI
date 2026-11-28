@@ -17,7 +17,7 @@ from cryptography.hazmat.primitives.ciphers.aead import AESGCM
 from race_ai import keirin_nationwide_auto_generator as model
 from race_ai import keirin_nationwide_auto_storage as storage
 from race_ai import keirin_nationwide_auto_settlement as settlement
-from race_ai.keirin_nationwide_auto_generator import _python311_sum
+from race_ai.keirin_legacy_evening_replay import _python311_sum
 from tests.test_keirin_nationwide_auto_generator import fixture, AT
 from tests.test_keirin_nationwide_auto_storage import make_key
 
@@ -112,6 +112,7 @@ class ConfidenceStorageTests(unittest.TestCase):
             _, replay, _, saved = self.read(raw, replay_python311=True)
             self.assertEqual(self.baseline, replay)
             self.assertEqual(assessment, saved)
+            self.assertIs(model.sum, compensated_sum)
             altered = self.rewrite_arm(raw, 'B', lambda d: d['prediction']['ranked_tickets'].reverse())
             with self.assertRaisesRegex(ValueError, 'A_B_DECRYPTED_PREDICTION_NOT_REPRODUCIBLE'):
                 self.read(altered, replay_python311=True)

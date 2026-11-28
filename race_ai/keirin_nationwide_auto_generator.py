@@ -278,15 +278,7 @@ def _scenario(snap, strengths, leader, challenger, variant):
     return phases
 
 
-def _python311_sum(values, start=0):
-    """Reproduce the left-to-right arithmetic used by the original writer."""
-    total = start
-    for value in values:
-        total = total + value
-    return total
-
-
-def generate_A_B(snapshot, *, generated_at, max_tickets=12, _replay_python311=False):
+def generate_A_B(snapshot, *, generated_at, max_tickets=12):
     """Pure deterministic model. Input must originate in a prior source file.
 
     Not a provider scraper, not a production win probability. Intended for a
@@ -331,8 +323,7 @@ def generate_A_B(snapshot, *, generated_at, max_tickets=12, _replay_python311=Fa
             })
             masses[index] = mass
     need(len(scenarios) >= 2, "MULTIPLE_SIX_PHASE_SCENARIOS_REQUIRED")
-    weight_sum = _python311_sum if _replay_python311 else sum
-    norm = weight_sum(masses.values())
+    norm = sum(masses.values())
     aggregate = {}
     for scenario in scenarios:
         w = scenario["unscaled_research_weight"] / norm

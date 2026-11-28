@@ -13,6 +13,7 @@ everything stays HOLD, never a fabricated formal hit.
 from __future__ import annotations
 
 from hashlib import sha256
+from types import FunctionType
 from urllib.parse import urlsplit
 import base64
 import json
@@ -163,9 +164,13 @@ def decrypt_original_pair(*, raw_cipher, expected_cipher_sha256,
     replay = model.generate_A_B(snap, generated_at=manifest["generated_at"], max_tickets=max_tickets)
     if _replay_python311 and not matches_original(replay):
         # Official SP samples were sealed under Python 3.11. Python 3.12
-        # changed float summation, which can change B's exact saved hash.
-        replay = model.generate_A_B(snap, generated_at=manifest["generated_at"],
-                                    max_tickets=max_tickets, _replay_python311=True)
+        # changed float summation. Isolate the old arithmetic to this read.
+        from .keirin_legacy_evening_replay import _python311_sum
+
+        generate = model.generate_A_B
+        replay_generate = FunctionType(generate.__code__, dict(generate.__globals__, sum=_python311_sum),
+                                       generate.__name__, generate.__defaults__, generate.__closure__)
+        replay = replay_generate(snap, generated_at=manifest["generated_at"], max_tickets=max_tickets)
     need(matches_original(replay), "A_B_DECRYPTED_PREDICTION_NOT_REPRODUCIBLE")
     has_assessment = "confidence_assessment" in originals["A"]
     need(has_assessment == ("confidence_assessment" in originals["B"]),

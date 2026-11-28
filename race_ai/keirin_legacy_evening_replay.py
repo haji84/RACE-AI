@@ -31,7 +31,6 @@ import zlib
 from . import keirin_github_origin_evidence as origin
 from . import keirin_nationwide_auto_storage as storage
 from . import keirin_nationwide_auto_settlement as settlement
-from .keirin_nationwide_auto_generator import _python311_sum
 
 
 DAY = "2026-11-18"
@@ -117,6 +116,14 @@ def _need(condition, code):
 def _digest(value):
     return sha256(json.dumps(value, sort_keys=True, separators=(",", ":"),
                              allow_nan=False).encode()).hexdigest()
+
+
+def _python311_sum(values, start=0):
+    # Deliberately no fsum, rounding, tolerance, or compensated summation.
+    total = start
+    for value in values:
+        total = total + value
+    return total
 
 
 def _legacy_model(source):
