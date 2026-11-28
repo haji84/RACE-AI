@@ -40,6 +40,9 @@ on:
       - 'scripts/keirin_official_nationwide_continuation.py'
       - 'scripts/keirin_result_watch.py'
       - 'scripts/keirin_official_measured_outcomes.py'
+      - 'scripts/keirin_publish_shortlist_confidence.py'
+      - 'race_ai/keirin_public_confidence.py'
+      - 'race_ai/keirin_calibrated_selection.py'
       - 'race_ai/keirin_official_combined_study.py'
       - 'tests/test_keirin_official_combined_study.py'
       - 'race_ai/keirin_official_learned_replay.py'
@@ -101,6 +104,9 @@ on:
       - 'scripts/keirin_official_nationwide_continuation.py'
       - 'scripts/keirin_result_watch.py'
       - 'scripts/keirin_official_measured_outcomes.py'
+      - 'scripts/keirin_publish_shortlist_confidence.py'
+      - 'race_ai/keirin_public_confidence.py'
+      - 'race_ai/keirin_calibrated_selection.py'
       - 'race_ai/keirin_official_combined_study.py'
       - 'tests/test_keirin_official_combined_study.py'
       - 'race_ai/keirin_official_learned_replay.py'
@@ -134,7 +140,7 @@ on:
         type: choice
         required: true
         default: test
-        options: [test, saved-only, observe, rider-dossiers, dossier-context, measure-results, combined-study, learned-replay, dt-r1-restore, dt-r1-shadow, dt-r1-readback, dt-r1-settle, dt-r1-retain]
+        options: [test, saved-only, observe, rider-dossiers, dossier-context, measure-results, measure-confidence, combined-study, learned-replay, dt-r1-restore, dt-r1-shadow, dt-r1-readback, dt-r1-settle, dt-r1-retain]
       dossier_day:
         type: string
         description: JST day for source-free dossier replay, measurement or DT-R1 day settlement
@@ -184,6 +190,9 @@ jobs:
           python -m pip install --disable-pip-version-check 'cryptography>=44,<48' 'beautifulsoup4>=4.12,<5' 'playwright>=1.49,<2'
           python -m unittest -v \
             tests.test_keirin_confidence \
+            tests.test_keirin_public_confidence \
+            tests.test_keirin_calibrated_selection \
+            tests.test_keirin_shortlist_publication \
             tests.test_keirin_confidence_storage \
             tests.test_keirin_authored_confidence \
             tests.test_keirin_nationwide_auto_generator \
@@ -494,7 +503,8 @@ jobs:
       always() && !cancelled() && github.repository == 'haji84/RACE-AI' &&
       github.repository_id == '1416489937' && github.ref == 'refs/heads/main' &&
       (github.event_name == 'schedule' ||
-       (github.event_name == 'workflow_dispatch' && inputs.mode == 'measure-results' && needs.tests.result == 'success'))
+       (github.event_name == 'workflow_dispatch' &&
+        (inputs.mode == 'measure-results' || inputs.mode == 'measure-confidence') && needs.tests.result == 'success'))
     runs-on: ubuntu-24.04
     timeout-minutes: 15
     permissions:
@@ -508,6 +518,7 @@ jobs:
         with:
           python-version: '3.11'
       - name: Measure archived races with their verified originals and results
+        if: github.event_name == 'schedule' || inputs.mode == 'measure-results'
         shell: bash
         env:
           RACE_AI_KEIRIN_AB_GIT_STORE_ENABLED: 'true'
@@ -542,6 +553,33 @@ jobs:
               "$root/safe/$day.json" | tee -a "$GITHUB_STEP_SUMMARY"
           done
           exit "$status"
+      - name: Validate and publish shortlist confidence using settled earlier dates
+        if: >-
+          always() && !cancelled() &&
+          (github.event_name == 'schedule' || inputs.mode == 'measure-confidence')
+        shell: bash
+        env:
+          RACE_AI_KEIRIN_AB_GIT_STORE_ENABLED: 'true'
+          RACE_AI_KEIRIN_PRIVATE_RSA_PEM: ${{ secrets.RACE_AI_KEIRIN_PRIVATE_RSA_PEM }}
+          MEASUREMENT_DAY: ${{ inputs.dossier_day }}
+        run: |
+          set -euo pipefail
+          umask 077
+          scope=()
+          if [ "$GITHUB_EVENT_NAME" = schedule ]; then
+            [[ "$(TZ=Asia/Tokyo date +%H)" == "08" ]] || exit 0
+            scope=(--skip-current)
+          elif [ -n "$MEASUREMENT_DAY" ]; then
+            scope=(--day "$MEASUREMENT_DAY")
+          fi
+          python -m pip install --disable-pip-version-check 'cryptography>=44,<48' 'beautifulsoup4>=4.12,<5'
+          root="$RUNNER_TEMP/keirin-measurement-$GITHUB_RUN_ID"
+          mkdir -m 700 -p "$root/private" "$root/safe"
+          python -m scripts.keirin_publish_shortlist_confidence --repo "$GITHUB_WORKSPACE" \
+            --private-root "$root/private" "${scope[@]}" \
+            --owner-public-pem "$GITHUB_WORKSPACE/docs/evidence/2026-11-18/keirin_owner_existing_rsa_public_spki3072.pem" \
+            > "$root/safe/confidence.json"
+          jq -c '{day,publication,official_replay,secondary_state,rows}' "$root/safe/confidence.json" >> "$GITHUB_STEP_SUMMARY"
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         if: always()
         with:
