@@ -601,12 +601,18 @@
     renderResults(activeDay, receipt);
   }
 
-  async function fetchDay(lane, day, request, source = base) {
+  async function fetchDay(lane, day, request, source = base, digest = null) {
     const response = await fetch(source + lane + "/" + day + ".json", {
       cache: "no-store", credentials: "omit", redirect: "error", referrerPolicy: "no-referrer", signal: request.signal
     });
     if (response.status === 404) return undefined;
     if (!response.ok) throw new Error("Public forecast unavailable");
+    if (digest !== null) {
+      const bytes = await response.arrayBuffer();
+      const hash = new Uint8Array(await crypto.subtle.digest("SHA-256", bytes));
+      if (Array.from(hash, n => n.toString(16).padStart(2, "0")).join("") !== digest) return null;
+      return JSON.parse(new TextDecoder().decode(bytes));
+    }
     return response.json().catch(() => null);
   }
 
@@ -639,11 +645,68 @@
     return initial;
   }
 
+  function dossierFinishes(packet, row, day, data) {
+    const checked = globalThis.RaceKeirinDossierData;
+    if (!validPacket(packet, day, "RACE_AI_KEIRIN_PUBLIC_REFERENCE_FINISHES_V1")) return null;
+    const matches = packet.races.filter(race => race?.race_id === row.race_id);
+    const race = matches[0], observed = instant(race?.observed_at), cutoff = instant(data.cutoffAt);
+    if (matches.length !== 1 || observed === null || observed > instant(packet.published_at) ||
+        jstToday(new Date(race.observed_at)) < day || (cutoff !== null && observed < cutoff) ||
+        !Array.isArray(race.sources) || race.sources.length !== 2 ||
+        !race.sources.every(source => {
+          if (!hasFields(source, ["source_id", "url", "checked_at", "source_sha256"])) return false;
+          const {source_sha256, ...receipt} = source;
+          return typeof source_sha256 === "string" && /^[a-f0-9]{64}$/.test(source_sha256) &&
+            boundResultSource(receipt, row.race_id, observed) &&
+            (cutoff === null || instant(receipt.checked_at) >= cutoff);
+        }) || race.sources[0].source_id === race.sources[1].source_id ||
+        !checked.namedField(race.riders, 3, false)) return null;
+    const finishes = new Map(), places = new Set();
+    for (const rider of race.riders) {
+      const starter = data.riders.find(candidate => candidate.number === rider.number);
+      if (!checked.identityMatch(rider, starter)) return null;
+      if (rider.place === null) continue;
+      if (!Number.isInteger(rider.place) || rider.place < 1 || rider.place > race.riders.length ||
+          places.has(rider.place)) return null;
+      places.add(rider.place);
+      finishes.set(rider.number, rider.place);
+    }
+    return [1, 2, 3].every(place => places.has(place)) ? finishes : null;
+  }
+
   function openPublicDossier(row, day, opener) {
     const venueCode = row.race_id.slice(8, 10), venue = venues[venueCode] || "開催コード " + venueCode;
     const title = venue + " " + Number(row.race_id.slice(-2)) + "R 選手カルテ";
+    let latestAt = null, resultsAt = null;
+    async function readHistory(data, packet, request) {
+      const checked = globalThis.RaceKeirinDossierData;
+      const manifest = checked.historyManifest(packet, jstToday());
+      if (!manifest || (latestAt !== null && manifest.published <= latestAt)) return null;
+      const dates = new Set(data.riders.map(rider => manifest.riders.get(rider.registration)?.latest_observed_day).filter(Boolean));
+      const daily = new Map(await Promise.all([...dates].map(async date => {
+        const packet = await fetchDay("rider-history", date, request, base, manifest.days.get(date)).catch(() => null);
+        return [date, checked.historyDay(packet, date)];
+      })));
+      if (request.signal.aborted || [...daily.values()].some(result => !result)) return null;
+      latestAt = manifest.published;
+      return checked.confirmedHistory(data, manifest, daily);
+    }
+    async function refresh(data, request) {
+      const [latest, results] = await Promise.all([
+        fetchDay("rider-history", "latest", request).catch(() => null),
+        fetchDay("results/rider-finishes", day, request, resultsBase).catch(() => null)
+      ]);
+      let finishes = null;
+      const published = instant(results?.published_at);
+      if (published !== null && (resultsAt === null || published > resultsAt)) {
+        finishes = dossierFinishes(results, row, day, data);
+        if (finishes) resultsAt = published;
+      }
+      const history = await readHistory(data, latest, request);
+      return {history, finishes};
+    }
     globalThis.RaceKeirinDossier.open({ raceId: row.race_id, title, venue, day, opener,
-      load: request => loadDossier(row, day, request) });
+      load: request => loadDossier(row, day, request), refresh });
   }
 
   async function loadDay(day, request, resultPackets) {

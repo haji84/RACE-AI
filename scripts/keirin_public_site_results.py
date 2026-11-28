@@ -11,9 +11,11 @@ from pathlib import Path
 import re
 from subprocess import SubprocessError
 import time
-from unicodedata import normalize
+from unicodedata import category, normalize
 
 PAYOUT_TABLES = {'Kdreams': 'table.refund_table', 'netkeirin': 'table.Payout_Detail_Table'}
+RIDER_FINISH_SCHEMA = 'RACE_AI_KEIRIN_PUBLIC_REFERENCE_FINISHES_V1'
+MAX_FINISH_REPLAYS = 4
 SOURCE_STOP_CODES = {
     'PROVIDER_DENIED_OR_RATE_LIMITED_STOP', 'PUBLIC_PROVIDER_HTTP_ERROR_STOP',
     'PUBLIC_PROVIDER_UNAVAILABLE_STOP', 'PROVIDER_NON_HTML_OR_REDIRECT',
@@ -88,6 +90,83 @@ def has_special_notice(soup, provider):
     return any(cell.find('a') is None and text(cell).rstrip('。') in notices for cell in cells)
 
 
+def _finish_name(name):
+    key = ''.join(normalize('NFKC', name).split())
+    checked(0 < len(key) <= 80 and not any(c in '<>' or category(c).startswith('C') for c in key),
+            'RESULT_RIDER_NAME')
+    return key
+
+
+def _finish_place(value, provider):
+    # The result tables distinguish withdrawal, disqualification and failure to finish.
+    # The sidecar publishes an ordinal only when both sources actually show one.
+    match = re.fullmatch(r'([1-9])' if provider == 'Kdreams' else r'([1-9])着', value)
+    if match:
+        return int(match[1])
+    nonnumeric = {
+        '失': 'disqualified', '失格': 'disqualified',
+        '落': 'fall', '落棄': 'fall', '落車棄権': 'fall', '落車': 'fall',
+        '棄': 'dnf', '棄権': 'dnf', '欠': 'withdrawal', '欠車': 'withdrawal',
+    }
+    checked(value in nonnumeric, 'RESULT_FINISH_STATUS')
+    return nonnumeric[value]
+
+
+def _provider_finishes(soup, provider):
+    kd = provider == 'Kdreams'
+    tables = soup.select('table.result_table' if kd else 'table#All_Result_Table')
+    checked(len(tables) == 1, 'RESULT_FINISH_TABLE')
+    head, *rows = tables[0].find_all('tr')
+    headers = [''.join(text(cell).split()) for cell in head.find_all('th', recursive=False)]
+    checked(headers[:4] == (['予想', '着順', '車番', '選手名'] if kd else ['着', '枠番', '車番', '選手名']) and
+            3 <= len(rows) <= 9, 'RESULT_FINISH_TABLE_LAYOUT')
+    results = {}
+    registrations = set()
+    for row in rows:
+        cells = row.find_all('td', recursive=False)
+        checked(len(cells) == len(headers), 'RESULT_FINISH_TABLE_LAYOUT')
+        ordinal, number, name_cell = cells[1 if kd else 0], text(cells[2]), cells[3]
+        checked(re.fullmatch(r'[1-9]', number) and int(number) not in results, 'RESULT_FINISH_NUMBER')
+        registration = None
+        if not kd:
+            anchors = name_cell.find_all('a', href=True)
+            checked(len(anchors) == 1, 'RESULT_FINISH_REGISTRATION')
+            profile = re.fullmatch(r'(?:https://keirin\.netkeiba\.com)?/db/profile/\?id=([0-9]{5,6})',
+                                   anchors[0]['href'])
+            checked(profile and int(profile[1]) > 0, 'RESULT_FINISH_REGISTRATION')
+            registration = profile[1].zfill(6)
+            checked(registration not in registrations, 'RESULT_FINISH_REGISTRATION')
+            registrations.add(registration)
+            names = anchors[0].select('dt.PlayerName')
+            checked(len(names) == 1, 'RESULT_RIDER_NAME')
+            name_cell = names[0]
+        results[int(number)] = (_finish_name(text(name_cell)), _finish_place(text(ordinal), provider), registration)
+    return results
+
+
+def _paired_rider_finish(race, winning_triple, sources, observations):
+    if len(observations) != 2 or not all(row.get('finishers') for row in observations):
+        return None
+    first, second = (row['finishers'] for row in observations)
+    expected = {rider['number'] for rider in race['observed_riders']}
+    if first.keys() != second.keys() or second.keys() != expected or any(
+            first[number][:2] != second[number][:2] for number in expected):
+        return None
+    classified = sorted((rider[1], number) for number, rider in second.items() if type(rider[1]) is int)
+    if [place for place, _ in classified] != list(range(1, len(classified) + 1)) or \
+            [number for _, number in classified[:3]] != winning_triple:
+        return None
+    times = [datetime.fromisoformat(source['checked_at']) for source in sources]
+    if not datetime.fromisoformat(race['published_cutoff_at']) < times[0] <= times[1]:
+        return None
+    return dict(race_id=race['race_id'], observed_at=sources[1]['checked_at'],
+                sources=[dict(source, source_sha256=observation['sha256'])
+                         for source, observation in zip(sources, observations)],
+                riders=[dict(number=number, name=name, registration=registration,
+                             place=place if type(place) is int else None)
+                        for number, (name, place, registration) in sorted(second.items())])
+
+
 def observe(race, provider, url, fetch, consensus, evidence):
     from bs4 import BeautifulSoup
     consensus.check_race_url(provider=provider, url=url, race_id=race['race_id'])
@@ -111,8 +190,12 @@ def observe(race, provider, url, fetch, consensus, evidence):
     checked(amounts['2t'][0] == amounts['3t'][0][:2], 'PAYOUT_MARKETS_DISAGREE')
     cars = {rider['number'] for rider in race['observed_riders']}
     checked(set(amounts['3t'][0]) <= cars, 'PAYOUT_ROSTER_CHANGED')
+    try:
+        finishers = _provider_finishes(soup, provider)
+    except (ValueError, TypeError, KeyError):
+        finishers = None
     evidence.append({'race_id':race['race_id'], 'provider':provider, 'checked_at':observed,
-                     'sha256':triple['source_bytes_sha256']})
+                     'sha256':triple['source_bytes_sha256'], 'finishers':finishers})
     return amounts, {'source_id':'kdreams' if provider == 'Kdreams' else 'netkeirin',
                      'url':url, 'checked_at':observed}
 
@@ -152,6 +235,39 @@ def discover_missing_links(day, missing, fetch):
         details = links.linked_details(fetch(url), base_url=url, day=day, venue=venue)
         selected.update((rid, link) for rid, link in details.items() if rid in missing)
     return selected
+
+
+def _reference_roster_inputs(raw, day, missing, fetch, now):
+    """Confirm starter cars, detail link and closing clock from a linked meeting page."""
+    from race_ai.keirin_public_meeting_roster import parse_meeting
+    from scripts import keirin_discover_public_race_links as links
+    from scripts.keirin_publish_meeting_rosters import checked_packet
+
+    packet = checked_packet(json.loads(raw))
+    checked(packet['day'] == day and datetime.fromisoformat(packet['published_at']) <= now,
+            'PUBLIC_ROSTER_REFERENCE_DAY_MISMATCH')
+    venues = {}
+    for row in packet['races']:
+        if row['race_id'] in missing:
+            venues.setdefault(row['source_url'], []).append(row)
+    for url, rows in sorted(venues.items()):
+        venue = rows[0]['race_id'][8:10]
+        html = fetch(url)
+        try:
+            fields = {row['race_id']: row['riders'] for row in
+                      parse_meeting(html, day=day, url=url, observed_at=now)}
+            details = links.linked_details(html, base_url=url, day=day, venue=venue)
+            cutoffs = links.linked_cutoff_hints(html, base_url=url, day=day, venue=venue)
+        except ValueError:
+            continue
+        for row in rows:
+            rid = row['race_id']
+            if rid not in fields or rid not in details or rid not in cutoffs:
+                continue
+            published = {rider['number']: _finish_name(rider['name']) for rider in row['riders']}
+            observed = {rider['number']: _finish_name(rider['name']) for rider in fields[rid]}
+            if published == observed and 3 <= len(observed) <= 9:
+                yield row, details[rid], cutoffs[rid]
 
 
 def build_public_roster(forecast_bytes, source_rows, official_rows, *, display_cutoffs=None, archived_links=None,
@@ -301,7 +417,8 @@ def refresh_public_rosters(state, store, fetch, *, now):
                     packet = secondary.checked_day(json.loads(context))
                     checked(packet['day'] == day, 'PUBLIC_ROSTER_INPUT_DAY_MISMATCH')
                     context_rows = packet['races']
-                if missing - {r['race_id'] for r in context_rows}:
+                missing_context = missing - {r['race_id'] for r in context_rows}
+                if missing_context:
                     starters = store.read_previous(head, f'starters/{day}.json')
                     if starters is not None:
                         packet = _checked_starters(json.loads(starters))
@@ -314,12 +431,23 @@ def refresh_public_rosters(state, store, fetch, *, now):
                         checked(packet['day'] == day, 'PUBLIC_ROSTER_INPUT_DAY_MISMATCH')
                         archived_links = {row['race_id']: row['source_url'] for row in packet['races']}
                     known_cutoffs = {row['race_id'] for row in snapshot['races'] if row['cutoff_at'] is not None}
-                    ready_starters = {row['race_id'] for row in starter_rows} & known_cutoffs
-                    if missing - {r['race_id'] for r in context_rows} - ready_starters:
+                    starter_ids = {row['race_id'] for row in starter_rows}
+                    ready_inputs = starter_ids & (known_cutoffs | display_cutoffs.keys()) & archived_links.keys()
+                    missing_inputs = missing_context - ready_inputs
+                    if missing_inputs:
                         dt_raw = store.read_previous(head, f'dt-r1/{day}.json')
                         if dt_raw is not None:
                             dt_shortlists = public._json(dt_raw)
                             checked(public.when(dt_shortlists['published_at']) <= now, 'PUBLIC_ROSTER_DT_R1_CLOCK')
+                        else:
+                            reference = store.read_previous(head, f'reference-starters/{day}.json')
+                            if reference is not None:
+                                for row, link, cutoff in _reference_roster_inputs(reference, day, missing_inputs, fetch, now):
+                                    rid = row['race_id']
+                                    archived_links.setdefault(rid, link)
+                                    display_cutoffs.setdefault(rid, cutoff)
+                                    if rid not in starter_ids:
+                                        starter_rows.append(row)
             roster = build_public_roster(raw, context_rows, starter_rows, display_cutoffs=display_cutoffs,
                                          archived_links=archived_links, previous=previous, results=results,
                                          fetch=fetch, dt_shortlists=dt_shortlists, allow_partial=True)
@@ -364,7 +492,23 @@ def provider_pause(error, now):
     return {'status': status, 'retry_at': retry_at.astimezone(timezone.utc).isoformat() if retry_at else None}
 
 
-def collect(published, fetch, consensus, *, previous=None, now=None, resume_after=None, can_poll=None):
+def _observe_pair(race, fetch, consensus, evidence):
+    first_observation = len(evidence)
+    rid = race['race_id']
+    kd, first = observe(race, 'Kdreams', race['source_url']+'?pageType=result', fetch, consensus, evidence)
+    net, second = observe(race, 'netkeirin', 'https://keirin.netkeiba.com/race/result/?race_id='+rid,
+                          fetch, consensus, evidence)
+    checked(kd == net, 'PAYOUT_SOURCES_DISAGREE')
+    comparison = {'race_id':rid, 'observed_at':second['checked_at'], 'authority':'cross_source_reference',
+                  'comparison_scope':'POST_CUTOFF_REFERENCE', 'winning_3t':kd['3t'][0],
+                  'winning_2t':kd['2t'][0], 'payouts_100yen':{market:value[1] for market,value in kd.items()},
+                  'sources':[first,second]}
+    finish = _paired_rider_finish(race, comparison['winning_3t'], comparison['sources'], evidence[first_observation:])
+    return comparison, finish
+
+
+def collect(published, fetch, consensus, *, previous=None, now=None, resume_after=None, can_poll=None,
+            rider_finishes=None):
     validate_roster(published,consensus)
     date = published['date']
     entries, evidence = [], []
@@ -400,14 +544,9 @@ def collect(published, fetch, consensus, *, previous=None, now=None, resume_afte
         try:
             attempted=True
             evidence.append({'race_id': rid, 'attempted': True})
-            kd, first = observe(race, 'Kdreams', race['source_url']+'?pageType=result', fetch, consensus, evidence)
-            net, second = observe(race, 'netkeirin', 'https://keirin.netkeiba.com/race/result/?race_id='+rid,
-                                  fetch, consensus, evidence)
-            checked(kd == net, 'PAYOUT_SOURCES_DISAGREE')
-            comparison = {'race_id':rid, 'observed_at':second['checked_at'], 'authority':'cross_source_reference',
-                          'comparison_scope':'POST_CUTOFF_REFERENCE', 'winning_3t':kd['3t'][0],
-                          'winning_2t':kd['2t'][0], 'payouts_100yen':{market:value[1] for market,value in kd.items()},
-                          'sources':[first,second]}
+            comparison, finish = _observe_pair(race, fetch, consensus, evidence)
+            if rider_finishes is not None and finish is not None:
+                rider_finishes[rid] = finish
             entries.append({'race_id':rid, 'state':'matched', 'comparison':comparison})
         except (ValueError, OSError) as error:
             code = str(error)
@@ -445,6 +584,46 @@ def pause_is_active(path, now):
         print(json.dumps({'provider_paused': pause}))
         return True
     return False
+
+
+def _read_rider_finishes(path, day, packet, now):
+    if not path.exists():
+        return {}
+    current = json.loads(path.read_bytes())
+    checked(type(current) is dict and set(current) == {'schema', 'day', 'published_at', 'races'} and
+            current['schema'] == RIDER_FINISH_SCHEMA and current['day'] == day and
+            datetime.fromisoformat(current['published_at']) <= now and type(current['races']) is list,
+            'PUBLIC_RIDER_FINISH_PREVIOUS_SCHEMA')
+    matched = {row['race_id'] for row in (packet or {}).get('races', []) if row['state'] == 'matched'}
+    rows = current['races']
+    ids = [row['race_id'] for row in rows]
+    checked(ids == sorted(set(ids)) and set(ids) <= matched, 'PUBLIC_RIDER_FINISH_PREVIOUS_PARTITION')
+    return dict(zip(ids, rows))
+
+
+def _repair_rider_finishes(published, packet, finishes, fetch, consensus, *, attempted, limit, can_poll):
+    """Backfill previously settled rows without changing their payout evidence."""
+    old = {row['race_id']: row.get('comparison', {})
+           for row in (packet or {}).get('races', []) if row['state'] == 'matched'}
+    count = 0
+    for race in sorted(published['races'], key=lambda row: row['race_id']):
+        rid = race['race_id']
+        if rid in attempted or rid in finishes or not all(
+                field in old.get(rid, {}) for field in ('winning_3t', 'winning_2t', 'payouts_100yen')):
+            continue
+        if count == limit or not can_poll():
+            break
+        count += 1
+        try:
+            current, finish = _observe_pair(race, fetch, consensus, [])
+            if finish is not None and all(current[key] == old[rid][key]
+                                         for key in ('winning_3t', 'winning_2t', 'payouts_100yen')):
+                finishes[rid] = finish
+        except (ValueError, OSError) as error:
+            if str(error) in SOURCE_STOP_CODES and getattr(error, 'http_status', None) != 404:
+                return count, error
+        attempted.add(rid)
+    return count, None
 
 
 def main():
@@ -505,6 +684,16 @@ def main():
         day_packets.append((previous['checked_at'] if previous else '', path, destination, previous))
 
     status = 0
+    finish_dir = result_dir / 'rider-finishes'
+    repair_path = result_dir / 'rider-finish-repair.json'
+    repair = json.loads(repair_path.read_bytes()) if repair_path.exists() else {}
+    checked(type(repair) is dict and len(repair) <= 2 and all(
+        re.fullmatch(r'20\d\d-\d\d-\d\d', day) and type(rids) is list and len(rids) <= 300 and
+        all(type(rid) is str and re.fullmatch(day.replace('-', '') + r'\d{4}', rid) for rid in rids) and
+        rids == sorted(set(rids)) for day, rids in repair.items()), 'INVALID_PUBLIC_RIDER_FINISH_REPAIR')
+    eligible = {(now.astimezone(JST).date() - timedelta(days=offset)).isoformat() for offset in (0, 1)}
+    repair_next = {day: rids for day, rids in repair.items() if day in eligible}
+    backfill = []
     for _, path, destination, previous in sorted(day_packets):
         if not can_poll():
             complete = False
@@ -512,10 +701,14 @@ def main():
         published=json.loads(path.read_bytes())
         day = path.stem
         checked(day==published['date'],'PUBLIC_ROSTER_FILENAME_MISMATCH')
+        finish_path = finish_dir / path.name
+        prior_finishes = _read_rider_finishes(finish_path, day, previous, now)
+        finishes = prior_finishes.copy()
         packet,evidence=collect(published,fetch_once,consensus,previous=previous,
-                                resume_after=positions.get(day),can_poll=can_poll)
+                                resume_after=positions.get(day),can_poll=can_poll,rider_finishes=finishes)
         if packet!=previous:
             destination.write_text(json.dumps(packet,ensure_ascii=False,separators=(',', ':'))+'\n')
+        backfill.append((day, published, previous, prior_finishes, finishes, finish_path))
         resolved = sum(entry['state'] == 'matched' or entry.get('reason') == 'special_result'
                        for entry in packet['races'])
         if resolved < len(published['races']):
@@ -535,6 +728,31 @@ def main():
                 pause_file.write_text(json.dumps(failure['provider_pause'])+'\n')
             status = 75
             break
+    # Live work has first use of the existing execution window. Bounded replay
+    # then fills already settled races retained on their race day or the day after.
+    budget = MAX_FINISH_REPLAYS
+    for day, published, previous, prior, finishes, finish_path in sorted(backfill, reverse=True):
+        if status == 0 and budget and day in eligible:
+            attempted = set(repair_next.get(day, []))
+            count, error = _repair_rider_finishes(published, previous, finishes, fetch_once, consensus,
+                attempted=attempted, limit=budget, can_poll=can_poll)
+            if attempted:
+                repair_next[day] = sorted(attempted)
+            budget -= count
+            if error is not None:
+                pause = provider_pause(error, datetime.now(timezone.utc))
+                if pause is not None:
+                    pause_file.write_text(json.dumps(pause) + '\n')
+                print(json.dumps({'rider_finish_repair_day': day, 'provider_failure': str(error)}))
+                status = 75
+        if finishes != prior:
+            finish_dir.mkdir(exist_ok=True)
+            finish_packet = dict(schema=RIDER_FINISH_SCHEMA, day=day, published_at=datetime.now(timezone.utc).isoformat(),
+                                 races=[finishes[rid] for rid in sorted(finishes)])
+            finish_path.write_text(json.dumps(finish_packet, ensure_ascii=False, separators=(',', ':')) + '\n')
+            print(json.dumps({'rider_finish_day': day, 'race_count': len(finishes), 'races_added': len(finishes) - len(prior)}))
+    if repair_next != repair:
+        repair_path.write_text(json.dumps(repair_next, sort_keys=True)+'\n')
     if positions != previous_positions:
         position_file.write_text(json.dumps(positions, sort_keys=True)+'\n')
     return status or (10 if args.stop_when_complete and complete else 0)
