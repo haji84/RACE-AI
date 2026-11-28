@@ -4,7 +4,8 @@ This is a contract adapter, not a source, key, storage, or forecast authority.
 It never creates rivals, alters their prediction clocks, selects an integrated
 recipe, or authenticates self-declared hashes. ``checked_contract`` requires an
 externally retained canonical JSON SHA and an explicit expected integration
-recipe. The current A/B-plus-research ensemble is not an A/B-each-50% model.
+recipe. The A/B-each-50% entrant and the legacy research ensemble have separate
+native IDs. Each contest accepts one integrated entrant.
 
 ``admit_original`` requires the same immutable input snapshot and source as-of
 for all entrants, while retaining each original's actual generation, seal, and
@@ -32,11 +33,16 @@ from .policy import (checked_sha, clock, digest, finite_number, require,
 CONTRACT_SCHEMA = 'dt-r1-prospective-contest-v2'
 ORIGINAL_SCHEMA = 'dt-r1-prospective-original-v2'
 REVERIFY_SCHEMA = 'dt-r1-prospective-reverify-v2'
+AB_EQUAL_MODEL_ID = 'official-ab-equal-weight-v1'
 PARTICIPANTS = {
+    AB_EQUAL_MODEL_ID: 'existing-integrated',
     'official-and-research-ensemble-v1': 'existing-integrated',
     'keirin-conditional-order-trees-v1': 'codex-independent',
     'chatgpt-dt-r1': 'chatgpt-dt-r1',
 }
+INTEGRATED_MODELS = {model_id for model_id, role in PARTICIPANTS.items()
+                     if role == 'existing-integrated'}
+REQUIRED_MODELS = PARTICIPANTS.keys() - INTEGRATED_MODELS
 MARGIN = timedelta(minutes=15)
 PIN_FIELDS = ('model_sha256', 'policy_sha256', 'feature_schema_sha256')
 
@@ -50,10 +56,15 @@ def _recipe(value):
         'current_arm_weights', 'research_weight', 'research_allocation'}, 'INTEGRATION_RECIPE_REQUIRED')
     arms = value['current_arm_weights']
     _need(isinstance(arms, dict) and set(arms) == {'A', 'B'}, 'INTEGRATION_ARMS_REQUIRED')
-    weights = [finite_number(arms['A']), finite_number(arms['B']), finite_number(value['research_weight'])]
-    _need(all(0 <= w <= 1 for w in weights) and abs(math.fsum(weights) - 1) <= 1e-12 and
-          weights[0] == weights[1] and
-          value['research_allocation'] == 'equal_available_families_equal_members', 'INTEGRATION_RECIPE_INVALID')
+    weights = tuple(finite_number(weight) for weight in (arms['A'], arms['B'], value['research_weight']))
+    allocation = value['research_allocation']
+    if allocation == 'none':
+        valid = weights == (.5, .5, 0.)
+    else:
+        valid = (allocation == 'equal_available_families_equal_members' and
+                 all(0 <= w <= 1 for w in weights) and abs(math.fsum(weights) - 1) <= 1e-12 and
+                 weights[0] == weights[1])
+    _need(valid, 'INTEGRATION_RECIPE_INVALID')
     return value
 
 
@@ -70,10 +81,12 @@ def checked_contract(contract, expected_sha256, model_ids):
     _need(digest(contract) == expected_sha256, 'EXTERNAL_CONTRACT_SHA_MISMATCH')
     clock(contract['frozen_at'])
     participants = contract['participants']
-    _need(isinstance(participants, dict) and set(participants) == set(PARTICIPANTS) == set(model_ids),
-          'EXACT_PARTICIPANT_IDENTITIES_REQUIRED')
-    for model_id, role in PARTICIPANTS.items():
-        entry = participants[model_id]
+    _need(isinstance(participants, dict), 'EXACT_PARTICIPANT_IDENTITIES_REQUIRED')
+    integrated_ids = participants.keys() & INTEGRATED_MODELS
+    _need(len(integrated_ids) == 1 and participants.keys() - integrated_ids == REQUIRED_MODELS and
+          participants.keys() == set(model_ids), 'EXACT_PARTICIPANT_IDENTITIES_REQUIRED')
+    for model_id, entry in participants.items():
+        role = PARTICIPANTS[model_id]
         fields = {'role', 'model_sha256', 'policy_sha256', 'feature_schema_sha256', 'artifact_sha256', 'code_commit'}
         if role == 'existing-integrated':
             fields.add('integration_recipe')
@@ -82,9 +95,12 @@ def checked_contract(contract, expected_sha256, model_ids):
             checked_sha(entry[key], 'PROSPECTIVE_V2_PARTICIPANT_SHA_REQUIRED')
         _need(isinstance(entry['code_commit'], str) and re.fullmatch('[0-9a-f]{40}', entry['code_commit']) is not None,
               'PARTICIPANT_CODE_COMMIT_REQUIRED')
-    integrated = participants['official-and-research-ensemble-v1']
-    actual = _recipe(integrated['integration_recipe'])
-    _need(0 < actual['research_weight'] < 1, 'EXISTING_INTEGRATED_RECIPE_INVALID')
+    integrated_id, = integrated_ids
+    actual = _recipe(participants[integrated_id]['integration_recipe'])
+    if integrated_id == AB_EQUAL_MODEL_ID:
+        _need(actual['research_allocation'] == 'none', 'EXISTING_INTEGRATED_RECIPE_INVALID')
+    else:
+        _need(0 < actual['research_weight'] < 1, 'EXISTING_INTEGRATED_RECIPE_INVALID')
     _need(contract['expected_integration_recipe'] is not None, 'INTEGRATED_RECIPE_UNRESOLVED')
     expected = _recipe(contract['expected_integration_recipe'])
     _need(digest(actual) == digest(expected), 'INTEGRATED_RECIPE_MISMATCH')

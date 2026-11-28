@@ -17,12 +17,14 @@ import json
 import os
 from pathlib import Path
 import re
+import sys
 from tempfile import TemporaryDirectory
 
 from race_ai import keirin_nationwide_cipher_history as archive
 from race_ai import keirin_official_nationwide_records as records
 from race_ai import keirin_official_run_history as codec
-from race_ai.keirin_github_evidence_client import GitHubEvidenceClient
+from race_ai.keirin_github_evidence_client import GitHubEvidenceClient, GitHubEvidenceError
+from race_ai.keirin_github_origin_evidence import OriginEvidenceError
 from research.chatgpt_dt_r1 import official_inputs
 from research.chatgpt_dt_r1.abilities import augment_abilities
 from research.chatgpt_dt_r1.agari import augment_agari
@@ -208,8 +210,24 @@ def _save_forecast(*, output, entry, row, forecast, payload, original, store, pu
             source_receipt_sha256=row['source_attestation_sha256'], shared_material_sha256=digest(shared)))
 
 
+def _source_failure(stage, error):
+    if isinstance(error, GitHubEvidenceError):
+        code = str(error)
+        if code in {
+            'GITHUB_EVIDENCE_HTTP_401', 'GITHUB_EVIDENCE_HTTP_403', 'GITHUB_EVIDENCE_HTTP_429',
+            'GITHUB_EVIDENCE_UNAVAILABLE', 'GITHUB_EVIDENCE_ARTIFACT_EXPIRED_OR_INVALID',
+        }:
+            return code
+        return 'GITHUB_SOURCE_EVIDENCE_FAILED'
+    if isinstance(error, OriginEvidenceError):
+        return 'OFFICIAL_SOURCE_PROOF_INVALID'
+    if isinstance(error, archive.GitCipherFetchTimeout):
+        return 'OFFICIAL_SOURCE_ARCHIVE_TIMEOUT'
+    return stage
+
+
 def produce_day(*, store, repo, output, owner_public_pem, owner_private_pem, code_commit,
-                origin_client, clock=continuation.now_utc):
+                origin_client, clock=continuation.now_utc, source_diagnostics=None):
     """Internal owner-job worker; the CLI's unchanged runtime guard precedes it."""
     started = _observe(clock)
     need(_same_day(started, store.day), 'ACTUAL_JST_DAY_REQUIRED')
@@ -244,14 +262,18 @@ def produce_day(*, store, repo, output, owner_public_pem, owner_private_pem, cod
             entries.append(dict(entry, reason='PRE_PREDICTION_T15_MARGIN')); continue
         if trained is None:
             entries.append(dict(entry, reason='FROZEN_MODEL_OR_CONTEXT_UNVERIFIED')); continue
+        stage = 'OFFICIAL_SOURCE_CIPHERTEXT_REPLAY_FAILED'
         try:
             payload = store.read(meta, owner_private_pem)
+            stage = 'OFFICIAL_SOURCE_RECONSTRUCTION_FAILED'
             original, _ = records.admit_original(store, payload, owner_private_pem,
                 origin_client=origin_client, packet_cache=cache)
             need(original['race_id'] == rid and original['day_jst'] == store.day and
                  original['snapshot']['published_cutoff_at'] == meta['cutoff_at'], 'SOURCE_BINDING_CHANGED')
             entry['source_admitted'] = True
-        except Exception:
+        except Exception as error:
+            if source_diagnostics is not None:
+                source_diagnostics[_source_failure(stage, error)] += 1
             entries.append(dict(entry, reason='SOURCE_ADMISSION_UNVERIFIED')); continue
         try:
             row, input_at, proof = _candidate(store=store, payload=payload, original=original,
@@ -393,7 +415,7 @@ def verify_output(directory, *, expected_manifest_sha256=None):
 
 
 def run_future_shadow(*, repo, private_root, output, owner_public_pem, owner_private_pem,
-                      day=None, clock=continuation.now_utc):
+                      day=None, clock=continuation.now_utc, source_diagnostics=None):
     repo, root, day, public, commit = continuation._runtime(repo=repo, private_root=private_root,
         owner_public_pem=owner_public_pem, owner_private_pem=owner_private_pem, day=day, clock=clock, mode='study')
     need(_same_day(_observe(clock), day), 'ACTUAL_JST_DAY_REQUIRED')
@@ -406,7 +428,8 @@ def run_future_shadow(*, repo, private_root, output, owner_public_pem, owner_pri
         head = records.fetch_partial_head(reader, with_ancestry=True)
         store = records.RecordStore(reader, day, index_commit=head)
         return produce_day(store=store, repo=repo, output=output, owner_public_pem=public,
-            owner_private_pem=owner_private_pem, code_commit=commit, origin_client=GitHubEvidenceClient(), clock=clock)
+            owner_private_pem=owner_private_pem, code_commit=commit, origin_client=GitHubEvidenceClient(),
+            clock=clock, source_diagnostics=source_diagnostics)
 
 
 def main(argv=None):
@@ -418,9 +441,11 @@ def main(argv=None):
     parser.add_argument('--day')
     args = parser.parse_args(argv)
     private = os.environ.pop('RACE_AI_KEIRIN_PRIVATE_RSA_PEM', '').encode()
+    source_diagnostics = Counter()
     try:
         report = run_future_shadow(repo=args.repo, private_root=args.private_root, output=args.output,
-            owner_public_pem=args.owner_public_pem, owner_private_pem=private, day=args.day)
+            owner_public_pem=args.owner_public_pem, owner_private_pem=private, day=args.day,
+            source_diagnostics=source_diagnostics)
     except Exception as error:
         report = dict(schema=SUMMARY_SCHEMA, scope='DT_ONLY_FUTURE_SHADOW',
             state='HOLD_DT_SHADOW_RUNTIME_OR_BUNDLE_UNVERIFIED', registered_races=None,
@@ -428,6 +453,11 @@ def main(argv=None):
             denominator_authenticated=False, independent_forecast_admission=False, production_promoted=False)
     finally:
         private = b''
+    if source_diagnostics:
+        # Keep diagnostics out of the v1 authenticated producer receipt so
+        # previously retained batches and their verification stay unchanged.
+        print(json.dumps(dict(schema='DT_R1_FUTURE_SOURCE_DIAGNOSTICS_V1',
+                              source_hold_counts=source_diagnostics), sort_keys=True), file=sys.stderr)
     print(json.dumps(report, sort_keys=True, allow_nan=False))
     return 0 if report['state'] == 'DT_SHADOW_SAVED_PENDING_INDEPENDENT_READBACK' else 2
 

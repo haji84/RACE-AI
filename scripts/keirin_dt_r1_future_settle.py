@@ -14,10 +14,12 @@ import os
 from pathlib import Path
 from tempfile import TemporaryDirectory
 
+from race_ai import keirin_form_fall_blind_pdca as pdca
 from race_ai import keirin_nationwide_cipher_history as archive
 from race_ai import keirin_official_nationwide_records as records
 from race_ai import keirin_official_run_history as codec
 from race_ai.keirin_github_evidence_client import GitHubEvidenceClient
+from race_ai.keirin_official_paired_measurement import REPLAY_CODES
 from research.chatgpt_dt_r1 import official_inputs
 from research.chatgpt_dt_r1.future_retention_gate import check_first_retention
 from research.chatgpt_dt_r1.pipeline import forecast_row, summarize_predictions
@@ -35,6 +37,7 @@ PIN_SHA = '093c8d02779a33b46f516d475e3d5549654eadb18c3b62f208c4a865b8cc3c4a'
 PARENT = '15dd32600fbf5865df3eca340e41377e6f9caa19'
 STEM = 'research/chatgpt-dt-r1/future/20261128/' + shadow.MODEL_SHA + '/'
 SCHEMA = 'DT_R1_FIRST_FUTURE_SETTLEMENT_V1'
+PDCA_TRIFECTA_POINTS = 4
 
 
 class SettlementError(ValueError):
@@ -156,7 +159,15 @@ def _result_row(result_store, rid, private, original_meta, now):
     meta = versions[-1]
     try:
         need(original_meta is None or current == original_meta, 'RESULT_ORIGINAL_CHANGED')
-        _, scored, _ = records._replay_saved_result(result_store, current, meta, private)
+        with _stage('RESULT_REVISION_ORDER_UNVERIFIED'):
+            clocks = [clock(revision['observed_at']) for revision in versions]
+            need(all(earlier < later for earlier, later in zip(clocks, clocks[1:])),
+                 'RESULT_REVISION_ORDER_UNVERIFIED')
+        try:
+            _, scored, _ = records._replay_saved_result(result_store, current, meta, private)
+        except Exception as error:
+            reason = REPLAY_CODES.get(str(error), 'OFFICIAL_RESULT_REPLAY_FAILED')
+            raise SettlementError(reason) from None
         final = scored['official_result']
         need(final['race_id'] == rid and
              clock(final['official_cutoff_at']) == clock(current['cutoff_at']) and
@@ -175,8 +186,29 @@ def _result_row(result_store, rid, private, original_meta, now):
         need(type(top) is list and len(top) == len(set(top)) == 3 and
              all(type(c) is int and c in cars for c in top), 'RESULT_TOP3_INVALID')
         return dict(row, result_status='VERIFIED_NORMAL', top3=top)
+    except SettlementError as error:
+        return dict(row, result_status='RESULT_REPLAY_UNVERIFIED', result_hold_reason=error.reason)
     except Exception:
-        return dict(row, result_status='RESULT_REPLAY_UNVERIFIED')
+        return dict(row, result_status='RESULT_REPLAY_UNVERIFIED',
+                    result_hold_reason='OFFICIAL_RESULT_REPLAY_FAILED')
+
+
+def _placing_pdca(rid, forecast, outcome, entry):
+    """Feed the existing classifier with already authenticated in-memory originals."""
+    top = sorted(forecast['trifectas'], key=lambda t: (-t['probability'], t['cars']))
+    frozen = dict(race_id=rid, scope='registered', flow={},
+        sealed_at=entry['clocks']['seal_started_at'], cutoff_at=entry['clocks']['cutoff_at'],
+        tickets=[t['cars'] for t in top[:PDCA_TRIFECTA_POINTS]])
+    official = dict(race_id=rid, winning_triples=[outcome['top3']])
+    # The loaders have authenticated the frozen forecast and official result.
+    # Those attestations apply only to these derived objects. This cohort did
+    # not seal flow forecasts, so the classifier receives no flow observations.
+    starters = sorted(rider['car'] for rider in forecast['riders'])
+    return pdca.compare_race_development(race_id=rid, starters=starters,
+        forecast=frozen, order=official, observations=[],
+        verify_forecast=lambda value: value is frozen,
+        verify_order=lambda value: value is official,
+        verify_observation=lambda _: False)
 
 
 def _score_registered(race_ids, day, entries, eligible, reader_holds, forecast_loader, result_loader):
@@ -209,12 +241,15 @@ def _score_registered(race_ids, day, entries, eligible, reader_holds, forecast_l
         except Exception:
             holds['FORECAST_REPLAY_UNVERIFIED'] += 1
     need(len(admitted) + sum(holds.values()) == len(race_ids), 'FORECAST_COUNT_PARTITION')
-    outcomes = []
+    outcomes, development = [], []
     for rid in race_ids:
         row = result_loader(rid)
         need(row['race_id'] == rid and row['day'] == day, 'RESULT_IDENTITY')
         if rid in admitted:
             row = dict(row, input_sha256=admitted[rid]['input_sha256'])
+            if row['result_status'] == 'VERIFIED_NORMAL':
+                development.append(_placing_pdca(rid, admitted[rid], row,
+                                                  by_slot[shadow.slot(day, rid)]))
         outcomes.append(row)
     metrics = summarize_predictions(list(admitted.values()), outcomes)
     # A running series of exact probability means would disclose a private
@@ -223,6 +258,12 @@ def _score_registered(race_ids, day, entries, eligible, reader_holds, forecast_l
     return dict(registered_races=len(race_ids), independently_timed_candidates=len(eligible),
                 owner_originals_replayed=len(admitted), forecast_holds=dict(holds),
                 result_states=dict(Counter(row['result_status'] for row in outcomes)),
+                result_replay_holds=dict(Counter(row['result_hold_reason'] for row in outcomes
+                                                 if 'result_hold_reason' in row)),
+                pdca=dict(fixed_trifecta_points=PDCA_TRIFECTA_POINTS,
+                          placing_checked=sum(d['placing']['formal'] for d in development),
+                          flow_checked=sum(d['flow']['state'] in ('match', 'different') for d in development),
+                          grade_counts=dict(Counter(d['grade'] for d in development if d['grade']))),
                 metrics=metrics)
 
 

@@ -3,6 +3,7 @@ from copy import deepcopy
 from datetime import datetime, timedelta
 from hashlib import sha256
 import importlib
+from collections import Counter
 import json
 import os
 from pathlib import Path
@@ -16,6 +17,7 @@ from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.primitives.asymmetric import rsa
 
 from race_ai import keirin_nationwide_auto_storage as storage
+from race_ai.keirin_github_evidence_client import GitHubEvidenceError
 from race_ai import keirin_official_run_history as codec
 from research.chatgpt_dt_r1.policy import digest
 from tests.test_keirin_learned_official_inputs import _original
@@ -135,13 +137,50 @@ class FutureShadowTests(unittest.TestCase):
             self.stack.append(patched.start()); self.addCleanup(patched.stop)
         self.admit = self.stack[-1]
 
-    def produce(self):
+    def produce(self, **kwargs):
         return self.api.produce_day(store=self.store, repo=ROOT, output=self.output,
             owner_public_pem=self.public, owner_private_pem=self.private,
-            code_commit='c' * 40, origin_client=object(), clock=lambda: self.current)
+            code_commit='c' * 40, origin_client=object(), clock=lambda: self.current, **kwargs)
 
     def manifest(self):
         return json.loads((self.output / 'manifest.json').read_bytes())
+
+    def test_pdca_accepts_the_sealed_native_forecast_without_a_starters_alias(self):
+        from scripts.keirin_dt_r1_future_settle import _placing_pdca
+
+        self.produce()
+        entry = next(e for e in self.manifest()['entries'] if e['state'] == self.api.READY)
+        ciphertext = (self.output / entry['cipher']['file']).read_bytes()
+        forecast = codec.decrypt_evidence(ciphertext, self.private)['forecast']
+        self.assertNotIn('starters', forecast)
+        top3 = forecast['trifectas'][0]['cars']
+        report = _placing_pdca(self.rid, forecast, {'top3': top3}, entry)
+        self.assertTrue(report['placing']['first_hit'])
+        self.assertEqual(report['grade'], 'E')
+
+    def test_source_replay_hold_identifies_cipher_read_without_exposing_error_text(self):
+        read = self.store.read
+
+        def blocked(meta, private):
+            if meta['kind'] == 'original':
+                raise ValueError('private provider response or rider identity')
+            return read(meta, private)
+
+        self.store.read = blocked
+        diagnostics = Counter()
+        report = self.produce(source_diagnostics=diagnostics)
+        self.assertEqual(report['hold_reasons']['SOURCE_ADMISSION_UNVERIFIED'], 1)
+        self.assertEqual(diagnostics, {'OFFICIAL_SOURCE_CIPHERTEXT_REPLAY_FAILED': 1})
+        self.assertNotIn('source_diagnostics', report)
+        self.assertNotIn('source_diagnostics', self.manifest()['summary'])
+
+    def test_source_replay_hold_identifies_unavailable_actions_evidence(self):
+        self.admit.side_effect = GitHubEvidenceError('GITHUB_EVIDENCE_UNAVAILABLE')
+        diagnostics = Counter()
+        report = self.produce(source_diagnostics=diagnostics)
+        self.assertEqual(report['new_encrypted_forecasts'], 0)
+        self.assertEqual(report['hold_reasons']['SOURCE_ADMISSION_UNVERIFIED'], 1)
+        self.assertEqual(diagnostics, {'GITHUB_EVIDENCE_UNAVAILABLE': 1})
 
     def test_registered_denominator_survives_missing_originals_and_results_are_never_read(self):
         report = self.produce()

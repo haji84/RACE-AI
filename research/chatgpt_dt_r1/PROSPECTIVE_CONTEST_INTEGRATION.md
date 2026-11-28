@@ -24,13 +24,15 @@ Codexの保存実体は次のハッシュで区別する。
 
 ハッシュを読み取れたことは、ここで秘密鍵による実復号を行った証明ではない。native IDだけでも同一モデルの証明にはならない。
 
-### 統合モデルの指定は未解決
+### A/B各50%の契約と実原本の受入
 
 確認済みmainの既定値は `current_weight=0.5`。現行A/Bがそれぞれ25%、研究側の合計が50%となる。研究資料が不足した場合の系統別再配分と保留も同じ実装に含まれる。#405の学習候補は現行A/B合計25%で、8方式が揃う場合に各12.5%となるが、その候補を未来の正式参加者へ自動選定しない。
 
-所有者指定の「A/B各50%」は、これらと同じ配分ではない。確認済み `build_combined` は `0 < current_weight < 1` を要求するため、`current_weight=1.0` をそのまま渡す実装でもない。
+A/B各50%は専用の `official-ab-equal-weight-v1` で受け入れる。recipeの `current_arm_weights` は `{"A": 0.5, "B": 0.5}`、`research_weight` は0、`research_allocation` は `none`。旧研究版では研究配分を0より大きく保つ。外部固定の生データと実予想原本が揃うまでは契約検査のみが通る。
 
-v2契約は、実artifactの `integration_recipe` と、外部固定した `expected_integration_recipe` の一致を要求する。未指定は `PROSPECTIVE_V2_INTEGRATED_RECIPE_UNRESOLVED`、配分不一致は `PROSPECTIVE_V2_INTEGRATED_RECIPE_MISMATCH` で保留する。公式Aと公式Bを別々の対戦相手に置き換えたり、未確認のA/B50%モデルを新造したりしない。現在許容するnative IDの集合は、上記の確認済み3候補に限定している。これは参加者の選定や採用の承認ではない。
+公式SPの `marks-ordinal-plus-observed-rider-strength-v1` と `line-tactical-six-phase-untrained-v1` は順位付き候補を保存する。Bは未校正の展開重みも保持する。両者について同一入力・同一出走者の完全な三連単の正規分布は未確認。候補順位を確率へ変換せず、完全な両分布を実原本から復元できた場合に半分ずつ合成し、同じ分布から二車単を求める。`display-two-component-equal-weight` は過去の比較で別のdisplay系の支持値を正規化した参考値。公式SPの両原本を使用した前向き成績と区別する。
+
+v2契約は、実artifactの `integration_recipe` と、外部固定した `expected_integration_recipe` の一致を要求する。未指定は `PROSPECTIVE_V2_INTEGRATED_RECIPE_UNRESOLVED`、配分不一致は `PROSPECTIVE_V2_INTEGRATED_RECIPE_MISMATCH` で保留する。公式Aと公式Bを別々の対戦相手に置き換えたり、未確認のA/B50%モデルを新造したりしない。既存統合には `official-ab-equal-weight-v1` と旧研究統合のうち一つを指定する。残る二枠は上表のCodex独自とDT-R1で固定する。所有者指定の対戦では前者のIDを使う。
 
 ## v2で要求する証跡
 
@@ -93,11 +95,12 @@ report = compare_models(
 
 | native ID | 既存表示ID | 画面の名称 |
 | --- | --- | --- |
-| `official-and-research-ensemble-v1` | `existing-integrated` | 既存統合モデル |
+| `official-ab-equal-weight-v1` | `existing-integrated` | 既存統合モデル |
+| `official-and-research-ensemble-v1` | `existing-integrated` | 既存統合モデル（旧研究契約の表示） |
 | `keirin-conditional-order-trees-v1` | `codex-new` | Codex 新モデル |
 | `chatgpt-dt-r1` | `chatgpt-dt-r1` | ChatGPT DT-R1 |
 
-旧表示IDを使う集計も引き続き表示できる。同一集計にnative IDとその表示IDが両方ある場合は、値の一致や受領件数0にかかわらず `AMBIGUOUS_CONTEST_MODEL_ALIAS` で表示を止める。公式A/B個別や未知のIDを統合候補へ変換しない。欠測モデルは未受領、勝敗は未判定のまま。この表示名の対応付けは、artifact確認、統合recipeの選定、未来対決の認証を代行しない。
+旧表示IDを使う集計も引き続き表示できる。同一集計で1枚に複数のIDが割り当たる場合や、全対象と共通対象で同じ役割に異なる明示的なnative IDが使われる場合は `AMBIGUOUS_CONTEST_MODEL_ALIAS` で表示を止める。公式A/B個別や未知のIDを統合候補へ変換しない。欠測モデルは未受領、勝敗は未判定のまま。この表示名の対応付けは、artifact確認、統合recipeの選定、未来対決の認証を代行しない。
 
 ## 根拠
 

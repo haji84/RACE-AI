@@ -160,6 +160,32 @@ class ViewTests(unittest.TestCase):
         self.assertNotIn('PRIVATE_NATIVE_ORIGINAL', html)
         self.assertEqual(source, before)
 
+    def test_equal_weight_native_id_uses_existing_integrated_display_card(self):
+        source = report()
+        models = source['three_way_contest']['all_target']['models']
+        models.pop('existing-integrated')
+        models['official-ab-equal-weight-v1'] = {'eligible_n': 10, 'forecast_n': 8,
+            'trifecta': {'hit_at': {'1': {'hits': 3}}}}
+        data = json.loads(Document(view.render_report(source)).dataset)
+        entrant, *_ = data['entrants']
+        self.assertEqual(entrant['id'], 'existing-integrated')
+        self.assertEqual(entrant['name'], '既存統合モデル')
+        self.assertEqual(entrant['received'], 8)
+        self.assertEqual(entrant['metrics']['trifecta']['1']['hits'], 3)
+
+    def test_different_integrated_native_ids_never_share_a_display_card(self):
+        for same_cohort in (True, False):
+            with self.subTest(same_cohort=same_cohort):
+                source = report()
+                contest = source['three_way_contest']
+                all_models = contest['all_target']['models']
+                all_models.pop('existing-integrated')
+                all_models['official-and-research-ensemble-v1'] = {'forecast_n': 0}
+                bucket = all_models if same_cohort else contest['common_cohort'].setdefault('models', {})
+                bucket['official-ab-equal-weight-v1'] = {'forecast_n': 0}
+                with self.assertRaisesRegex(ValueError, 'AMBIGUOUS_CONTEST_MODEL_ALIAS'):
+                    view.render_report(source)
+
     def test_native_all_target_metrics_keep_a_missing_rival_pending(self):
         source = report()
         models = source['three_way_contest']['all_target']['models']

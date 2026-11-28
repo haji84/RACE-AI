@@ -8,22 +8,24 @@ from research.chatgpt_dt_r1.test_calibration_policy_comparison import forecast
 
 
 IDS = ('official-and-research-ensemble-v1', 'keirin-conditional-order-trees-v1', 'chatgpt-dt-r1')
+EQUAL_IDS = ('official-ab-equal-weight-v1', *IDS[1:])
 ROLES = ('existing-integrated', 'codex-independent', 'chatgpt-dt-r1')
 RID = '203001152401'
 DAY = '2030-01-15'
 
 
-def fixture():
-    recipe = {'current_arm_weights': {'A': .25, 'B': .25}, 'research_weight': .5,
-              'research_allocation': 'equal_available_families_equal_members'}
+def fixture(ids=IDS, recipe=None):
+    if recipe is None:
+        recipe = {'current_arm_weights': {'A': .25, 'B': .25}, 'research_weight': .5,
+                  'research_allocation': 'equal_available_families_equal_members'}
     participants = {
         model_id: {'role': role, 'model_sha256': str(i + 1) * 64,
                    'artifact_sha256': str(i + 4) * 64, 'code_commit': 'a' * 40,
                    'feature_schema_sha256': str(i + 7) * 64,
                    'policy_sha256': policy.digest({'version': 'dt-r1-fixed-k-v1', 'market': 'trifecta',
                                                   'k': 1, 'tie_break': 'cars_ascending'})}
-        for i, (model_id, role) in enumerate(zip(IDS, ROLES))}
-    participants[IDS[0]]['integration_recipe'] = deepcopy(recipe)
+        for i, (model_id, role) in enumerate(zip(ids, ROLES))}
+    participants[ids[0]]['integration_recipe'] = deepcopy(recipe)
     contract = {'schema': 'dt-r1-prospective-contest-v2', 'frozen_at': DAY + 'T08:00:00Z',
                 'participants': participants, 'expected_integration_recipe': deepcopy(recipe)}
     registry = {'race_id': RID, 'day': DAY, 'cohort': 'prospective', 'cutoff_at': DAY + 'T10:30:00Z',
@@ -33,7 +35,7 @@ def fixture():
                 'input_snapshot_sha256': '0' * 64, 'input_frozen_at': DAY + 'T09:01:00Z'}
     rows = []
     receipts = {RID: {}}
-    for i, model_id in enumerate(IDS):
+    for i, model_id in enumerate(ids):
         f = forecast(RID, DAY, model_id, 'prospective')
         f.update(model_sha256=participants[model_id]['model_sha256'],
                  feature_schema_sha256=participants[model_id]['feature_schema_sha256'],
@@ -64,11 +66,15 @@ class ProspectiveContestTests(unittest.TestCase):
         except ModuleNotFoundError:
             self.subject = None
         self.assertIsNotNone(self.subject, 'prospective v2 admission is missing')
-        self.contract, self.registry, self.rows, self.receipts, self.outcome = fixture()
+        self.use_fixture()
+
+    def use_fixture(self, ids=IDS, recipe=None):
+        self.ids = ids
+        self.contract, self.registry, self.rows, self.receipts, self.outcome = fixture(ids, recipe)
         self.expected_sha = policy.digest(self.contract)
         # The fake authority recognises only these immutable synthetic originals.
         # It does not sign arbitrary caller-provided content.
-        self.trusted = {m: self.payload(self.rows[i], self.receipts[RID][m]) for i, m in enumerate(IDS)}
+        self.trusted = {m: self.payload(self.rows[i], self.receipts[RID][m]) for i, m in enumerate(self.ids)}
 
     def payload(self, row, receipt):
         return deepcopy({'schema': 'dt-r1-prospective-reverify-v2', 'contract': self.contract,
@@ -84,14 +90,96 @@ class ProspectiveContestTests(unittest.TestCase):
                 'original_readback_verified': True}
 
     def compare(self, **kwargs):
-        options = dict(expected_model_ids=IDS, bootstrap_samples=10,
+        options = dict(expected_model_ids=self.ids, bootstrap_samples=10,
                        prospective_contract=self.contract, expected_prospective_contract_sha256=self.expected_sha,
                        prospective_receipts=self.receipts, prospective_verifier=self.verifier)
         options.update(kwargs)
         return comparison.compare_models(self.rows, [self.outcome], [self.registry], **options)
 
-    def reason(self, report, model_id=IDS[0]):
-        return report['all_target']['models'][model_id]['hold_reasons']
+    def reason(self, report, model_id=None):
+        return report['all_target']['models'][model_id or self.ids[0]]['hold_reasons']
+
+    def use_equal_weight_fixture(self):
+        self.use_fixture(EQUAL_IDS, {'current_arm_weights': {'A': .5, 'B': .5},
+                                     'research_weight': 0, 'research_allocation': 'none'})
+
+    def test_ab_each_half_replays_three_distinct_pre_cutoff_originals(self):
+        self.use_equal_weight_fixture()
+        before = deepcopy(self.rows)
+        report = self.compare()
+        self.assertEqual(report['common_cohort']['eligible_n'], 1)
+        self.assertEqual(report['prospective_contract']['admitted_forecasts'], 3)
+        self.assertEqual(set(report['all_target']['models']), set(EQUAL_IDS))
+        self.assertEqual(len({row['prediction_at'] for row in self.rows}), 3)
+        self.assertEqual(self.rows, before)
+        self.assertFalse(report['prospective_evidence']['formal_comparison_verified'])
+
+    def test_ab_each_half_cannot_be_relabelled_as_the_legacy_ensemble(self):
+        self.use_fixture(IDS, {'current_arm_weights': {'A': .5, 'B': .5},
+                               'research_weight': 0, 'research_allocation': 'none'})
+        self.assertIn('PROSPECTIVE_V2_EXISTING_INTEGRATED_RECIPE_INVALID', self.reason(self.compare()))
+
+    def test_legacy_research_weights_cannot_be_relabelled_as_ab_each_half(self):
+        self.use_fixture(EQUAL_IDS)
+        self.assertIn('PROSPECTIVE_V2_EXISTING_INTEGRATED_RECIPE_INVALID', self.reason(self.compare()))
+
+    def test_ab_each_half_requires_exact_weights_and_no_research_marker(self):
+        variants = [
+            (.6, .4, 0, 'none', 'INTEGRATION_RECIPE_INVALID'),
+            (.5, .5, 1e-13, 'none', 'INTEGRATION_RECIPE_INVALID'),
+            (.5, .5, 0, 'equal_available_families_equal_members', 'EXISTING_INTEGRATED_RECIPE_INVALID'),
+        ]
+        for a, b, research, allocation, reason in variants:
+            with self.subTest(a=a, b=b, research=research, allocation=allocation):
+                self.use_fixture(EQUAL_IDS, {'current_arm_weights': {'A': a, 'B': b},
+                                             'research_weight': research, 'research_allocation': allocation})
+                report = self.compare()
+                self.assertEqual(report['prospective_contract']['admitted_forecasts'], 0)
+                self.assertIn('PROSPECTIVE_V2_' + reason, self.reason(report))
+
+    def test_ab_each_half_rejects_legacy_policy_in_the_expected_manifest(self):
+        self.use_equal_weight_fixture()
+        legacy_contract, *_ = fixture()
+        self.contract['expected_integration_recipe'] = legacy_contract['expected_integration_recipe']
+        self.expected_sha = policy.digest(self.contract)
+        self.assertIn('PROSPECTIVE_V2_INTEGRATED_RECIPE_MISMATCH', self.reason(self.compare()))
+
+    def test_v2_contract_cannot_declare_both_integrated_models(self):
+        self.use_equal_weight_fixture()
+        legacy_contract, *_ = fixture()
+        self.contract['participants'][IDS[0]] = legacy_contract['participants'][IDS[0]]
+        ids = (*EQUAL_IDS, IDS[0])
+        with self.assertRaisesRegex(policy.PolicyError, 'EXACT_PARTICIPANT_IDENTITIES_REQUIRED'):
+            self.subject.checked_contract(self.contract, policy.digest(self.contract), ids)
+
+    def test_ab_each_half_rejects_rank_only_forecast(self):
+        self.use_equal_weight_fixture()
+        self.rows[0]['trifectas'] = [{'cars': [1, 2, 3]}]
+        report = self.compare()
+        self.assertEqual(report['common_cohort']['eligible_n'], 0)
+        self.assertEqual(report['all_target']['eligible_n'], 1)
+        self.assertEqual(report['prospective_contract']['admitted_forecasts'], 2)
+        self.assertIn('INVALID_PROBABILITY', self.reason(report))
+
+    def test_ab_each_half_rejects_self_digested_probabilities_absent_from_the_original(self):
+        self.use_equal_weight_fixture()
+        model_id = EQUAL_IDS[0]
+        row = self.rows[0]
+        for market in ('trifectas', 'exactas'):
+            row[market][0]['probability'], row[market][1]['probability'] = .20, .50
+        row['selection'] = policy.fixed_selection(row, 1)
+        self.receipts[RID][model_id]['forecast_sha256'] = policy.digest(row)
+        report = self.compare()
+        self.assertEqual(report['prospective_contract']['admitted_forecasts'], 2)
+        self.assertIn('PROSPECTIVE_V2_EXTERNAL_REVERIFICATION_FAILED', self.reason(report))
+
+    def test_ab_each_half_cannot_override_the_pinned_contract_or_share_a_model_hash(self):
+        self.use_equal_weight_fixture()
+        self.contract['participants'][EQUAL_IDS[0]]['model_sha256'] = self.rows[1]['model_sha256']
+        self.assertIn('PROSPECTIVE_V2_EXTERNAL_CONTRACT_SHA_MISMATCH', self.reason(self.compare()))
+        self.expected_sha = policy.digest(self.contract)
+        self.assertIn('PROSPECTIVE_V2_DISTINCT_MODEL_MANIFESTS_REQUIRED', self.reason(self.compare()))
+
 
     def test_v2_matches_common_frozen_input_without_rewriting_generation_clocks(self):
         before = deepcopy(self.rows)
