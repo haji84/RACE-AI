@@ -113,6 +113,25 @@ class OfficialHistoryTests(unittest.TestCase):
         self.assertEqual(row['result_revision_evidence_sha256'], race[-1]['evidence_sha256'])
         self.stub_replay.assert_called_once()
 
+    def test_prefetch_selects_prior_ciphertexts_and_never_changes_replayed_history(self):
+        race = prior_race(self.target)
+        future = dict(race[-1], observed_at=stamp(DAY, '02:04'), evidence_sha256='5' * 64)
+        self.add(race, versions=[(future, None)])
+        with patch.object(official_history.archive, 'prefetch_pinned_blobs',
+                          side_effect=GitCipherFetchTimeout('fixture timeout')) as prefetch:
+            first = self.history.arguments(self.payload, self.target, AT)['history_records']
+            self.assertEqual(self.history.arguments(self.payload, self.target, AT)['history_records'], first)
+        prefetch.assert_called_once()
+        repo, head, paths, directories = prefetch.call_args.args
+        self.assertEqual((repo, head), (self.scope.repo, HEAD))
+        official_prefix = f'{records.ROOT}/{PRIOR}'
+        self.assertIn(f'{official_prefix}/{race[2]["evidence_sha256"]}.sealed.json', paths)
+        self.assertIn(f'{official_prefix}/{race[-1]["evidence_sha256"]}.sealed.json', paths)
+        self.assertNotIn(f'{official_prefix}/{future["evidence_sha256"]}.sealed.json', paths)
+        self.assertFalse(any(path.endswith('/' + DAY) for path in directories))
+        self.assertEqual(len(first), 1)
+        self.stub_replay.assert_called_once()
+
     def test_optional_conditioned_archive_transport_failure_remains_a_history_failure(self):
         store = SimpleNamespace(repo='archive', head=HEAD)
         payload = dict(race_id='203001149801', producer_run_id='1', producer_commit='b' * 40,

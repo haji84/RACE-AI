@@ -5,6 +5,7 @@ from datetime import date, timedelta
 import re
 
 from race_ai import keirin_official_nationwide_records as records
+from race_ai import keirin_nationwide_cipher_history as archive
 from race_ai.keirin_nationwide_cipher_history import GitCipherArchiveError
 from race_ai.keirin_official_rider_history import NUMERIC, NON_NUMERIC, _identities
 
@@ -91,6 +92,7 @@ class OfficialHistory:
         self._private_pem = private_pem
         self._days = {}
         self._verified = {}
+        self._prefetch_attempted = False
 
     def _store(self, day):
         if day not in self._days:
@@ -129,6 +131,28 @@ class OfficialHistory:
             previous = row, updated, observed
         return previous[0] if previous is not None else None
 
+    def _prefetch(self, stores, at):
+        self._prefetch_attempted = True
+        paths, folders = set(), []
+        for store in stores:
+            folder = f'{records.ROOT}/{store.day}'
+            folders.extend((folder, f'{archive.ROOT}/{store.day}'))
+            for rid, versions in store.index['results'].items():
+                available = [revision for revision in versions if clock(revision['observed_at']) <= at]
+                if not available:
+                    continue
+                paths.update(archive._refs(rid))
+                paths.update(archive._form_refs(rid))
+                original = store.index['originals'][rid]
+                paths.update(f"{folder}/{meta['evidence_sha256']}.sealed.json"
+                             for meta in (original, *available))
+        try:
+            archive.prefetch_pinned_blobs(self._repo, self._head, paths, folders)
+        except GitCipherArchiveError:
+            # Warming the cache cannot change which authenticated records are required.
+            # Verification below still fails closed on actual read errors.
+            pass
+
     def arguments(self, payload, original, prediction_at):
         """Return kwargs for official_inputs.prepare scoped to this exact target."""
         target = official_inputs.verification_payload(
@@ -137,8 +161,11 @@ class OfficialHistory:
         at = clock(prediction_at)
         identities = {r['official_registration_id'] for r in target['riders']}
         history = []
-        for days in range(LOOKBACK_DAYS, 0, -1):
-            store = self._store((self._day - timedelta(days=days)).isoformat())
+        stores = [self._store((self._day - timedelta(days=days)).isoformat())
+                  for days in range(LOOKBACK_DAYS, 0, -1)]
+        if not self._prefetch_attempted:
+            self._prefetch(stores, at)
+        for store in stores:
             for rid, versions in sorted(store.index['results'].items()):
                 try:
                     row = self._latest(store, store.index['originals'][rid], versions, at)

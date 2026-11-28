@@ -12,6 +12,7 @@ from __future__ import annotations
 
 import argparse
 from collections import Counter
+from contextlib import ExitStack
 from datetime import timedelta
 from functools import partial
 from hashlib import sha256
@@ -27,7 +28,7 @@ from race_ai import keirin_official_nationwide_records as records
 from race_ai import keirin_official_run_history as codec
 from race_ai.keirin_github_evidence_client import GitHubEvidenceClient, GitHubEvidenceError
 from race_ai.keirin_github_origin_evidence import MAX_ARCHIVE_BYTES, OriginEvidenceError
-from research.chatgpt_dt_r1 import official_inputs
+from research.chatgpt_dt_r1 import back_official_shadow, official_inputs
 from research.chatgpt_dt_r1.abilities import augment_abilities
 from research.chatgpt_dt_r1.agari import augment_agari
 from research.chatgpt_dt_r1.context import augment_features
@@ -46,6 +47,7 @@ SUMMARY_SCHEMA = 'DT_R1_FUTURE_SHADOW_SUMMARY_V1'
 LEGACY_MATERIAL_SCHEMA = 'DT_R1_SHARED_FUTURE_MATERIAL_V1'
 HISTORY_MATERIAL_SCHEMA = 'DT_R1_SHARED_FUTURE_MATERIAL_V2'
 PAIRED_HISTORY_MATERIAL_SCHEMA = 'DT_R1_SHARED_FUTURE_MATERIAL_V3'
+BACK_STUDY_MATERIAL_SCHEMA = 'DT_R1_SHARED_FUTURE_MATERIAL_V4'
 HISTORY_CONTROL_POLICY = 'DT_R1_FROZEN_SAME_SOURCE_NO_PRIOR_HISTORY_V1'
 MODEL_FILE = 'research/chatgpt_dt_r1/evidence/20261128-resume/frozen_model.json'
 MODEL_FILE_SHA = 'dab8c7f014c41ac18e4fed1ae28ac9b36e994611d1fcf5992f8b06e31a4c618b'
@@ -187,7 +189,14 @@ def _no_history_forecast(*, store, payload, original, trained, venues, private, 
     return forecast
 
 
-def _shared_material(row, payload, original, store, proof, *, control=None):
+def _back_study_pair(back_trial, *, store, payload, original, private, client, cache, input_at,
+                     official_history):
+    history = official_history.arguments(payload, original, input_at) if official_history is not None else {}
+    return back_trial(payload=payload, original=original, prediction_at=input_at,
+        source_verifier=_source_verifier(store, payload, private, client, cache, {}), **history)
+
+
+def _shared_material(row, payload, original, store, proof, *, control=None, back_study=None):
     support = row['history_evidence']['official_support']
     shared = dict(schema=LEGACY_MATERIAL_SCHEMA,
         source_projection_sha256=digest(official_inputs.source_projection(payload, original)),
@@ -211,12 +220,32 @@ def _shared_material(row, payload, original, store, proof, *, control=None):
             markets_sha256=digest({market: control[market] for market in ('trifectas', 'exactas')}),
             trifecta_top12=[ticket['cars'] for ticket in control['trifectas'][:12]],
             exacta_top2=[ticket['cars'] for ticket in control['exactas'][:2]]))
+    if back_study is not None:
+        need(back_study['schema'] == back_official_shadow.SCHEMA and
+             back_study['race_id'] == row['race_id'] and
+             back_study['input_sha256'] == row['input_sha256'] and
+             parse_clock(back_study['cutoff_at']) == parse_clock(row['cutoff_at']) and
+             back_study['prediction_at'] == row['context_as_of'] and
+             back_study['source_attestation_sha256'] == row['source_attestation_sha256'] and
+             back_study['history'] == support and
+             back_study['back_leader_estimate']['observed'] is False and
+             set(back_study['arms']) == {'back_mixture', 'direct'}, 'BACK_STUDY_INPUT')
+        compact = dict(back_study)
+        compact['back_leader_estimate'] = dict(observed=False,
+            estimate_sha256=digest(back_study['back_leader_estimate']))
+        compact['arms'] = {
+            name: dict(model_sha256=arm['model_sha256'],
+                       distribution_sha256=digest({key: arm[key] for key in ('trifectas', 'exactas', 'riders')}),
+                       trifecta_top12=arm['trifecta_top12'], exacta_top2=arm['exacta_top2'])
+            for name, arm in back_study['arms'].items()
+        }
+        shared.update(schema=BACK_STUDY_MATERIAL_SCHEMA, back_study=compact)
     return shared
 
 
 def _save_forecast(*, output, entry, row, forecast, payload, original, store, public, private,
                    code_commit, input_at, prediction_started_at, proof, clock, remaining_cipher_bytes,
-                   control=None):
+                   control=None, back_study=None):
     seal_at = _observe(clock)
     cutoff = row['cutoff_at']
     if not _same_day(seal_at, store.day):
@@ -226,7 +255,7 @@ def _save_forecast(*, output, entry, row, forecast, payload, original, store, pu
     if not _timely(seal_at, cutoff):
         return dict(entry, reason='POST_GENERATION_T15_MARGIN')
     feature_row = dict(row, features=row['features'].tolist(), feature_names=list(row['feature_names']))
-    shared = _shared_material(row, payload, original, store, proof, control=control)
+    shared = _shared_material(row, payload, original, store, proof, control=control, back_study=back_study)
     private_payload = dict(schema=PRIVATE_SCHEMA, day_jst=store.day, race_id=row['race_id'],
         observed_at=seal_at.isoformat(), reader_code_commit=code_commit, reader_run_id=os.environ['GITHUB_RUN_ID'],
         source_archive_commit=store.head, source_registry_reference=store.index['registry'],
@@ -289,7 +318,7 @@ def _source_failure(stage, error):
 
 def produce_day(*, store, repo, output, owner_public_pem, owner_private_pem, code_commit,
                 origin_client, clock=continuation.now_utc, source_diagnostics=None,
-                _ciphertext_byte_cap=None, accepted_slots=(), official_history=None):
+                _ciphertext_byte_cap=None, accepted_slots=(), official_history=None, back_trial=None):
     """Internal protected owner-job worker. A private cap can lower the default budget."""
     started = _observe(clock)
     need(_same_day(started, store.day), 'ACTUAL_JST_DAY_REQUIRED')
@@ -379,6 +408,11 @@ def produce_day(*, store, repo, output, owner_public_pem, owner_private_pem, cod
                 control = _no_history_forecast(store=store, payload=payload, original=original,
                     trained=trained, venues=venues, private=owner_private_pem, client=origin_client,
                     cache=cache, input_at=input_at, prediction_started_at=prediction_started.isoformat())
+            back_study = None
+            if back_trial is not None:
+                back_study = _back_study_pair(back_trial, store=store, payload=payload, original=original,
+                    private=owner_private_pem, client=origin_client, cache=cache, input_at=input_at,
+                    official_history=official_history)
             generated = _observe(clock)
             need(prediction_started <= generated, 'CLOCK_REGRESSION')
             if not _same_day(generated, store.day):
@@ -397,7 +431,7 @@ def produce_day(*, store, repo, output, owner_public_pem, owner_private_pem, cod
             payload=payload, original=original, store=store, public=owner_public_pem,
             private=owner_private_pem, code_commit=code_commit, input_at=input_at,
             prediction_started_at=prediction_started.isoformat(), proof=proof, clock=clock,
-            remaining_cipher_bytes=remaining_cipher_bytes, control=control)
+            remaining_cipher_bytes=remaining_cipher_bytes, control=control, back_study=back_study)
         if saved['cipher'] is not None:
             remaining_cipher_bytes -= saved['cipher']['bytes']
             history_uses += row['history_evidence']['official_support']['history_races']
@@ -517,11 +551,11 @@ def verify_output(directory, *, expected_manifest_sha256=None):
 
 
 def run_future_shadow(*, repo, private_root, output, owner_public_pem, owner_private_pem,
-                      day=None, clock=continuation.now_utc, source_diagnostics=None):
+                      day=None, clock=continuation.now_utc, source_diagnostics=None, compare_back=False):
     repo, root, day, public, commit = continuation._runtime(repo=repo, private_root=private_root,
         owner_public_pem=owner_public_pem, owner_private_pem=owner_private_pem, day=day, clock=clock, mode='study')
     need(_same_day(_observe(clock), day), 'ACTUAL_JST_DAY_REQUIRED')
-    with TemporaryDirectory(prefix='dt-future-reader-', dir=root) as folder:
+    with TemporaryDirectory(prefix='dt-future-reader-', dir=root) as folder, ExitStack() as research:
         reader = Path(folder)
         archive._cmd(reader, 'init', '--quiet', '--template=')
         archive._cmd(reader, 'remote', 'add', 'origin', f'https://github.com/{archive.REPO}.git')
@@ -538,11 +572,16 @@ def run_future_shadow(*, repo, private_root, output, owner_public_pem, owner_pri
         accepted = retained_slots(reader, head, day, MODEL_SHA, provisioned,
                                   authenticate_batch=partial(verify_saved_batch, client=client))
         legacy = legacy_timely_slots(reader, head, day, model_sha256=MODEL_SHA, client=client)
+        back_trial = None
+        if compare_back:
+            from scripts.keirin_dt_r1_owner_restore import BACK_RECEIPT
+            back_trial = research.enter_context(back_official_shadow.restored_candidate(
+                repo / BACK_RECEIPT, root, owner_private_pem=owner_private_pem))
         return produce_day(store=store, repo=repo, output=output, owner_public_pem=public,
             owner_private_pem=owner_private_pem, code_commit=commit, origin_client=client,
             clock=clock, source_diagnostics=source_diagnostics,
             accepted_slots=accepted | (legacy & provisioned),
-            official_history=OfficialHistory(store, owner_private_pem))
+            official_history=OfficialHistory(store, owner_private_pem), back_trial=back_trial)
 
 
 def main(argv=None):
@@ -552,13 +591,14 @@ def main(argv=None):
     parser.add_argument('--output', type=Path, required=True)
     parser.add_argument('--owner-public-pem', type=Path, required=True)
     parser.add_argument('--day')
+    parser.add_argument('--compare-back', action='store_true')
     args = parser.parse_args(argv)
     private = os.environ.pop('RACE_AI_KEIRIN_PRIVATE_RSA_PEM', '').encode()
     source_diagnostics = Counter()
     try:
         report = run_future_shadow(repo=args.repo, private_root=args.private_root, output=args.output,
             owner_public_pem=args.owner_public_pem, owner_private_pem=private, day=args.day,
-            source_diagnostics=source_diagnostics)
+            source_diagnostics=source_diagnostics, compare_back=args.compare_back)
     except Exception as error:
         report = dict(schema=SUMMARY_SCHEMA, scope='DT_ONLY_FUTURE_SHADOW',
             state='HOLD_DT_SHADOW_RUNTIME_OR_BUNDLE_UNVERIFIED', registered_races=None,

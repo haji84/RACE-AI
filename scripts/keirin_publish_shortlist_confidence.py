@@ -6,7 +6,6 @@ from datetime import date, datetime, time, timedelta
 import json
 import os
 from pathlib import Path
-import subprocess
 from subprocess import TimeoutExpired
 from tempfile import TemporaryDirectory
 
@@ -85,22 +84,7 @@ def _prefetch(reader, head, stores):
             paths.update(archive._refs(rid))
             paths.update(archive._form_refs(rid))
             paths.update(f"{folder}/{meta['evidence_sha256']}.sealed.json" for meta in (original, selected))
-    if not paths:
-        return 'NO_PRIOR_OBJECTS'
-    _, listing = archive._cmd(reader, '--no-replace-objects', 'ls-tree', '-r',
-                              '--format=%(objectname)%x09%(path)', head, '--', *folders)
-    selected = sorted({oid for line in listing.splitlines() for oid, _, path in [line.partition('\t')]
-                       if path in paths and archive.COMMIT.fullmatch(oid)})
-    for start in range(0, len(selected), 128):
-        try:
-            subprocess.run(['git', '-c', 'fetch.negotiationAlgorithm=noop', 'fetch', '--no-tags',
-                            '--filter=blob:none', '--no-write-fetch-head', 'origin', '--stdin'],
-                           cwd=reader, input=('\n'.join(selected[start:start + 128]) + '\n').encode(),
-                           stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, timeout=60, check=True,
-                           env=dict(os.environ, GIT_TERMINAL_PROMPT='0'))
-        except (subprocess.SubprocessError, OSError):
-            return 'BOUNDED_LAZY_READ_FALLBACK'
-    return 'PINNED_BATCH_FETCHED'
+    return archive.prefetch_pinned_blobs(reader, head, paths, folders)
 
 
 def _public_observations(day, forecasts, results, roster):
