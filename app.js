@@ -48,7 +48,7 @@ if (typeof window === 'object' && typeof location === 'object') window.RaceNoteI
     71: "高松", 73: "小松島", 74: "高知", 75: "松山", 81: "小倉", 83: "久留米",
     84: "武雄", 85: "佐世保", 86: "別府", 87: "熊本"
   };
-  let currentRequest, resultRequest, activeDay;
+  let currentRequest, resultRequest, activeDay, dossierCache;
 
   function validDay(day) {
     if (!/^\d{4}-\d{2}-\d{2}$/.test(day)) return false;
@@ -447,6 +447,12 @@ if (typeof window === 'object' && typeof location === 'object') window.RaceNoteI
     }
     card.append(head);
     if (row.status !== "dt-only") card.append(clocks);
+    const dossier = element("button", "kd-open", "選手カルテ");
+    dossier.type = "button";
+    dossier.dataset.keirinDossier = row.race_id;
+    dossier.setAttribute("aria-haspopup", "dialog");
+    dossier.addEventListener("click", () => openPublicDossier(row, day, dossier));
+    card.append(dossier);
     card.append(element("p", "keirin-public-clocks keirin-public-result"));
     if (hasAB) {
       const arms = element("div", "keirin-public-arms");
@@ -602,6 +608,35 @@ if (typeof window === 'object' && typeof location === 'object') window.RaceNoteI
     return Promise.all(["rosters", "results"].map(lane => fetchDay(lane, day, request, resultsBase).catch(() => null)));
   }
 
+  async function loadDossier(row, day, request) {
+    const read = (lane, date = day) => fetchDay(lane, date, request).catch(() => null);
+    const sources = { starters: "starters", official: "rider-context", secondary: "rider-context-secondary",
+      conditions: "rider-conditions", rank: "rank-distributions", details: "details" };
+    let packets = dossierCache?.day === day && Date.now() - dossierCache.at < 60000 ? dossierCache.packets : null;
+    if (!packets) {
+      packets = Object.fromEntries(await Promise.all(Object.entries(sources).map(async ([key, lane]) => [key, await read(lane)])));
+      if (!request.signal.aborted) dossierCache = { day, at: Date.now(), packets };
+    }
+    const checked = globalThis.RaceKeirinDossierData.prepare;
+    const input = { raceId: row.race_id, cutoffAt: row.cutoff_at,
+      publishedForecast: row.status === "saved" ? { savedAt: row.saved_at, b: row.b } : null, packets };
+    const initial = checked(input);
+    if (initial?.riders.some(rider => !rider.recent.length) && !packets.recentDays && !request.signal.aborted) {
+      const midnight = Date.parse(day + "T00:00:00Z");
+      packets.recentDays = await Promise.all(Array.from({ length: 7 }, (_, i) =>
+        read("rider-history", new Date(midnight - (i + 1) * 86400000).toISOString().slice(0, 10))));
+      return checked(input);
+    }
+    return initial;
+  }
+
+  function openPublicDossier(row, day, opener) {
+    const venueCode = row.race_id.slice(8, 10), venue = venues[venueCode] || "開催コード " + venueCode;
+    const title = venue + " " + Number(row.race_id.slice(-2)) + "R 選手カルテ";
+    globalThis.RaceKeirinDossier.open({ raceId: row.race_id, title, venue, day, opener,
+      load: request => loadDossier(row, day, request) });
+  }
+
   async function loadDay(day, request, resultPackets) {
     const [forecast, dtPacket] = await Promise.allSettled([
       fetchDay("forecasts", day, request), fetchDay("dt-r1", day, request)
@@ -682,11 +717,19 @@ if (typeof window === 'object' && typeof location === 'object') window.RaceNoteI
     }
   }
 
-  dayInput.value = jstToday();
+  const requestedRace = new URL(location.href).searchParams.get("race") || "";
+  const requestedDay = requestedRace.replace(/^(\d{4})(\d{2})(\d{2})\d{4}$/, "$1-$2-$3");
+  const openRequested = validDay(requestedDay) && requestedDay <= jstToday() &&
+    validRaceId(requestedRace, requestedDay.replaceAll("-", ""), new Set());
+  dayInput.value = openRequested ? requestedDay : jstToday();
   dayInput.addEventListener("change", load);
   byId("keirin-public-refresh").addEventListener("click", load);
   window.setInterval(refreshResults, 60_000);
-  load();
+  load().then(() => {
+    if (!openRequested || dayInput.value !== requestedDay) return;
+    const row = activeDay?.ordered.find(item => item.race_id === requestedRace) || { race_id: requestedRace, cutoff_at: null };
+    openPublicDossier(row, requestedDay, races.querySelector('[data-keirin-dossier="' + requestedRace + '"]'));
+  });
 })();
 
 if (!globalThis.document?.body?.classList.contains("keirin-public-page")) {
@@ -3332,8 +3375,10 @@ if (!globalThis.document?.body?.classList.contains("keirin-public-page")) {
     need(snapshot && Number.isInteger(car) && rider);
     const percent = p => (p * 100).toFixed(1) + '%';
     const clock = (label, value) => '<p>' + label + ' <time datetime="' + escape(value) + '">' + escape(value) + '</time></p>';
+    const primary = [['1着確率', percent(rider.rank_probabilities[0])],
+      ['2着以内', percent(rider.top2_probability)], ['3着以内', percent(rider.top3_probability)]];
+    const peak = Math.max(...rider.rank_probabilities);
     const summary = [
-      ['2着以内', percent(rider.top2_probability)], ['3着以内', percent(rider.top3_probability)],
       ['着外（4着以下）', percent(rider.outside_top3_probability)],
       ['最頻着順', rider.most_likely_rank + '着'], ['期待着順', rider.expected_rank.toFixed(2)],
       ['登録番号', rider.registration || '未取得']
@@ -3341,13 +3386,15 @@ if (!globalThis.document?.body?.classList.contains("keirin-public-page")) {
     const projection = snapshot.schema === PROJECTION;
     return '<section class="kn-joint-forecast" aria-label="' +
       escape(car + '番の比較B・着順確率') + '" data-joint-race="' + escape(snapshot.race_id) + '">' +
-      '<h3>' + escape(car + '番 ' + rider.name) + ' · 比較Bの着順確率</h3>' +
+      '<h3>今回のレースでの着順予測</h3><p>' + escape(car + '番 ' + rider.name) + ' · 比較Bの着順確率</p>' +
       '<p class="kn-joint-scope">' + (snapshot.scope === 'PROSPECTIVE_RESEARCH' ?
         '締切前に生成した研究予測' : '締切後の参考解析・事後研究') + ' · 確率は未校正</p>' +
       '<p>全員完走・同着なしを条件とする確率です。欠場・失格・落車・同着を含む無条件の確率ではありません。</p>' +
       '<p>比較Bの新しい解析です。保存済みの旧買い目とは別です。信頼度の格上げには使用していません。</p>' +
+      '<div class="kd-metrics kd-metrics-three">' + primary.map(([label, value]) =>
+        '<div class="kd-metric"><span>' + label + '</span><strong>' + value + '</strong></div>').join('') + '</div>' +
       '<ol class="kn-joint-ranks">' + rider.rank_probabilities.map((p, index) =>
-        '<li><span>' + (index + 1) + '着</span><meter min="0" max="1" value="' + p +
+        '<li' + (Math.abs(p - peak) < 1e-12 ? ' class="kd-rank-peak"' : '') + '><span>' + (index + 1) + '着</span><meter min="0" max="1" value="' + p +
         '" aria-label="' + (index + 1) + '着の予測確率">' + percent(p) + '</meter><span>' + percent(p) + '</span></li>').join('') +
       '</ol><dl class="kn-joint-summary">' +
       summary.map(([label, value]) => '<div><dt>' + label + '</dt><dd>' + escape(value) + '</dd></div>').join('') + '</dl>' +
@@ -4328,6 +4375,540 @@ if (!globalThis.document?.body?.classList.contains("keirin-public-page")) {
   return {open,createSession,watchSession,openEntry,capability,checkIndex,merge,BASE};
 });
 
+/* Read only admitted public facts for a single race and its named starters. */
+(function (root, factory) {
+  if (typeof module === 'object' && module.exports) module.exports = factory(require('./keirin-note-model.js'));
+  else root.RaceKeirinDossierData = factory(root.RaceKeirinNote);
+})(typeof window === 'object' ? window : globalThis, function (note) {
+  'use strict';
+  const {day: validDay, instantMicros: clock, sameClock} = note;
+  const importedHistory = {"checked_at":"2026-11-26T22:42:35+09:00","races":[{"comments_url":"https://keirin.netkeiba.com/race/player_comment/?race_id=202611252611","race_id":"202611252611","riders":[{"comment":"\u5358\u9a0e\u3067\u81e8\u3080\u3002\u521d\u65e5\u30682\u65e5\u76ee\u306f\u3044\u305a\u308c\u3082\u7a81\u3063\u5f35\u3063\u3066\u5148\u884c\u3057\u305f\u3002","name":"\u5c71\u672c\u52dd\u5229","number":1,"recent_results":[{"day":"2026-11-24","rank":2},{"day":"2026-11-23","rank":4},{"day":"2026-11-12","rank":1},{"day":"2026-11-11","rank":5},{"day":"2026-11-10","rank":6},{"day":"2026-11-01","rank":3},{"day":"2026-10-31","rank":2}],"registration":null,"semifinal_counts":[6,3,1,1],"venue_counts":[5,2,2,4]},{"comment":"\u81ea\u529b\u3067\u7d44\u307f\u7acb\u3066\u308b\u3002\u76f8\u624b\u306b\u5408\u308f\u305b\u308b\u811a\u3092\u8ab2\u984c\u306b\u6319\u3052\u3001\u611f\u89e6\u306f\u60aa\u304f\u306a\u3044\u3068\u3044\u3046\u3002","name":"\u8fbb\u7530\u7965\u5927","number":2,"recent_results":[{"day":"2026-11-24","rank":2},{"day":"2026-11-23","rank":1},{"day":"2026-11-06","rank":4},{"day":"2026-11-05","rank":1},{"day":"2026-11-04","rank":2},{"day":"2026-10-29","rank":7},{"day":"2026-10-28","rank":3}],"registration":null,"semifinal_counts":[4,2,3,4],"venue_counts":[0,1,1,1]},{"comment":"\u4ef2\u91ce\u306b\u4ed8\u304f\u3002\u4eca\u56de\u304c2\u5ea6\u76ee\u306e\u9023\u4fc2\u3067\u3001\u6c17\u6301\u3061\u306e\u5f37\u3055\u3092\u8a55\u4fa1\u3057\u3066\u3044\u308b\u3002","name":"\u4e2d\u91dc\u5065\u6b21","number":3,"recent_results":[{"day":"2026-11-24","rank":1},{"day":"2026-11-23","rank":1},{"day":"2026-11-09","rank":2},{"day":"2026-11-08","rank":7},{"day":"2026-11-07","rank":1},{"day":"2026-10-30","rank":1},{"day":"2026-10-29","rank":4}],"registration":null,"semifinal_counts":[17,5,1,20],"venue_counts":[3,2,0,1]},{"comment":"\u5148\u884c\u3068\u6372\u308a\u3067\u6301\u3061\u5473\u304c\u51fa\u3066\u304a\u308a\u3001\u6c7a\u52dd\u3067\u3082\u529b\u3092\u51fa\u3057\u5207\u308b\u65b9\u91dd\u3002","name":"\u5e73\u6839\u512a\u5927","number":4,"recent_results":[{"day":"2026-11-24","rank":1},{"day":"2026-11-23","rank":1},{"day":"2026-11-13","rank":2},{"day":"2026-11-12","rank":4},{"day":"2026-11-11","rank":3},{"day":"2026-10-30","rank":2},{"day":"2026-10-29","rank":5}],"registration":null,"semifinal_counts":[9,7,3,9],"venue_counts":[0,2,0,1]},{"comment":"\u9003\u3052\u306e\u6c7a\u307e\u308a\u624b\u306f\u306a\u3044\u304c\u3001\u4e2d\u91dc\u3068\u306e\u4e26\u3073\u3067\u306f\u5e74\u9f62\u9806\u3067\u524d\u3092\u62c5\u3046\u3002","name":"\u4ef2\u91ce\u7d50\u97f3","number":5,"recent_results":[{"day":"2026-11-24","rank":2},{"day":"2026-11-23","rank":1},{"day":"2026-11-11","rank":6},{"day":"2026-11-10","rank":2},{"day":"2026-11-09","rank":1},{"day":"2026-10-26","rank":2},{"day":"2026-10-25","rank":1}],"registration":null,"semifinal_counts":[17,5,2,1],"venue_counts":[2,0,0,1]},{"comment":"\u904e\u53bb\u306b\u9023\u4fc2\u3057\u305f\u5e73\u6839\u306b\u4ed8\u304f\u3002\u6771\u65e5\u672c\u52e2\u5168\u4f53\u3067\u307e\u3068\u307e\u308b\u6848\u306b\u3082\u89e6\u308c\u305f\u3002","name":"\u5ca1\u672c\u82f1\u4e4b","number":6,"recent_results":[{"day":"2026-11-24","rank":1},{"day":"2026-11-23","rank":3},{"day":"2026-11-15","rank":2},{"day":"2026-11-14","rank":3},{"day":"2026-11-13","rank":2},{"day":"2026-11-09","rank":2},{"day":"2026-11-08","rank":2}],"registration":null,"semifinal_counts":[5,10,7,15],"venue_counts":[3,1,6,18]},{"comment":"\u524d\u8d70\u306f\u5f62\u3092\u4f5c\u308c\u305f\u304c\u4f59\u88d5\u306f\u306a\u304b\u3063\u305f\u3068\u3044\u3046\u3002\u4eca\u56de\u306f\u8fbb\u7530\u306b\u4efb\u305b\u308b\u3002","name":"\u5409\u6751\u548c\u4e4b","number":7,"recent_results":[{"day":"2026-11-24","rank":3},{"day":"2026-11-23","rank":5},{"day":"2026-11-19","rank":5},{"day":"2026-11-18","rank":4},{"day":"2026-11-17","rank":5},{"day":"2026-11-11","rank":1},{"day":"2026-11-10","rank":3}],"registration":null,"semifinal_counts":[3,10,6,20],"venue_counts":null}],"stats_url":"https://keirin.kdreams.jp/seibuen/racedetail/2620261123030011/?pageType=yoso"},{"comments_url":"https://keirin.netkeiba.com/race/player_comment/?race_id=202611267301","race_id":"202611267301","riders":[{"comment":"\u5c0f\u6797\u306e\u5f8c\u308d\u3067\u8d70\u308b\u4e88\u5b9a\u3002","name":"\u767d\u4e0a \u7fd4","number":1,"recent_results":[{"day":"2026-11-16","rank":4},{"day":"2026-11-15","rank":4},{"day":"2026-11-14","rank":1},{"day":"2026-11-09","rank":4},{"day":"2026-11-08","rank":1},{"day":"2026-11-07","rank":5}],"registration":"014477","semifinal_counts":[7,5,7,13],"venue_counts":null},{"comment":"\u81ea\u5206\u3067\u52d5\u304d\u3001\u5c55\u958b\u306b\u5408\u308f\u305b\u3066\u7d44\u307f\u7acb\u3066\u308b\u65b9\u91dd\u3002","name":"\u7c73\u6751 \u5149\u661f","number":2,"recent_results":[{"day":"2026-11-19","rank":7},{"day":"2026-11-18","rank":5},{"day":"2026-11-17","rank":2},{"day":"2026-11-11","rank":7},{"day":"2026-11-10","rank":4},{"day":"2026-11-09","rank":5}],"registration":"015664","semifinal_counts":[0,0,2,11],"venue_counts":[2,2,0,8]},{"comment":"\u8fd1\u757f\u306e\u9078\u624b\u306b\u7d9a\u304f\u4e88\u5b9a\u3002","name":"\u5c71\u7530 \u96c5\u4e4b","number":3,"recent_results":[{"day":"2026-11-16","rank":2},{"day":"2026-11-15","rank":5},{"day":"2026-11-14","rank":5},{"day":"2026-10-19","rank":6},{"day":"2026-10-18","rank":3},{"day":"2026-10-17","rank":1}],"registration":"012742","semifinal_counts":[3,2,11,24],"venue_counts":[0,0,0,2]},{"comment":"\u7c73\u6751\u306e\u5f8c\u308d\u3067\u9023\u4fc2\u3059\u308b\u4e88\u5b9a\u3002","name":"\u5b89\u8c37\u5c4b \u5c06\u5fd7","number":4,"recent_results":[{"day":"2026-10-30","rank":5},{"day":"2026-10-29","rank":4},{"day":"2026-10-28","rank":4}],"registration":"014566","semifinal_counts":[1,0,4,9],"venue_counts":[5,3,5,11]},{"comment":"\u4e2d\u90e8\u30fb\u8fd1\u757f\u306e\u30e9\u30a4\u30f3\u30674\u756a\u624b\u3092\u56de\u308b\u4e88\u5b9a\u3002","name":"\u5bae\u897f \u7ffc","number":5,"recent_results":[{"day":"2026-11-12","rank":6},{"day":"2026-11-11","rank":7},{"day":"2026-11-10","rank":4},{"day":"2026-11-03","rank":2},{"day":"2026-11-02","rank":7},{"day":"2026-11-01","rank":5}],"registration":"014832","semifinal_counts":[0,1,1,8],"venue_counts":[1,1,3,7]},{"comment":"\u4e5d\u5dde\u306e\u30e9\u30a4\u30f3\u30673\u756a\u624b\u3092\u56de\u308b\u4e88\u5b9a\u3002","name":"\u7a74\u4e95 \u5229\u4e45","number":6,"recent_results":[{"day":"2026-11-04","rank":7},{"day":"2026-11-03","rank":7},{"day":"2026-11-02","rank":5},{"day":"2026-10-18","rank":5},{"day":"2026-10-17","rank":7},{"day":"2026-10-16","rank":6}],"registration":"012242","semifinal_counts":null,"venue_counts":[1,0,2,6]},{"comment":"\u81ea\u5206\u3067\u4ed5\u639b\u3051\u308b\u65b9\u91dd\u3002","name":"\u5c0f\u6797 \u53f2\u4e5f","number":7,"recent_results":[{"day":"2026-11-17","rank":3},{"day":"2026-11-16","rank":7},{"day":"2026-11-15","rank":3},{"day":"2026-10-28","rank":3},{"day":"2026-10-27","rank":6},{"day":"2026-10-26","rank":2}],"registration":"015057","semifinal_counts":[2,5,3,22],"venue_counts":[3,2,5,9]}],"stats_url":"https://keirin.kdreams.jp/komatsushima/racedetail/7320261126010001/?pageType=showResult"}],"schema":"RACE_AI_KEIRIN_PUBLIC_DOSSIER_RACE_FACTS_V1","source_scope":"PUBLIC_RACECARD_CHECKED_AFTER_CUTOFF"};
+
+  const schemas = {
+    starters: 'RACE_AI_KEIRIN_PUBLIC_STARTERS_V1',
+    official: 'RACE_AI_KEIRIN_PUBLIC_DOSSIER_CONTEXT_V1',
+    secondary: 'RACE_AI_KEIRIN_PUBLIC_DOSSIER_SECONDARY_V1',
+    conditions: 'RACE_AI_KEIRIN_PUBLIC_DOSSIER_CONDITIONS_V1',
+    rank: 'RACE_AI_KEIRIN_PUBLIC_RANK_DISTRIBUTION_V1',
+    details: 'RACE_AI_KEIRIN_PUBLIC_FORECAST_DETAILS_V1',
+  };
+  const summaryByCode = {
+    SELF_POWER: '自分で仕掛ける方針。',
+    SELF_POWER_FLEXIBLE: '自分で動き、展開に応じて位置を選ぶ方針。',
+    FLEXIBLE: '展開に応じて走り方を選ぶ方針。',
+    SOLO: 'ラインを組まずに走る方針。',
+    FORWARD: '前方の位置を取りにいく方針。',
+    LEADING: '先頭を取る走りを考えている。',
+    POSITION_OPEN: '取れた位置から走る方針。',
+    FOLLOW: '指定した選手の後ろで走る方針。',
+  };
+  const countKeys = ['home_count','back_count','escape_count','makuri_count','difference_count','mark_count'];
+  const historyScopes = ['OFFICIAL_SP_RESULT_REPLAY', 'PINNED_KDREAMS_ARCHIVE_AND_OFFICIAL_SP_RESULT_REPLAY'];
+  const sha256 = value => typeof value === 'string' && /^[a-f0-9]{64}$/.test(value);
+  const car = value => Number.isInteger(value) && value >= 1 && value <= 9;
+  const registration = value => typeof value === 'string' && /^\d{6}$/.test(value) && value !== '000000';
+  const safeText = (value, max) => typeof value === 'string' && value.trim().length > 0 &&
+    value.length <= max && !/[<>\p{C}]/u.test(value);
+  const nameKey = value => value.normalize('NFKC').replace(/\s/gu, '');
+  const exact = (value, names) => value && typeof value === 'object' && !Array.isArray(value) &&
+    Object.keys(value).length === names.length && names.every(name => Object.hasOwn(value, name));
+  const jstDay = value => new Date(Date.parse(value) + 9 * 3600000).toISOString().slice(0, 10);
+  const dayFromId = id => `${id.slice(0,4)}-${id.slice(4,6)}-${id.slice(6,8)}`;
+  const unique = values => new Set(values).size === values.length;
+  const sum = values => values.reduce((total, value) => total + value, 0);
+  const identityMatch = (first, second) => second && nameKey(first.name) === nameKey(second.name) &&
+    (!first.registration || !second.registration || first.registration === second.registration);
+
+  function requestedRow(packet, kind, day, raceId) {
+    if (packet?.schema !== schemas[kind] || packet.day !== day || clock(packet.published_at) === null ||
+        !Array.isArray(packet.races) || packet.races.length > 600) return null;
+    const rows = packet.races.filter(row => row?.race_id === raceId);
+    return rows.length === 1 ? rows[0] : null;
+  }
+
+  function namedField(riders, minimum, nullableRegistration) {
+    return Array.isArray(riders) && riders.length >= minimum && riders.length <= 9 && riders.every(rider =>
+      car(rider?.number) && safeText(rider.name, 100) && nameKey(rider.name) &&
+      (registration(rider.registration) || (nullableRegistration && rider.registration === null))) &&
+      unique(riders.map(rider => rider.number)) && unique(riders.map(rider => rider.registration).filter(Boolean));
+  }
+
+  function rankedField(packet, row, day, cutoffAt) {
+    if (!row || row.scope !== 'PROSPECTIVE_RESEARCH' || row.premise !== 'ALL_FINISH_NO_TIES' ||
+        row.calibration_status !== 'UNVALIDATED' || !sha256(row.source_joint_sha256) || !sha256(row.model_sha256) ||
+        !namedField(row.riders, 5, true) || (cutoffAt !== null && !sameClock(cutoffAt, row.cutoff_at))) return null;
+    const stamps = [row.source_as_of,row.generated_at,row.frozen_at,row.witnessed_at,row.cutoff_at,packet.published_at].map(clock);
+    const [source, generated, frozen, witnessed, cutoff, published] = stamps;
+    if (stamps.includes(null) || !(source <= generated && generated <= frozen && frozen <= witnessed &&
+        witnessed < cutoff && witnessed <= published)) return null;
+    const raceDay = jstDay(row.cutoff_at);
+    const next = new Date(Date.parse(day) + 86400000).toISOString().slice(0, 10);
+    if (raceDay !== day && raceDay !== next) return null;
+    const field = row.riders;
+    const normalized = values => Math.abs(1 - sum(values)) <= 1e-8;
+    if (!field.every(rider => Array.isArray(rider.probabilities) && rider.probabilities.length === field.length &&
+        rider.probabilities.every(p => Number.isFinite(p) && p >= 0 && p <= 1) && normalized(rider.probabilities)) ||
+        !field.every((_, rank) => normalized(field.map(rider => rider.probabilities[rank])))) return null;
+    return row;
+  }
+
+  function contextField(packet, row, kind, day, cutoffAt, roster) {
+    if (!row || clock(row.cutoff_at) === null || jstDay(row.cutoff_at) !== day ||
+        (cutoffAt !== null && !sameClock(cutoffAt, row.cutoff_at)) ||
+        !Array.isArray(row.riders) || row.riders.length !== roster.size ||
+        !unique(row.riders.map(rider => rider?.number)) || !row.riders.every(rider => registration(rider?.registration) &&
+          roster.get(rider.number)?.registration === rider.registration)) return null;
+    const official = kind === 'official';
+    const sourceAt = official ? row.card_at : row.source_at;
+    const observed = clock(sourceAt), cutoff = clock(row.cutoff_at), published = clock(packet.published_at);
+    if (observed === null || observed > published) return null;
+    if (official) {
+      const comment = clock(row.comments_at), updated = clock(row.comments_updated_at);
+      if (comment === null || updated === null || !(observed <= comment && updated <= comment &&
+          comment < cutoff && comment <= published) || !sha256(row.card_sha256) || !sha256(row.comments_sha256)) return null;
+    } else {
+      if (!sha256(row.source_sha256) || clock(row.source_cutoff_at) === null || jstDay(row.source_cutoff_at) !== day ||
+          !secondaryRaceUrl(row.source_url, row.race_id, day)) return null;
+    }
+    return { riders: new Map(row.riders.map(rider => [rider.number, rider])), sourceAt, source: kind,
+      commentAt: official ? row.comments_at : sourceAt, cutoffAt: row.cutoff_at,
+      performance: official ? null : performanceEvidence(row.performance, row.race_id, day, published, roster) };
+  }
+
+  function secondaryRaceUrl(url, raceId, day) {
+    const match = typeof url === 'string' && url.length <= 2048 &&
+      /^https:\/\/keirin\.kdreams\.jp\/[a-z0-9-]+\/racedetail\/(\d{2})(20\d{6})(\d{2})00(\d{2})\/$/.exec(url);
+    if (!match || match[1] !== raceId.slice(8,10) || match[4] !== raceId.slice(10) ||
+        Number(match[3]) < 1 || Number(match[3]) > 7) return false;
+    const start = dayFromId(match[2]);
+    return validDay(start) && new Date(Date.parse(start) + (Number(match[3]) - 1) * 86400000).toISOString().slice(0, 10) === day;
+  }
+
+  function performanceUrl(url, raceId, day) {
+    return typeof url === 'string' &&
+      secondaryRaceUrl(url.replace(/\?pageType=(?:yoso|showResult)$/, ''), raceId, day);
+  }
+
+  function performanceEvidence(evidence, raceId, day, published, roster) {
+    const at = clock(evidence?.source_at);
+    if (at === null || at > published || !sha256(evidence.source_sha256) ||
+        !performanceUrl(evidence.source_url, raceId, day) || !Array.isArray(evidence.riders) ||
+        evidence.riders.length !== roster.size || !unique(evidence.riders.map(row => row?.number)) ||
+        !evidence.riders.every(row => registration(row?.registration) &&
+          roster.get(row.number)?.registration === row.registration)) return null;
+    return {at:evidence.source_at, url:evidence.source_url, riders:new Map(evidence.riders.map(row => [row.number, row]))};
+  }
+
+  function archivedField(packet, raceId, day) {
+    if (packet?.schema !== 'RACE_AI_KEIRIN_PUBLIC_DOSSIER_RACE_FACTS_V1' ||
+        packet.source_scope !== 'PUBLIC_RACECARD_CHECKED_AFTER_CUTOFF' || clock(packet.checked_at) === null ||
+        jstDay(packet.checked_at) < day || !Array.isArray(packet.races)) return null;
+    const rows = packet.races.filter(row => row?.race_id === raceId);
+    const row = rows[0];
+    if (rows.length !== 1 || !performanceUrl(row.stats_url, raceId, day) ||
+        row.comments_url !== 'https://keirin.netkeiba.com/race/player_comment/?race_id=' + raceId ||
+        !namedField(row.riders, 5, true)) return null;
+    return { at:packet.checked_at, url:row.stats_url, comments:row.comments_url, riders:row.riders, afterCutoff:true };
+  }
+
+  function publishedRate(counts, evidence, deadline) {
+    if (!evidence || !Array.isArray(counts) || counts.length !== 4 ||
+        !counts.every(value => Number.isInteger(value) && value >= 0 && value <= 600) || sum(counts) === 0) return null;
+    return {numerator:sum(counts.slice(0,3)), denominator:sum(counts), sourceAt:evidence.at, sourceUrl:evidence.url,
+      afterCutoff:evidence.afterCutoff || (deadline !== null && clock(evidence.at) >= clock(deadline))};
+  }
+
+  function statistics(context, number) {
+    const stats = context?.riders.get(number)?.stats;
+    if (!stats || typeof stats !== 'object') return null;
+    const decimal = (key, max) => Number.isFinite(stats[key]) && stats[key] >= 0 && stats[key] <= max ? stats[key] : null;
+    const counts = Object.fromEntries(countKeys.map(key => [key, Number.isInteger(stats[key]) ? decimal(key, 200) : null]));
+    if (context.source === 'secondary') counts.home_count = null;
+    return {...counts, competition_points: decimal('competition_points', 150), win_rate_percent: decimal('win_rate_percent', 100),
+      sourceAt: context.sourceAt, source: context.source};
+  }
+
+  function comment(context, number) {
+    const value = context?.riders.get(number)?.comment;
+    if (value?.state !== 'SUMMARIZED' || !Object.hasOwn(summaryByCode, value.code) || value.summary !== summaryByCode[value.code]) return null;
+    const targetCar = value.code === 'FOLLOW' ? value.target_car : null;
+    if (value.code === 'FOLLOW' && (targetCar === number || !context.riders.has(targetCar))) return null;
+    return { summary: value.summary, at: context.commentAt, targetCar };
+  }
+
+  function recentResults(rider, day) {
+    const rows = rider?.recent_results;
+    if (!Array.isArray(rows) || rows.length > 7) return [];
+    let before = day;
+    const out = [];
+    for (const row of rows) {
+      if (!validDay(row?.day) || row.day >= before) return [];
+      if (exact(row, ['day','rank']) && car(row.rank)) out.push({day:row.day, rank:row.rank});
+      else if (exact(row, ['day','counts']) && Array.isArray(row.counts) && row.counts.length === 9 &&
+          row.counts.every(value => Number.isInteger(value) && value >= 0 && value <= 40) &&
+          sum(row.counts) >= 2 && sum(row.counts) <= 40) out.push({day:row.day, counts:row.counts.slice()});
+      else return [];
+      before = row.day;
+    }
+    return out;
+  }
+
+  function historyDays(packets, day) {
+    const days = new Map();
+    if (!Array.isArray(packets) || packets.length > 7) return days;
+    for (const packet of packets) {
+      if (!exact(packet, ['schema','day','source_sha256','archive_races','verified_races','riders']) ||
+          packet.schema !== 'RACE_AI_KEIRIN_PUBLIC_RIDER_HISTORY_DAY_V1' || !validDay(packet.day) ||
+          packet.day >= day || !sha256(packet.source_sha256) || !Number.isInteger(packet.archive_races) ||
+          !Number.isInteger(packet.verified_races) || !(0 < packet.verified_races &&
+          packet.verified_races <= packet.archive_races && packet.archive_races <= 600)) continue;
+      const field = packet.riders, verified = packet.verified_races;
+      if (!Array.isArray(field) || field.length < 1 || field.length > 9 * verified || !field.every(rider =>
+          exact(rider, ['registration','finish_counts']) && registration(rider.registration) &&
+          Array.isArray(rider.finish_counts) && rider.finish_counts.length === 9 &&
+          rider.finish_counts.every(n => Number.isInteger(n) && n >= 0 && n <= verified) &&
+          sum(rider.finish_counts) > 0 && sum(rider.finish_counts) <= verified) ||
+          !unique(field.map(rider => rider.registration))) continue;
+      const finishTotal = sum(field.map(rider => sum(rider.finish_counts)));
+      if (finishTotal < verified || finishTotal > 9 * verified) continue;
+      days.set(packet.day, days.has(packet.day) ? null : new Map(field.map(rider => [rider.registration, rider.finish_counts])));
+    }
+    return days;
+  }
+
+  function riderRecent(rider, day, days, registrationId) {
+    const known = recentResults(rider, day);
+    const exactDays = new Map(known.map(row => [row.day, row]));
+    for (const [date, byRegistration] of days) {
+      const counts = byRegistration?.get(registrationId);
+      if (!counts || exactDays.has(date)) continue;
+      exactDays.set(date, sum(counts) === 1 ? {day:date, rank:counts.indexOf(1) + 1} : {day:date, counts:counts.slice()});
+    }
+    return [...exactDays.values()].sort((a,b) => b.day.localeCompare(a.day)).slice(0, 7);
+  }
+
+  function semiFinals(packet, context, registrationId, day) {
+    const history = packet?.history;
+    if (!context || !sha256(packet.calendar_sha256) || !sha256(context.list_sha256) || clock(context.source_at) === null ||
+        clock(context.source_at) > clock(packet.published_at) || !registration(registrationId) ||
+        !historyScopes.includes(history?.scope) || !validDay(history.start_day) || !validDay(history.end_day) ||
+        history.start_day > history.end_day || history.end_day >= day || !Array.isArray(history.source_sha256s) ||
+        !history.source_sha256s.length || history.source_sha256s.length > 402 || !history.source_sha256s.every(sha256) ||
+        !Array.isArray(packet.riders) || packet.riders.length > 10000) return null;
+    const riders = packet.riders.filter(rider => rider?.registration === registrationId);
+    const cells = riders.length === 1 ? riders[0].cells : null;
+    if (!Array.isArray(cells) || cells.length > 100) return null;
+    const exactStage = cells.filter(cell => cell?.round_stage === 'SEMI_FINAL' && cell.meeting_grade === null);
+    if (exactStage.length !== 1) return null;
+    const {wins, top2, top3, numeric_finishes: starts} = exactStage[0];
+    if (![wins,top2,top3,starts,history.condition_matched_finishes,history.numeric_finishes].every(Number.isSafeInteger) ||
+        !(0 <= wins && wins <= top2 && top2 <= top3 && top3 <= starts && starts > 0 &&
+          starts <= history.condition_matched_finishes && history.condition_matched_finishes <= history.numeric_finishes)) return null;
+    return {numerator:top3, denominator:starts, startDay:history.start_day, endDay:history.end_day};
+  }
+
+  function savedTactics(packet, row, publishedForecast, cutoffAt, roster) {
+    const saved = clock(row?.saved_at), cutoff = clock(cutoffAt);
+    if (saved === null || cutoff === null || saved >= cutoff || saved > clock(packet.published_at) ||
+        !sameClock(row.saved_at, publishedForecast?.savedAt)) return null;
+    const arm = row.b, tickets = publishedForecast.b;
+    const triple = ticket => Array.isArray(ticket) && ticket.length === 3 && unique(ticket) && ticket.every(number => roster.has(number));
+    if (!Array.isArray(tickets) || tickets.length < 1 || tickets.length > 8 || !tickets.every(triple) ||
+        !Array.isArray(arm?.tickets) || JSON.stringify(tickets) !== JSON.stringify(arm.tickets) ||
+        !Array.isArray(arm.reasons) || arm.reasons.length < 1 || arm.reasons.length > 4 || !arm.reasons.every(reason => safeText(reason, 240)) ||
+        !Array.isArray(arm.scenarios) || arm.scenarios.length !== Math.min(tickets.length, 2)) return null;
+    if (!arm.scenarios.every((scenario, index) => JSON.stringify(scenario?.ticket) === JSON.stringify(tickets[index]) &&
+        Array.isArray(scenario.orders) && scenario.orders.length === 6 && scenario.orders.every(order => order === null ||
+          (Array.isArray(order) && order.length === roster.size && unique(order) && order.every(number => roster.has(number)))) &&
+        (scenario.orders[5] === null || JSON.stringify(scenario.orders[5].slice(0, 3)) === JSON.stringify(scenario.ticket)))) return null;
+    return {savedAt:row.saved_at, reasons:arm.reasons.slice(), scenarios:arm.scenarios};
+  }
+
+  function prepare({raceId, cutoffAt = null, publishedForecast, packets = {}, archived = importedHistory} = {}) {
+    const empty = {riders:[], cutoffAt:null, sourceAt:null};
+    if (typeof raceId !== 'string' || !/^20\d{8}(?:0[1-9]|1[0-2])$/.test(raceId) ||
+        !validDay(dayFromId(raceId)) || !packets || (cutoffAt !== null && clock(cutoffAt) === null)) return empty;
+    const day = dayFromId(raceId);
+    const find = kind => requestedRow(packets[kind], kind, day, raceId);
+    const starter = find('starters');
+    const rank = rankedField(packets.rank, find('rank'), day, cutoffAt);
+    const archive = archivedField(archived, raceId, day);
+    const withStarters = namedField(starter?.riders, 3, false) && clock(starter.source_at) !== null &&
+      clock(starter.source_at) <= clock(packets.starters.published_at);
+    const field = withStarters ? starter.riders : rank?.riders ?? archive?.riders;
+    if (!field) return empty;
+    const roster = new Map(field.map(rider => [rider.number, rider]));
+    const official = contextField(packets.official, find('official'), 'official', day, cutoffAt, roster);
+    const secondary = contextField(packets.secondary, find('secondary'), 'secondary', day, cutoffAt ?? official?.cutoffAt ?? null, roster);
+    const observedCutoff = cutoffAt ?? official?.cutoffAt ?? secondary?.cutoffAt ?? null;
+    const matchingRank = rank?.riders.length === roster.size && (observedCutoff === null || sameClock(rank.cutoff_at, observedCutoff)) &&
+      rank.riders.every(rider => identityMatch(rider, roster.get(rider.number))) ?
+      new Map(rank.riders.map(rider => [rider.number, rider])) : null;
+    const matchingArchive = archive?.riders.length === roster.size && archive.riders.every(rider => identityMatch(rider, roster.get(rider.number))) ?
+      new Map(archive.riders.map(rider => [rider.number, rider])) : null;
+    const deadline = observedCutoff ?? (matchingRank ? rank.cutoff_at : null);
+    const details = find('details'), conditions = find('conditions');
+    const tactics = savedTactics(packets.details, details, publishedForecast, deadline, roster);
+    const history = historyDays(packets.recentDays, day);
+    const riders = field.slice().sort((a,b) => a.number - b.number).map(rider => {
+      const {number, name, registration, style} = rider;
+      const prediction = matchingRank?.get(number);
+      const old = matchingArchive?.get(number), performance = secondary?.performance;
+      const measured = performance?.riders.get(number);
+      const savedRecent = riderRecent(official?.riders.get(number), day, history, registration);
+      return {number, name, registration, style:['逃','追','両'].includes(style) ? style : null,
+        stats:statistics(official, number) ?? statistics(secondary, number),
+        comment:comment(official, number) ?? comment(secondary, number) ??
+          (safeText(old?.comment, 240) ? {summary:old.comment, at:archive.at, url:archive.comments} : null),
+        recent:savedRecent.length ? savedRecent : recentResults(old, day),
+        semi:publishedRate(measured?.semi, performance, deadline) ?? publishedRate(old?.semifinal_counts, archive, deadline) ??
+          semiFinals(packets.conditions, conditions, registration, day),
+        venue:publishedRate(measured?.venue, performance, deadline) ?? publishedRate(old?.venue_counts, archive, deadline),
+        rank:prediction ? {probabilities:prediction.probabilities.slice(), frozenAt:rank.frozen_at,
+          witnessedAt:rank.witnessed_at, sourceAsOf:rank.source_as_of, cutoffAt:rank.cutoff_at, modelSha:rank.model_sha256} : null,
+        tactics:tactics ? {savedAt:tactics.savedAt, reasons:tactics.reasons.slice(), positions:tactics.scenarios.map(scenario =>
+          scenario.orders.map(order => order ? order.indexOf(number) + 1 : null))} : null};
+    });
+    return {riders, cutoffAt:deadline, sourceAt:withStarters ? starter.source_at : rank?.source_as_of ?? archive.at};
+  }
+
+  return {prepare};
+});
+
+/* Presentation for the checked public KEIRIN rider dossier. */
+(() => {
+  "use strict";
+  const axes = ["先行力", "捲り", "瞬発力", "差し", "戦術対応力", "現在の調子"];
+  const fields = ["back_count", "makuri_count", null, "difference_count", null, null];
+  const observations = ["最終バック先頭", "捲りの掲載", "", "差しの掲載", "", ""];
+  const styles = { 逃: "先行型", 追: "追込型", 両: "自在型" };
+  const percent = ratio => (ratio * 100).toFixed(1) + "%";
+  const numeric = value => Number.isSafeInteger(value) && value >= 0;
+  const jst = new Intl.DateTimeFormat("ja-JP", { dateStyle: "medium", timeStyle: "short", timeZone: "Asia/Tokyo" });
+  const stamp = clock => jst.format(new Date(clock)) + " JST";
+
+  function node(tag, className, content) {
+    const element = document.createElement(tag);
+    if (className) element.className = className;
+    if (content !== undefined) element.textContent = content;
+    return element;
+  }
+
+  function svg(tag, fields) {
+    const element = document.createElementNS("http://www.w3.org/2000/svg", tag);
+    for (const [key, value] of Object.entries(fields)) element.setAttribute(key, value);
+    return element;
+  }
+
+  function badge(rider) {
+    return node("span", "kd-car kd-car-" + rider.number, String(rider.number));
+  }
+
+  function radarScale(statsRows) {
+    return Math.max(5, Math.ceil(Math.max(0, ...statsRows.flatMap(stats => fields.map(field => {
+      const value = field && stats?.[field];
+      return numeric(value) ? value : 0;
+    }))) / 5) * 5);
+  }
+
+  function radar(stats, scale) {
+    const section = node("section", "kd-section");
+    section.append(node("h3", "", "能力分析"));
+    const chart = svg("svg", { viewBox: "0 0 360 264", role: "img", "aria-label": axes.join("、") + "のレーダー" });
+    const at = (i, radius) => [180 + radius * Math.sin(i * Math.PI / 3), 131 - radius * Math.cos(i * Math.PI / 3)];
+    const points = (radius) => axes.map((_, i) => at(i, radius).join(",")).join(" ");
+    for (const fraction of [.25, .5, .75, 1]) chart.append(svg("polygon", { points: points(88 * fraction), class: "kd-radar-grid" }));
+    const facts = node("dl", "kd-ability-facts");
+    axes.forEach((label, i) => {
+      const [x2, y2] = at(i, 88), [x, y] = at(i, 111);
+      chart.append(svg("line", { x1: 180, y1: 131, x2, y2, class: "kd-radar-grid" }));
+      const text = svg("text", { x, y: y + 4, "text-anchor": i === 0 || i === 3 ? "middle" : i < 3 ? "start" : "end" });
+      text.textContent = label;
+      chart.append(text);
+      const count = fields[i] ? stats?.[fields[i]] : null;
+      const value = numeric(count) ? observations[i] + " " + count + "回" : "観測資料待ち";
+      if (numeric(count)) {
+        const [cx, cy] = at(i, 88 * count / scale);
+        const dot = svg("circle", { cx, cy, r: 4.5, class: "kd-radar-point", "data-evidence-point": "" });
+        const title = svg("title", {});
+        title.textContent = value;
+        dot.append(title);
+        chart.append(dot);
+      }
+      const item = node("div");
+      item.append(node("dt", "", label), node("dd", "", value));
+      facts.append(item);
+    });
+    section.append(chart, node("p", "kd-note", "出走表の掲載回数を参照。外枠はこのレースで共通の " + scale + "回です。"), facts);
+    return section;
+  }
+
+  function metric(label, value, caption) {
+    const box = node("div", "kd-metric");
+    box.append(node("span", "", label), node("strong", "", value));
+    if (caption) box.append(node("small", "", caption));
+    return box;
+  }
+
+  function sourceLink(label, url, at) {
+    const text = node("p", "kd-note");
+    const link = node("a", "", label);
+    link.href = url;
+    text.append(link, " · " + stamp(at) + " に確認");
+    return text;
+  }
+
+  function history(rider, day, venue) {
+    const section = node("section", "kd-section");
+    const metrics = node("div", "kd-metrics");
+    const semi = rider.semi;
+    const start = new Date(day + "T00:00:00Z");
+    const previousDay = new Date(start.getTime() - 86400000).toISOString().slice(0, 10);
+    start.setUTCFullYear(start.getUTCFullYear() - 1);
+    const annual = semi?.sourceUrl || (semi && start.toISOString().slice(0, 10) === semi.startDay && previousDay === semi.endDay);
+    metrics.append(metric(semi && !annual ? "準決勝3連対率（収録分）" : "年間準決勝3連対率",
+      semi ? percent(semi.numerator / semi.denominator) : "資料待ち",
+      semi && semi.numerator + "/" + semi.denominator + "走" +
+        (semi.startDay ? " · " + semi.startDay + "〜" + semi.endDay : "")));
+    const venueRate = rider.venue;
+    metrics.append(metric(venue + "5年間3連対率", venueRate ? percent(venueRate.numerator / venueRate.denominator) : "資料待ち",
+      venueRate && venueRate.numerator + "/" + venueRate.denominator + "走"));
+    section.append(metrics);
+    const sources = new Map([semi, venueRate].filter(rate => rate?.sourceUrl).map(rate => [rate.sourceUrl, rate]));
+    for (const [url, rate] of sources) {
+      const label = rate.afterCutoff ? "Kドリームスの締切後確認資料" : "Kドリームスの出走表成績";
+      section.append(sourceLink(label, url, rate.sourceAt));
+    }
+    section.append(node("h3", "", "直近着順（新しい順）"));
+    const recent = node("ul", "kd-recents");
+    for (const row of (rider.recent || []).slice(0, 10)) {
+      const label = row.rank ? row.rank + "着" : row.counts.map((n, i) => n ? (i + 1) + "着" + n + "回" : "").filter(Boolean).join("・") + "（同日）";
+      recent.append(node("li", "", row.day.slice(5).replace("-", "/") + " " + label));
+    }
+    section.append(recent.childElementCount ? recent : node("p", "kd-note", "確認済みの直近着順は資料待ちです。"));
+    return section;
+  }
+
+  function ranks(rank) {
+    const section = node("section", "kd-section");
+    section.append(node("h3", "", "今回のレースでの着順予測"));
+    if (!rank) {
+      section.append(node("p", "kd-note", "このレースの着順別確率は公開資料待ちです。"));
+      return section;
+    }
+    const p = rank.probabilities, grouped = node("div", "kd-metrics kd-metrics-three"), rows = node("ol", "kd-ranks");
+    ["1着確率", "2着以内", "3着以内"].forEach((label, index) =>
+      grouped.append(metric(label, percent(p.slice(0, index + 1).reduce((sum, value) => sum + value, 0)))));
+    const largest = Math.max(...p);
+    for (const [i, value] of p.entries()) {
+      const li = node("li", Math.abs(value - largest) < 1e-12 ? "kd-rank-peak" : "");
+      const meter = node("meter");
+      meter.max = 1; meter.value = value;
+      meter.setAttribute("aria-label", (i + 1) + "着の確率");
+      li.append(node("span", "", (i + 1) + "着"), meter, node("span", "", percent(value)));
+      rows.append(li);
+    }
+    section.append(grouped, rows, node("p", "kd-note", "比較Bの締切前研究予測。全員完走・同着なしの条件。確率校正の検証前。"),
+      node("p", "kd-note", "予想の保存 " + stamp(rank.frozenAt) + " ／ 独立確認 " + stamp(rank.witnessedAt)));
+    return section;
+  }
+
+  function analysis(rider, riders) {
+    const section = node("section", "kd-section"), comment = rider.comment, tactics = rider.tactics;
+    section.append(node("h3", "", "本人コメントの要旨"));
+    const follow = comment?.targetCar && riders.find(p => p.number === comment.targetCar);
+    section.append(node("p", "", comment ? comment.summary + (follow ? " 対象 " + follow.number + "番 " + follow.name : "") : "確認できた要旨は資料待ちです。"));
+    if (comment?.url) section.append(sourceLink("本人コメントの出典", comment.url, comment.at));
+    else if (comment?.at) section.append(node("p", "kd-note", "コメント確認 " + stamp(comment.at)));
+    section.append(node("h3", "", "今回の戦術分析"));
+    if (tactics) {
+      const phases = ["初周", "打鐘", "最終ホーム", "最終バック", "最終4コーナー", "ゴール"];
+      tactics.positions.forEach((course, index) => {
+        const steps = phases.flatMap((phase, i) => Number.isInteger(course?.[i]) ? [phase + " " + course[i] + "番手"] : []);
+        if (steps.length) section.append(node("p", "", "保存Bの展開 " + (index + 1) + "　" + steps.join(" → ")));
+      });
+      for (const reason of tactics.reasons) section.append(node("p", "kd-note", reason));
+      section.append(node("p", "kd-note", "戦術の保存 " + stamp(tactics.savedAt)));
+    } else section.append(node("p", "kd-note", "対象選手に結び付く保存済みの展開資料を確認中です。"));
+    const p = rider.rank?.probabilities;
+    section.append(node("h3", "", "予想着順評価"));
+    if (p) {
+      const peak = Math.max(...p), modes = p.flatMap((x, n) => Math.abs(x - peak) < 1e-12 ? [n + 1] : []);
+      const expected = p.reduce((sum, value, i) => sum + value * (i + 1), 0);
+      section.append(node("p", "", "最頻 " + modes.join("・") + "着 · 期待着順 " + expected.toFixed(2) + "着"));
+    } else section.append(node("p", "kd-note", "着順別の予想資料待ちです。"));
+    return section;
+  }
+
+  function showRiders(container, data, day, venue) {
+    const list = node("ul", "kd-riders"), detail = node("div", "kd-detail");
+    list.setAttribute("aria-label", "出走選手");
+    detail.id = "keirin-dossier-selected";
+    const riders = data.riders, buttons = [];
+    const scale = radarScale(riders.map(rider => rider.stats));
+    function select(index) {
+      buttons.forEach((button, i) => button.setAttribute("aria-pressed", String(i === index)));
+      const rider = riders[index], heading = node("header", "kd-selected");
+      const identity = node("div");
+      identity.append(node("h2", "", rider.name), node("p", "kd-note", styles[rider.style] || "脚質確認待ち"));
+      heading.append(badge(rider), identity);
+      const stats = rider.stats;
+      if (stats?.competition_points != null) heading.append(node("p", "kd-note", "競走得点 " + stats.competition_points));
+      detail.replaceChildren(heading, history(rider, day, venue), radar(stats, scale), ranks(rider.rank), analysis(rider, riders));
+      if (stats?.sourceAt) detail.append(node("p", "kd-note", (stats.source === "official" ? "KEIRIN.JP" : "Kドリームス") + " 出走表の確認 " + stamp(stats.sourceAt)));
+    }
+    riders.forEach((rider, i) => {
+      const row = node("li"), button = node("button", "kd-rider-button");
+      button.type = "button";
+      button.setAttribute("aria-controls", detail.id);
+      button.append(badge(rider), node("strong", "", rider.name), node("span", "kd-style", styles[rider.style] || "脚質確認待ち"));
+      button.addEventListener("click", () => select(i));
+      buttons.push(button);
+      row.append(button); list.append(row);
+    });
+    container.replaceChildren(list, detail);
+    select(0);
+  }
+
+  async function open({ raceId, title, day, venue, opener, load }) {
+    if (document.getElementById("keirin-dossier-dialog")) return;
+    const dialog = node("dialog", "kd-dialog");
+    dialog.id = "keirin-dossier-dialog";
+    const header = node("header", "kd-header"), heading = node("h2", "", title), close = node("button", "", "閉じる");
+    heading.id = "keirin-dossier-title";
+    dialog.setAttribute("aria-labelledby", heading.id);
+    close.type = "button"; close.autofocus = true;
+    close.addEventListener("click", () => dialog.close());
+    header.append(heading, close);
+    const body = node("div", "kd-body");
+    body.append(node("p", "kd-note", "出走表と選手の資料を読み込んでいます。"));
+    body.setAttribute("aria-busy", "true");
+    dialog.append(header, body);
+    const request = new AbortController();
+    const timeout = setTimeout(() => request.abort(), 15000);
+    dialog.addEventListener("close", () => {
+      request.abort(); clearTimeout(timeout); dialog.remove();
+      const target = opener?.isConnected ? opener : document.querySelector('[data-keirin-dossier="' + raceId + '"]');
+      (target || document.getElementById("keirin-public-title"))?.focus({preventScroll: true});
+    }, { once: true });
+    document.body.append(dialog);
+    dialog.showModal();
+    try {
+      const data = await load(request);
+      if (!dialog.open) return;
+      if (data?.riders.length) showRiders(body, data, day, venue);
+      else body.replaceChildren(node("p", "kd-note", "対象の出走者を確認できる公開資料を待っています。"));
+    } catch {
+      if (dialog.open) body.replaceChildren(node("p", "kd-note", "選手の公開資料を取得できませんでした。"));
+    } finally {
+      clearTimeout(timeout);
+      body.setAttribute("aria-busy", "false");
+    }
+  }
+
+  globalThis.RaceKeirinDossier = { open, radar, radarScale };
+})();
+
 /* A separate owner view. It never writes the formal model ledger or changes its keys. */
 (() => {
   'use strict';
@@ -4755,12 +5336,15 @@ if (!globalThis.document?.body?.classList.contains("keirin-public-page")) {
       ['S',num(rider.S)],['H',num(rider.H)],['B',num(rider.B)]];
     const recent=Array.isArray(rider.recent_meets)?rider.recent_meets:Array.isArray(rider.recent_meetings)?rider.recent_meetings:Object.values(rider.recent_meetings||{});
     const forecast=jointRiderForecast(row,number);
+    const ability=window.RaceKeirinDossier;
+    const observed=person=>({back_count:person.B,makuri_count:person.makuri,difference_count:person.sashi});
     const history=window.RaceKeirinRiderHistory?.render(row,number)||'<p class="kn-small">長期・直近の着順履歴は未取得です。</p>';
     $('kn-rider-facts').innerHTML=forecast.html+(forecast.admitted?comparisonRiderFacts(row,rider):'')+'<h3>保存した出走表の掲載値</h3><dl class="kn-rider-stats kn-rider-source-stats">'+stats.map(([label,value])=>'<div><dt>'+label+'</dt><dd>'+value+'</dd></div>').join('')+'</dl>'+history+
       '<p class="kn-small">成績の集計期間：'+esc(row.raw.source_data_period||'掲載資料の期間未確認')+'。掲載率と今回の予測確率は別の値です。</p>'+
       '<details class="kn-details"><summary>コメント・近況・出典</summary><p>コメント：'+esc(rider.comment||'未取得')+'</p><p>近況：'+esc(recent.filter(value=>typeof value==='string'&&value).join(' / ')||'未取得')+'</p>'+fieldProvenance(rider)+
       '<p class="kn-small">出走表の取得 '+stamp(row.raw.source_as_of||row.raw.fetched_at)+'<br>'+sourceLink(row.sourceUrl,'掲載した出走表')+'</p></details>'+
       '<details class="kn-details"><summary>戦術・能力の資料</summary><dl class="kn-rider-stats">'+riderAbilities.map(label=>'<div data-rider-ability><dt>'+label+'</dt><dd>観測資料未取得</dd></div>').join('')+'</dl><p class="kn-small">確認できた観測機会・期間・出典がそろうまで、能力値や成功率は表示しません。</p></details>';
+    if(ability)$('kn-rider-facts').prepend(ability.radar(observed(rider),ability.radarScale(row.riders.map(observed))));
   }
   function openRiderDetails(opener){
     const row=riderRow(opener.dataset.riderOpen),number=Number(opener.dataset.riderCar);
