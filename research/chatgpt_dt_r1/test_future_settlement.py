@@ -48,6 +48,42 @@ class FutureSettlementTests(unittest.TestCase):
         self.assertNotIn('proper_scores', str(metrics))
         self.assertNotIn(first, str(metrics))
 
+    def test_codex_cohort_joins_by_exact_dt_first_batch_before_opening_results(self):
+        from research.chatgpt_dt_r1 import codex_future_candidate as candidate
+        from scripts import keirin_codex_future_pair_replay as replay
+
+        first, codex_only, _ = RACES
+        slot = {rid: shadow.slot(DAY, rid) for rid in RACES}
+        metadata = {rid: {'source_version': index} for index, rid in enumerate(RACES)}
+        source = SimpleNamespace(day=DAY, head='b' * 40, index={'originals': metadata})
+        entry = dict(bindings={'input_sha256': 'a' * 64}, clocks={'cutoff_at': DAY + 'T02:00:00Z'})
+        dt_manifest = dict(summary={'reader_run_id': '10'})
+        manifest = dict(summary=dict(source_archive_commit=source.head, reader_run_id='11',
+            dt_producer_run_id='10', dt_manifest_sha256=sha256(settle.codec._canonical(dt_manifest)).hexdigest()))
+        retained = {slot[rid]: dict(manifest=manifest, entry=entry, cipher_path=slot[rid]) for rid in (first, codex_only)}
+        dt = {slot[first]: dict(manifest=dt_manifest, entry=entry)}
+        seen = []
+
+        def load(_, raw, saved_manifest, saved_source, rid, *args):
+            seen.append(rid)
+            self.assertIs(saved_manifest, manifest)
+            self.assertIs(saved_source, source)
+            return dict(forecast(rid), **candidate.model_identity())
+
+        with (patch.object(settle.batch_retention, 'read_retained_forecasts', return_value=retained),
+              patch.object(settle, '_load_registry', return_value={'registered_race_ids': RACES}),
+              patch.object(candidate, 'load_frozen', return_value=object()),
+              patch.object(settle.archive, 'read_blob_bytes', return_value=b'cipher fixture'),
+              patch.object(replay, 'replay_codex_original', side_effect=load)):
+            score = settle._prepare_codex_pair(work=object(), current=source, private=b'', repo=object(), client=object(),
+                slots={value: rid for rid, value in slot.items()}, dt_selected=dt, loaded={source.head: source},
+                packet_cache={})
+        self.assertEqual(seen, [first, codex_only])
+        outcomes = [dict(race_id=rid, day=DAY, result_status='VERIFIED_NORMAL', top3=[1, 2, 3],
+                         input_sha256='a' * 64) for rid in RACES]
+        metrics = score({rid: forecast(rid) for rid in (first, codex_only)}, outcomes)
+        self.assertEqual((metrics['codex_replayed'], metrics['official_scorable_pairs']), (2, 1))
+
     def test_originals_before_results_and_holds_remain_in_denominator(self):
         events = []
         def load_forecast(entry, rid):

@@ -524,6 +524,8 @@ def _score_archived_day(work, current, private, trained, venues, client, now, le
         except SettlementError as error:
             state = 'HOLD_' + error.reason
             codex_report = lambda *_: dict(state=state, formal_three_way_races=0)
+        except Exception:
+            codex_report = lambda *_: dict(state='HOLD_CODEX_PAIR_REPLAY_UNVERIFIED', formal_three_way_races=0)
     feature_rows = {} if feature_audit is not None else None
     personal_failed = False
     for slot, rid in slots.items():
