@@ -1,6 +1,6 @@
 """Synthetic encrypted-archive boundaries for DT-R1's official prior form."""
 from copy import deepcopy
-from datetime import datetime
+from datetime import date, datetime
 from types import SimpleNamespace
 import unittest
 from unittest.mock import patch
@@ -112,6 +112,20 @@ class OfficialHistoryTests(unittest.TestCase):
         row, = self.history.arguments(self.payload, self.target, AT)['history_records']
         self.assertEqual(row['result_revision_evidence_sha256'], race[-1]['evidence_sha256'])
         self.stub_replay.assert_called_once()
+
+    def test_fixed_archive_reuse_rechecks_clock_and_never_shares_other_pins(self):
+        race = prior_race(self.target)
+        self.add(race)
+        earlier, later = stamp(PRIOR, '04:01'), stamp(PRIOR, '04:03')
+        row, = self.history.arguments(self.payload, self.target, AT)['history_records']
+        another = self.history.for_day(SimpleNamespace(head=HEAD, day='2030-01-16', repo=self.scope.repo))
+        prior_store = another._store(PRIOR)
+        self.assertEqual(another._day, date(2030, 1, 16))
+        self.assertIsNone(another._latest(prior_store, race[2], [race[-1]], datetime.fromisoformat(earlier)))
+        self.assertEqual(another._latest(prior_store, race[2], [race[-1]], datetime.fromisoformat(later)), row)
+        self.stub_replay.assert_called_once()
+        with self.assertRaises(ValueError):
+            self.history.for_day(SimpleNamespace(head='b' * 40, day='2030-01-16', repo=self.scope.repo))
 
     def test_prefetch_selects_prior_ciphertexts_and_never_changes_replayed_history(self):
         race = prior_race(self.target)

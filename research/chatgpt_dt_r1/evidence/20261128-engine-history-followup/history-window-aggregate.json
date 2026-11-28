@@ -1,0 +1,211 @@
+{
+  "code_base": "da94651cfa0e4c8b7452ece91e438628df5fc33f",
+  "contract": {
+    "common_target": "unchanged archived card after blinding results and archived weather",
+    "evaluation_days": [
+      "2026-07-01",
+      "2026-07-31"
+    ],
+    "expected_common_scorable": 2393,
+    "fitting": false,
+    "historical_availability_authenticated": false,
+    "historical_projection": {
+      "class_values": [
+        "L1",
+        "UNKNOWN"
+      ],
+      "exact_roster_with_explicit_numeric_or_incident_status": true,
+      "normal_rank_layout": true,
+      "omitted": [
+        "agari",
+        "sb_mark",
+        "full_final_lap_time"
+      ]
+    },
+    "identity_scope": "UNRESOLVED_SOURCE_COMPOSITE",
+    "independent_validation": false,
+    "metrics": [
+      "tri1",
+      "ex1",
+      "tri2",
+      "tri4",
+      "ex2",
+      "tri_log_loss",
+      "ex_log_loss",
+      "tri_brier",
+      "ex_brier"
+    ],
+    "official_registration_verified": false,
+    "paired_bootstrap": {
+      "samples": 2000,
+      "seed": 462,
+      "unit": "JST day"
+    },
+    "parameter_selection": false,
+    "production_promoted": false,
+    "projected_full_archive_coverage_is_upper_scope": true,
+    "schema": "DT_R1_ARCHIVE_HISTORY_WINDOW_CONTRACT_V1",
+    "window": "inclusive old edge; strictly earlier JST dates",
+    "window_days": {
+      "seven": 7,
+      "thirty": 30
+    }
+  },
+  "contract_sha256": "344f9386d52b021a0b90214ed070633b8c89e6aec5e59f4632c19bbbb598f3a3",
+  "july": {
+    "cards": 2416,
+    "common_cohort_sha256": "7a3b4d924f5a449ba0b576f21fe20322aef36dc259dd6723a52c24ec8caceb11",
+    "common_scorable": 2393,
+    "coverage": {
+      "seven": {
+        "numeric_finish_exposures": 24654,
+        "races_with_numeric_history": 2363,
+        "rider_rows": 16961,
+        "rider_rows_with_numeric_history": 13339
+      },
+      "thirty": {
+        "numeric_finish_exposures": 115088,
+        "races_with_numeric_history": 2393,
+        "rider_rows": 16961,
+        "rider_rows_with_numeric_history": 16675
+      }
+    },
+    "days": 31,
+    "excluded_without_unique_trifecta": 23,
+    "metrics": {
+      "seven": {
+        "hits": {
+          "ex1": 516,
+          "ex2": 879,
+          "tri1": 251,
+          "tri2": 440,
+          "tri4": 647
+        },
+        "n": 2393,
+        "proper": {
+          "ex_brier": 0.887306763507852,
+          "ex_log_loss": 2.831119269651476,
+          "tri_brier": 0.9624777187124032,
+          "tri_log_loss": 4.247883471725263
+        },
+        "rates": {
+          "ex1": 0.21562891767655662,
+          "ex2": 0.367321353949018,
+          "tri1": 0.10488926034266612,
+          "tri2": 0.18386961972419558,
+          "tri4": 0.2703719180944421
+        }
+      },
+      "thirty": {
+        "hits": {
+          "ex1": 539,
+          "ex2": 884,
+          "tri1": 256,
+          "tri2": 455,
+          "tri4": 675
+        },
+        "n": 2393,
+        "proper": {
+          "ex_brier": 0.8845535015555782,
+          "ex_log_loss": 2.8111443053734266,
+          "tri_brier": 0.9602849283582608,
+          "tri_log_loss": 4.201443583465766
+        },
+        "rates": {
+          "ex1": 0.22524028416213956,
+          "ex2": 0.36941078144588385,
+          "tri1": 0.10697868783953197,
+          "tri2": 0.19013790221479315,
+          "tri4": 0.28207271207689094
+        }
+      }
+    },
+    "thirty_minus_seven": {
+      "ex1": {
+        "ci95": [
+          0.0,
+          0.019418209967189997
+        ],
+        "delta": 0.00961136648558295
+      },
+      "ex2": {
+        "ci95": [
+          -0.006903550714217237,
+          0.011783827478838922
+        ],
+        "delta": 0.002089427496865859
+      },
+      "ex_brier": {
+        "ci95": [
+          -0.004568276788835623,
+          -0.0008414250257566557
+        ],
+        "delta": -0.0027532619522738456
+      },
+      "ex_log_loss": {
+        "ci95": [
+          -0.028051067381303443,
+          -0.010652264738924668
+        ],
+        "delta": -0.01997496427804965
+      },
+      "tri1": {
+        "ci95": [
+          -0.005833454962468725,
+          0.010242440578759796
+        ],
+        "delta": 0.002089427496865859
+      },
+      "tri2": {
+        "ci95": [
+          -0.0029906402231026103,
+          0.014857724058102071
+        ],
+        "delta": 0.0062682824905975765
+      },
+      "tri4": {
+        "ci95": [
+          0.0021403880619105396,
+          0.02206914564262678
+        ],
+        "delta": 0.011700793982448809
+      },
+      "tri_brier": {
+        "ci95": [
+          -0.003140129807558457,
+          -0.0011706886785636606
+        ],
+        "delta": -0.0021927903541425
+      },
+      "tri_log_loss": {
+        "ci95": [
+          -0.06063856423933536,
+          -0.03243106387055362
+        ],
+        "delta": -0.0464398882594977
+      }
+    }
+  },
+  "model": {
+    "common_venue_file_sha256": "a7d832a2661c6f05167e7a412a55e51183c21e746447f91dac44e14eeb4dfe19",
+    "current_geometry_assumption": true,
+    "existing_frozen_selection_overlaps_july": true,
+    "file_sha256": "dab8c7f014c41ac18e4fed1ae28ac9b36e994611d1fcf5992f8b06e31a4c618b",
+    "id": "chatgpt-dt-r1",
+    "sha256": "5e022092a35c0258954090c6f3d0f8fa14f03f22511b28d6aa9183f5a38c381c"
+  },
+  "model_feature_count": 462,
+  "production_promoted": false,
+  "runtime_seconds": 36.356,
+  "schema": "DT_R1_ARCHIVE_HISTORY_WINDOW_STUDY_V1",
+  "source": {
+    "commit": "2a1260fb0940ad11160b56a36f9c24cc4fb2f6d2",
+    "dataset_sha256": "9bc3fbda8339b32ba178f5c9c39d6623216ad5c2d5519774870ac5491ba0a847",
+    "files": {
+      "keirin.db": "1bdad22b9744c9c5563f7bb1af31875170a3e6b7f4b0dd73fba8f98d645d8fc4",
+      "keirin_2026q4.db": "d915560877493816b90df8bcd5e7bdef45557f57100b4cd40a3d017cd959334d"
+    }
+  },
+  "started_at": "2026-11-28T09:14:28.402721+00:00",
+  "study_sha256": "02a00c147e6889391d066b723b24e5047ed42b85d23307e1b37bd6158953d9c7"
+}
