@@ -124,6 +124,8 @@ saved forecast or independence from its producer. Successful entries remain
 
 保存runはActionsの実artifactと両runの時計を再認証し、producerの資料commitが公式アーカイブの現在の系譜にあることを確認する。T−15を満たした新規枠のmanifest、読戻しレシート、暗号文と初回参照を、既存の `state/keirin-encrypted-history` へ一度だけ追加する。保全する原本の復号鍵は不要。更新競合時は同じ原本を再読戻しし、先に採用された枠のバイトを維持する。
 
+保護された `dt-r1-settle` に `dossier_day` を渡すと、指定したJST日の最新公式登録を分母とし、各枠の最初にT−15を満たした保全原本を採点する。該当日では従来形式の初回原本も対象に含める。保全したmanifestと独立読戻しを再認証し、所有者鍵で公式入力、特徴量、凍結予測を再現してから、同じstateの最新公式結果と既存PDCAを照合する。公開レシートは件数・固定点数の成績・保留内訳を返す。日付を省略すると従来の初回検証を再現する。
+
 同日の同じ日・モデルでは一つのproducer→reader→retainを完了してから次のbatchを始める。同日の次のproducerは、初回追加時のGitバイト、現時点の暗号文、Actionsの実証跡を照合し、採用済み枠を `PREVIOUS_T15_ORIGINAL_PRESERVED` として登録分母に保持する。11月28日の既存初回原本も従来のpinと独立runから確認する。上限で保留した枠は、締切までの時間と公式資料がある場合に後続batchで扱う。未認証・時刻超過の枠を採用せず、通常のGit fast-forward以外の保存は行わない。日をまたぐ自動起動、一般化した公式結果照合と全国の稼働実績は別途検証する。
 
 ## Existing-job call

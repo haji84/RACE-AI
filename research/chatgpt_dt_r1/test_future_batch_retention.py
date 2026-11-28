@@ -129,6 +129,30 @@ class FutureBatchRetentionTests(unittest.TestCase):
                              b'original fixture stays unchanged\n')
         self.assertEqual(self.retained(), {SLOT})
 
+    def test_replay_reads_only_the_first_accepted_entry_from_its_verified_batch(self):
+        with self.verified_batch(two_slots=True) as (verified, origin):
+            self.append(verified, origin, legacy=[SLOT_2])
+            authenticated = []
+            head = self.head(self.other)
+            saved = retention.read_retained_forecasts(self.other, head, DAY, shadow.MODEL_SHA,
+                [SLOT, SLOT_2], authenticate_batch=lambda *args: authenticated.append(args))
+            self.assertEqual(set(saved), {SLOT})
+            manifest = verified['manifest']
+            self.assertEqual(authenticated, [(manifest, origin, verified['manifest_sha256'])])
+            self.assertEqual(saved[SLOT]['manifest'], manifest)
+            self.assertEqual(saved[SLOT]['entry']['slot_sha256'], SLOT)
+            self.assertEqual(saved[SLOT]['cipher_path'], batch_path('456', SLOT + '.sealed.json'))
+
+    def test_day_replay_detects_a_removed_registry_slot_even_if_its_pointer_was_deleted(self):
+        with self.verified_batch() as (verified, origin):
+            self.append(verified, origin)
+        for delete in (False, True):
+            if delete:
+                self.delete_archive_file(POINTER)
+            with self.subTest(delete=delete), self.assertRaisesRegex(ValueError, 'POINTER_OUTSIDE_REGISTRY'):
+                retention.read_retained_forecasts(self.other, self.head(self.other), DAY, shadow.MODEL_SHA,
+                                                  [SLOT_2], verify_registry=True)
+
     def test_repeated_and_later_bundles_do_not_create_new_files_or_replace_pointer(self):
         with self.verified_batch() as (verified, origin):
             commit = self.append(verified, origin)['archive_commit']

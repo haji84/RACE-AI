@@ -1,0 +1,61 @@
+{
+  "independent_archive_readback": {
+    "distinct_t15_slots_total": 19,
+    "git_head": "42d9a2fbb9e37c2c219cf8b23e78a8ae36043e3e",
+    "legacy_t15_slots": 16,
+    "new_first_slots": 3,
+    "verified_real_ciphertext_without_owner_key": true
+  },
+  "producer": {
+    "cipher_bundle_archive_sha256": "85fe318f1545b4d8b105805b82e80267d60d7f4e435c281e9ff4d396434eb432",
+    "cipher_bytes": 258902,
+    "cipher_files": 3,
+    "code_commit": "6fe2b1e671c9038491bc0774f6ec84ddd6a11a38",
+    "hold_counts": {
+      "PREVIOUS_T15_ORIGINAL_PRESERVED": 16,
+      "PRE_PREDICTION_T15_MARGIN": 9,
+      "SAVED_ORIGINAL_MISSING": 31,
+      "SOURCE_ADMISSION_UNVERIFIED": 19
+    },
+    "job_id": 140830532715,
+    "manifest_sha256": "12d394c559a472011897a41e6dd55f7fa83bcb43af13bfe2ec2407b16beaa2bc",
+    "registered_races": 78,
+    "run_id": "46096681677",
+    "source_archive_commit": "27095c31bea04bd49372f9671cdbe7f301c7bc10",
+    "source_diagnostics": {
+      "OFFICIAL_SOURCE_RECONSTRUCTION_FAILED": 19
+    }
+  },
+  "reader": {
+    "eligible": 3,
+    "held": 0,
+    "latest_server_evidence_at": "2026-11-28T02:19:41+00:00",
+    "minimum_margin_seconds": 900,
+    "readback_archive_sha256": "49c36570cc3cc9b8dac7e7d6c4bc76234e1816bc57b5f13da07cb116b8d50907",
+    "readback_artifact_id": 15244515003,
+    "readback_job_id": 140832057615,
+    "readback_run_id": "46097280343"
+  },
+  "retainer": {
+    "already_accepted_slots": 0,
+    "archive_commit": "5b5cac73a58035a5ae311d56ec5fa0db79cce4b4",
+    "code_commit": "6fe2b1e671c9038491bc0774f6ec84ddd6a11a38",
+    "completed_at": "2026-11-28T02:23:24+00:00",
+    "job_id": 140832946238,
+    "new_first_slots": 3,
+    "receipt_archive_sha256": "f67e4ff55938b1695202c64c908103667bcbea10b0e7e0a119a2ccefb00750e7",
+    "receipt_artifact_id": 15243872658,
+    "retained_files": 8,
+    "run_id": "46097577984",
+    "write_commit": "5b5cac73a58035a5ae311d56ec5fa0db79cce4b4"
+  },
+  "reviewed_archive_index": {
+    "legacy_slots_with_indexed_result": 2,
+    "new_slots_with_indexed_result": 0,
+    "official_originals": 47,
+    "saved_result_revisions": 10,
+    "saved_results": 10,
+    "state_commit": "6b122fb43f774bf2094f1fe397dac92d20e8101a"
+  },
+  "schema": "DT_R1_REAL_LATER_BATCH_RETENTION_EVIDENCE_V1"
+}
