@@ -41,6 +41,42 @@ class NationwideExtensionTests(unittest.TestCase):
                 line['lineKeitai'] = label
                 parse_lines(data, script)
 
+    def test_observed_lead_and_fragmented_labels_use_the_published_groups(self):
+        layouts = (
+            ('先行一車', (1, 2, 3, 4, 6, 8, 10), [[1, 2, 3, 4], [5], [6], [7]]),
+            ('先行一車', (1, 3, 5, 7, 9, 10, 11), [[1], [2], [3], [4], [5, 6, 7]]),
+            ('コマ切れ', (1, 2, 4, 6, 8, 9, 10), [[1, 2], [3], [4], [5, 6, 7]]),
+            ('コマ切れ', (1, 2, 3, 5, 6, 8, 10), [[1, 2, 3], [4, 5], [6], [7]]),
+        )
+        for label, positions, groups in layouts:
+            with self.subTest(label=label, groups=groups):
+                data, script = line_fixture()
+                line = data['SJ0314']['narabiyoso']
+                line['lineKeitai'] = label
+                for rider, position in zip(line['shaban'], positions, strict=True):
+                    rider['ichi'] = str(position)
+                self.assertEqual(parse_lines(data, script)['groups'], groups)
+                line['maxAxixY'] = 2
+                with self.assertRaisesRegex(ValueError, 'CONTESTED_OR_MULTILEVEL_LINE_UNSUPPORTED'):
+                    parse_lines(data, script)
+
+    def test_observed_descriptive_labels_reject_incompatible_groups(self):
+        for label, positions in (
+            ('先行一車', (1, 2, 4, 5, 7, 9, 10)),
+            ('先行一車', (1, 3, 5, 7, 9, 11, 13)),
+            ('コマ切れ', (1, 2, 3, 5, 6, 8, 9)),
+            ('コマ切れ', (1, 2, 4, 5, 7, 9, 11)),
+            ('コマ切れ', (1, 3, 5, 7, 9, 11, 13)),
+        ):
+            with self.subTest(label=label, positions=positions):
+                data, script = line_fixture()
+                line = data['SJ0314']['narabiyoso']
+                line['lineKeitai'] = label
+                for rider, position in zip(line['shaban'], positions, strict=True):
+                    rider['ichi'] = str(position)
+                with self.assertRaisesRegex(ValueError, 'LINE_LABEL_GROUP_COUNT_MISMATCH'):
+                    parse_lines(data, script)
+
     def test_contest_multilevel_parenthesis_and_duplicate_position_hold(self):
         for mutate in (
             lambda l:l.update(kyoHyoji='true'),
