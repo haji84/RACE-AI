@@ -1,0 +1,66 @@
+{
+  "archive_commit": "9cc627f937f13999a91ce40c8ea11ac880c10c69",
+  "code_commit": "b42d511ec7930c04ebd05a655e4d8a75903bfe84",
+  "common": {
+    "codex": {
+      "exacta": {
+        "1": 3,
+        "2": 4
+      },
+      "trifecta": {
+        "1": 2,
+        "12": 5,
+        "2": 2,
+        "4": 2,
+        "9": 4
+      }
+    },
+    "dt_r1": {
+      "exacta": {
+        "1": 3,
+        "2": 3
+      },
+      "trifecta": {
+        "1": 1,
+        "12": 3,
+        "2": 2,
+        "4": 2,
+        "9": 3
+      }
+    }
+  },
+  "common_scorable_races": 8,
+  "day_jst": "2026-11-28",
+  "dt_r1_scorable_races": 31,
+  "formal_three_way_races": 0,
+  "official_normal_races": 51,
+  "official_run_id": 46197091400,
+  "paired_one_point": {
+    "baseline": "codex",
+    "comparison": "dt_r1",
+    "exacta": {
+      "difference": 0.0,
+      "difference_ci95": [
+        -0.502456102075796,
+        0.502456102075796
+      ],
+      "paired_races": 8
+    },
+    "interval_scope": "EXPLORATORY_NOMINAL_WILSON_RACES_UNCLUSTERED",
+    "trifecta": {
+      "difference": -0.125,
+      "difference_ci95": [
+        -0.5208820577719278,
+        0.3673180622612809
+      ],
+      "paired_races": 8
+    }
+  },
+  "previous_scored_common_races": 7,
+  "protected_observe_duration_seconds": 546,
+  "receipt_artifact_id": 15284029541,
+  "receipt_sha256": "688e27b6987d26e9d46560201f6449e39bb8b3f3d9cf9a0be100eea5828965a5",
+  "receipt_zip_sha256": "5ae990c5c28f41035965c45d7914b3ffad16c2e3e131e93a7ebb3aef9954da00",
+  "registered_races": 78,
+  "schema": "DT_R1_CODEX_NOV28_COMPLETE_COMMON_OFFICIAL_SETTLEMENT_V1"
+}
