@@ -1,0 +1,340 @@
+{
+  "archive": {
+    "commit": "2a1260fb0940ad11160b56a36f9c24cc4fb2f6d2",
+    "dataset_sha256": "9bc3fbda8339b32ba178f5c9c39d6623216ad5c2d5519774870ac5491ba0a847",
+    "files": {
+      "keirin.db": "1bdad22b9744c9c5563f7bb1af31875170a3e6b7f4b0dd73fba8f98d645d8fc4",
+      "keirin_2026q4.db": "d915560877493816b90df8bcd5e7bdef45557f57100b4cd40a3d017cd959334d"
+    },
+    "retrospective_venue_geometry_sha256": "a7d832a2661c6f05167e7a412a55e51183c21e746447f91dac44e14eeb4dfe19"
+  },
+  "code_base": "746aa6c33a5ce37fb21944eeb46fd3fc5f8ad881",
+  "contract": {
+    "archive_learning": [
+      "2025-10-01",
+      "strictly_earlier_jst_days"
+    ],
+    "betas": [
+      0.0,
+      0.25,
+      0.5,
+      1.0
+    ],
+    "comparison_for_july": [
+      "frozen_seven_day",
+      "frozen_cold"
+    ],
+    "comparisons": "same_race_valid_numeric_unequal_finishes_only",
+    "decay_half_life_days": 45.0,
+    "evaluation": [
+      "2026-07-01",
+      "2026-07-31"
+    ],
+    "expected_july": 2393,
+    "fixed_conditionals": "same_frozen_seven_day_DTR1_2nd_and_3rd",
+    "identity_scope": "UNRESOLVED_SOURCE_COMPOSITE",
+    "independent_accuracy_claim": false,
+    "official_registration_verified": false,
+    "old_final_used": false,
+    "pre_cutoff_time_verified": false,
+    "production_promoted": false,
+    "schema": "DT_R1_RIDER_STRENGTH_CONTRACT_V1",
+    "selection": "june_winner_log_loss_then_lower_beta_then_temperature_nearer_one_then_lower_temperature",
+    "shrink_prior_effective_starts": 8.0,
+    "state_clip_log_odds": 4.0,
+    "step_per_race": 0.65,
+    "temperatures": [
+      0.9,
+      1.0,
+      1.1
+    ],
+    "tune": [
+      "2026-06-01",
+      "2026-06-30"
+    ],
+    "winner_rule": "softmax((log(frozen_seven_first)+beta*opponent_adjusted_score)/temperature)"
+  },
+  "contract_sha256": "1691ba3f39c8d615bf688557abbd9d758a6d6459a126daad79adc9540a01ba01",
+  "frozen_model": {
+    "feature_count": 462,
+    "file_sha256": "dab8c7f014c41ac18e4fed1ae28ac9b36e994611d1fcf5992f8b06e31a4c618b",
+    "sha256": "5e022092a35c0258954090c6f3d0f8fa14f03f22511b28d6aa9183f5a38c381c"
+  },
+  "july": {
+    "candidate_difference": {
+      "frozen_cold": {
+        "ex1": {
+          "ci95": [
+            -0.01326586577928124,
+            0.00633299751737986
+          ],
+          "delta": -0.003343083994985374
+        },
+        "ex2": {
+          "ci95": [
+            -0.012973056651002821,
+            0.016117866822943364
+          ],
+          "delta": 0.002089427496865859
+        },
+        "ex_brier": {
+          "ci95": [
+            -0.004366452237171942,
+            0.002494900670371145
+          ],
+          "delta": -0.0009377433599157777
+        },
+        "ex_log_loss": {
+          "ci95": [
+            -0.041588231824363386,
+            -0.005242037840426018
+          ],
+          "delta": -0.022939646164856706
+        },
+        "tri1": {
+          "ci95": [
+            -0.010857350556366083,
+            0.005148894652134388
+          ],
+          "delta": -0.0029251984956122023
+        },
+        "tri2": {
+          "ci95": [
+            -0.01502201969621697,
+            0.006211696217295824
+          ],
+          "delta": -0.004178854993731718
+        },
+        "tri4": {
+          "ci95": [
+            -0.02662340543538547,
+            -0.0012258414374989725
+          ],
+          "delta": -0.013372335979941497
+        },
+        "tri_brier": {
+          "ci95": [
+            -0.0016632662711895626,
+            0.000858991570601947
+          ],
+          "delta": -0.00038938691683695247
+        },
+        "tri_log_loss": {
+          "ci95": [
+            -0.029047934981972817,
+            0.01318829660769791
+          ],
+          "delta": -0.008010345633527606
+        }
+      },
+      "frozen_seven": {
+        "ex1": {
+          "ci95": [
+            -0.0044881475030749815,
+            0.0065281477748178
+          ],
+          "delta": 0.0012536564981195152
+        },
+        "ex2": {
+          "ci95": [
+            -0.0016354571291160604,
+            0.007618666478938764
+          ],
+          "delta": 0.0029251984956122023
+        },
+        "ex_brier": {
+          "ci95": [
+            -0.0006109358053085697,
+            0.0003122392718962281
+          ],
+          "delta": -0.00014998731226610658
+        },
+        "ex_log_loss": {
+          "ci95": [
+            -0.005091075237394674,
+            0.0009281946238311459
+          ],
+          "delta": -0.0020146811732457324
+        },
+        "tri1": {
+          "ci95": [
+            -0.001288134160875477,
+            0.002902306601599397
+          ],
+          "delta": 0.0008357709987463436
+        },
+        "tri2": {
+          "ci95": [
+            -0.0036219129291880313,
+            0.0012557555462536626
+          ],
+          "delta": -0.0012536564981195152
+        },
+        "tri4": {
+          "ci95": [
+            -0.0033673591365899055,
+            0.0034573666034340184
+          ],
+          "delta": 0.0
+        },
+        "tri_brier": {
+          "ci95": [
+            -0.00015175587906423937,
+            0.0002166113885649863
+          ],
+          "delta": 4.0787837566032495e-05
+        },
+        "tri_log_loss": {
+          "ci95": [
+            -0.005091075237394938,
+            0.0009281946238305107
+          ],
+          "delta": -0.0020146811732459817
+        }
+      }
+    },
+    "cards": 2416,
+    "cohort_sha256": "7a3b4d924f5a449ba0b576f21fe20322aef36dc259dd6723a52c24ec8caceb11",
+    "common_scorable": 2393,
+    "days": 31,
+    "exclusions": 23,
+    "metrics": {
+      "candidate": {
+        "hits": {
+          "ex1": 525,
+          "ex2": 889,
+          "tri1": 254,
+          "tri2": 430,
+          "tri4": 641
+        },
+        "proper": {
+          "ex_brier": 0.8881991456703175,
+          "ex_log_loss": 2.8294288206127085,
+          "tri_brier": 0.9626148851477064,
+          "tri_log_loss": 4.245419455064884
+        }
+      },
+      "frozen_cold": {
+        "hits": {
+          "ex1": 533,
+          "ex2": 884,
+          "tri1": 261,
+          "tri2": 440,
+          "tri4": 673
+        },
+        "proper": {
+          "ex_brier": 0.8891368890302334,
+          "ex_log_loss": 2.8523684667775657,
+          "tri_brier": 0.9630042720645431,
+          "tri_log_loss": 4.253429800698411
+        }
+      },
+      "frozen_seven": {
+        "hits": {
+          "ex1": 522,
+          "ex2": 882,
+          "tri1": 252,
+          "tri2": 433,
+          "tri4": 641
+        },
+        "proper": {
+          "ex_brier": 0.8883491329825836,
+          "ex_log_loss": 2.8314435017859543,
+          "tri_brier": 0.9625740973101401,
+          "tri_log_loss": 4.247434136238131
+        }
+      }
+    }
+  },
+  "june": {
+    "scorable": 2244,
+    "winner_log_loss": [
+      {
+        "beta": 0.0,
+        "log_loss": 1.4951805523033317,
+        "temperature": 0.9
+      },
+      {
+        "beta": 0.0,
+        "log_loss": 1.487171807469522,
+        "temperature": 1.0
+      },
+      {
+        "beta": 0.0,
+        "log_loss": 1.4867572014721044,
+        "temperature": 1.1
+      },
+      {
+        "beta": 0.25,
+        "log_loss": 1.5018232269400338,
+        "temperature": 0.9
+      },
+      {
+        "beta": 0.25,
+        "log_loss": 1.4888969640444176,
+        "temperature": 1.0
+      },
+      {
+        "beta": 0.25,
+        "log_loss": 1.4847093871936345,
+        "temperature": 1.1
+      },
+      {
+        "beta": 0.5,
+        "log_loss": 1.513571559215304,
+        "temperature": 0.9
+      },
+      {
+        "beta": 0.5,
+        "log_loss": 1.495214168240005,
+        "temperature": 1.0
+      },
+      {
+        "beta": 0.5,
+        "log_loss": 1.486799698079233,
+        "temperature": 1.1
+      },
+      {
+        "beta": 1.0,
+        "log_loss": 1.5505729831514141,
+        "temperature": 0.9
+      },
+      {
+        "beta": 1.0,
+        "log_loss": 1.5201454151959446,
+        "temperature": 1.0
+      },
+      {
+        "beta": 1.0,
+        "log_loss": 1.5021866226074945,
+        "temperature": 1.1
+      }
+    ]
+  },
+  "learning": {
+    "before_july": {
+      "composite_identities_rated": 2490,
+      "ordered_pair_observations": 432285,
+      "races_with_admitted_pairs": 20195
+    },
+    "july_races_with_nonzero_adjustment_signal": 2393,
+    "through_july": {
+      "composite_identities_rated": 2496,
+      "ordered_pair_observations": 483545,
+      "races_with_admitted_pairs": 22609
+    }
+  },
+  "parameter_frozen_at": "2026-11-28T08:03:49.746313+00:00",
+  "parameter_sha256": "ae459a42173a89bb3baa2fc5a5b1fd23ca2d0e23e3ddb646f421a776e9a887f0",
+  "parameters": {
+    "beta": 0.25,
+    "contract_sha256": "1691ba3f39c8d615bf688557abbd9d758a6d6459a126daad79adc9540a01ba01",
+    "frozen_model_sha256": "5e022092a35c0258954090c6f3d0f8fa14f03f22511b28d6aa9183f5a38c381c",
+    "schema": "DT_R1_ARCHIVED_RIDER_STRENGTH_PARAMETERS_V1",
+    "temperature": 1.1
+  },
+  "runtime_seconds": 49.293,
+  "schema": "DT_R1_RIDER_STRENGTH_STUDY_V1",
+  "script_sha256": "0be7f06f01c6b90b854c4443b67cc52031406e7f7db3a8ae91f220f2355448ac",
+  "started_at": "2026-11-28T08:03:25.427311+00:00"
+}
