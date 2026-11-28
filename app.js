@@ -435,8 +435,8 @@ if (typeof window === 'object' && typeof location === 'object') window.RaceNoteI
     const card = element("article", "keirin-public-race");
     const head = element("div", "keirin-public-race-head");
     const labels = { saved: "掲載済み", reference: "締切前の参考", research: "出走表の参考",
-      "late-research": "締切後の参考", pending: "未掲載", "dt-only": "DT-R1掲載" };
-    const hasAB = row.status !== "pending" && row.status !== "dt-only";
+      "late-research": "締切後の参考", pending: "未掲載", "dt-only": "DT-R1掲載", "roster-only": "出走表掲載" };
+    const hasAB = Array.isArray(row.a) && Array.isArray(row.b) && row.status !== "pending";
     head.append(element("h2", "", name),
       element("span", "keirin-public-badge " + (row.status === "saved" ? "is-saved" : ""), labels[row.status]));
     const clocks = element("p", "keirin-public-clocks");
@@ -552,7 +552,7 @@ if (typeof window === 'object' && typeof location === 'object') window.RaceNoteI
     scoreboard.hidden = false;
   }
 
-  async function render(day, snapshot, referencePacket, researchPacket, confidencePacket, resultPackets, dtRows, request) {
+  async function render(day, snapshot, referencePacket, researchPacket, confidencePacket, resultPackets, dtRows, meeting, request) {
     const references = publicCandidates(referencePacket, day, false);
     const research = publicCandidates(researchPacket, day, true);
     const ratings = confidenceRows(confidencePacket, day);
@@ -579,20 +579,26 @@ if (typeof window === 'object' && typeof location === 'object') window.RaceNoteI
     if (!ordered.length) status.textContent = "この日の公開データにレースはありません。";
     if (!snapshot) status.textContent = "A/B未掲載";
     if (dtRows.size) status.append(" ・ DT-R1 " + dtRows.size + " レース");
+    if (meeting.rows.size) status.append(" ・ 公開出走表 " + meeting.rows.size + " レース");
     const notices = [...ordered, ...dtRows.values()];
     const latest = notices.reduce((time, row) =>
       Date.parse(row.published_at) > Date.parse(time) ? row.published_at : time,
-      snapshot?.published_at ?? notices[0].published_at);
+      snapshot?.published_at ?? notices[0]?.published_at ?? meeting.packet.published_at);
     updated.replaceChildren("公開データ更新 ", clock(latest), " JST");
     updated.hidden = false;
-    const registered = new Set(ordered.map(row => row.race_id));
-    const visible = [...ordered, ...[...dtRows.values()].filter(row => !registered.has(row.race_id))
-      .map(row => ({ race_id: row.race_id, cutoff_at: row.cutoff_at, status: "dt-only" }))];
+    const cardRows = new Map(ordered.map(row => [row.race_id, row]));
+    for (const row of dtRows.values()) if (!cardRows.has(row.race_id)) {
+      cardRows.set(row.race_id, { race_id: row.race_id, cutoff_at: row.cutoff_at, status: "dt-only" });
+    }
+    for (const raceId of meeting.rows.keys()) if (!cardRows.has(raceId)) {
+      cardRows.set(raceId, { race_id: raceId, cutoff_at: null, status: "roster-only" });
+    }
+    const visible = [...cardRows.values()];
     const sortClock = row => Date.parse(row.cutoff_at ?? dtRows.get(row.race_id)?.cutoff_at) || Infinity;
     visible.sort((a, b) => sortClock(a) - sortClock(b) || a.race_id.localeCompare(b.race_id));
     const receipt = resultReceipt(day, roster, resultPacket, results);
     races.replaceChildren(...visible.map(row => raceCard(row, day, ratings, replay, dtRows.get(row.race_id), results, receipt)));
-    activeDay = { day, ordered: visible, dtRows, checkedAt: receipt?.checkedAt };
+    activeDay = { day, ordered: visible, dtRows, checkedAt: receipt?.checkedAt, referenceStarters: meeting.packet };
     renderResults(activeDay, receipt);
   }
 
@@ -617,6 +623,7 @@ if (typeof window === 'object' && typeof location === 'object') window.RaceNoteI
     if (!packets) {
       packets = Object.fromEntries(await Promise.all(Object.entries(sources).map(async ([key, source]) =>
         [key, await read(...source)])));
+      packets.referenceStarters = activeDay?.day === day ? activeDay.referenceStarters : await read("reference-starters");
       if (!request.signal.aborted) dossierCache = { day, at: Date.now(), packets };
     }
     const checked = globalThis.RaceKeirinDossierData.prepare;
@@ -641,13 +648,14 @@ if (typeof window === 'object' && typeof location === 'object') window.RaceNoteI
   }
 
   async function loadDay(day, request, resultPackets) {
-    const [forecast, dtPacket] = await Promise.allSettled([
-      fetchDay("forecasts", day, request), fetchDay("dt-r1", day, request)
+    const [forecast, dtPacket, starterPacket] = await Promise.allSettled([
+      fetchDay("forecasts", day, request), fetchDay("dt-r1", day, request), fetchDay("reference-starters", day, request)
     ]);
     if (request.signal.aborted) return;
     const snapshot = forecast.status === "fulfilled" && validSnapshot(forecast.value, day) ? forecast.value : null;
     const dtRows = dtShortlists(dtPacket.value, day);
-    if (!snapshot && !dtRows.size) {
+    const meeting = { packet:starterPacket.value, rows:globalThis.RaceKeirinDossierData.referenceRows(starterPacket.value, day) };
+    if (!snapshot && !dtRows.size && !meeting.rows.size) {
       return forecast.status === "rejected" ? "公開予想を取得できませんでした。再読み込みで確認できます。" :
         forecast.value === undefined ? unpublished : "公開データの形式を確認できません。";
     }
@@ -658,7 +666,7 @@ if (typeof window === 'object' && typeof location === 'object') window.RaceNoteI
       snapshot ? fetchDay("measurements", "confidence-" + day, request).catch(() => null) : null,
       resultPackets ?? fetchResults(day, request)
     ]);
-    await render(day, snapshot, ...packets, dtRows, request);
+    await render(day, snapshot, ...packets, dtRows, meeting, request);
   }
 
   async function refreshResults() {
@@ -4410,6 +4418,7 @@ if (!globalThis.document?.body?.classList.contains("keirin-public-page")) {
 
   const schemas = {
     starters: 'RACE_AI_KEIRIN_PUBLIC_STARTERS_V1',
+    referenceStarters: 'RACE_AI_KEIRIN_PUBLIC_REFERENCE_STARTERS_V1',
     official: 'RACE_AI_KEIRIN_PUBLIC_DOSSIER_CONTEXT_V1',
     secondary: 'RACE_AI_KEIRIN_PUBLIC_DOSSIER_SECONDARY_V1',
     conditions: 'RACE_AI_KEIRIN_PUBLIC_DOSSIER_CONDITIONS_V1',
@@ -4456,6 +4465,27 @@ if (!globalThis.document?.body?.classList.contains("keirin-public-page")) {
       car(rider?.number) && safeText(rider.name, 100) && nameKey(rider.name) &&
       (registration(rider.registration) || (nullableRegistration && rider.registration === null))) &&
       unique(riders.map(rider => rider.number)) && unique(riders.map(rider => rider.registration).filter(Boolean));
+  }
+
+  function referenceRows(packet, day) {
+    const published = clock(packet?.published_at), rows = new Map();
+    if (packet?.schema !== schemas.referenceStarters || packet.day !== day || published === null ||
+        !Array.isArray(packet.races) || packet.races.length > 300) return rows;
+    for (const row of packet.races) {
+      if (typeof row?.race_id !== 'string' || !/^20\d{8}(?:0[1-9]|1[0-2])$/.test(row.race_id) ||
+          dayFromId(row.race_id) !== day || rows.has(row.race_id) || !sha256(row.source_sha256) ||
+          !namedField(row.riders, 1, true)) return new Map();
+      const observed = clock(row.source_at);
+      const url = typeof row.source_url === 'string' &&
+        /^https:\/\/keirin\.kdreams\.jp\/[a-z0-9-]+\/racecard\/(\d{2})(20\d{6})(0[1-7])00\/$/.exec(row.source_url);
+      if (observed === null || observed > published || !url || url[1] !== row.race_id.slice(8,10)) return new Map();
+      const first = dayFromId(url[2]);
+      if (!validDay(first) || new Date(Date.parse(first) + (Number(url[3]) - 1) * 86400000).toISOString().slice(0,10) !== day) {
+        return new Map();
+      }
+      rows.set(row.race_id, row);
+    }
+    return rows;
   }
 
   function rankedField(packet, row, day, cutoffAt) {
@@ -4623,7 +4653,7 @@ if (!globalThis.document?.body?.classList.contains("keirin-public-page")) {
 
   function archiveForDay(packet, day) {
     if (packet?.schema !== schemas.archive || !validDay(packet.start_day) || !validDay(packet.end_day) ||
-        packet.start_day > packet.end_day || packet.end_day >= day || !Array.isArray(packet.source_sha256s) ||
+        packet.start_day > packet.end_day || !Array.isArray(packet.source_sha256s) ||
         packet.source_sha256s.length < 1 || packet.source_sha256s.length > 100 || !packet.source_sha256s.every(sha256) ||
         !Number.isSafeInteger(packet.numeric_finishes) || packet.numeric_finishes < 1 ||
         !Array.isArray(packet.riders) || packet.riders.length > 5000) return null;
@@ -4633,7 +4663,7 @@ if (!globalThis.document?.body?.classList.contains("keirin-public-page")) {
         venueStartDay > venueEndDay || venueEndDay > packet.end_day) return null;
     const first = packet.observations_start_day, last = packet.observations_end_day;
     const observations = validDay(first) && validDay(last) && packet.start_day <= first &&
-      first <= last && last <= packet.end_day ? {startDay:first, endDay:last} : null;
+      first <= last && last <= packet.end_day && last < day ? {startDay:first, endDay:last} : null;
     const riders = new Map();
     let finishes = 0;
     for (const rider of packet.riders) {
@@ -4653,22 +4683,24 @@ if (!globalThis.document?.body?.classList.contains("keirin-public-page")) {
       riders.set(rider.registration, rider);
     }
     if (finishes !== packet.numeric_finishes) return null;
-    return {riders, startDay:packet.start_day, endDay:packet.end_day, venueStartDay, venueEndDay, observations};
+    return {riders, startDay:packet.start_day, endDay:packet.end_day, venueStartDay, venueEndDay, observations,
+      totalAvailable:packet.end_day < day, venueAvailable:venueEndDay < day};
   }
 
   function collectedHistory(archive, days, registrationId, venueCode) {
     const rider = archive?.riders.get(registrationId);
-    const counts = rider ? rider.counts.slice() : Array(9).fill(0);
-    let startDay = rider ? archive.startDay : null, endDay = rider ? archive.endDay : null;
+    const hasTotal = rider && archive.totalAvailable;
+    const counts = hasTotal ? rider.counts.slice() : Array(9).fill(0);
+    let startDay = hasTotal ? archive.startDay : null, endDay = hasTotal ? archive.endDay : null;
     for (const [date, registers] of days) {
-      if (archive && date <= archive.endDay) continue;
+      if (hasTotal && date <= archive.endDay) continue;
       const observed = registers?.get(registrationId);
       if (!observed) continue;
       observed.forEach((n, i) => { counts[i] += n; });
       if (startDay === null || date < startDay) startDay = date;
       if (endDay === null || date > endDay) endDay = date;
     }
-    const venue = rider?.venues[venueCode];
+    const venue = archive?.venueAvailable ? rider?.venues[venueCode] : null;
     const [runs, peers, score] = Array.isArray(rider?.agari) ? rider.agari : [];
     const observed = archive?.observations;
     const agari = observed && [runs, peers, score].every(Number.isSafeInteger) &&
@@ -4728,11 +4760,12 @@ if (!globalThis.document?.body?.classList.contains("keirin-public-page")) {
     const day = dayFromId(raceId);
     const find = kind => requestedRow(packets[kind], kind, day, raceId);
     const starter = find('starters');
+    const reference = referenceRows(packets.referenceStarters, day).get(raceId);
     const rank = rankedField(packets.rank, find('rank'), day, cutoffAt);
     const archive = archivedField(archived, raceId, day);
     const withStarters = namedField(starter?.riders, 3, false) && clock(starter.source_at) !== null &&
       clock(starter.source_at) <= clock(packets.starters.published_at);
-    const field = withStarters ? starter.riders : rank?.riders ?? archive?.riders;
+    const field = withStarters ? starter.riders : reference?.riders ?? rank?.riders ?? archive?.riders;
     if (!field) return empty;
     const roster = new Map(field.map(rider => [rider.number, rider]));
     const official = contextField(packets.official, find('official'), 'official', day, cutoffAt, roster);
@@ -4759,6 +4792,8 @@ if (!globalThis.document?.body?.classList.contains("keirin-public-page")) {
       const recent = currentRecent.length ? currentRecent : recentResults(old, day);
       const collected = collectedHistory(archiveHistory, history, registration, raceId.slice(8, 10));
       return {number, name, registration, style:['逃','追','両'].includes(publishedStyle) ? publishedStyle : null,
+        registrationBasis:rider.registration_basis === 'VERIFIED_DIRECTORY_NAME_PREFECTURE' ?
+          '公開登録名簿で氏名・府県を照合' : null,
         stats:statistics(official, number) ?? statistics(secondary, number) ?? statistics(archivedContext, number),
         comment:comment(official, number) ?? comment(secondary, number) ??
           (safeText(old?.comment, 240) ? {summary:old.comment, at:archive.at, url:archive.comments} : null),
@@ -4771,10 +4806,12 @@ if (!globalThis.document?.body?.classList.contains("keirin-public-page")) {
         tactics:tactics ? {savedAt:tactics.savedAt, reasons:tactics.reasons.slice(), positions:tactics.scenarios.map(scenario =>
           scenario.orders.map(order => order ? order.indexOf(number) + 1 : null))} : null};
     });
-    return {riders, cutoffAt:deadline, sourceAt:withStarters ? starter.source_at : rank?.source_as_of ?? archive.at};
+    const rosterSource = !withStarters && reference ? {url:reference.source_url, at:reference.source_at} : null;
+    return {riders, cutoffAt:deadline, rosterSource,
+      sourceAt:withStarters ? starter.source_at : rosterSource?.at ?? rank?.source_as_of ?? archive.at};
   }
 
-  return {prepare};
+  return {prepare, referenceRows};
 });
 
 /* Presentation for the checked public KEIRIN rider dossier. */
@@ -4982,13 +5019,16 @@ if (!globalThis.document?.body?.classList.contains("keirin-public-page")) {
       const rider = riders[index], heading = node("header", "kd-selected");
       const identity = node("div");
       identity.append(node("h2", "", rider.name), node("p", "kd-note", styles[rider.style] || "脚質確認待ち"));
+      if (rider.registration) identity.append(node("p", "kd-note", "登録番号 " + rider.registration +
+        (rider.registrationBasis ? " · " + rider.registrationBasis : "")));
       heading.append(badge(rider), identity);
       const stats = rider.stats;
       if (stats?.competition_points != null) heading.append(node("p", "kd-note", "競走得点 " + stats.competition_points));
       detail.replaceChildren(heading, history(rider, day, venue), radar(stats, scale, rider.form, rider.agari), ranks(rider.rank), analysis(rider, riders));
       if (stats?.sourceAt) {
         const provider = stats.source === "official" ? "KEIRIN.JP" : "Kドリームス";
-        const timing = stats.source === "archive" ? " 出走表の締切後確認 " : " 出走表の確認 ";
+        const timing = stats.source === "archive" || (data.cutoffAt && Date.parse(stats.sourceAt) >= Date.parse(data.cutoffAt)) ?
+          " 出走表の締切後確認 " : " 出走表の確認 ";
         detail.append(node("p", "kd-note", provider + timing + stamp(stats.sourceAt)));
       }
     }
@@ -5001,7 +5041,8 @@ if (!globalThis.document?.body?.classList.contains("keirin-public-page")) {
       buttons.push(button);
       row.append(button); list.append(row);
     });
-    container.replaceChildren(list, detail);
+    const attribution = data.rosterSource ? [sourceLink("Kドリームスの公開出走表", data.rosterSource.url, data.rosterSource.at)] : [];
+    container.replaceChildren(...attribution, list, detail);
     select(0);
   }
 
