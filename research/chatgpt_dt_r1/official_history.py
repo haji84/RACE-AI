@@ -28,7 +28,8 @@ def _need(ok):
 
 
 def _project(store, meta, revision, private_pem):
-    original, replay, _ = records._replay_saved_result(store, meta, revision, private_pem)
+    original, replay, _ = records._replay_saved_result(store, meta, revision, private_pem,
+                                                       strict_archive_reads=True)
     final = replay['official_result']
     snapshot = original['snapshot']
     rid = original['race_id']
@@ -104,10 +105,10 @@ class OfficialHistory:
         previous_clock, previous = None, None
         for revision in versions:
             sealed = clock(revision['observed_at'])
-            _need(previous_clock is None or previous_clock < sealed)
-            previous_clock = sealed
             if sealed > at:
                 continue
+            _need(previous_clock is None or previous_clock < sealed)
+            previous_clock = sealed
             key = (store.day, original['evidence_sha256'], revision['evidence_sha256'])
             if key not in self._verified:
                 try:

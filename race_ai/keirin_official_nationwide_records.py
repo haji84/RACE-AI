@@ -377,7 +377,7 @@ def replay_registry(payload):
     return rebuilt
 
 
-def archived_original(store, payload):
+def archived_original(store, payload, *, strict_archive_reads=False):
     rid=payload['race_id'];head=store.head;repo=store.repo
     receipt=archive._read_at(repo,head,rid,payload['baseline_cipher_sha256'])
     need(receipt is not None and receipt['producer_run_id']==payload['producer_run_id'] and
@@ -390,7 +390,13 @@ def archived_original(store, payload):
             archive._read_conditioned_at(repo,head,rid,payload['conditioned_cipher_sha256'],
                 payload['baseline_cipher_sha256'],payload['baseline']['prediction_sha256'],payload['cohort_sha256'])
             adjusted=archive.read_blob_bytes(repo,head,archive._form_refs(rid)[0])
-        except (ValueError,KeyError,TypeError):pass
+        except (ValueError, KeyError, TypeError) as error:
+            # A history run must distinguish an unavailable archive read
+            # from an optional conditioned original that fails validation.
+            if strict_archive_reads and (isinstance(error, archive.GitCipherFetchTimeout) or
+                    isinstance(error, archive.GitCipherArchiveError) and str(error) in
+                    ('GIT_COMMAND_OR_REMOTE_UNAVAILABLE', 'ARCHIVE_BLOB_READ_UNAVAILABLE')):
+                raise
     return raw,adjusted
 
 
@@ -549,12 +555,12 @@ def result_updates(original,scored,final_capture):
     return updates.checked_updates(dict(schema=updates.SCHEMA,observed_at=at.isoformat(),races=[updates._finish(row)]))
 
 
-def _replay_saved_result(store,original_meta,result_meta,owner_private_pem):
+def _replay_saved_result(store,original_meta,result_meta,owner_private_pem, *, strict_archive_reads=False):
     """Authenticate original and final source witnesses without provider access."""
     original_payload=store.read(original_meta,owner_private_pem);saved=store.read(result_meta,owner_private_pem)
     need(saved['schema']==RESULT_SCHEMA and saved['race_id']==original_payload['race_id'] and
          saved['original_evidence_sha256']==original_meta['evidence_sha256'],'RESULT_ORIGINAL_BINDING')
-    raw,adjusted=archived_original(store,original_payload)
+    raw,adjusted=archived_original(store,original_payload,strict_archive_reads=strict_archive_reads)
     original=replay_original(payload=original_payload,raw_baseline=raw,raw_conditioned=adjusted,
                              owner_private_pem=owner_private_pem)
     # An originally absent/unverified conditioned arm cannot be added later to

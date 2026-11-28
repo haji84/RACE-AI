@@ -69,8 +69,9 @@ class OfficialHistoryTests(unittest.TestCase):
         return SimpleNamespace(head=index_commit, day=day, index_commit=index_commit,
                                index=self.indexes.get(day, dict(originals={}, results={})))
 
-    def replay(self, store, original_meta, revision, pem):
+    def replay(self, store, original_meta, revision, pem, *, strict_archive_reads=False):
         self.assertEqual(pem, b'fixture-only')
+        self.assertTrue(strict_archive_reads)
         original, replay = self.replays[revision['race_id'], revision['evidence_sha256']]
         self.assertEqual(original_meta['race_id'], original['race_id'])
         return deepcopy(original), deepcopy(replay), {}
@@ -102,6 +103,29 @@ class OfficialHistoryTests(unittest.TestCase):
         self.assertNotIn('rival-private', str(rows))
         self.assertEqual(self.history.arguments(self.payload, self.target, AT)['history_records'], rows)
         self.stub_replay.assert_called_once()
+
+    def test_invalid_order_of_future_revisions_does_not_erase_an_available_result(self):
+        race = prior_race(self.target)
+        late = dict(race[-1], observed_at=stamp(DAY, '02:04'), evidence_sha256='5' * 64)
+        earlier_late = dict(late, observed_at=stamp(DAY, '02:03'), evidence_sha256='6' * 64)
+        self.add(race, versions=[(late, None), (earlier_late, None)])
+        row, = self.history.arguments(self.payload, self.target, AT)['history_records']
+        self.assertEqual(row['result_revision_evidence_sha256'], race[-1]['evidence_sha256'])
+        self.stub_replay.assert_called_once()
+
+    def test_optional_conditioned_archive_transport_failure_remains_a_history_failure(self):
+        store = SimpleNamespace(repo='archive', head=HEAD)
+        payload = dict(race_id='203001149801', producer_run_id='1', producer_commit='b' * 40,
+            cohort_sha256='a' * 64, baseline_cipher_sha256='c' * 64, conditioned_cipher_sha256='d' * 64,
+            baseline=dict(prediction_sha256='e' * 64))
+        receipt = {key: payload[key] for key in ('producer_run_id', 'producer_commit', 'cohort_sha256')}
+        with (patch.object(records.archive, '_read_at', return_value=receipt),
+              patch.object(records.archive, 'read_blob_bytes', return_value=b'baseline'),
+              patch.object(records.archive, '_read_conditioned_at',
+                           side_effect=GitCipherFetchTimeout('GIT_COMMAND_OR_REMOTE_UNAVAILABLE'))):
+            self.assertEqual(records.archived_original(store, payload), (b'baseline', None))
+            with self.assertRaises(GitCipherFetchTimeout):
+                records.archived_original(store, payload, strict_archive_reads=True)
 
     def test_invalid_latest_admissible_revision_cannot_fall_back(self):
         race = prior_race(self.target)
