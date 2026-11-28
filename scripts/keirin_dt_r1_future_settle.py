@@ -29,6 +29,7 @@ from research.chatgpt_dt_r1.future_retention_gate import (
     FIRST_SOURCE_PARENT as PARENT, read_legacy_first_retention)
 from research.chatgpt_dt_r1.official_history import ArchiveHistoryCache, OfficialHistory, POLICY as HISTORY_POLICY
 from research.chatgpt_dt_r1.official_feature_audit import OfficialFeatureAudit
+from research.chatgpt_dt_r1.official_phase_source_audit import OfficialPhaseFieldAudit
 from research.chatgpt_dt_r1.pipeline import forecast_row, summarize_predictions
 from research.chatgpt_dt_r1.policy import clock, digest, validate_forecast
 from scripts import keirin_dt_r1_future_shadow as shadow
@@ -209,7 +210,7 @@ def _prefetch_result_ciphers(store, race_ids):
         pass
 
 
-def _result_row(result_store, rid, private, original_meta, now):
+def _result_row(result_store, rid, private, original_meta, now, *, phase_fields=None):
     row = dict(race_id=rid, day=result_store.day)
     current = result_store.index['originals'].get(rid)
     if current is None:
@@ -226,7 +227,7 @@ def _result_row(result_store, rid, private, original_meta, now):
             need(all(earlier < later for earlier, later in zip(clocks, clocks[1:])),
                  'RESULT_REVISION_ORDER_UNVERIFIED')
         try:
-            _, scored, _ = records._replay_saved_result(result_store, current, meta, private)
+            _, scored, final_capture = records._replay_saved_result(result_store, current, meta, private)
         except Exception as error:
             reason = REPLAY_CODES.get(str(error), 'OFFICIAL_RESULT_REPLAY_FAILED')
             raise SettlementError(reason) from None
@@ -250,6 +251,13 @@ def _result_row(result_store, rid, private, original_meta, now):
         cars = {r['car'] for r in final['starters']}
         need(type(top) is list and len(top) == len(set(top)) == 3 and
              all(type(c) is int and c in cars for c in top), 'RESULT_TOP3_INVALID')
+        if phase_fields is not None:
+            raw_result = final_capture.get('raw_result') if isinstance(final_capture, dict) else None
+            try:
+                phase_fields.add(raw_result, final)
+            except Exception:
+                # Keep the authenticated scoring row and account for skipped audit rows in the day summary.
+                pass
         return dict(row, result_status='VERIFIED_NORMAL', top3=top)
     except SettlementError as error:
         return dict(row, result_status='RESULT_REPLAY_UNVERIFIED', result_hold_reason=error.reason)
@@ -526,7 +534,8 @@ def _prepare_codex_pair(*, work, current, private, repo, client, slots, dt_selec
 
 
 def _score_archived_day(work, current, private, trained, venues, client, now, legacy, *, back_trial=None,
-                        feature_audit=None, personal_study=None, codex_repo=None, progress=None):
+                        feature_audit=None, personal_study=None, codex_repo=None, progress=None,
+                        phase_fields=None):
     day = current.day
     with _stage('REGISTRY_REPLAY_UNVERIFIED'):
         registry = _load_registry(current, private)
@@ -631,14 +640,26 @@ def _score_archived_day(work, current, private, trained, venues, client, now, le
             progress('DT_REPLAY_FINISHED')
         _prefetch_result_ciphers(current, races)
 
+    result_audits = {'phase_fields': phase_fields} if phase_fields is not None else {}
     result = _score_registered(races, day, entries, [slot for slot in slots if slot in selected], {},
-        forecast_loader, lambda rid: _result_row(current, rid, private, pinned_originals.get(rid), now()),
+        forecast_loader, lambda rid: _result_row(current, rid, private, pinned_originals.get(rid), now(), **result_audits),
         history_controls=history_controls, back_pairs=back_pairs, back_holds=back_holds,
         personal_pairs=personal_pairs, personal_holds=personal_holds,
         personal_report=report_personal if personal_study is not None else None, codex_report=codex_report,
         prefetch_results=prepare_result_reads)
     if progress is not None:
         progress('RESULT_REPLAY_FINISHED')
+    if phase_fields is not None:
+        verified_count = result['result_states'].get('VERIFIED_NORMAL', 0)
+        try:
+            audit = phase_fields.report()
+            counted = audit['verified_result_shapes'] + audit['unverified_result_shapes']
+            need(0 <= counted <= verified_count, 'PHASE_FIELD_AUDIT_DENOMINATOR')
+            result['official_phase_source_audit'] = dict(audit, scorer_verified_normal_results=verified_count,
+                                                        uncounted_result_shapes=verified_count - counted)
+        except Exception:
+            result['official_phase_source_audit'] = dict(state='HOLD_PHASE_FIELD_AUDIT_ERROR',
+                                                        scorer_verified_normal_results=verified_count)
     if feature_audit is not None:
         for row, original in feature_rows.values():
             try:
@@ -720,7 +741,8 @@ def run_settlement(*, repo, private_root, owner_public_pem, owner_private_pem, d
                                          client, now, legacy[:2] if legacy else None,
                                          back_trial=_lazy_back_trial(contexts, repo, root, owner_private_pem),
                                          feature_audit=OfficialFeatureAudit(trained), personal_study=personal,
-                                         codex_repo=repo if compare_codex else None, progress=progress)
+                                         codex_repo=repo if compare_codex else None, progress=progress,
+                                         phase_fields=OfficialPhaseFieldAudit())
             scope_fields = dict(schema=DAY_SCHEMA, scope=DAY_SCOPE)
         else:
             verified, origin, retention = legacy

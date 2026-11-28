@@ -3,6 +3,7 @@ from contextlib import ExitStack, contextmanager, nullcontext
 from copy import deepcopy
 from hashlib import sha256
 from itertools import permutations
+import json
 from pathlib import Path
 from tempfile import TemporaryDirectory
 from types import SimpleNamespace
@@ -24,6 +25,51 @@ def forecast(rid):
 
 
 class FutureSettlementTests(unittest.TestCase):
+    def test_phase_source_audit_preserves_only_verified_aggregate_field_shapes(self):
+        rows = [dict(syaban=str(car), sensyuRegistNo=f'00000{car}',
+                     markerText=mark, hiddenName='synthetic rider', **{'raw key!': 'private'})
+                for car, mark in enumerate(('Ｓ', 'ＨＢ', ''), 1)]
+        del rows[-1]['markerText']
+        rows[0]['rider000002'] = 'B'
+        payload = dict(resultCd=0, tyakujyunItemSubData=rows)
+        raw = ('<html><head><script src="/sp/static/js/SJ0326_v.js"></script>'
+               '<script src="/sp/static/js/SJ0326_000002.js"></script></head><body>'
+               "<script>var jsonData = {};jsonData['SJ0326'] = " + json.dumps(payload) +
+               ';</script></body></html>').encode()
+        final = dict(source_sha256=sha256(raw).hexdigest(), starters=[
+            {'car': car, 'registration_id': f'00000{car}'} for car in range(1, 4)])
+        audit = settle.OfficialPhaseFieldAudit()
+        audit.add(raw, final)
+        audit.add(raw, dict(final, starters=[{'car': 1, 'registration_id': '123456'}]))
+        report = audit.report()
+        self.assertEqual((report['verified_result_shapes'], report['unverified_result_shapes']), (1, 1))
+        self.assertEqual(report['result_view_scripts'], {'/sp/static/js/SJ0326_v.js': 1})
+        self.assertEqual(report['marker_token_fields'], {'markerText': {'S': 1, 'H': 1, 'B': 1}})
+        self.assertEqual(report['row_fields']['markerText'], 1)
+        self.assertEqual(report['unlisted_marker_token_races'], {'B': 1})
+        self.assertFalse(report['phase_semantics_verified'])
+        self.assertNotIn('raw key!', str(report))
+        self.assertNotIn('synthetic rider', str(report))
+        self.assertNotIn('000002', str(report))
+
+    def test_phase_source_audit_failure_preserves_verified_normal_result(self):
+        rid = RACES[0]
+        original = {'cutoff_at': DAY + 'T02:00:00Z'}
+        observed = DAY + 'T02:05:00Z'
+        result = dict(race_id=rid, status='FINAL_NORMAL', refund_status='NONE', observed_at=observed,
+            official_cutoff_at=original['cutoff_at'], winning_triples=[[1, 2, 3]],
+            starters=[{'car': car} for car in (1, 2, 3)])
+        store = SimpleNamespace(day=DAY, index=dict(originals={rid: original}, results={rid: [{'observed_at': observed}]}))
+
+        def fail_audit(*_):
+            raise RuntimeError('synthetic diagnostic failure')
+
+        with patch.object(settle.records, '_replay_saved_result',
+                          return_value=(None, {'official_result': result}, {'raw_result': b'fixture'})):
+            row = settle._result_row(store, rid, b'', original, settle.clock(observed),
+                                     phase_fields=SimpleNamespace(add=fail_audit))
+        self.assertEqual(row, dict(race_id=rid, day=DAY, result_status='VERIFIED_NORMAL', top3=[1, 2, 3]))
+
     def entries(self):
         return [dict(slot_sha256=shadow.slot(DAY, rid),
                      state=shadow.READY if i < 2 else 'HOLD',
