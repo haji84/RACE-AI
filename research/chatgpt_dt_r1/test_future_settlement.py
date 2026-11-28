@@ -31,6 +31,23 @@ class FutureSettlementTests(unittest.TestCase):
                      clocks=dict(seal_started_at=DAY + 'T01:00:00Z', cutoff_at=DAY + 'T01:30:00Z'))
                 for i,rid in enumerate(RACES)]
 
+    def test_codex_pair_preserves_all_target_and_same_source_denominators(self):
+        first, dt_only, codex_only = RACES
+        outcomes = [dict(race_id=rid, day=DAY, result_status='VERIFIED_NORMAL', top3=[1, 2, 3],
+                         input_sha256='a' * 64) for rid in RACES]
+        dt = {rid: forecast(rid) for rid in (first, dt_only)}
+        codex = {rid: forecast(rid) for rid in (first, codex_only)}
+        metrics = settle._score_codex_pair(dt, outcomes, codex, {first}, 2, {})
+        self.assertEqual(metrics['registered_day'], 3)
+        self.assertEqual(metrics['codex_all_targets']['evaluable'], 3)
+        self.assertEqual(metrics['codex_all_targets']['predicted_evaluable'], 2)
+        self.assertEqual(metrics['same_source_originals'], 1)
+        self.assertEqual(metrics['official_scorable_pairs'], 1)
+        self.assertEqual(metrics['common']['codex']['trifecta']['1'], 1)
+        self.assertEqual(metrics['common']['dt_r1']['trifecta']['1'], 1)
+        self.assertNotIn('proper_scores', str(metrics))
+        self.assertNotIn(first, str(metrics))
+
     def test_originals_before_results_and_holds_remain_in_denominator(self):
         events = []
         def load_forecast(entry, rid):

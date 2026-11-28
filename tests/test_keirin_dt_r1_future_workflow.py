@@ -5,7 +5,7 @@ import unittest
 
 ROOT = Path(__file__).resolve().parents[1]
 MODES = ('dt-r1-shadow', 'dt-r1-readback', 'dt-r1-settle', 'dt-r1-retain',
-         'codex-shadow', 'codex-readback', 'codex-retain')
+         'codex-shadow', 'codex-readback', 'codex-retain', 'codex-settle')
 
 
 class FutureWorkflowTests(unittest.TestCase):
@@ -48,7 +48,7 @@ class FutureWorkflowTests(unittest.TestCase):
         self.assertIn('scripts.keirin_dt_r1_future_readback', branch)
 
     def test_settlement_is_manual_source_free_and_uses_existing_secret_scope(self):
-        start = self.job.index('if [ "$RESULT_MODE" = dt-r1-settle ]; then')
+        start = self.job.index('if [[ "$RESULT_MODE" = dt-r1-settle')
         end = self.job.index('if [[ "$RESULT_MODE" = dt-r1-shadow', start)
         branch = self.job[start:end]
         self.assertIn('scripts.keirin_dt_r1_future_settle', branch)
@@ -59,7 +59,7 @@ class FutureWorkflowTests(unittest.TestCase):
 
     def test_personal_study_is_opt_in_for_protected_shadow_and_retrospective_settlement(self):
         self.assertIn('dt_r1_compare_personal:', self.text.split('  schedule:', 1)[0])
-        start = self.job.index('if [ "$RESULT_MODE" = dt-r1-settle ]; then')
+        start = self.job.index('if [[ "$RESULT_MODE" = dt-r1-settle')
         end = self.job.index('if [ "$RESULT_MODE" = dt-r1-official-holdout ]; then', start)
         self.assertEqual(self.job.count('--compare-personal-history'), 2)
         branch = self.job[start:end]
@@ -110,6 +110,15 @@ class FutureWorkflowTests(unittest.TestCase):
         self.assertNotIn('scripts.keirin_result_watch', branch)
         artifact = self.job.split('name: keirin-codex-future-cipher-${{ github.run_id }}', 1)[1]
         self.assertIn('/safe/codex-future-cipher/', artifact.split('retention-days:', 1)[0])
+
+    def test_codex_settle_reuses_the_source_free_job_and_requires_the_explicit_day(self):
+        start = self.job.index('if [[ "$RESULT_MODE" = dt-r1-settle')
+        end = self.job.index('if [ "$RESULT_MODE" = dt-r1-official-holdout ]; then', start)
+        branch = self.job[start:end]
+        self.assertIn("extra_deps+=('lightgbm==4.6.0')", branch)
+        self.assertIn('if [ "$RESULT_MODE" = codex-settle ]; then\n              [[ -n "$DOSSIER_DAY" ]]', branch)
+        self.assertIn('day_arg+=(--compare-codex)', branch)
+        self.assertNotIn('scripts.keirin_result_watch', branch)
 
 
 if __name__ == '__main__':
