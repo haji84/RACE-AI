@@ -43,6 +43,7 @@ FIRST_SCOPE = 'FIRST_PINNED_DT_ONLY_COHORT'
 DAY_SCOPE = 'REGISTERED_DAY_FIRST_T15_ORIGINALS'
 PDCA_TRIFECTA_POINTS = 4
 BACK_ARMS = ('back_mixture', 'direct')
+FINAL_RESULT_STATES = {'VERIFIED_NORMAL', 'NON_UNIQUE_TOP3', 'OFFICIAL_REFUND', 'OFFICIAL_CANCELLED'}
 
 
 class SettlementError(ValueError):
@@ -174,9 +175,14 @@ def _forecast_from_original(entry, raw, manifest, source, rid, private, trained,
                                                    control=control, back_study=pair)
                 need(_same(shared, expected), 'BACK_STUDY_MATERIAL_CHANGED')
                 if back_pairs is not None:
-                    back_pairs[rid] = {name: dict(race_id=rid, day=source.day, status='READY',
+                    arms = {name: dict(race_id=rid, day=source.day, status='READY',
                         input_sha256=row['input_sha256'], trifectas=pair['arms'][name]['trifectas'],
                         exactas=pair['arms'][name]['exactas']) for name in BACK_ARMS}
+                    # The exact probability vector must reproduce the pre-cutoff commitment above.
+                    lead = min(pair['back_leader_estimate']['probabilities'],
+                               key=lambda rider: (-rider['probability'], rider['car']))
+                    arms['back_mixture']['back_leader_top1'] = lead['car']
+                    back_pairs[rid] = arms
         except SettlementError as error:
             if back_holds is not None:
                 back_holds[rid] = error.reason if error.reason in (
@@ -251,14 +257,18 @@ def _result_row(result_store, rid, private, original_meta, now, *, phase_fields=
         cars = {r['car'] for r in final['starters']}
         need(type(top) is list and len(top) == len(set(top)) == 3 and
              all(type(c) is int and c in cars for c in top), 'RESULT_TOP3_INVALID')
+        back_leader = None
         if phase_fields is not None:
             raw_result = final_capture.get('raw_result') if isinstance(final_capture, dict) else None
             try:
-                phase_fields.add(raw_result, final)
+                back_leader = phase_fields.add(raw_result, final)
             except Exception:
                 # Keep the authenticated scoring row and account for skipped audit rows in the day summary.
                 pass
-        return dict(row, result_status='VERIFIED_NORMAL', top3=top)
+        outcome = dict(row, result_status='VERIFIED_NORMAL', top3=top)
+        if type(back_leader) is int and back_leader in cars:
+            outcome['back_leader_car'] = back_leader
+        return outcome
     except SettlementError as error:
         return dict(row, result_status='RESULT_REPLAY_UNVERIFIED', result_hold_reason=error.reason)
     except Exception:
@@ -312,15 +322,27 @@ def _paired_one_point(results, *, baseline, baseline_forecasts, comparison, comp
     return report
 
 
-def _score_back_pairs(admitted, outcomes, back_pairs, back_holds):
+def _score_back_pairs(admitted, outcomes, back_pairs, back_holds, *, day_closed=False):
     paired_races = admitted.keys() & back_pairs.keys()
     held_races = admitted.keys() & back_holds.keys()
     need(not paired_races & held_races, 'BACK_STUDY_PAIR_PARTITION')
     if not paired_races and not held_races:
         return None
-    paired_rows = [r for r in outcomes if r['race_id'] in paired_races and r['result_status'] == 'VERIFIED_NORMAL']
+    paired_outcomes = [r for r in outcomes if r['race_id'] in paired_races]
+    paired_rows = [r for r in paired_outcomes if r['result_status'] == 'VERIFIED_NORMAL']
+    observed_back_rows = [r for r in paired_rows if 'back_leader_car' in r]
+    back_predictions = [(r['back_leader_car'], back_pairs[r['race_id']]['back_mixture'].get('back_leader_top1'))
+                        for r in observed_back_rows]
+    back_evaluable = [(observed, predicted) for observed, predicted in back_predictions if predicted is not None]
+    hits = sum(observed == predicted for observed, predicted in back_evaluable)
+    # Do not publish incremental or degenerate matches with public B labels.
+    publish_hits = (day_closed and not held_races and len(paired_outcomes) == len(paired_races) and
+                    all(row['result_status'] in FINAL_RESULT_STATES for row in paired_outcomes) and
+                    min(hits, len(back_evaluable) - hits) >= 2)
     summary = dict(registered_day=len(outcomes), retained_pairs=len(paired_races),
-                   official_scorable_pairs=len(paired_rows), back_leader_observations=0,
+                   official_scorable_pairs=len(paired_rows), back_leader_observations=len(observed_back_rows),
+                   back_leader_top1=dict(evaluable=len(back_evaluable),
+                                         hits=hits if publish_hits else None),
                    replay_holds=dict(Counter(back_holds[rid] for rid in held_races)))
     arms = {name: {rid: back_pairs[rid][name] for rid in sorted(paired_races)} for name in BACK_ARMS}
     for name, forecasts in arms.items():
@@ -373,7 +395,8 @@ def _score_codex_pair(admitted, outcomes, codex, same_source, retained, holds):
 
 def _score_registered(race_ids, day, entries, eligible, reader_holds, forecast_loader, result_loader,
                       *, history_controls=None, back_pairs=None, back_holds=None, personal_report=None,
-                      personal_pairs=None, personal_holds=None, codex_report=None, prefetch_results=None):
+                      personal_pairs=None, personal_holds=None, codex_report=None, prefetch_results=None,
+                      back_day_closed=False):
     """Reverify all admitted forecast originals before opening any outcome."""
     need(len(race_ids) == len(set(race_ids)), 'DUPLICATE_REGISTRY')
     slots = {shadow.slot(day, rid): rid for rid in race_ids}
@@ -433,7 +456,8 @@ def _score_registered(race_ids, day, entries, eligible, reader_holds, forecast_l
             registered_day=len(race_ids), retained_pairs=len(paired_races), **paired,
             paired_one_point=_paired_one_point(scorable, baseline='no_history', baseline_forecasts=history_controls,
                 comparison='official_history', comparison_forecasts=admitted))
-    paired_back = _score_back_pairs(admitted, outcomes, back_pairs or {}, back_holds or {})
+    paired_back = _score_back_pairs(admitted, outcomes, back_pairs or {}, back_holds or {},
+                                    day_closed=back_day_closed and len(admitted) == len(eligible))
     if paired_back is not None:
         metrics['paired_back'] = paired_back
     try:
@@ -641,12 +665,14 @@ def _score_archived_day(work, current, private, trained, venues, client, now, le
         _prefetch_result_ciphers(current, races)
 
     result_audits = {'phase_fields': phase_fields} if phase_fields is not None else {}
+    back_day_closed = (registry['day_inventory_complete'] and
+                       continuation.form._aware(now()).astimezone(continuation.form.JST).date().isoformat() > day)
     result = _score_registered(races, day, entries, [slot for slot in slots if slot in selected], {},
         forecast_loader, lambda rid: _result_row(current, rid, private, pinned_originals.get(rid), now(), **result_audits),
         history_controls=history_controls, back_pairs=back_pairs, back_holds=back_holds,
         personal_pairs=personal_pairs, personal_holds=personal_holds,
         personal_report=report_personal if personal_study is not None else None, codex_report=codex_report,
-        prefetch_results=prepare_result_reads)
+        prefetch_results=prepare_result_reads, back_day_closed=back_day_closed)
     if progress is not None:
         progress('RESULT_REPLAY_FINISHED')
     if phase_fields is not None:

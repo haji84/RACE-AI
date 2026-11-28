@@ -27,7 +27,8 @@ def forecast(rid):
 class FutureSettlementTests(unittest.TestCase):
     def test_phase_source_audit_preserves_only_verified_aggregate_field_shapes(self):
         rows = [dict(syaban=str(car), sensyuRegistNo=f'00000{car}',
-                     markerText=mark, hiddenName='synthetic rider', **{'raw key!': 'private'})
+                     markerText=mark, back=' Ｂ ' if car == 2 else '',
+                     agari='12.0' if car != 2 else '-', hiddenName='synthetic rider', **{'raw key!': 'private'})
                 for car, mark in enumerate(('Ｓ', 'ＨＢ', ''), 1)]
         del rows[-1]['markerText']
         rows[0]['rider000002'] = 'B'
@@ -39,18 +40,43 @@ class FutureSettlementTests(unittest.TestCase):
         final = dict(source_sha256=sha256(raw).hexdigest(), starters=[
             {'car': car, 'registration_id': f'00000{car}'} for car in range(1, 4)])
         audit = settle.OfficialPhaseFieldAudit()
-        audit.add(raw, final)
+        self.assertEqual(audit.add(raw, final), 2)
         audit.add(raw, dict(final, starters=[{'car': 1, 'registration_id': '123456'}]))
         report = audit.report()
         self.assertEqual((report['verified_result_shapes'], report['unverified_result_shapes']), (1, 1))
         self.assertEqual(report['result_view_scripts'], {'/sp/static/js/SJ0326_v.js': 1})
-        self.assertEqual(report['marker_token_fields'], {'markerText': {'S': 1, 'H': 1, 'B': 1}})
+        self.assertEqual(report['marker_token_fields'], {'markerText': {'S': 1, 'H': 1, 'B': 1}, 'back': {'B': 1}})
         self.assertEqual(report['row_fields']['markerText'], 1)
         self.assertEqual(report['unlisted_marker_token_races'], {'B': 1})
         self.assertFalse(report['phase_semantics_verified'])
+        self.assertEqual(report['native_observations']['back_leader_races'], 1)
+        self.assertEqual(report['native_observations']['agari_timed_races'], 1)
+        self.assertEqual(report['native_observations']['agari_timed_riders'], 2)
         self.assertNotIn('raw key!', str(report))
         self.assertNotIn('synthetic rider', str(report))
         self.assertNotIn('000002', str(report))
+
+    def test_native_phase_binding_requires_exact_fields_and_unique_back_marker(self):
+        audit = settle.OfficialPhaseFieldAudit()
+        starters = [{'car': car, 'registration_id': f'00000{car}'} for car in range(1, 4)]
+
+        def capture(marks, *, field='back', official_renderer=True):
+            rows = [dict(syaban=str(car), sensyuRegistNo=f'00000{car}', **{field: mark})
+                    for car, mark in enumerate(marks, 1)]
+            payload = dict(resultCd=0, tyakujyunItemSubData=rows)
+            source = '/sp/static/js/SJ0326_v.js' if official_renderer else '/sp/static/js/SJ0326_other.js'
+            return (f'<html><head><script src="{source}"></script></head><body><script>var jsonData = {{}};'
+                    "jsonData['SJ0326'] = " + json.dumps(payload) + ';</script></body></html>').encode()
+
+        for raw in (capture(('B', 'B', '')), capture(('B', 'H', '')), capture(('B', '', ''), field='markerText'),
+                    capture(('B', '', ''), official_renderer=False)):
+            self.assertIsNone(audit.add(raw, dict(source_sha256=sha256(raw).hexdigest(), starters=starters)))
+        self.assertIsNone(audit.add(capture(('B', '', '')), dict(source_sha256='0' * 64, starters=starters)))
+        report = audit.report()
+        self.assertEqual((report['verified_result_shapes'], report['unverified_result_shapes']), (4, 1))
+        self.assertEqual(report['native_observations']['back_leader_races'], 0)
+        raw = capture(('B', '', ''))
+        self.assertEqual(audit.add(raw, dict(source_sha256=sha256(raw).hexdigest(), starters=starters)), 1)
 
     def test_phase_source_audit_failure_preserves_verified_normal_result(self):
         rid = RACES[0]
@@ -269,20 +295,23 @@ class FutureSettlementTests(unittest.TestCase):
             if rid == RACES[0]:
                 controls['direct']['trifectas'][0]['probability'] = 0.
                 controls['direct']['trifectas'][1]['probability'] = 1/3
+                controls['back_mixture']['back_leader_top1'] = 2
             arms[rid] = controls
             return forecast(rid)
 
         def outcome(rid):
             if rid == RACES[1]:
                 return dict(race_id=rid, day=DAY, result_status='MISSING_SAVED_RESULT')
-            return dict(race_id=rid, day=DAY, result_status='VERIFIED_NORMAL', top3=[1, 2, 3])
+            return dict(race_id=rid, day=DAY, result_status='VERIFIED_NORMAL', top3=[1, 2, 3], back_leader_car=2)
 
         report = settle._score_registered(RACES, DAY, self.entries(),
             [shadow.slot(DAY, rid) for rid in RACES[:2]], {}, forecast_loader, outcome, back_pairs=arms)
         paired = report['metrics']['paired_back']
         self.assertEqual((paired['registered_day'], paired['retained_pairs'], paired['official_scorable_pairs']),
                          (3, 2, 1))
-        self.assertEqual(paired['back_leader_observations'], 0)
+        self.assertEqual(paired['back_leader_observations'], 1)
+        self.assertEqual(paired['back_leader_top1'], {'evaluable': 1, 'hits': None})
+        self.assertNotIn('back_leader_car', str(report))
         self.assertEqual(paired['back_mixture']['trifecta']['1'], 1)
         self.assertEqual(paired['direct']['trifecta']['1'], 0)
         self.assertEqual(paired['direct']['exacta']['1'], 1)
@@ -295,6 +324,22 @@ class FutureSettlementTests(unittest.TestCase):
         self.assertLess(one_point['trifecta']['difference_ci95'][0], 0.)
         self.assertNotIn('probability', str(paired))
         self.assertNotIn(RACES[0], str(paired))
+
+    def test_back_hits_publish_only_for_a_closed_nonrevealing_cohort(self):
+        races = [f'2026112824{race:02d}' for race in range(1, 5)]
+        admitted = {rid: forecast(rid) for rid in races}
+        back_pairs = {rid: {name: forecast(rid) for name in settle.BACK_ARMS} for rid in races}
+        outcomes = [dict(race_id=rid, day=DAY, input_sha256=admitted[rid]['input_sha256'],
+                         result_status='VERIFIED_NORMAL', top3=[1, 2, 3], back_leader_car=2) for rid in races]
+        for rid in races:
+            back_pairs[rid]['back_mixture']['back_leader_top1'] = 2 if rid in races[:2] else 1
+        def score(day_closed):
+            return settle._score_back_pairs(admitted, outcomes, back_pairs, {}, day_closed=day_closed)
+
+        self.assertEqual(score(False)['back_leader_top1'], {'evaluable': 4, 'hits': None})
+        self.assertEqual(score(True)['back_leader_top1'], {'evaluable': 4, 'hits': 2})
+        outcomes[-1] = dict(race_id=races[-1], day=DAY, result_status='MISSING_SAVED_RESULT')
+        self.assertEqual(score(True)['back_leader_top1'], {'evaluable': 3, 'hits': None})
 
     def test_back_replay_hold_keeps_the_frozen_result(self):
         rid = RACES[0]
@@ -396,8 +441,13 @@ class FutureSettlementTests(unittest.TestCase):
                         self.assertEqual(bool(personal_pairs), personal)
                         self.assertEqual(set(pairs[fixture.rid]), {'back_mixture', 'direct'})
                         self.assertEqual(pairs[fixture.rid]['direct']['input_sha256'], replayed['input_sha256'])
+                        self.assertIn(pairs[fixture.rid]['back_mixture']['back_leader_top1'],
+                                      [rider['car'] for rider in saved['forecast']['riders']])
                         tampered = deepcopy(entry)
-                        material['back_study']['arms']['direct']['distribution_sha256'] = '0' * 64
+                        if personal:
+                            material['back_study']['back_leader_estimate']['estimate_sha256'] = '0' * 64
+                        else:
+                            material['back_study']['arms']['direct']['distribution_sha256'] = '0' * 64
                         tampered['bindings']['shared_material_sha256'] = settle.digest(saved['shared_material'])
                         altered = settle.codec.seal_evidence(settle.records.wire(saved), fixture.public, fixture.day,
                                                              entry['clocks']['seal_started_at'])
@@ -470,7 +520,7 @@ class FutureSettlementTests(unittest.TestCase):
                                      day_inventory_complete=complete, missing_venues=[] if complete else ['98']))
         old = store(settle.PARENT, RACES, RACES[:1])
         later = store('c'*40, RACES, RACES[:2])
-        current = store('d'*40, [*RACES, added_rid], RACES, complete=False)
+        current = store('d'*40, [*RACES, added_rid], RACES)
         current.repo = Path('/reader')
         current.index['results'] = {
             legacy_rid: [{'evidence_sha256': 'a'*64}, {'evidence_sha256': 'b'*64}],
@@ -546,7 +596,8 @@ class FutureSettlementTests(unittest.TestCase):
                 personal = SimpleNamespace(add=failed_profile_add, report=lambda *_: self.fail('failed profile scored'))
                 audit = SimpleNamespace(add=lambda row, _: seen.append(row),
                                         report=lambda: {'audited_races': len(seen)})
-                report = settle._score_archived_day(None, current, b'', None, None, None, lambda: None, legacy,
+                report = settle._score_archived_day(None, current, b'', None, None, None,
+                    lambda: settle.clock('2026-11-29T00:00:00Z'), legacy,
                     feature_audit=audit, personal_study=personal,
                     progress=lambda stage: events.append(('stage', stage)))
                 self.assertEqual(adds, [legacy_rid])
@@ -582,8 +633,8 @@ class FutureSettlementTests(unittest.TestCase):
         self.assertEqual(paired['paired_one_point']['comparison'], 'official_history')
         self.assertEqual(paired['paired_one_point']['trifecta']['paired_races'], 1)
         self.assertNotIn('proper_scores', paired['no_history'])
-        self.assertFalse(report['day_inventory_complete'])
-        self.assertEqual(report['missing_venues'], 1)
+        self.assertTrue(report['day_inventory_complete'])
+        self.assertEqual(report['missing_venues'], 0)
         self.assertEqual(report['timed_originals'], {'legacy': 1, 'additional': 1})
         self.assertEqual(report['forecast_holds'], {'SERVER_READBACK_AFTER_T15': 1, 'SAVED_ORIGINAL_MISSING': 1})
 
