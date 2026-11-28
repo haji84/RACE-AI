@@ -128,7 +128,8 @@ def replay_original(*, payload, raw_baseline, raw_conditioned, owner_private_pem
     if record_stage is not None:
         record_stage('OFFICIAL_BASELINE_CIPHER_DECRYPT_FAILED')
     envelope,baseline,_,assessment=decrypt.decrypt_original_with_assessment(raw_cipher=raw_baseline,
-        expected_cipher_sha256=payload['baseline_cipher_sha256'],owner_private_pem=owner_private_pem)
+        expected_cipher_sha256=payload['baseline_cipher_sha256'],owner_private_pem=owner_private_pem,
+        replay_python311=True)
     if record_stage is not None:
         record_stage('OFFICIAL_BASELINE_CARD_REPLAY_FAILED')
     rebuilt=extension.build_baseline_candidate(**payload['baseline_arguments'],now=model.when(base['generated_at']))
