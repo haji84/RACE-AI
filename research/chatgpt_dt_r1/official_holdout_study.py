@@ -78,19 +78,14 @@ def _paired_metrics(scores):
 
 
 def _prefetch_targets(store, ids, *, results=False):
+    if not results:
+        return records.prefetch_original_sources(store, ids)
     folder = f'{records.ROOT}/{store.day}'
     paths = set()
     for rid in ids:
-        if results:
-            versions = store.index['results'].get(rid, ())
-            if versions:
-                paths.add(f"{folder}/{versions[-1]['evidence_sha256']}.sealed.json")
-        else:
-            original = store.index['originals'].get(rid)
-            if original is not None:
-                paths.add(f"{folder}/{original['evidence_sha256']}.sealed.json")
-                paths.update(archive._refs(rid))
-                paths.update(archive._form_refs(rid))
+        versions = store.index['results'].get(rid, ())
+        if versions:
+            paths.add(f"{folder}/{versions[-1]['evidence_sha256']}.sealed.json")
     try:
         return archive.prefetch_pinned_blobs(store.repo, store.head, paths,
                                              (folder, f'{archive.ROOT}/{store.day}'))
