@@ -1,0 +1,339 @@
+{
+  "archive": {
+    "commit": "2a1260fb0940ad11160b56a36f9c24cc4fb2f6d2",
+    "dataset_sha256": "9bc3fbda8339b32ba178f5c9c39d6623216ad5c2d5519774870ac5491ba0a847",
+    "files": {
+      "keirin.db": "1bdad22b9744c9c5563f7bb1af31875170a3e6b7f4b0dd73fba8f98d645d8fc4",
+      "keirin_2026q4.db": "d915560877493816b90df8bcd5e7bdef45557f57100b4cd40a3d017cd959334d"
+    }
+  },
+  "base_commit": "5bfd1b7cc96af51c4d28a2d1dca02cbca22a46da",
+  "contract": {
+    "basis": [
+      "points_1",
+      "points_2",
+      "points_3",
+      "attack_1",
+      "follow_2",
+      "same_line_12",
+      "same_line_13",
+      "same_line_23"
+    ],
+    "exacta": "sum over third place in each ordered triple",
+    "expected_july_scored": 2393,
+    "frozen_law": "frozen-DT-R1-prior-seven-JST-days",
+    "july": "evaluate both fixed corrections and frozen; never use July to select",
+    "june_guard": {
+      "baseline": "frozen",
+      "metrics": [
+        "tri_log_loss",
+        "ex_log_loss",
+        "tri_brier",
+        "ex_brier"
+      ],
+      "priority": [
+        "tri1",
+        "ex1",
+        "tri_log_loss",
+        "ex_log_loss",
+        "tri_brier",
+        "ex_brier"
+      ],
+      "tolerance": 1e-12
+    },
+    "objectives": {
+      "nll": {
+        "joint_nll": 1.0,
+        "strongest_frozen_wrong_softplus": 0.0
+      },
+      "nll_rank": {
+        "joint_nll": 1.0,
+        "strongest_frozen_wrong_softplus": 0.25
+      }
+    },
+    "optimizer": {
+      "max_iterations": 40,
+      "max_seconds": 540,
+      "method": "L-BFGS-B",
+      "ridge": 0.01,
+      "threads": 1,
+      "zero_start": true
+    },
+    "periods": {
+      "fit": [
+        "2026-03-01",
+        "2026-05-31"
+      ],
+      "july": [
+        "2026-07-01",
+        "2026-07-31"
+      ],
+      "june": [
+        "2026-06-01",
+        "2026-06-30"
+      ]
+    },
+    "points_definition": "clip(points_relative/10,-3,3)",
+    "prior_days": 7,
+    "rival": "highest frozen probability except the observed triple; lexical car tie break",
+    "schema": "DT_R1_RANKING_OBJECTIVE_CONTRACT_V1",
+    "scope": "RETROSPECTIVE_REUSED_ARCHIVE_DEVELOPMENTAL"
+  },
+  "contract_sha256": "c155547eb360d6c8963f66d2520bd9a1e939444f5d1916c697d23aab0bad1d02",
+  "elapsed_seconds": 71.556,
+  "frozen": {
+    "calibration_and_selection_overlap_july": true,
+    "file_sha256": "dab8c7f014c41ac18e4fed1ae28ac9b36e994611d1fcf5992f8b06e31a4c618b",
+    "fit_period_overlaps_training_and_june": true,
+    "geometry_sha256": "a7d832a2661c6f05167e7a412a55e51183c21e746447f91dac44e14eeb4dfe19",
+    "model_sha256": "5e022092a35c0258954090c6f3d0f8fa14f03f22511b28d6aa9183f5a38c381c"
+  },
+  "july": {
+    "cards": 2416,
+    "days": 31,
+    "excluded_without_unique_top3": 23,
+    "metrics": {
+      "frozen": {
+        "ex1": 522,
+        "ex1_rate": 0.21813623067279567,
+        "ex_brier": 0.8883491329825836,
+        "ex_log_loss": 2.8314435017859547,
+        "n": 2393,
+        "tri1": 252,
+        "tri1_rate": 0.10530714584203928,
+        "tri_brier": 0.96257409731014,
+        "tri_log_loss": 4.24743413623813
+      },
+      "nll": {
+        "ex1": 523,
+        "ex1_rate": 0.21855411617216883,
+        "ex_brier": 0.8878818947097481,
+        "ex_log_loss": 2.8285453728035517,
+        "n": 2393,
+        "tri1": 254,
+        "tri1_rate": 0.10614291684078563,
+        "tri_brier": 0.9621558866510148,
+        "tri_log_loss": 4.243943791177688
+      },
+      "nll_rank": {
+        "ex1": 521,
+        "ex1_rate": 0.21771834517342248,
+        "ex_brier": 0.8908874072391668,
+        "ex_log_loss": 2.847762344643083,
+        "n": 2393,
+        "tri1": 234,
+        "tri1_rate": 0.09778520685332219,
+        "tri_brier": 0.9653593221688888,
+        "tri_log_loss": 4.273473492680533
+      }
+    },
+    "paired_day_bootstrap_deltas": {
+      "nll_minus_frozen": {
+        "ex1": {
+          "ci95": [
+            -0.002448180823886196,
+            0.003025130243769682
+          ],
+          "delta": 0.0004178854993731718
+        },
+        "ex_brier": {
+          "ci95": [
+            -0.0006425870398789734,
+            -0.0003077906135385056
+          ],
+          "delta": -0.00046723827283561594
+        },
+        "ex_log_loss": {
+          "ci95": [
+            -0.003941303708659216,
+            -0.0017521596381416442
+          ],
+          "delta": -0.0028981289824030784
+        },
+        "tri1": {
+          "ci95": [
+            -0.0016440946447474336,
+            0.0033141736164060266
+          ],
+          "delta": 0.0008357709987463436
+        },
+        "tri_brier": {
+          "ci95": [
+            -0.0006217099674116443,
+            -0.0001976895645090862
+          ],
+          "delta": -0.0004182106591250528
+        },
+        "tri_log_loss": {
+          "ci95": [
+            -0.005120482084153426,
+            -0.001874560917084686
+          ],
+          "delta": -0.0034903450604422672
+        }
+      },
+      "nll_rank_minus_frozen": {
+        "ex1": {
+          "ci95": [
+            -0.00892117520330137,
+            0.008533428958890758
+          ],
+          "delta": -0.0004178854993731718
+        },
+        "ex_brier": {
+          "ci95": [
+            0.0012925215166673658,
+            0.003956755224402464
+          ],
+          "delta": 0.0025382742565831728
+        },
+        "ex_log_loss": {
+          "ci95": [
+            0.010623826478636845,
+            0.02245866365235669
+          ],
+          "delta": 0.016318842857128295
+        },
+        "tri1": {
+          "ci95": [
+            -0.013625627025894475,
+            -0.001261379746336964
+          ],
+          "delta": -0.007521938988717091
+        },
+        "tri_brier": {
+          "ci95": [
+            0.0017479627645922032,
+            0.003733347880096246
+          ],
+          "delta": 0.002785224858748864
+        },
+        "tri_log_loss": {
+          "ci95": [
+            0.017996438464199085,
+            0.03387392008523436
+          ],
+          "delta": 0.026039356442403194
+        }
+      },
+      "nll_rank_minus_nll": {
+        "ex1": {
+          "ci95": [
+            -0.008757389084145006,
+            0.007697242446216043
+          ],
+          "delta": -0.0008357709987463436
+        },
+        "ex_brier": {
+          "ci95": [
+            0.001711088891793723,
+            0.004438044642221406
+          ],
+          "delta": 0.003005512529418789
+        },
+        "ex_log_loss": {
+          "ci95": [
+            0.013090478344803248,
+            0.02564772398079798
+          ],
+          "delta": 0.019216971839531374
+        },
+        "tri1": {
+          "ci95": [
+            -0.014976741675475828,
+            -0.001701223500917271
+          ],
+          "delta": -0.008357709987463435
+        },
+        "tri_brier": {
+          "ci95": [
+            0.001946886401043661,
+            0.004324654738955532
+          ],
+          "delta": 0.0032034355178739166
+        },
+        "tri_log_loss": {
+          "ci95": [
+            0.020515914033065012,
+            0.03836012292875403
+          ],
+          "delta": 0.029529701502845458
+        }
+      }
+    }
+  },
+  "june": {
+    "cards": 2274,
+    "days": 30,
+    "excluded_without_unique_top3": 30,
+    "metrics": {
+      "frozen": {
+        "ex1": 516,
+        "ex1_rate": 0.22994652406417113,
+        "ex_brier": 0.8907338225043492,
+        "ex_log_loss": 2.8535368204351297,
+        "n": 2244,
+        "tri1": 223,
+        "tri1_rate": 0.09937611408199644,
+        "tri_brier": 0.9651640374360859,
+        "tri_log_loss": 4.285006331398086
+      },
+      "nll": {
+        "ex1": 523,
+        "ex1_rate": 0.23306595365418895,
+        "ex_brier": 0.8906321488384182,
+        "ex_log_loss": 2.8531834947573342,
+        "n": 2244,
+        "tri1": 222,
+        "tri1_rate": 0.09893048128342247,
+        "tri_brier": 0.9651148183201882,
+        "tri_log_loss": 4.2852278964643515
+      },
+      "nll_rank": {
+        "ex1": 506,
+        "ex1_rate": 0.22549019607843138,
+        "ex_brier": 0.8938157056798018,
+        "ex_log_loss": 2.8757758849494492,
+        "n": 2244,
+        "tri1": 209,
+        "tri1_rate": 0.09313725490196079,
+        "tri_brier": 0.9674479508288303,
+        "tri_log_loss": 4.313902911063286
+      }
+    },
+    "selection": {
+      "frozen_at": "2026-11-28T12:33:54.719459+00:00",
+      "june_selection": "frozen",
+      "parameter_hashes": {
+        "nll": "77b20f0165a5d0fbd7a620aaaabdd2c7749d8cf0f858242affa675fef1a22f90",
+        "nll_rank": "b99e60063c5a241a4f55dd0bcaf266f24f99953cc5e101577d775bdc5b3e3402"
+      }
+    }
+  },
+  "production_promoted": false,
+  "registered_at": "2026-11-28T12:32:55.713452+00:00",
+  "schema": "DT_R1_RANKING_OBJECTIVE_STUDY_V1",
+  "stop_reason": "FIXED_DEVELOPMENT_COMPARISON_COMPLETED",
+  "study_source_sha256": "4fb727069145739a6008efe5633e63ce37bacfff1db0b4f0882c442ddf48a314",
+  "training": {
+    "cards": 6927,
+    "excluded_without_unique_top3": 70,
+    "objectives": {
+      "nll": {
+        "converged": true,
+        "final_objective": 4.198838167532877,
+        "iterations": 9,
+        "parameter_sha256": "77b20f0165a5d0fbd7a620aaaabdd2c7749d8cf0f858242affa675fef1a22f90",
+        "stop_code": 0
+      },
+      "nll_rank": {
+        "converged": true,
+        "final_objective": 4.68209879711078,
+        "iterations": 10,
+        "parameter_sha256": "b99e60063c5a241a4f55dd0bcaf266f24f99953cc5e101577d775bdc5b3e3402",
+        "stop_code": 0
+      }
+    },
+    "scored": 6857
+  }
+}
