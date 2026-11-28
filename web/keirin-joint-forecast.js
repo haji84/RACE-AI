@@ -170,8 +170,10 @@
     need(snapshot && Number.isInteger(car) && rider);
     const percent = p => (p * 100).toFixed(1) + '%';
     const clock = (label, value) => '<p>' + label + ' <time datetime="' + escape(value) + '">' + escape(value) + '</time></p>';
+    const primary = [['1着確率', percent(rider.rank_probabilities[0])],
+      ['2着以内', percent(rider.top2_probability)], ['3着以内', percent(rider.top3_probability)]];
+    const peak = Math.max(...rider.rank_probabilities);
     const summary = [
-      ['2着以内', percent(rider.top2_probability)], ['3着以内', percent(rider.top3_probability)],
       ['着外（4着以下）', percent(rider.outside_top3_probability)],
       ['最頻着順', rider.most_likely_rank + '着'], ['期待着順', rider.expected_rank.toFixed(2)],
       ['登録番号', rider.registration || '未取得']
@@ -179,13 +181,15 @@
     const projection = snapshot.schema === PROJECTION;
     return '<section class="kn-joint-forecast" aria-label="' +
       escape(car + '番の比較B・着順確率') + '" data-joint-race="' + escape(snapshot.race_id) + '">' +
-      '<h3>' + escape(car + '番 ' + rider.name) + ' · 比較Bの着順確率</h3>' +
+      '<h3>今回のレースでの着順予測</h3><p>' + escape(car + '番 ' + rider.name) + ' · 比較Bの着順確率</p>' +
       '<p class="kn-joint-scope">' + (snapshot.scope === 'PROSPECTIVE_RESEARCH' ?
         '締切前に生成した研究予測' : '締切後の参考解析・事後研究') + ' · 確率は未校正</p>' +
       '<p>全員完走・同着なしを条件とする確率です。欠場・失格・落車・同着を含む無条件の確率ではありません。</p>' +
       '<p>比較Bの新しい解析です。保存済みの旧買い目とは別です。信頼度の格上げには使用していません。</p>' +
+      '<div class="kd-metrics kd-metrics-three">' + primary.map(([label, value]) =>
+        '<div class="kd-metric"><span>' + label + '</span><strong>' + value + '</strong></div>').join('') + '</div>' +
       '<ol class="kn-joint-ranks">' + rider.rank_probabilities.map((p, index) =>
-        '<li><span>' + (index + 1) + '着</span><meter min="0" max="1" value="' + p +
+        '<li' + (Math.abs(p - peak) < 1e-12 ? ' class="kd-rank-peak"' : '') + '><span>' + (index + 1) + '着</span><meter min="0" max="1" value="' + p +
         '" aria-label="' + (index + 1) + '着の予測確率">' + percent(p) + '</meter><span>' + percent(p) + '</span></li>').join('') +
       '</ol><dl class="kn-joint-summary">' +
       summary.map(([label, value]) => '<div><dt>' + label + '</dt><dd>' + escape(value) + '</dd></div>').join('') + '</dl>' +

@@ -305,3 +305,50 @@ body{overflow-wrap:break-word}button{min-height:34px}input,select{min-height:36p
 .kn-growth tbody th{background:transparent}
 .kn-growth td small{display:block;color:var(--kn-muted);font-size:12px}
 .kn-growth .kn-growth-decision{grid-column:1/-1;border-top:1px solid var(--kn-line);padding-top:11px;font-weight:700}
+.kd-open{margin:8px 0 1px;padding:6px 12px;min-height:36px;border:1px solid #cad9e2;border-radius:8px;color:#235671;background:#fff;font:inherit;font-size:13px;font-weight:700}
+.kd-dialog{width:min(560px,calc(100% - 20px));max-width:none;max-height:calc(100dvh - 20px);padding:0;overflow:auto;overscroll-behavior:contain;border:1px solid #dbe1e5;border-radius:18px;background:#fff;color:#172330;font:inherit}
+.kd-dialog::backdrop{background:#172b4199}
+.kd-header{position:sticky;top:0;z-index:1;display:flex;justify-content:space-between;align-items:center;gap:8px;padding:14px 18px;background:#fff;border-bottom:1px solid #e1e5e8}
+.kd-header h2{margin:0;font-size:clamp(18px,4.7vw,23px);line-height:1.25}
+.kd-header button{flex-shrink:0;min-height:44px;border:1px solid #d5dee4;border-radius:8px;padding:4px 12px;color:#314558;background:#fff;font-size:13px}
+.kd-body{padding:12px 18px 22px}
+.kd-riders,.kd-ranks,.kd-recents{padding:0;margin:0;list-style:none}
+.kd-riders li+li{margin-top:3px}
+.kd-rider-button{width:100%;display:flex;align-items:center;gap:10px;padding:6px 9px;min-height:46px;text-align:left;background:white;border-radius:10px;color:inherit}
+.kd-rider-button strong{overflow-wrap:anywhere}
+.kd-rider-button::after{content:"›";color:#4b5b68;font-size:20px}
+.kd-rider-button[aria-pressed=true]{background:#eef1f4}
+.kd-rider-button[aria-pressed=true]::after{content:"⌄"}
+.kd-style{margin-left:auto;text-align:right;color:#536475;font-size:12px;flex-shrink:0}
+.kd-car{flex:none;display:inline-grid;place-items:center;width:34px;height:34px;border-radius:8px;background:#242936;color:white;font-weight:800}
+.kd-car-1{background:#fff;border:1px solid #dae0e5;color:#18202a}.kd-car-3{background:#cb292c}.kd-car-4{background:#225cd7}.kd-car-5{background:#ebba12;color:#292200}.kd-car-6{background:#137d42}.kd-car-7{background:#bf5112}.kd-car-8{background:#a7396d}.kd-car-9{background:#532e93}
+.kd-selected{display:flex;align-items:center;gap:11px;padding:16px 0 6px;margin-top:14px;border-top:1px solid #e1e5e8}
+.kd-selected h2{margin:0;font-size:21px;overflow-wrap:anywhere}
+.kd-selected>p{margin-left:auto}
+.kd-section{padding:13px 0;border-bottom:1px solid #e3e7e9}
+.kd-section h3{font-size:16px;line-height:1.4;margin:0 0 8px}
+.kd-section p{line-height:1.55;margin:0 0 8px;overflow-wrap:anywhere}
+.kd-note{font-size:12px;color:#536475;line-height:1.45;margin:5px 0}
+.kd-metrics{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin:0 0 13px}
+.kd-metrics-three{grid-template-columns:repeat(3,minmax(0,1fr))}
+.kd-metric{min-width:0;display:grid;align-content:start;gap:4px;padding:8px 10px;border-radius:8px;background:#f3f5f6}
+.kd-metric span,.kd-metric small{color:#536475;font-size:12px;overflow-wrap:anywhere}
+.kd-metric strong{font-size:clamp(15px,5.2vw,25px);font-variant-numeric:tabular-nums}
+.kd-recents{display:flex;gap:8px;flex-wrap:wrap;font-size:13px}
+.kd-recents li{padding:3px 6px;background:#f3f5f6;border-radius:5px}
+.kd-section svg{display:block;width:100%;max-width:380px;margin:0 auto}
+.kd-section svg text{font-size:14px;fill:#253645}
+.kd-radar-grid{fill:none;stroke:#cbd4dd;stroke-width:1}
+.kd-radar-point{fill:#2d6ed4;stroke:#fff;stroke-width:1}
+.kd-ability-facts{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px 12px;margin:6px 0;font-size:12px}
+.kd-ability-facts div{padding:4px 0}.kd-ability-facts dt{font-weight:700}.kd-ability-facts dd{margin:1px 0 0;color:#536475}
+.kd-ranks{margin:7px 0 12px;font-variant-numeric:tabular-nums}
+.kd-ranks li{display:grid;grid-template-columns:2.2em minmax(0,1fr) 4.5em;align-items:center;gap:8px;padding:6px 0}
+.kd-ranks li>span:last-child{text-align:right}
+.kd-ranks meter{width:100%;height:16px;min-width:0}
+.kd-ranks meter::-webkit-meter-bar{background:#ecedef;border:0}
+.kd-ranks meter::-webkit-meter-optimum-value{background:#93a5b8}
+.kd-ranks .kd-rank-peak meter::-webkit-meter-optimum-value{background:#148045}
+.kd-ranks meter::-moz-meter-bar{background:#93a5b8}
+.kd-ranks .kd-rank-peak meter::-moz-meter-bar{background:#148045}
+@media(max-width:390px){.kd-header,.kd-body{padding-left:12px;padding-right:12px}.kd-metric{padding:7px}.kd-rider-button{gap:7px}}

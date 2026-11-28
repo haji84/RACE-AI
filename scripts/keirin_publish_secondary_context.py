@@ -11,6 +11,7 @@ import re
 import subprocess
 import tarfile
 from unicodedata import normalize
+from urllib.parse import urlsplit
 
 from race_ai import keirin_dossier_secondary as secondary
 from race_ai.keirin_dossier_race_context import MAX_RACES
@@ -71,14 +72,15 @@ def _safe_reason(error):
     return reason if re.fullmatch('[A-Z0-9_]{1,100}', reason) else 'RACECARD_UNVERIFIED'
 
 
-def publish_cards(repo, day, cards, *, published_at, published_only, store=None):
+def publish_cards(repo, day, cards, *, published_at, published_only, performance_only=False, store=None):
     """Bind hashed saved sources to current roster identities and add a public day."""
     store = store or public.PublicForecastGit(repo)
     parent = store.head()
     public.need(parent is not None, 'SECONDARY_DOSSIER_PUBLIC_BRANCH')
     for attempt in range(2):
         try:
-            return _publish_cards(store, parent, day, cards, published_at=published_at, published_only=published_only)
+            return _publish_cards(store, parent, day, cards, published_at=published_at,
+                                  published_only=published_only, performance_only=performance_only)
         except (ValueError, OSError):
             current = store.head()
             if attempt or current is None or current == parent:
@@ -86,7 +88,7 @@ def publish_cards(repo, day, cards, *, published_at, published_only, store=None)
             parent = current
 
 
-def _publish_cards(store, parent, day, cards, *, published_at, published_only):
+def _publish_cards(store, parent, day, cards, *, published_at, published_only, performance_only):
     store.fetch(parent)
     starters = _stored(store, parent, 'starters', day, _checked_starters)
     registry = _stored(store, parent, 'forecasts', day, public.checked)
@@ -109,10 +111,15 @@ def _publish_cards(store, parent, day, cards, *, published_at, published_only):
             fields.setdefault(race_id, dict(race_id=race_id, riders=[
                 dict(number=rider['number'], registration=rider['registration']) for rider in row['riders']]))
     identities, holds = None, Counter()
-    additions = {}
+    additions, performance_cards = {}, []
     for race_id, raw, receipt, expected_cutoff in cards:
         try:
             public.need(registry is None or race_id in cutoffs, 'SECONDARY_DOSSIER_UNREGISTERED_RACE')
+            supplement_only = performance_only or bool(urlsplit(receipt['url']).query)
+            if supplement_only or all(label in raw for label in ('年間勝利度数'.encode(), '当所5年'.encode())):
+                performance_cards.append((race_id, raw, receipt))
+            if supplement_only:
+                continue
             card = secondary.source_card(raw, receipt, race_id, now=published_at)
             cutoff = cutoffs.get(race_id) or card['source_cutoff_at']
             if expected_cutoff is not None:
@@ -132,8 +139,20 @@ def _publish_cards(store, parent, day, cards, *, published_at, published_only):
             previous = additions.get(race_id) or retained.get(race_id)
             if previous is None or public.when(row['source_at']) > public.when(previous['source_at']):
                 fields[race_id] = official
+                if previous and 'performance' in previous:
+                    row = dict(row, performance=previous['performance'])
                 additions[race_id] = row
         except (ValueError, KeyError, IndexError, TypeError, OSError, subprocess.SubprocessError) as error:
+            holds[_safe_reason(error)] += 1
+    for race_id, raw, receipt in performance_cards:
+        try:
+            row = additions.get(race_id) or retained.get(race_id)
+            public.need(row is not None and fields.get(race_id), 'SECONDARY_DOSSIER_PERFORMANCE_ROSTER')
+            proof = secondary.project_performance(raw, receipt, fields[race_id], now=published_at)
+            previous = row.get('performance')
+            if previous is None or public.when(proof['source_at']) > public.when(previous['source_at']):
+                additions[race_id] = dict(row, performance=proof)
+        except (ValueError, KeyError, IndexError, TypeError, OSError) as error:
             holds[_safe_reason(error)] += 1
     if not additions and not retained:
         return _status('NO_QUALIFYING_ROWS', day, holds=holds)
@@ -258,7 +277,7 @@ def publish_saved_reference(repo, root, note, entry, *, published_at):
     return publish_cards(repo, day, cards, published_at=published_at, published_only=False)
 
 
-def replay_saved_captures(repo, day, folders, *, published_at):
+def replay_saved_captures(repo, day, folders, *, published_at, performance_only=False):
     cards = []
     seen = set()
     for folder in folders:
@@ -267,12 +286,13 @@ def replay_saved_captures(repo, day, folders, *, published_at):
         public.need(type(captured) is list and len(captured) <= MAX_RACES, 'SECONDARY_DOSSIER_CAPTURE')
         for item in captured:
             rid = item['race_id']
-            public.need(rid not in seen and rid[:8] == day.replace('-', ''), 'SECONDARY_DOSSIER_DUPLICATE')
-            seen.add(rid)
             receipt = item['kdreams_receipt']
+            identity = rid, bool(urlsplit(receipt['url']).query)
+            public.need(identity not in seen and rid[:8] == day.replace('-', ''), 'SECONDARY_DOSSIER_DUPLICATE')
+            seen.add(identity)
             raw, _ = _source(root, receipt, generated_at=published_at)
             cards.append((rid, raw, receipt, None))
-    return publish_cards(repo, day, cards, published_at=published_at, published_only=True)
+    return publish_cards(repo, day, cards, published_at=published_at, published_only=True, performance_only=performance_only)
 
 
 def main():
@@ -280,11 +300,13 @@ def main():
     parser.add_argument('--repo', required=True, type=Path)
     parser.add_argument('--day', required=True)
     parser.add_argument('--capture-dir', action='append', type=Path, required=True)
+    parser.add_argument('--performance-only', action='store_true',
+                        help='Append checked performance tables to existing records.')
     args = parser.parse_args()
     try:
         public.official._day(args.day)
         report = replay_saved_captures(args.repo, args.day, args.capture_dir,
-                                       published_at=datetime.now(timezone.utc))
+                                       published_at=datetime.now(timezone.utc), performance_only=args.performance_only)
     except (ValueError, OSError, TypeError, KeyError, subprocess.SubprocessError):
         print(json.dumps(dict(state='HOLD_PUBLIC_RIDER_CONTEXT_SECONDARY', provider_requests=0)))
         return 2

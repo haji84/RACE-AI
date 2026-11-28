@@ -29,6 +29,8 @@ STAT_COLUMNS = {
 STATS_FIELDS = {'home_count', *STAT_COLUMNS}
 ENTRY_HEADINGS = ('競走得点','S','B','逃','捲','差','マ','1着','2着','3着','着外','勝率','2連対率','3連対率')
 TABLES = ':scope > div.racecard_contents > table.racecard_table'
+PERFORMANCE_FIELDS = {'source_at','source_sha256','source_url','riders'}
+FINISH_COUNTS = ('1着','2着','3着','着外')
 
 
 def _need(ok, code):
@@ -40,6 +42,15 @@ def _url(value, race_id):
     _need(type(value) is str, 'URL')
     _url_role(value, 'k', race_id)
     _need(value == 'https://keirin.kdreams.jp' + urlsplit(value).path, 'ORDINARY_URL')
+
+
+def _performance_url(value, race_id):
+    _need(type(value) is str, 'PERFORMANCE_URL')
+    _url_role(value, 'k', race_id)
+    parsed = urlsplit(value)
+    ordinary = 'https://keirin.kdreams.jp' + parsed.path
+    _need(value in (ordinary, ordinary + '?pageType=yoso', ordinary + '?pageType=showResult'), 'PERFORMANCE_URL')
+    return ordinary
 
 
 def _name(value):
@@ -124,9 +135,7 @@ def _source_cutoff(content, day):
     return context._aware(f'{day}T{int(match[1]):02d}:{match[2]}:00+09:00')
 
 
-def source_card(raw, receipt, race_id, *, now=None):
-    """Check the archived card and expose only its selected normalized racing fields."""
-    day = context._race_day(race_id)
+def _receipt(raw, receipt, now):
     published = context._aware(now if now is not None else datetime.now(timezone.utc))
     _need(type(receipt) is dict and set(receipt) == {'url','bytes_sha256','bytes','status','captured_at'} and
           receipt['status'] == 200 and type(receipt['bytes']) is int and type(raw) is bytes and
@@ -134,11 +143,22 @@ def source_card(raw, receipt, race_id, *, now=None):
           receipt['bytes_sha256'] == sha256(raw).hexdigest(), 'RECEIPT')
     source_at = context._aware(receipt['captured_at'])
     _need(source_at <= published, 'RECEIPT_CLOCK')
+    return source_at
+
+
+def _race_content(raw, url):
+    document = card._document(raw,url)
+    return card._one(document.select('section.raceinfo_section div.raceinfo_contents'),
+                     'KDREAMS_SELECTED_RACE_CONTENT_REQUIRED')
+
+
+def source_card(raw, receipt, race_id, *, now=None):
+    """Check the archived card and expose only its selected normalized racing fields."""
+    day = context._race_day(race_id)
+    source_at = _receipt(raw, receipt, now)
     url = receipt['url']
     _url(url,race_id)
-    document = card._document(raw,url)
-    content = card._one(document.select('section.raceinfo_section div.raceinfo_contents'),
-                        'KDREAMS_SELECTED_RACE_CONTENT_REQUIRED')
+    content = _race_content(raw,url)
     card._competition(content)
     provider, _ = card._kdreams_riders(content)
     _need(5 <= len(provider) <= 9, 'ROSTER_SIZE')
@@ -175,8 +195,82 @@ def _project_card(source, official_starters_row, *, official_cutoff_at, now):
     return result
 
 
+def _performance_counts(table, names, width, offset):
+    rows = {}
+    for row in card._table_rows(table):
+        number = row.select_one(':scope > td.num')
+        if number is None:
+            continue
+        value = card._text(number)
+        _need(card.CAR.fullmatch(value), 'PERFORMANCE_ROSTER')
+        car = int(value)
+        identity = row.select_one(':scope > td.rider')
+        _need(car in names and car not in rows and identity is not None and
+              _name(card._name(identity)) == names[car], 'PERFORMANCE_ROSTER')
+        cells = row.find_all('td',recursive=False)
+        _need(len(cells) in (9 + width, 10 + width) and
+              re.fullmatch(r'[0-9]+\.[0-9]+',card._text(cells[-width-1])), 'PERFORMANCE_COLUMNS')
+        values = [card._text(cell) for cell in cells[-width:][offset:offset+4]]
+        _need(all(re.fullmatch(r'[0-9]{1,3}',value) and int(value) <= 600 for value in values),
+              'PERFORMANCE_COUNTS')
+        counts = list(map(int,values))
+        rows[car] = counts if sum(counts) else None
+    _need(rows.keys() == names.keys(), 'PERFORMANCE_ROSTER')
+    return rows
+
+
+def _performance_tables(content, names):
+    tables = [(table,_headings(table)) for table in content.select(TABLES)]
+    annual = [(table,headings) for table,headings in tables if headings and headings[0][-1] == '年間勝利度数']
+    venue = [(table,headings) for table,headings in tables if headings and headings[0][-1] == '当所5年']
+    _need(len(annual) == len(venue) == 1, 'PERFORMANCE_TABLES')
+    annual_table, annual_headings = annual[0]
+    venue_table, venue_headings = venue[0]
+    _need(annual_headings[1:] == [('決勝','特選','準決','予選'),FINISH_COUNTS * 4] and
+          venue_headings[1:] == [FINISH_COUNTS], 'PERFORMANCE_HEADINGS')
+    return (_performance_counts(annual_table,names,16,8), _performance_counts(venue_table,names,4,0))
+
+
+def project_performance(raw, receipt, official_starters_row, *, now):
+    """Bind the provider's annual semifinals and five-year venue counts to official starters."""
+    rid = official_starters_row['race_id']
+    source_at = _receipt(raw,receipt,now)
+    ordinary = _performance_url(receipt['url'],rid)
+    content = _race_content(raw,ordinary)
+    official = official_starters_row['riders']
+    identities = context._identity(official,'number','registration')
+    names = {row['number']:_name(row['name']) for row in official}
+    provider, _ = card._kdreams_riders(content)
+    _need(5 <= len(identities) <= 9 and
+          {number:_name(row['name']) for number,row in provider.items()} == names, 'PERFORMANCE_ROSTER')
+    semi, venue = _performance_tables(content,names)
+    result = dict(source_url=receipt['url'],source_sha256=receipt['bytes_sha256'],source_at=source_at.isoformat(),
+                  riders=[dict(number=number,registration=identities[number],semi=semi[number],venue=venue[number])
+                          for number in sorted(identities)])
+    _checked_performance(result,rid,context._aware(now),identities)
+    return result
+
+
+def _checked_performance(supplement, rid, published, identities):
+    _need(type(supplement) is dict and set(supplement) == PERFORMANCE_FIELDS, 'PERFORMANCE_FIELDS')
+    _performance_url(supplement['source_url'],rid)
+    _need(context._aware(supplement['source_at']) <= published and
+          type(supplement['source_sha256']) is str and context.SHA.fullmatch(supplement['source_sha256']),
+          'PERFORMANCE_CLOCK')
+    rows = supplement['riders']
+    _need(type(rows) is list and all(type(row) is dict and set(row) == {'number','registration','semi','venue'}
+                                   for row in rows), 'PERFORMANCE_FIELDS')
+    _need(context._identity(rows,'number','registration') == identities, 'PERFORMANCE_ROSTER')
+    for row in rows:
+        for field in ('semi','venue'):
+            counts = row[field]
+            _need(counts is None or type(counts) is list and len(counts) == 4 and
+                  all(type(value) is int and 0 <= value <= 600 for value in counts) and sum(counts) > 0,
+                  'PERFORMANCE_COUNTS')
+
+
 def _checked_race(row, day, published):
-    _need(type(row) is dict and set(row) == RACE_FIELDS, 'RACE_FIELDS')
+    _need(type(row) is dict and RACE_FIELDS <= set(row) <= RACE_FIELDS | {'performance'}, 'RACE_FIELDS')
     rid = row['race_id']
     _need(context._race_day(rid) == day, 'RACE_DAY')
     _url(row['source_url'],rid)
@@ -187,6 +281,8 @@ def _checked_race(row, day, published):
           'RACE_CLOCK')
     identities = context._identity(row['riders'],'number','registration')
     _need(5 <= len(identities) <= 9, 'ROSTER_SIZE')
+    if 'performance' in row:
+        _checked_performance(row['performance'],rid,published,identities)
     for item in row['riders']:
         _need(set(item) == {'number','registration','stats','comment'}, 'RIDER_FIELDS')
         stats = item['stats']

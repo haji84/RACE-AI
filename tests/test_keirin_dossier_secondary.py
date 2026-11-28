@@ -37,6 +37,25 @@ def receipt(raw):
             'captured_at':CAPTURED}
 
 
+def performance_card():
+    def table(title, labels, counts):
+        headers = [(title,), *labels]
+        heading_rows = ''.join('<tr>' + ''.join(f'<th>{value}</th>' for value in row) + '</tr>'
+                               for row in headers)
+        data_rows = ''.join(
+            f'<tr><td class="num">{number}</td><td class="rider">例示選手{number}</td>'
+            + '<td>0</td>' * 6 + '<td>90.25</td>'
+            + ''.join(f'<td>{count if number == 1 else 0}</td>' for count in counts) + '</tr>'
+            for number in CARS)
+        return f'<table class="racecard_table none">{heading_rows}{data_rows}</table>'
+
+    order = ('1着','2着','3着','着外')
+    annual = table('年間勝利度数', [('決勝','特選','準決','予選'), order * 4],
+                   (0,) * 8 + (6,3,1,1) + (0,) * 4)
+    venue = table('当所5年', [order], (5,2,2,4))
+    return saved_card().replace(b'</tbody></table>', b'</tbody></table>' + (annual + venue).encode(), 1)
+
+
 def roster():
     return dict(race_id=RACE_ID,riders=[
         dict(number=number,name=f'例示選手 {number}',registration=str(100000+number))
@@ -57,6 +76,40 @@ def packet(rows):
 
 
 class SecondaryDossierTest(unittest.TestCase):
+    def test_checked_performance_supplement_keeps_proof_and_counts(self):
+        raw = performance_card()
+        proof = {**receipt(raw),'url':KDREAMS_URL+'?pageType=yoso'}
+        performance = secondary.project_performance(raw,proof,roster(),now=PUBLISHED)
+        self.assertEqual(performance['riders'][0],
+                         dict(number=1,registration='100001',semi=[6,3,1,1],venue=[5,2,2,4]))
+        self.assertIsNone(performance['riders'][1]['semi'])
+        self.assertEqual(performance['source_sha256'],proof['bytes_sha256'])
+        row = {**project(),'performance':performance}
+        self.assertEqual(packet([row])['races'][0]['performance'],performance)
+        for field,value in [('source_at',DAY+'T16:06:00+09:00'),('source_url',KDREAMS_URL+'?pageType=odds')]:
+            with self.subTest(field=field), self.assertRaises(ValueError):
+                packet([{**row,'performance':{**performance,field:value}}])
+        mismatched = deepcopy(row)
+        mismatched['performance']['riders'][0]['registration'] = '100009'
+        with self.assertRaisesRegex(ValueError,'PERFORMANCE_ROSTER'):
+            packet([mismatched])
+
+    def test_performance_accepts_published_race_urls_and_requires_exact_table_meanings(self):
+        raw = performance_card()
+        def capture(body, url):
+            return secondary.project_performance(body,{**receipt(body),'url':url},roster(),now=PUBLISHED)
+
+        tab = KDREAMS_URL+'?pageType=showResult'
+        self.assertEqual(capture(raw,tab)['riders'][0]['venue'],[5,2,2,4])
+        self.assertEqual(capture(raw,KDREAMS_URL)['riders'][0]['venue'],[5,2,2,4])
+        with self.assertRaisesRegex(ValueError,'PERFORMANCE_URL'):
+            capture(raw,tab+'&pageType=yoso')
+        with self.assertRaisesRegex(ValueError,'PERFORMANCE_HEADINGS'):
+            capture(raw.replace('<th>準決</th>'.encode(),'<th>一般</th>'.encode()),tab)
+        with self.assertRaisesRegex(ValueError,'PERFORMANCE_COUNTS'):
+            capture(raw.replace(b'<td>6</td><td>3</td><td>1</td><td>1</td>',
+                                b'<td>601</td><td>3</td><td>1</td><td>1</td>'),tab)
+
     def test_admits_sparse_registered_roster_and_keeps_two_cutoffs_and_capture_time_distinct(self):
         raw = saved_card()
         source = secondary.source_card(raw,receipt(raw),RACE_ID,now=PUBLISHED)

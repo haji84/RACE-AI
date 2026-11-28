@@ -88,6 +88,14 @@ def build(root=None):
     original = (web/'race-app-core.js').read_bytes()
     prefix = b"if (typeof window === 'object' && typeof location === 'object') window.RaceNoteInitialFragment = location.hash;\n"
     components = [path.read_bytes() for path in parts]
+    dossier = (web/'keirin-dossier-data.js').read_bytes()
+    marker = b'/* reviewed rider race facts */ null'
+    if dossier.count(marker) != 1:
+        raise ValueError('dossier needs exactly one archived evidence placeholder')
+    facts = json.loads((root/'docs/evidence/keirin-rider-dossier-20261126.json').read_bytes())
+    encoded = json.dumps(facts, ensure_ascii=True, separators=(',', ':'), allow_nan=False).encode('ascii')
+    components.append(dossier.replace(marker, encoded))
+    components.append((web/'keirin-dossier-ui.js').read_bytes())
     components.append(build_note_view(root))
     bundle = prefix + original + b'\n' + b'\n'.join(components)
     (web/'app.js').write_bytes(bundle)
