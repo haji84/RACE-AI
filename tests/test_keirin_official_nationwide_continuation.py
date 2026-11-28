@@ -703,6 +703,14 @@ class RunnerTests(unittest.TestCase):
             self.assertEqual(report['public_starters']['new_races'],0)
             self.assertEqual(report['source_requests'],0)
 
+    def test_settlement_discovers_days_without_fetching_unrelated_ciphertexts(self):
+        api = self.api()
+        context = api.SettlementContext()
+        with patch.object(api.records, 'discover_days', return_value=[DAY]) as discover:
+            self.assertEqual(api._known_days('/synthetic', lambda: AT, context), [DAY])
+        discover.assert_called_once_with('/synthetic', retry_archive_timeout=True, blobless_fetch=True)
+        self.assertFalse(context.allow_archive_timeout_retry())
+
     def test_settlement_archive_timeout_reports_a_hold_before_any_provider_call(self):
         api = self.api()
         context = api.SettlementContext()
@@ -712,7 +720,7 @@ class RunnerTests(unittest.TestCase):
             report = api.settle_tick(repo='/synthetic', owner_private_pem=self.private,
                 private_root='/synthetic', clock=lambda: AT, context=context, days=[DAY],
                 source_commit='a'*40)
-        store.assert_called_once_with('/synthetic', DAY, retry_archive_timeout=True)
+        store.assert_called_once_with('/synthetic', DAY, retry_archive_timeout=True, blobless_fetch=True)
         open_provider.assert_not_called()
         self.assertEqual(report['source_requests'], 0)
         self.assertTrue(report['no_provider_tick'])
@@ -841,6 +849,7 @@ class RunnerTests(unittest.TestCase):
         self.assertEqual(first['published_originals'],1);self.assertEqual(first['published_races'],1)
         self.assertEqual(first['source_requests'],0);self.assertTrue(first['no_provider_tick'])
         self.assertEqual(load.call_count,1);self.assertEqual(publish.call_count,1)
+        self.assertEqual(load.call_args.kwargs['index_commit'], store.head)
         self.assertEqual(gate.call_count,2);transport.assert_not_called()
 
     def test_original_recovery_retries_failed_or_pending_admission_before_caching(self):

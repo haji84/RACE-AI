@@ -1,6 +1,6 @@
 """Synthetic owner-codec tests; no real key, source access or live forecast claim."""
 from copy import deepcopy
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from hashlib import sha256
 import importlib
 from collections import Counter
@@ -17,6 +17,7 @@ from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.primitives.asymmetric import rsa
 
 from race_ai import keirin_nationwide_auto_storage as storage
+from race_ai.keirin_github_origin_evidence import MAX_ARCHIVE_BYTES
 from race_ai.keirin_github_evidence_client import GitHubEvidenceError
 from race_ai import keirin_official_run_history as codec
 from research.chatgpt_dt_r1.policy import digest
@@ -76,6 +77,31 @@ def nine_rider_original():
     for record in (payload, original):
         record.update(snapshot=snapshot, baseline=baseline)
     payload['baseline_arguments'] = args
+    return payload, original
+
+
+def second_race_original():
+    """Rebuild the fixture from a distinct synthetic official race card."""
+    from race_ai import keirin_official_nationwide_extension as ext
+    from race_ai import keirin_nationwide_auto_generator as old_model
+
+    payload, original = _original()
+    args = payload['baseline_arguments']
+    card = args['card_arguments']
+    when = old_model.when(original['baseline']['generated_at'])
+    card['race_number'] = 2
+    card['list_raw'] = card['list_raw'].replace('架空区分'.encode(), 'Ｌ級ガールズ選抜'.encode())
+    card['detail_raw'] = card['detail_raw'].replace(b'"selRaceNo": 1', b'"selRaceNo": 2')
+    for page in ('list', 'detail'):
+        card[page + '_sha256'] = sha256(card[page + '_raw']).hexdigest()
+    snapshot = ext.build_baseline_candidate(**args, now=when)['snapshot']
+    rid = snapshot['race_id']
+    baseline = old_model.generate_A_B(snapshot, generated_at=when.isoformat())
+    for record in (payload, original):
+        record.update(race_id=rid, snapshot=snapshot, baseline=baseline)
+    proof = original['origin_receipts']['baseline_origin']
+    proof['race_id'] = rid
+    proof['evidence_sha256'] = old_model.digest({k: v for k, v in proof.items() if k != 'evidence_sha256'})
     return payload, original
 
 
@@ -222,6 +248,91 @@ class FutureShadowTests(unittest.TestCase):
                        'official_registration_id', 'rank_probabilities', 'PRIVATE KEY'):
             self.assertNotIn(hidden, public)
         self.assertEqual({p.name for p in self.output.iterdir()}, {'manifest.json', entry['cipher']['file']})
+
+    def test_official_cutoffs_and_race_id_ties_order_attempts_even_when_sources_fail(self):
+        first, tied, later = self.ids[40], self.ids[60], self.ids[0]
+        early_cutoff = NOW + timedelta(minutes=35)
+        late_cutoff = NOW + timedelta(minutes=50)
+        self.store.index['originals'] = {
+            later: dict(self.original_meta, race_id=later, cutoff_at=late_cutoff.isoformat()),
+            tied: dict(self.original_meta, race_id=tied, cutoff_at=early_cutoff.isoformat()),
+            first: dict(self.original_meta, race_id=first,
+                        cutoff_at=early_cutoff.astimezone(timezone(timedelta(hours=9))).isoformat()),
+        }
+        attempted, read = [], self.store.read
+
+        def open_original(meta, private):
+            if meta['kind'] == 'original':
+                attempted.append(meta['race_id'])
+                raise ValueError('synthetic source failure')
+            return read(meta, private)
+
+        self.store.read = open_original
+        report = self.produce()
+        self.assertEqual(attempted, [first, tied, later])
+        self.assertEqual(report['registered_races'], 78)
+        self.assertEqual(report['hold_reasons'], {'SOURCE_ADMISSION_UNVERIFIED': 3,
+                                                  'SAVED_ORIGINAL_MISSING': 75})
+        entries = self.manifest()['entries']
+        self.assertEqual([row['slot_sha256'] for row in entries[:3]],
+                         [self.api.slot(self.day, rid) for rid in (first, tied, later)])
+        self.assertTrue(all(row['reason'] == 'SAVED_ORIGINAL_MISSING' for row in entries[3:]))
+
+    def test_cipher_budget_defers_only_unwritten_members_and_preserves_all_78_slots(self):
+        payload, original = second_race_original()
+        other_rid = original['race_id']
+        self.store.index['originals'][other_rid] = dict(self.original_meta, race_id=other_rid)
+        read = self.store.read
+        self.store.read = lambda meta, private: (
+            deepcopy(payload) if meta.get('race_id') == other_rid else read(meta, private))
+        self.admit.side_effect = lambda source, value, *a, **k: (
+            deepcopy(original if value['race_id'] == other_rid else self.original), {'synthetic': True})
+
+        reference = self.produce()
+        self.assertEqual(reference['new_encrypted_forecasts'], 2)
+        individual_sizes = [row['cipher']['bytes'] for row in self.manifest()['entries'] if row['cipher']]
+        cap = max(individual_sizes)
+        self.assertGreater(reference['cipher_bytes'], cap)
+
+        self.output = self.root / 'bounded'
+        with patch.object(self.api.capture_files, '_save_once', wraps=self.api.capture_files._save_once) as save:
+            report = self.produce(_ciphertext_byte_cap=cap)
+
+        self.assertEqual(report['registered_races'], 78)
+        self.assertEqual(report['held_races'], 77)
+        self.assertEqual(report['new_encrypted_forecasts'], 1)
+        self.assertEqual(report['source_admitted_races'], 2)
+        self.assertLessEqual(report['cipher_bytes'], cap)
+        self.assertEqual(report['hold_reasons'], {'UPLOAD_BYTE_BUDGET_EXHAUSTED': 1,
+                                                  'SAVED_ORIGINAL_MISSING': 76})
+        manifest = self.api.verify_output(self.output, expected_manifest_sha256=report['manifest_sha256'])
+        self.assertEqual(len(manifest['entries']), 78)
+        ready, deferred = manifest['entries'][:2]
+        self.assertEqual(ready['slot_sha256'], self.api.slot(self.day, self.rid))
+        self.assertEqual(deferred['slot_sha256'], self.api.slot(self.day, other_rid))
+        self.assertEqual(deferred['reason'], 'UPLOAD_BYTE_BUDGET_EXHAUSTED')
+        self.assertEqual((deferred['cipher'], deferred['clocks'], deferred['bindings']), (None, None, None))
+        self.assertEqual([call.args[0].name for call in save.call_args_list],
+                         [ready['cipher']['file'], 'manifest.json'])
+        self.assertEqual({path.name for path in self.output.iterdir()}, {'manifest.json', ready['cipher']['file']})
+
+    def test_reader_rejects_budget_deferral_that_already_has_ciphertext(self):
+        self.produce()
+        manifest = self.manifest()
+        entry, = [row for row in manifest['entries'] if row['cipher']]
+        entry.update(state='HOLD', reason='UPLOAD_BYTE_BUDGET_EXHAUSTED')
+        summary = manifest['summary']
+        summary.update(state='HOLD_DT_SHADOW_NO_TIMELY_LOCAL_ORIGINAL', locally_saved_before_t15=0,
+                       held_races=78, hold_reasons={'SAVED_ORIGINAL_MISSING': 77,
+                                                    'UPLOAD_BYTE_BUDGET_EXHAUSTED': 1})
+        (self.output / 'manifest.json').write_bytes(codec._canonical(manifest))
+        with self.assertRaisesRegex(ValueError, 'UPLOAD_BYTE_BUDGET_ENTRY'):
+            self.api.verify_output(self.output)
+
+    def test_private_cipher_cap_cannot_expand_archive_ceiling(self):
+        with self.assertRaisesRegex(ValueError, 'INVALID_UPLOAD_BYTE_BUDGET'):
+            self.produce(_ciphertext_byte_cap=MAX_ARCHIVE_BYTES)
+        self.assertFalse(self.output.exists())
 
     def test_nine_riders_use_the_same_frozen_schema_and_compact_cipher_source_reference(self):
         self.payload, self.original = nine_rider_original()

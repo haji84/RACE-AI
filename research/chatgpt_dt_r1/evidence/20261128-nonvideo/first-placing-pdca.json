@@ -1,0 +1,118 @@
+{
+  "github": {
+    "artifact_archive_sha256": "53fb3aba79d70f5cb29ad77b2c051a1a1887b9ca8f65261f7efb0d12f6eee62e",
+    "artifact_id": 15242761269,
+    "job_completed_at": "2026-11-28T01:41:53+00:00",
+    "job_id": 140821746784,
+    "run_id": "46093827841"
+  },
+  "receipt": {
+    "added_after_frozen_registry": 0,
+    "confidence": "HOLD",
+    "day_jst": "2026-11-28",
+    "forecast_holds": {
+      "SAVED_ORIGINAL_MISSING": 38,
+      "SERVER_READBACK_AFTER_T15": 1,
+      "SOURCE_ADMISSION_UNVERIFIED": 23
+    },
+    "formal_three_way_races": 0,
+    "independent_readback_run_id": "46083220254",
+    "independent_server_evidence_at": "2026-11-27T23:36:34+00:00",
+    "independently_timed_candidates": 16,
+    "latest_registry_races": 78,
+    "metrics": {
+      "evaluable": 2,
+      "exacta": {
+        "1": {
+          "all_target_rate": 0.0,
+          "hits": 0,
+          "predicted_rate": 0.0
+        },
+        "2": {
+          "all_target_rate": 0.5,
+          "hits": 1,
+          "predicted_rate": 1.0
+        }
+      },
+      "holds": {
+        "MISSING_PREDICTION": 1
+      },
+      "not_evaluable": {
+        "MISSING_SAVED_RESULT": 42,
+        "NO_SAVED_OFFICIAL_ORIGINAL": 32,
+        "RESULT_REPLAY_UNVERIFIED": 2
+      },
+      "predicted_evaluable": 1,
+      "prediction_coverage": 0.5,
+      "registered": 78,
+      "trifecta": {
+        "1": {
+          "all_target_rate": 0.0,
+          "hits": 0,
+          "predicted_rate": 0.0
+        },
+        "12": {
+          "all_target_rate": 0.5,
+          "hits": 1,
+          "predicted_rate": 1.0
+        },
+        "2": {
+          "all_target_rate": 0.0,
+          "hits": 0,
+          "predicted_rate": 0.0
+        },
+        "4": {
+          "all_target_rate": 0.0,
+          "hits": 0,
+          "predicted_rate": 0.0
+        },
+        "9": {
+          "all_target_rate": 0.5,
+          "hits": 1,
+          "predicted_rate": 1.0
+        }
+      }
+    },
+    "minimum_margin_seconds": 900,
+    "new_forecasts": 0,
+    "owner_originals_replayed": 16,
+    "payout_evaluation": "NOT_RUN",
+    "pdca": {
+      "fixed_trifecta_points": 4,
+      "flow_checked": 0,
+      "grade_counts": {
+        "E": 1
+      },
+      "placing_checked": 1
+    },
+    "producer_run_id": "46082459814",
+    "production_promoted": false,
+    "provider_source_requests": 0,
+    "reader_code_commit": "d8f8c8d843243e4a55ee31297e06b27e2b09d9fc",
+    "reader_run_id": "46093827841",
+    "registered_races": 78,
+    "result_archive_commit": "20635f9a0718e01bfe50603df67307c7849a22cf",
+    "result_replay_holds": {
+      "OFFICIAL_RESULT_REPLAY_FAILED": 2
+    },
+    "result_states": {
+      "MISSING_SAVED_RESULT": 42,
+      "NO_SAVED_OFFICIAL_ORIGINAL": 32,
+      "RESULT_REPLAY_UNVERIFIED": 2,
+      "VERIFIED_NORMAL": 2
+    },
+    "retention": {
+      "manifest_sha256": "90b275d6b0fafd1fd69983a7c17e3efe5d4d64ea0f31eb1baa8b1b1703305ba2",
+      "pin_sha256": "093c8d02779a33b46f516d475e3d5549654eadb18c3b62f208c4a865b8cc3c4a",
+      "producer_run_id": "46082459814",
+      "retained_bytes": 1476673,
+      "retained_files_verified": 18
+    },
+    "schema": "DT_R1_FIRST_FUTURE_SETTLEMENT_V1",
+    "scope": "FIRST_PINNED_DT_ONLY_COHORT",
+    "state": "DT_OFFICIAL_RESULTS_SCORED",
+    "state_writes": 0,
+    "training_runs": 0,
+    "video_required": false
+  }
+}

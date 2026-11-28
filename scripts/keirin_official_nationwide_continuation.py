@@ -631,7 +631,8 @@ def _hold(context,stage,code,race_id=None):
 def _known_days(repo,clock,context,days=None):
     now=form._aware(clock());today=now.astimezone(form.JST).date().isoformat()
     if days is None:
-        known = records.discover_days(repo, retry_archive_timeout=context.allow_archive_timeout_retry())
+        known = records.discover_days(repo, retry_archive_timeout=context.allow_archive_timeout_retry(),
+                                      blobless_fetch=True)
     else:
         known = list(days)
     known=[day for day in known if day<=today]
@@ -644,7 +645,7 @@ def _known_days(repo,clock,context,days=None):
 def _store_for_tick(repo,day,context):
     if day not in context.stores:
         context.stores[day] = records.RecordStore(
-            repo, day, retry_archive_timeout=context.allow_archive_timeout_retry())
+            repo, day, retry_archive_timeout=context.allow_archive_timeout_retry(), blobless_fetch=True)
     return context.stores[day]
 
 
@@ -674,7 +675,8 @@ def _recover_saved_originals(repo,private,context,days,commit,publish,report):
         context.original_day_attempted[day]=context.tick
         try:
             context.client=context.client or GitHubEvidenceClient()
-            admitted=records.load_admitted_day(repo,private,day,origin_client=context.client)
+            admitted=records.load_admitted_day(repo,private,day,origin_client=context.client,
+                                               index_commit=store.head)
             ack=publish_day(repo,admitted,commit,private)
             need(type(ack) is dict and ack.get('provider_requests')==0 and ack.get('state') in (
                 'KEIRIN_NOTE_ENCRYPTED_GIT_READBACK_VERIFIED','EXISTING_NATIONWIDE_DISPLAY_REUSED') and

@@ -265,6 +265,7 @@ class RecordStore:
         self.repo=archive._remote(repo,synthetic_local=synthetic_local)
         self.day=history._day(day);self.path=ROOT+'/'+day+'/index.json'
         self.index_commit=index_commit
+        self.blobless_fetch=blobless_fetch
         if index_commit is not None:
             _check_archive_commit(self.repo,index_commit)
             self.refresh()
@@ -279,7 +280,7 @@ class RecordStore:
     def refresh(self):
         if self.index_commit is not None:
             return self._load_index(self.index_commit)
-        return self._load_index(archive._refresh(self.repo))
+        return self._load_index(archive._refresh(self.repo, blobless=self.blobless_fetch))
 
     def _load_index(self, head):
         self.head=head
@@ -466,11 +467,10 @@ def load_admitted_day(repo, owner_private_pem, day, *, origin_client=None, clock
     return result
 
 
-def discover_days(repo, *, retry_archive_timeout=False):
+def discover_days(repo, *, retry_archive_timeout=False, blobless_fetch=False):
     """Only the bounded, already existing official-SP namespace is enumerated."""
     repo=archive._remote(repo,synthetic_local=False)
-    head = (archive._refresh(repo, retry_on_timeout=True)
-            if retry_archive_timeout else archive._refresh(repo))
+    head=archive._refresh(repo, retry_on_timeout=retry_archive_timeout, blobless=blobless_fetch)
     return _discover_days_at(repo,head)
 
 
