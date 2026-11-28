@@ -447,7 +447,7 @@
       const packet = await fetchDay("measurements", "replay-confidence-" + snapshot.day, request).catch(() => null);
       replay = await replayConfidenceRows(packet, snapshot.day, research);
     }
-    if (currentRequest !== request) return;
+    if (request.signal.aborted || (currentRequest !== request && resultRequest !== request)) return;
     const saved = ordered.filter(row => row.status === "saved").length;
     const pending = ordered.filter(row => row.status === "pending").length;
     const available = ordered.length - pending;
@@ -478,6 +478,19 @@
     return Promise.all(["rosters", "results"].map(lane => fetchDay(lane, day, request, resultBase).catch(() => null)));
   }
 
+  async function loadDay(day, request, resultPackets) {
+    const snapshot = await fetchDay("forecasts", day, request);
+    if (request.signal.aborted) return;
+    if (snapshot === undefined) return "この日の公開予想は掲載されていません。";
+    if (!validSnapshot(snapshot, day)) return "公開データの形式を確認できません。";
+    const supplements = snapshot.races.some(row => row.status === "pending")
+      ? ["references", "research"].map(lane => fetchDay(lane, day, request).catch(() => null))
+      : [null, null];
+    const packets = await Promise.all([...supplements, fetchDay("measurements", "confidence-" + day, request).catch(() => null),
+      resultPackets ?? fetchResults(day, request)]);
+    await render(snapshot, ...packets, request);
+  }
+
   async function refreshResults() {
     const view = activeDay;
     if (!view || currentRequest || resultRequest || document.hidden || view.day !== jstToday()) return;
@@ -488,10 +501,11 @@
       const data = await fetchResults(view.day, request);
       if (activeDay !== view || request.signal.aborted) return;
       const receipt = readPublicResults(view.day, view.ordered, ...data);
-      if (receipt && (!view.checkedAt || Date.parse(receipt.checkedAt) >= Date.parse(view.checkedAt))) {
-        view.checkedAt = receipt.checkedAt;
-        renderResults(view, receipt);
-      }
+      if (!receipt || (view.checkedAt && Date.parse(receipt.checkedAt) <= Date.parse(view.checkedAt))) return;
+      // A new settlement can follow the publication of a saved model on a race
+      // that was shown as a reference when the tab was opened.
+      const failed = await loadDay(view.day, request, data).catch(() => true);
+      if (failed && activeDay === view && !request.signal.aborted) renderResults(view, receipt);
     } finally {
       clearTimeout(timeout);
       if (resultRequest === request) resultRequest = null;
@@ -522,22 +536,8 @@
     currentRequest = request;
     const timeout = setTimeout(() => request.abort(), 15000);
     try {
-      const snapshot = await fetchDay("forecasts", day, request);
-      if (currentRequest !== request) return;
-      if (snapshot === undefined) {
-        status.textContent = "この日の公開予想は掲載されていません。";
-        return;
-      }
-      if (!validSnapshot(snapshot, day)) {
-        status.textContent = "公開データの形式を確認できません。";
-        return;
-      }
-      const supplements = snapshot.races.some(row => row.status === "pending")
-        ? ["references", "research"].map(lane => fetchDay(lane, day, request).catch(() => null))
-        : [null, null];
-      const packets = await Promise.all([...supplements, fetchDay("measurements", "confidence-" + day, request).catch(() => null),
-        fetchResults(day, request)]);
-      if (currentRequest === request) await render(snapshot, ...packets, request);
+      const message = await loadDay(day, request);
+      if (message && currentRequest === request) status.textContent = message;
     } catch {
       if (currentRequest === request) status.textContent = "公開予想を取得できませんでした。再読み込みで確認できます。";
     } finally {

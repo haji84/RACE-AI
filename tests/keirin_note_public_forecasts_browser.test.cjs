@@ -274,17 +274,20 @@ describe('KEIRIN anonymous forecast page', { skip: !chromium }, () => {
     const serve = day => {
       const forecasts = snapshot(day);
       forecasts.races[0].b = [[7, 6, 5]];
+      if (next) forecasts.races[1] = { race_id: raceIds[1], status: 'saved', cutoff_at: cutoff,
+        saved_at: before, a: [[7, 6, 5]], b: [[1, 2, 9]] };
       return forecasts;
     };
     let next = false;
     serve.supplement = (lane, day) => {
       if (lane === 'references') return { schema: 'RACE_AI_KEIRIN_PUBLIC_REFERENCE_FORECASTS_V1', day,
-        published_at: before, races: [{ race_id: raceIds[1], saved_at: before, cutoff_at: cutoff, a: [[7, 6, 5]], b: [[1, 2, 9]] }] };
+        published_at: before, races: [{ race_id: raceIds[1], saved_at: before, cutoff_at: cutoff, a: [[4, 3, 2]], b: [[1, 2, 9]] }] };
       if (lane === 'rosters') return { schema: 'KEIRIN_PUBLIC_RESULT_ROSTER_V1', date: day, generated_at: before,
         forecast_asset_sha256: 'c'.repeat(64), races: raceIds.map((race_id, index) => ({ race_id,
           date: day, venue: index === 0 ? '西武園' : '函館', race_no: index + 1, published_cutoff_at: cutoff,
           source_url: urls[index], observed_riders: Array.from({ length: 7 }, (_, n) => ({ number: n + 1 })) })) };
-      if (lane === 'results') return { schema: 'KEIRIN_PUBLISHED_RESULTS_V1', date: day, checked_at: settled,
+      if (lane === 'results') return { schema: 'KEIRIN_PUBLISHED_RESULTS_V1', date: day,
+        checked_at: next ? TODAY + 'T12:47:00+09:00' : settled,
         races: raceIds.map((race_id, index) => {
           const at = index === 1 && !next ? before : settled;
           const winning = index === 0 ? [1, 2, 3] : [7, 6, 5];
@@ -309,7 +312,7 @@ describe('KEIRIN anonymous forecast page', { skip: !chromium }, () => {
     const second = page.locator('article').filter({ hasText: '函館 2R' });
     await second.getByText('的中', { exact: true }).waitFor();
     assert.equal(await second.getByText('出走車番の確認中', { exact: true }).count(), 1);
-    assert.match(await page.locator('#keirin-public-scoreboard').innerText(), /締切前の参考[\s\S]*A 100\.0%（1 \/ 1） · B 照合待ち/);
-    assert.equal(calls.filter(url => url.startsWith(BASE + 'forecasts/')).length, 1);
+    assert.match(await page.locator('#keirin-public-scoreboard').innerText(), /締切前保存[\s\S]*A 100\.0%（2 \/ 2） · B 0\.0%（0 \/ 1）/);
+    assert.equal(calls.filter(url => url.startsWith(BASE + 'forecasts/')).length, 2);
   });
 });
