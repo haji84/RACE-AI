@@ -221,6 +221,8 @@ body{overflow-wrap:break-word}button{min-height:34px}input,select{min-height:36p
 .keirin-public-clocks time{white-space:nowrap}
 .keirin-public-arms{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-top:10px}
 .keirin-public-model{padding:7px 9px;border:1px solid #e1ebf0;border-radius:8px;background:#f6fafc}
+.keirin-public-dt-r1{margin-top:10px}
+.keirin-public-dt-r1 .keirin-public-race-head{justify-content:flex-start}
 .keirin-public-model h3{margin:0 0 4px;color:#24516b;font-size:14px}
 .keirin-public-model ol{
   display:grid;grid-template-columns:repeat(2,minmax(0,1fr));grid-template-rows:repeat(4,auto);
