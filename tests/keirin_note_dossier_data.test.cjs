@@ -62,6 +62,23 @@ test('binds all six packets to the established roster and separates each kind of
   assert.equal(card.cutoffAt,cutoffAt);
 });
 
+test('a checked public roster supplies identities even when the preserved rank group has no registrations', () => {
+  const input = fixtures();
+  delete input.packets.starters;
+  input.packets.rank.races[0].riders.forEach(row => { row.registration = null; });
+  input.packets.referenceStarters = packet('RACE_AI_KEIRIN_PUBLIC_REFERENCE_STARTERS_V1', {
+    source_url:'https://keirin.kdreams.jp/matsudo/racecard/31202611280100/',
+    source_at:at, source_sha256:sha, riders,
+  });
+  const card = prepare(input);
+  assert.equal(card.riders[0].registration, '014811');
+  assert.equal(card.riders[0].stats.competition_points, 85.93);
+  assert.deepEqual(card.riders[0].rank.probabilities, [.2,.2,.2,.2,.2]);
+  assert.equal(card.rosterSource.url, input.packets.referenceStarters.races[0].source_url);
+  input.packets.referenceStarters.races[0].source_url = 'https://keirin.kdreams.jp/matsudo/racecard/31202611270100/';
+  assert.equal(prepare(input).riders[0].registration, null);
+});
+
 test('recovers the reviewed Seibuen starter order and published rates without generating a forecast', () => {
   const card = prepare({raceId:'202611252611', archived});
   const [first] = card.riders;
@@ -110,6 +127,12 @@ test('shows sparse archived finishes and only appends separately verified earlie
   assert.deepEqual(second.history, {counts:[0,1,0,0,0,0,0,0,0], startDay:'2026-11-27', endDay:'2026-11-27'});
   input.packets.archive.end_day = day;
   assert.equal(prepare(input).riders[0].venue, null);
+  input.packets.archive.venue_start_day = '2023-11-29';
+  input.packets.archive.venue_end_day = '2025-09-30';
+  input.packets.recentDays = [];
+  const earlierRace = prepare(input).riders[0];
+  assert.equal(earlierRace.history, null);
+  assert.equal(earlierRace.venue.denominator, 1);
 });
 
 test('holds mismatched contexts and never replaces the official names with a conflicting rank packet', () => {

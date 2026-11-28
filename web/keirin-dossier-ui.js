@@ -203,13 +203,16 @@
       const rider = riders[index], heading = node("header", "kd-selected");
       const identity = node("div");
       identity.append(node("h2", "", rider.name), node("p", "kd-note", styles[rider.style] || "脚質確認待ち"));
+      if (rider.registration) identity.append(node("p", "kd-note", "登録番号 " + rider.registration +
+        (rider.registrationBasis ? " · " + rider.registrationBasis : "")));
       heading.append(badge(rider), identity);
       const stats = rider.stats;
       if (stats?.competition_points != null) heading.append(node("p", "kd-note", "競走得点 " + stats.competition_points));
       detail.replaceChildren(heading, history(rider, day, venue), radar(stats, scale, rider.form, rider.agari), ranks(rider.rank), analysis(rider, riders));
       if (stats?.sourceAt) {
         const provider = stats.source === "official" ? "KEIRIN.JP" : "Kドリームス";
-        const timing = stats.source === "archive" ? " 出走表の締切後確認 " : " 出走表の確認 ";
+        const timing = stats.source === "archive" || (data.cutoffAt && Date.parse(stats.sourceAt) >= Date.parse(data.cutoffAt)) ?
+          " 出走表の締切後確認 " : " 出走表の確認 ";
         detail.append(node("p", "kd-note", provider + timing + stamp(stats.sourceAt)));
       }
     }
@@ -222,7 +225,8 @@
       buttons.push(button);
       row.append(button); list.append(row);
     });
-    container.replaceChildren(list, detail);
+    const attribution = data.rosterSource ? [sourceLink("Kドリームスの公開出走表", data.rosterSource.url, data.rosterSource.at)] : [];
+    container.replaceChildren(...attribution, list, detail);
     select(0);
   }
 

@@ -24,7 +24,7 @@ const PAST = '2026-11-25';
 const MISSING = '2026-11-24';
 const INVALID = '2026-11-23';
 const A = [[1, 2, 3], [1, 3, 2], [2, 1, 3], [2, 3, 1], [3, 1, 2], [3, 2, 1], [1, 4, 3], [1, 3, 4]];
-const dayCalls = day => ['forecasts', 'references', 'research', 'dt-r1'].map(lane => BASE + lane + '/' + day + '.json')
+const dayCalls = day => ['forecasts', 'references', 'research', 'dt-r1', 'reference-starters'].map(lane => BASE + lane + '/' + day + '.json')
   .concat(BASE + 'measurements/confidence-' + day + '.json', RESULTS + 'rosters/' + day + '.json', RESULTS + 'results/' + day + '.json');
 
 function snapshot(day) {
@@ -177,6 +177,22 @@ describe('KEIRIN anonymous forecast page', { skip: !chromium }, () => {
     assert.equal(await date.inputValue(), TODAY);
   });
 
+  test('lists and opens the checked public starters before any forecasts are published', async t => {
+    const serve = () => null;
+    serve.supplement = (lane, day) => lane !== 'reference-starters' ? null : {
+      schema:'RACE_AI_KEIRIN_PUBLIC_REFERENCE_STARTERS_V1', day, published_at:stamp(day,'12:35'),
+      races:[{race_id:raceId(day,'2601'), source_at:stamp(day,'12:00'), source_sha256:'a'.repeat(64),
+        source_url:'https://keirin.kdreams.jp/seibuen/racecard/26'+day.replaceAll('-','')+'0100/',
+        riders:[1,2,3,4,5].map(number => ({number,registration:null,name:'架空選手' + number,style:'逃'}))}],
+    };
+    const {page} = await open(t, '#keirin-public', serve);
+    await page.getByRole('button', {name:'選手カルテ'}).click();
+    await page.getByRole('heading', {name:'架空選手1'}).waitFor();
+    assert.equal(await page.locator('.kd-rider-button').count(), 5);
+    assert.match(await page.locator('#keirin-public-status').innerText(), /出走表.*1/);
+    assert.equal(await page.locator('.kd-ranks meter').count(), 0);
+  });
+
   test('the entry works on the existing shell and past dates distinguish saved, missing and invalid data', async t => {
     const { page, calls } = await open(t, '', day => {
       if (day === MISSING) return null;
@@ -200,7 +216,7 @@ describe('KEIRIN anonymous forecast page', { skip: !chromium }, () => {
     await date.fill('2026-11-27');
     await page.getByText('選択できる範囲の日付を入力してください。', { exact: true }).waitFor();
     assert.deepEqual(calls.sort(), [...dayCalls(TODAY), ...dayCalls(PAST), ...[MISSING, INVALID]
-      .flatMap(day => ['forecasts', 'dt-r1'].map(lane => BASE + lane + '/' + day + '.json'))].sort());
+      .flatMap(day => ['forecasts', 'dt-r1', 'reference-starters'].map(lane => BASE + lane + '/' + day + '.json'))].sort());
     await page.goBack();
     await page.getByRole('heading', { name: '今日のレースを、確かなデータで。' }).waitFor();
     assert.equal(new URL(page.url()).hash, '');
