@@ -34,7 +34,7 @@
     }))) / 5) * 5);
   }
 
-  function radar(stats, scale) {
+  function radar(stats, scale, form, agari) {
     const section = node("section", "kd-section");
     section.append(node("h3", "", "能力分析"));
     const chart = svg("svg", { viewBox: "0 0 360 264", role: "img", "aria-label": axes.join("、") + "のレーダー" });
@@ -49,9 +49,14 @@
       text.textContent = label;
       chart.append(text);
       const count = fields[i] ? stats?.[fields[i]] : null;
-      const value = numeric(count) ? observations[i] + " " + count + "回" : "観測資料待ち";
-      if (numeric(count)) {
-        const [cx, cy] = at(i, 88 * count / scale);
+      const recent = i === 5 && form, sprint = i === 2 && agari;
+      const fraction = recent ? recent.numerator / recent.denominator :
+        sprint ? sprint.percentile : numeric(count) ? count / scale : null;
+      const value = recent ? "直近の3着以内 " + percent(fraction) + "（" + recent.numerator + "/" + recent.denominator + "走）" :
+        sprint ? "上がりの同走者比較 " + percent(fraction) + "（" + sprint.runs + "走）" :
+          numeric(count) ? observations[i] + " " + count + "回" : "観測資料待ち";
+      if (fraction !== null) {
+        const [cx, cy] = at(i, 88 * fraction);
         const dot = svg("circle", { cx, cy, r: 4.5, class: "kd-radar-point", "data-evidence-point": "" });
         const title = svg("title", {});
         title.textContent = value;
@@ -63,6 +68,10 @@
       facts.append(item);
     });
     section.append(chart, node("p", "kd-note", "出走表の掲載回数を参照。外枠はこのレースで共通の " + scale + "回です。"), facts);
+    if (agari) section.append(node("p", "kd-note", "瞬発力の参考は同じレースで上がりが速かった割合。同タイムは半分、外枠が100%。" +
+      "対象 " + agari.startDay + "〜" + agari.endDay + "、" + agari.runs + "走・" + agari.peers + "比較。"));
+    if (form) section.append(node("p", "kd-note", "調子の目安は直近30日以内に確認できた着順。外枠が100%。" +
+      "対象 " + form.startDay + "〜" + form.endDay + "、" + form.denominator + "走。"));
     return section;
   }
 
@@ -94,13 +103,33 @@
       semi && semi.numerator + "/" + semi.denominator + "走" +
         (semi.startDay ? " · " + semi.startDay + "〜" + semi.endDay : "")));
     const venueRate = rider.venue;
-    metrics.append(metric(venue + "5年間3連対率", venueRate ? percent(venueRate.numerator / venueRate.denominator) : "資料待ち",
-      venueRate && venueRate.numerator + "/" + venueRate.denominator + "走"));
+    metrics.append(metric(venue + (venueRate?.startDay ? "3連対率（収録分）" : "5年間3連対率"),
+      venueRate ? percent(venueRate.numerator / venueRate.denominator) : "資料待ち",
+      venueRate && venueRate.numerator + "/" + venueRate.denominator + "走" +
+        (venueRate.startDay ? " · " + venueRate.startDay + "〜" + venueRate.endDay : "")));
     section.append(metrics);
     const sources = new Map([semi, venueRate].filter(rate => rate?.sourceUrl).map(rate => [rate.sourceUrl, rate]));
     for (const [url, rate] of sources) {
       const label = rate.afterCutoff ? "Kドリームスの締切後確認資料" : "Kドリームスの出走表成績";
       section.append(sourceLink(label, url, rate.sourceAt));
+    }
+    if (rider.history) {
+      const {counts, startDay, endDay} = rider.history;
+      const n = counts.reduce((total, value) => total + value, 0), top3 = counts[0] + counts[1] + counts[2];
+      const earliest = new Date(day + "T00:00:00Z");
+      earliest.setUTCFullYear(earliest.getUTCFullYear() - 3);
+      const title = startDay >= earliest.toISOString().slice(0, 10) ? "過去3年の収録成績" : "固定期間の収録成績";
+      section.append(node("h3", "", title),
+        node("p", "kd-note", startDay + "〜" + endDay + " · 確認 " + n + "走"),
+        node("p", "", "1着 " + counts[0] + "走 · 3着以内 " + top3 + "走（" + percent(top3 / n) + "）"));
+    }
+    if (rider.techniques) {
+      const {counts, startDay, endDay} = rider.techniques;
+      const labels = {escape:"逃げ", makuri:"捲り", difference:"差し", mark:"マーク"};
+      const methods = Object.entries(labels).filter(([key]) => counts[key]).map(([key, label]) => label + counts[key] + "回");
+      section.append(node("h3", "", "1・2着の決まり手"),
+        node("p", "", methods.join(" · ")),
+        node("p", "kd-note", "掲載のある記録 " + startDay + "〜" + endDay));
     }
     section.append(node("h3", "", "直近着順（新しい順）"));
     const recent = node("ul", "kd-recents");
@@ -177,7 +206,7 @@
       heading.append(badge(rider), identity);
       const stats = rider.stats;
       if (stats?.competition_points != null) heading.append(node("p", "kd-note", "競走得点 " + stats.competition_points));
-      detail.replaceChildren(heading, history(rider, day, venue), radar(stats, scale), ranks(rider.rank), analysis(rider, riders));
+      detail.replaceChildren(heading, history(rider, day, venue), radar(stats, scale, rider.form, rider.agari), ranks(rider.rank), analysis(rider, riders));
       if (stats?.sourceAt) {
         const provider = stats.source === "official" ? "KEIRIN.JP" : "Kドリームス";
         const timing = stats.source === "archive" ? " 出走表の締切後確認 " : " 出走表の確認 ";

@@ -163,6 +163,20 @@ describe('KEIRIN anonymous forecast page', { skip: !chromium }, () => {
     assert.equal(new URL(page.url()).hash, '#keirin-public');
   });
 
+  test('shows the previous published dossiers while the new JST day is awaiting publication', async t => {
+    let todayReady = false;
+    const { page } = await open(t, '#keirin-public', day => day === TODAY && !todayReady ? null : snapshot(day));
+    const date = page.getByLabel('対象日（JST）');
+    const cards = page.locator('#keirin-public-races');
+    await cards.getByRole('button', { name: '選手カルテ' }).first().waitFor();
+    assert.equal(await date.inputValue(), PAST);
+    assert.match(await page.locator('#keirin-public-status').innerText(), /2026-11-26.*掲載待ち.*2026-11-25/);
+    todayReady = true;
+    await page.getByRole('button', { name: '再読み込み' }).click();
+    await cards.locator('[data-keirin-dossier="202611262601"]').waitFor();
+    assert.equal(await date.inputValue(), TODAY);
+  });
+
   test('the entry works on the existing shell and past dates distinguish saved, missing and invalid data', async t => {
     const { page, calls } = await open(t, '', day => {
       if (day === MISSING) return null;
