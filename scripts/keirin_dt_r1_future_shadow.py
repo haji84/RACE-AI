@@ -12,6 +12,7 @@ from __future__ import annotations
 import argparse
 from collections import Counter
 from datetime import timedelta
+from functools import partial
 from hashlib import sha256
 import json
 import os
@@ -49,6 +50,7 @@ INFERENCE_SOURCES = ('abilities.py', 'agari.py', 'context.py', 'data.py', 'featu
                      'model.py', 'observations.py', 'pipeline.py', 'policy.py', 'runtime.py', 'venues.py')
 READY = 'SEALED_PENDING_INDEPENDENT_READBACK'
 UPLOAD_BUDGET_HOLD = 'UPLOAD_BYTE_BUDGET_EXHAUSTED'
+PRESERVED = 'PREVIOUS_T15_ORIGINAL_PRESERVED'
 MAX_MANIFEST_BYTES = 2_000_000  # Manifest member limit in the independent reader.
 # GitHub uploads this directory with ZIP compression level 0. Reserve space
 # for container metadata and each member header, name and central directory.
@@ -57,7 +59,7 @@ ZIP_MEMBER_RESERVE_BYTES = 1024
 HOLD_REASONS = frozenset(('SAVED_ORIGINAL_MISSING', 'PRE_PREDICTION_T15_MARGIN',
     'SOURCE_ADMISSION_UNVERIFIED', 'INPUT_PROJECTION_UNVERIFIED', 'FROZEN_MODEL_OR_CONTEXT_UNVERIFIED',
     'PREDICTION_UNVERIFIED', 'POST_GENERATION_T15_MARGIN', 'POST_SAVE_T15_MARGIN',
-    'ACTUAL_JST_DAY_CHANGED', 'CLOCK_REGRESSION', UPLOAD_BUDGET_HOLD))
+    'ACTUAL_JST_DAY_CHANGED', 'CLOCK_REGRESSION', UPLOAD_BUDGET_HOLD, PRESERVED))
 ENTRY_FIELDS = frozenset(('slot_sha256', 'state', 'reason', 'source_admitted',
                          'context_geometry_present', 'cipher', 'clocks', 'bindings'))
 CLOCK_FIELDS = ('input_at', 'prediction_started_at', 'prediction_at', 'seal_started_at', 'local_readback_at')
@@ -235,7 +237,8 @@ def _source_failure(stage, error):
 
 
 def produce_day(*, store, repo, output, owner_public_pem, owner_private_pem, code_commit,
-                origin_client, clock=continuation.now_utc, source_diagnostics=None, _ciphertext_byte_cap=None):
+                origin_client, clock=continuation.now_utc, source_diagnostics=None,
+                _ciphertext_byte_cap=None, accepted_slots=()):
     """Internal protected owner-job worker. A private cap can lower the default budget."""
     started = _observe(clock)
     need(_same_day(started, store.day), 'ACTUAL_JST_DAY_REQUIRED')
@@ -251,6 +254,8 @@ def produce_day(*, store, repo, output, owner_public_pem, owner_private_pem, cod
          all(type(rid) is str and re.fullmatch('20[0-9]{10}', rid) and
              rid.startswith(store.day.replace('-', '')) for rid in race_ids) and
          set(originals) <= set(race_ids), 'SAVED_REGISTRY_UNVERIFIED')
+    accepted_slots = frozenset(accepted_slots)
+    need(accepted_slots <= {slot(store.day, rid) for rid in originals}, 'PRESERVED_SLOT_SCOPE')
     zip_reserve = ZIP_CONTAINER_RESERVE_BYTES + ZIP_MEMBER_RESERVE_BYTES * (len(race_ids) + 1)
     remaining_cipher_bytes = MAX_ARCHIVE_BYTES - MAX_MANIFEST_BYTES - zip_reserve
     if _ciphertext_byte_cap is not None:
@@ -269,6 +274,9 @@ def produce_day(*, store, repo, output, owner_public_pem, owner_private_pem, cod
     known = sorted(originals, key=lambda rid: (parse_clock(originals[rid]['cutoff_at']), rid))
     for rid in known + sorted(set(race_ids) - originals.keys()):
         entry = _entry(store.day, rid, 'SAVED_ORIGINAL_MISSING')
+        if entry['slot_sha256'] in accepted_slots:
+            entries.append(dict(entry, reason=PRESERVED))
+            continue
         meta = originals.get(rid)
         if meta is None:
             entries.append(entry); continue
@@ -392,6 +400,9 @@ def verify_output(directory, *, expected_manifest_sha256=None):
         seen.add(entry['slot_sha256'])
         need(entry['state'] in (READY, 'HOLD') and (entry['reason'] is None if entry['state'] == READY else
              entry['reason'] in HOLD_REASONS), 'ENTRY_STATE')
+        if entry['reason'] == PRESERVED:
+            need(entry['cipher'] is None and not entry['source_admitted'] and
+                 entry['context_geometry_present'] is None, 'PRESERVED_SLOT_ENTRY')
         if entry['reason'] == UPLOAD_BUDGET_HOLD:
             need(entry['cipher'] is None and entry['source_admitted'] and
                  type(entry['context_geometry_present']) is bool, 'UPLOAD_BYTE_BUDGET_ENTRY')
@@ -452,9 +463,19 @@ def run_future_shadow(*, repo, private_root, output, owner_public_pem, owner_pri
         archive._cmd(reader, 'config', '--local', 'remote.origin.partialclonefilter', 'blob:none')
         head = records.fetch_partial_head(reader, with_ancestry=True)
         store = records.RecordStore(reader, day, index_commit=head)
+        from research.chatgpt_dt_r1.future_batch_retention import retained_slots
+        from research.chatgpt_dt_r1.future_retention_gate import legacy_timely_slots
+        from scripts.keirin_dt_r1_future_readback import verify_saved_batch
+
+        client = GitHubEvidenceClient()
+        provisioned = {slot(day, rid) for rid in store.index['originals']}
+        accepted = retained_slots(reader, head, day, MODEL_SHA, provisioned,
+                                  authenticate_batch=partial(verify_saved_batch, client=client))
+        legacy = legacy_timely_slots(reader, head, day, model_sha256=MODEL_SHA, client=client)
         return produce_day(store=store, repo=repo, output=output, owner_public_pem=public,
-            owner_private_pem=owner_private_pem, code_commit=commit, origin_client=GitHubEvidenceClient(),
-            clock=clock, source_diagnostics=source_diagnostics)
+            owner_private_pem=owner_private_pem, code_commit=commit, origin_client=client,
+            clock=clock, source_diagnostics=source_diagnostics,
+            accepted_slots=accepted | (legacy & provisioned))
 
 
 def main(argv=None):

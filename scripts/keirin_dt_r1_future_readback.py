@@ -235,6 +235,15 @@ def verify_readback(verified, readback_run_id, *, client=None):
         source_authenticated=False, official_result_verified=False, production_promoted=False)
 
 
+def verify_saved_batch(manifest, saved_origin, manifest_sha256, *, client):
+    """Bind a retained batch to the same authenticated GitHub receipts again."""
+    with verified_producer(saved_origin['producer_run_id'], client=client) as verified:
+        _need(verified['manifest_sha256'] == manifest_sha256 and verified['manifest'] == manifest,
+              'ARCHIVED_MANIFEST_CHANGED')
+        actual = verify_readback(verified, saved_origin['readback_run_id'], client=client)
+        _need(actual == saved_origin, 'ARCHIVED_READBACK_CHANGED')
+
+
 def _runtime(repo):
     from race_ai import keirin_nationwide_cipher_history as archive
     expected = 'haji84/RACE-AI/.github/workflows/keirin-result-live.yml@refs/heads/main'

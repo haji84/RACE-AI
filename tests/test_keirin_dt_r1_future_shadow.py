@@ -171,6 +171,16 @@ class FutureShadowTests(unittest.TestCase):
     def manifest(self):
         return json.loads((self.output / 'manifest.json').read_bytes())
 
+    def test_repeated_producer_skips_a_previously_retained_timely_slot(self):
+        accepted = self.api.slot(self.day, self.rid)
+        report = self.produce(accepted_slots={accepted})
+        self.assertEqual(report['registered_races'], 78)
+        self.assertEqual(report['new_encrypted_forecasts'], 0)
+        self.assertEqual(self.reads, ['registry'])
+        held = next(e for e in self.manifest()['entries'] if e['slot_sha256'] == accepted)
+        self.assertEqual(held['reason'], 'PREVIOUS_T15_ORIGINAL_PRESERVED')
+        self.assertIsNone(held['cipher'])
+
     def test_pdca_accepts_the_sealed_native_forecast_without_a_starters_alias(self):
         from scripts.keirin_dt_r1_future_settle import _placing_pdca
 

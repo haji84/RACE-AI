@@ -195,6 +195,21 @@ class FutureReadbackTests(unittest.TestCase):
             self.assertEqual(proof['eligible_slots'], [])
             self.assertEqual(proof['held_slots'], {report['records'][0]['slot_sha256']: 'SERVER_READBACK_AFTER_T15'})
 
+    def test_archived_batch_does_not_override_current_github_witness(self):
+        _, first, cipher = self.produced()
+        receipt = self.api.readback('456', reader_run_id='789', reader_code_commit='d' * 40,
+            client=FixtureAPI([first, cipher]).client,
+            clock=lambda: datetime.fromisoformat('2030-01-15T02:03:30+00:00'))
+        readback = packet('789', report=receipt, head='d' * 40, minute=3)
+        client = FixtureAPI([first, cipher, readback]).client
+        with self.api.verified_producer('456', client=client) as verified:
+            manifest, digest = verified['manifest'], verified['manifest_sha256']
+            proof = self.api.verify_readback(verified, '789', client=client)
+        self.api.verify_saved_batch(manifest, proof, digest, client=client)
+        altered = dict(proof, latest_server_evidence_at='2030-01-15T02:03:31+00:00')
+        with self.assertRaisesRegex(ValueError, 'ARCHIVED_READBACK_CHANGED'):
+            self.api.verify_saved_batch(manifest, altered, digest, client=client)
+
     def test_swapped_readback_identity_cannot_certify_a_saved_candidate(self):
         _, first, cipher = self.produced()
         report = self.api.readback('456', reader_run_id='789', reader_code_commit='d' * 40,
