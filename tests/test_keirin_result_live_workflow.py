@@ -40,13 +40,16 @@ class LiveWorkflowTests(unittest.TestCase):
                 ({'event':'workflow_dispatch','mode':'combined-study','ref':'refs/heads/feature'},False),
                 ({'event':'workflow_dispatch','mode':'learned-replay','tests':'failure'},False),
                 ({'event':'workflow_dispatch','mode':'learned-replay','ref':'refs/heads/feature'},False),
+                ({'event':'workflow_dispatch','mode':'dt-r1-official-holdout','tests':'failure'},False),
+                ({'event':'workflow_dispatch','mode':'dt-r1-official-holdout','ref':'refs/heads/feature'},False),
                 ({'event':'workflow_dispatch','mode':'test'},False),
                 ({'event':'push'},False),({'cancelled':True},False),
                 ({'prefix':'external-source'},False),
                 ({'event':'workflow_dispatch','mode':'observe'},True),
                 ({'event':'workflow_dispatch','mode':'dossier-context'},True),
                 ({'event':'workflow_dispatch','mode':'combined-study'},True),
-                ({'event':'workflow_dispatch','mode':'learned-replay'},True)]:
+                ({'event':'workflow_dispatch','mode':'learned-replay'},True),
+                ({'event':'workflow_dispatch','mode':'dt-r1-official-holdout'},True)]:
             v=dict(event='schedule',ref='refs/heads/main',repo='haji84/RACE-AI',id='1416489937',
                    source='true',store='true',mode='observe',tests='success',cancelled=False,prefix='');v.update(changes)
             context=dict(github=NS(event_name=v['event'],ref=v['ref'],repository=v['repo'],repository_id=v['id']),

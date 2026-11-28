@@ -6,6 +6,7 @@ on:
     paths:
       - '.github/workflows/keirin-result-live.yml'
       - 'scripts/keirin_dt_r1_owner_restore.py'
+      - 'scripts/keirin_dt_r1_official_holdout.py'
       - 'tests/test_keirin_dt_r1_owner_restore.py'
       - 'scripts/keirin_dt_r1_future_*.py'
       - 'tests/test_keirin_dt_r1_future_*.py'
@@ -69,6 +70,7 @@ on:
       - '.github/workflows/keirin-result-live.yml'
       - '.github/workflows/keirin-nationwide-ab-auto.yml'
       - 'scripts/keirin_dt_r1_owner_restore.py'
+      - 'scripts/keirin_dt_r1_official_holdout.py'
       - 'tests/test_keirin_dt_r1_owner_restore.py'
       - 'scripts/keirin_dt_r1_future_*.py'
       - 'tests/test_keirin_dt_r1_future_*.py'
@@ -140,7 +142,7 @@ on:
         type: choice
         required: true
         default: test
-        options: [test, saved-only, observe, rider-dossiers, dossier-context, measure-results, measure-confidence, combined-study, learned-replay, dt-r1-restore, dt-r1-shadow, dt-r1-readback, dt-r1-settle, dt-r1-retain]
+        options: [test, saved-only, observe, rider-dossiers, dossier-context, measure-results, measure-confidence, combined-study, learned-replay, dt-r1-restore, dt-r1-shadow, dt-r1-readback, dt-r1-settle, dt-r1-retain, dt-r1-official-holdout]
       dossier_day:
         type: string
         description: JST day for source-free dossier replay, measurement or DT-R1 day settlement
@@ -285,7 +287,7 @@ jobs:
         (inputs.mode == 'saved-only' || inputs.mode == 'observe' || inputs.mode == 'dossier-context' ||
          inputs.mode == 'combined-study' || inputs.mode == 'learned-replay' || inputs.mode == 'dt-r1-restore' ||
          inputs.mode == 'dt-r1-shadow' || inputs.mode == 'dt-r1-readback' || inputs.mode == 'dt-r1-settle' ||
-         inputs.mode == 'dt-r1-retain')))
+         inputs.mode == 'dt-r1-retain' || inputs.mode == 'dt-r1-official-holdout')))
     runs-on: ubuntu-24.04
     timeout-minutes: 15
     permissions:
@@ -303,7 +305,7 @@ jobs:
           persist-credentials: true
       - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
         with:
-          python-version: ${{ (inputs.mode == 'dt-r1-restore' || inputs.mode == 'dt-r1-shadow' || inputs.mode == 'dt-r1-readback' || inputs.mode == 'dt-r1-settle' || inputs.mode == 'dt-r1-retain') && '3.12' || '3.11' }}
+          python-version: ${{ (inputs.mode == 'dt-r1-restore' || inputs.mode == 'dt-r1-shadow' || inputs.mode == 'dt-r1-readback' || inputs.mode == 'dt-r1-settle' || inputs.mode == 'dt-r1-retain' || inputs.mode == 'dt-r1-official-holdout') && '3.12' || '3.11' }}
       - name: Observe admitted results and publish each encrypted update
         shell: bash
         env:
@@ -341,6 +343,21 @@ jobs:
               --private-root "$root/private" "${day_arg[@]}" \
               --owner-public-pem "$GITHUB_WORKSPACE/docs/evidence/2026-11-18/keirin_owner_existing_rsa_public_spki3072.pem" \
               | tee "$root/safe/summary.json" "$GITHUB_STEP_SUMMARY"
+            exit 0
+          fi
+          if [ "$RESULT_MODE" = dt-r1-official-holdout ]; then
+            umask 077
+            env -u RACE_AI_KEIRIN_PRIVATE_RSA_PEM -u GITHUB_TOKEN \
+              python -m pip install --disable-pip-version-check --only-binary=:all: \
+                -r research/chatgpt_dt_r1/requirements.txt 'beautifulsoup4>=4.12,<5'
+            holdout_args=()
+            if [ -n "$DOSSIER_DAY" ]; then
+              holdout_args+=(--day "$DOSSIER_DAY")
+            fi
+            python -m scripts.keirin_dt_r1_official_holdout --repo "$GITHUB_WORKSPACE" \
+              --private-root "$root/private" \
+              --owner-public-pem "$GITHUB_WORKSPACE/docs/evidence/2026-11-18/keirin_owner_existing_rsa_public_spki3072.pem" \
+              "${holdout_args[@]}" | tee "$root/safe/summary.json" "$GITHUB_STEP_SUMMARY"
             exit 0
           fi
           if [ "$RESULT_MODE" = dt-r1-retain ]; then
