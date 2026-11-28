@@ -68,9 +68,14 @@ test('recovers the reviewed Seibuen starter order and published rates without ge
   assert.equal(first.name.replace(/\s/g, ''), '山本勝利');
   assert.deepEqual([first.semi.numerator, first.semi.denominator], [10,11]);
   assert.deepEqual([first.venue.numerator, first.venue.denominator], [9,13]);
+  assert.equal(first.style, '逃');
+  assert.deepEqual([first.stats.back_count, first.stats.makuri_count, first.stats.difference_count], [10,4,1]);
   assert.match(first.comment.summary, /単騎/);
   assert.ok(first.recent.every(row => row.day < '2026-11-25'));
   assert.equal(first.rank, null);
+  const unboundArchive = structuredClone(archived);
+  unboundArchive.races[0].stats_sha256 = '';
+  assert.deepEqual(prepare({raceId:'202611252611', archived:unboundArchive}).riders, []);
 });
 
 test('only combines an independently dated performance receipt with an exact secondary roster', () => {
