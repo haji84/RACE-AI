@@ -226,9 +226,12 @@ def _performance_tables(content, names):
     _need(len(annual) == len(venue) == 1, 'PERFORMANCE_TABLES')
     annual_table, annual_headings = annual[0]
     venue_table, venue_headings = venue[0]
-    _need(annual_headings[1:] == [('決勝','特選','準決','予選'),FINISH_COUNTS * 4] and
+    semifinal_column = {('決勝','特選','準決','予選'): 2, ('決勝','準決','選抜','予選'): 1}
+    _need(len(annual_headings) == 3 and annual_headings[1] in semifinal_column and
+          annual_headings[2] == FINISH_COUNTS * 4 and
           venue_headings[1:] == [FINISH_COUNTS], 'PERFORMANCE_HEADINGS')
-    return (_performance_counts(annual_table,names,16,8), _performance_counts(venue_table,names,4,0))
+    return (_performance_counts(annual_table,names,16,4*semifinal_column[annual_headings[1]]),
+            _performance_counts(venue_table,names,4,0))
 
 
 def project_performance(raw, receipt, official_starters_row, *, now):

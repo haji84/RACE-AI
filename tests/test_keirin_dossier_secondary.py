@@ -37,7 +37,7 @@ def receipt(raw):
             'captured_at':CAPTURED}
 
 
-def performance_card():
+def performance_card(*, challenge=False):
     def table(title, labels, counts):
         headers = [(title,), *labels]
         heading_rows = ''.join('<tr>' + ''.join(f'<th>{value}</th>' for value in row) + '</tr>'
@@ -50,8 +50,10 @@ def performance_card():
         return f'<table class="racecard_table none">{heading_rows}{data_rows}</table>'
 
     order = ('1着','2着','3着','着外')
-    annual = table('年間勝利度数', [('決勝','特選','準決','予選'), order * 4],
-                   (0,) * 8 + (6,3,1,1) + (0,) * 4)
+    groups = ('決勝','準決','選抜','予選') if challenge else ('決勝','特選','準決','予選')
+    offset = 4 * groups.index('準決')
+    annual = table('年間勝利度数', [groups, order * 4],
+                   (0,) * offset + (6,3,1,1) + (0,) * (12-offset))
     venue = table('当所5年', [order], (5,2,2,4))
     return saved_card().replace(b'</tbody></table>', b'</tbody></table>' + (annual + venue).encode(), 1)
 
@@ -102,6 +104,7 @@ class SecondaryDossierTest(unittest.TestCase):
         tab = KDREAMS_URL+'?pageType=showResult'
         self.assertEqual(capture(raw,tab)['riders'][0]['venue'],[5,2,2,4])
         self.assertEqual(capture(raw,KDREAMS_URL)['riders'][0]['venue'],[5,2,2,4])
+        self.assertEqual(capture(performance_card(challenge=True),KDREAMS_URL)['riders'][0]['semi'],[6,3,1,1])
         with self.assertRaisesRegex(ValueError,'PERFORMANCE_URL'):
             capture(raw,tab+'&pageType=yoso')
         with self.assertRaisesRegex(ValueError,'PERFORMANCE_HEADINGS'):
