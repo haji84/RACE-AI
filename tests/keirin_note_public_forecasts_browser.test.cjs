@@ -273,9 +273,23 @@ describe('KEIRIN anonymous forecast page', { skip: !chromium }, () => {
       if (lane === 'dt-r1') return dtPacket(day, [
         { suffix: '2601', cutoff: '12:30' }, { suffix: '1102' },
         { suffix: '8303', cutoff: '12:20', selected: '12:30', tickets: [[1, 2, 3]] },
+        { suffix: '8304' }, { suffix: '8305' },
       ]);
-      if (lane === 'results') return resultPacket(day,
-        [matched(day, '2601', [4, 1, 2]), matched(day, '1102', [5, 3, 2]), matched(day, '8303', [1, 2, 3])]);
+      if (lane === 'rosters') return {
+        schema: 'KEIRIN_PUBLIC_RESULT_ROSTER_V1', date: day, generated_at: stamp(day, '12:35'),
+        forecast_asset_sha256: 'c'.repeat(64),
+        races: [['2601', '12:30'], ['1102', '12:45'], ['8303', '12:20'], ['8304', '12:45'], ['8305', '12:45']]
+          .map(([suffix, cutoff]) => ({
+            race_id: raceId(day, suffix), date: day, published_cutoff_at: stamp(day, cutoff),
+            source_url: matched(day, suffix, [1, 2, 3]).comparison.sources[0].url.split('?')[0],
+            observed_riders: (suffix === '8305' ? [1, 2, 3, 4, 6] : [1, 2, 3, 4, 5])
+              .map(number => ({ number })),
+          })),
+      };
+      if (lane === 'results') return resultPacket(day, [
+        matched(day, '2601', [4, 1, 2]), matched(day, '1102', [5, 3, 2]), matched(day, '8303', [1, 2, 3]),
+        { race_id: raceId(day, '8304'), state: 'held', reason: 'special_result' }, matched(day, '8305', [1, 2, 3]),
+      ]);
       return null;
     };
     const { page, calls } = await open(t, '#keirin-public', serve);
@@ -288,10 +302,15 @@ describe('KEIRIN anonymous forecast page', { skip: !chromium }, () => {
     assert.match(await timely.innerText(), /締切前掲載[\s\S]*公開結果（2媒体一致）[\s\S]*不一致/);
     assert.match(await retrospective.innerText(), /締切後の再計算[\s\S]*公開結果（2媒体一致）/);
     assert.equal(await retrospective.getByText('一致', { exact: true }).count(), 1);
+    assert.match(await dt('久留米 4R').innerText(), /中止・返還・同着の確認待ち/);
+    assert.match(await dt('久留米 5R').innerText(), /着順の照合を保留中/);
+    const scoreboard = await page.locator('#keirin-public-scoreboard').innerText();
+    assert.match(scoreboard, /DT-R1 当日照合[\s\S]*66\.7%（2 \/ 3）/);
+    assert.equal(scoreboard.match(/DT-R1 /g)?.length, 1);
     assert.equal(await page.locator('article').filter({ hasText: '西武園 1R' })
       .getByRole('list', { name: 'Aの三連単（予想順）' }).getByRole('listitem').count(), 8);
     assert.match(await page.locator('#keirin-public-status').innerText(), /^掲載済み 1 \/ 2 レース/);
-    assert.doesNotMatch(await page.locator('#keirin-public-races').innerText(), /的中|払戻/);
+    assert.doesNotMatch((await page.locator('.keirin-public-dt-r1').allInnerTexts()).join('\n'), /的中|払戻/);
     assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth));
     assert.deepEqual(calls.sort(), dayCalls(TODAY).sort());
   });
@@ -314,6 +333,7 @@ describe('KEIRIN anonymous forecast page', { skip: !chromium }, () => {
     const { page } = await open(t, '#keirin-public', serve);
     const dt = course => page.locator('article').filter({ hasText: course }).locator('.keirin-public-dt-r1');
     await dt('西武園 1R').getByText('一致', { exact: true }).waitFor();
+    assert.match(await page.locator('#keirin-public-scoreboard').innerText(), /DT-R1 当日照合[^\n]*照合待ち/);
     assert.match(await dt('函館 2R').innerText(), /中止・返還・同着の確認待ち/);
     assert.match(await dt('久留米 3R').innerText(), /出典間の相違を確認中/);
     assert.match(await dt('久留米 4R').innerText(), /結果待ち/);
@@ -456,7 +476,7 @@ describe('KEIRIN anonymous forecast page', { skip: !chromium }, () => {
     await second.getByText('的中', { exact: true }).waitFor();
     assert.equal(await second.getByText('出走車番の確認中', { exact: true }).count(), 1);
     assert.match(await page.locator('#keirin-public-scoreboard').innerText(), /締切前保存[\s\S]*A 100\.0%（2 \/ 2） · B 0\.0%（0 \/ 1）/);
-    assert.match(await page.locator('#keirin-public-scoreboard').innerText(), /DT-R1 締切前\s+0\.0%（0 \/ 1）/);
+    assert.match(await page.locator('#keirin-public-scoreboard').innerText(), /DT-R1 当日照合[^\n]*0\.0%（0 \/ 1）/);
     assert.equal(calls.filter(url => url.startsWith(BASE + 'forecasts/')).length, 2);
   });
 });
