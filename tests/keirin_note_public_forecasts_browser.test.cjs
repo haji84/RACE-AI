@@ -18,13 +18,14 @@ if (!chromium && process.env.RACE_AI_REQUIRE_PUBLIC_BROWSER === '1') {
 
 const WEB = path.join(__dirname, '..', 'web');
 const BASE = 'https://raw.githubusercontent.com/haji84/RACE-AI/state/keirin-public-forecasts/';
+const RESULTS = 'https://raw.githubusercontent.com/haji84/RACE-AI/state/keirin-public-results/';
 const TODAY = '2026-11-26';
 const PAST = '2026-11-25';
 const MISSING = '2026-11-24';
 const INVALID = '2026-11-23';
 const A = [[1, 2, 3], [1, 3, 2], [2, 1, 3], [2, 3, 1], [3, 1, 2], [3, 2, 1], [1, 4, 3], [1, 3, 4]];
 const dayCalls = day => ['forecasts', 'references', 'research'].map(lane => BASE + lane + '/' + day + '.json')
-  .concat(BASE + 'measurements/confidence-' + day + '.json');
+  .concat(BASE + 'measurements/confidence-' + day + '.json', RESULTS + 'rosters/' + day + '.json', RESULTS + 'results/' + day + '.json');
 
 function snapshot(day) {
   const raceDay = day.replaceAll('-', '');
@@ -71,7 +72,7 @@ describe('KEIRIN anonymous forecast page', { skip: !chromium }, () => {
     if (server) await new Promise(resolve => server.close(resolve));
   });
 
-  async function open(t, hash, serve) {
+  async function open(t, hash, serve, autoRefresh = false) {
     const context = await browser.newContext({ viewport: { width: 360, height: 760 }, timezoneId: 'America/Los_Angeles' });
     const page = await context.newPage();
     const calls = [], errors = [];
@@ -81,17 +82,20 @@ describe('KEIRIN anonymous forecast page', { skip: !chromium }, () => {
     });
     page.setDefaultTimeout(3000);
     page.on('pageerror', error => errors.push(error.message));
-    await page.clock.setFixedTime(new Date('2026-11-26T04:00:00Z'));
+    const time = new Date('2026-11-26T04:00:00Z');
+    if (autoRefresh) await page.clock.install({ time });
+    else await page.clock.setFixedTime(time);
     await page.route('**/*', async route => {
       const request = route.request(), url = request.url();
       if (url.startsWith(origin + '/')) return route.continue();
-      if (!url.startsWith(BASE)) return route.abort();
+      const base = [BASE, RESULTS].find(prefix => url.startsWith(prefix));
+      if (!base) return route.abort();
       calls.push(url);
       const headers = await request.allHeaders();
       assert.equal(headers.authorization, undefined);
       assert.equal(headers.cookie, undefined);
       assert.equal(headers.referer, undefined);
-      const [lane, day] = url.slice(BASE.length, -5).split('/');
+      const [lane, day] = url.slice(base.length, -5).split('/');
       const result = lane === 'forecasts' ? await serve(day, route) : await serve.supplement?.(lane, day) ?? null;
       if (result !== undefined) await route.fulfill({
         status: result === null ? 404 : 200, json: result,
@@ -258,5 +262,54 @@ describe('KEIRIN anonymous forecast page', { skip: !chromium }, () => {
     assert.equal(await page.getByText(/過去再現の推定的中率/).count(), 1);
     assert.equal(await page.getByText(/信頼度 低/).count(), 0);
     assert.ok(calls.includes(BASE + 'measurements/replay-confidence-' + TODAY + '.json'));
+  });
+
+  test('shows results, actual hit rates and the newly settled race after an automatic update', async t => {
+    const raceIds = ['202611262601', '202611261102'];
+    const before = TODAY + 'T12:20:00+09:00';
+    const cutoff = TODAY + 'T12:30:00+09:00';
+    const settled = TODAY + 'T12:45:00+09:00';
+    const urls = ['https://keirin.kdreams.jp/seibuen/racedetail/2620261126010001/',
+      'https://keirin.kdreams.jp/hakodate/racedetail/1120261126010002/'];
+    const serve = day => {
+      const forecasts = snapshot(day);
+      forecasts.races[0].b = [[7, 6, 5]];
+      return forecasts;
+    };
+    let next = false;
+    serve.supplement = (lane, day) => {
+      if (lane === 'references') return { schema: 'RACE_AI_KEIRIN_PUBLIC_REFERENCE_FORECASTS_V1', day,
+        published_at: before, races: [{ race_id: raceIds[1], saved_at: before, cutoff_at: cutoff, a: [[7, 6, 5]], b: [[1, 2, 9]] }] };
+      if (lane === 'rosters') return { schema: 'KEIRIN_PUBLIC_RESULT_ROSTER_V1', date: day, generated_at: before,
+        forecast_asset_sha256: 'c'.repeat(64), races: raceIds.map((race_id, index) => ({ race_id,
+          date: day, venue: index === 0 ? '西武園' : '函館', race_no: index + 1, published_cutoff_at: cutoff,
+          source_url: urls[index], observed_riders: Array.from({ length: 7 }, (_, n) => ({ number: n + 1 })) })) };
+      if (lane === 'results') return { schema: 'KEIRIN_PUBLISHED_RESULTS_V1', date: day, checked_at: settled,
+        races: raceIds.map((race_id, index) => {
+          const at = index === 1 && !next ? before : settled;
+          const winning = index === 0 ? [1, 2, 3] : [7, 6, 5];
+          return { race_id, state: 'matched', comparison: { race_id, observed_at: at, authority: 'cross_source_reference',
+            comparison_scope: 'POST_CUTOFF_REFERENCE', winning_3t: winning, winning_2t: winning.slice(0, 2),
+            payouts_100yen: { '2t': 830, '3t': 5620 }, sources: [
+              { source_id: 'kdreams', url: urls[index] + '?pageType=result', checked_at: at },
+              { source_id: 'netkeirin', url: 'https://keirin.netkeiba.com/race/result/?race_id=' + race_id, checked_at: at }
+            ] } };
+        }) };
+      return null;
+    };
+    const { page, calls } = await open(t, '#keirin-public', serve, true);
+    await page.getByText(/結果照合 1 \/ 2/).waitFor();
+    const first = page.locator('article').filter({ hasText: '西武園 1R' });
+    assert.match(await first.innerText(), /三連単 1.2.3[\s\S]*5,620円[\s\S]*的中[\s\S]*不的中/);
+    assert.match(await page.locator('#keirin-public-scoreboard').innerText(), /A 100\.0%（1 \/ 1）[\s\S]*B 0\.0%（0 \/ 1）/);
+    assert.equal(await page.locator('article').filter({ hasText: '函館 2R' }).getByText('的中', { exact: true }).count(), 0);
+    next = true;
+    await page.clock.fastForward(61_000);
+    await page.getByText(/結果照合 2 \/ 2/).waitFor();
+    const second = page.locator('article').filter({ hasText: '函館 2R' });
+    await second.getByText('的中', { exact: true }).waitFor();
+    assert.equal(await second.getByText('出走車番の確認中', { exact: true }).count(), 1);
+    assert.match(await page.locator('#keirin-public-scoreboard').innerText(), /締切前の参考[\s\S]*A 100\.0%（1 \/ 1） · B 照合待ち/);
+    assert.equal(calls.filter(url => url.startsWith(BASE + 'forecasts/')).length, 1);
   });
 });

@@ -26,6 +26,12 @@
   const updated = byId("keirin-public-updated");
   const races = byId("keirin-public-races");
   const base = "https://raw.githubusercontent.com/haji84/RACE-AI/state/keirin-public-forecasts/";
+  const resultBase = "https://raw.githubusercontent.com/haji84/RACE-AI/state/keirin-public-results/";
+  const scoreboard = element("section", "keirin-public-summary");
+  scoreboard.id = "keirin-public-scoreboard";
+  scoreboard.setAttribute("aria-label", "結果照合とモデル別的中率");
+  scoreboard.hidden = true;
+  races.before(scoreboard);
   const jstToday = globalThis.RaceAuditModel.jstToday;
   const jstDateTime = new Intl.DateTimeFormat("ja-JP", {
     timeZone: "Asia/Tokyo", year: "numeric", month: "2-digit", day: "2-digit",
@@ -41,7 +47,7 @@
     71: "高松", 73: "小松島", 74: "高知", 75: "松山", 81: "小倉", 83: "久留米",
     84: "武雄", 85: "佐世保", 86: "別府", 87: "熊本"
   };
-  let currentRequest;
+  let currentRequest, resultRequest, activeDay;
 
   function validDay(day) {
     if (!/^\d{4}-\d{2}-\d{2}$/.test(day)) return false;
@@ -117,6 +123,64 @@
   const probability = value => Number.isFinite(value) && value >= 0 && value <= 1;
   const percent = value => (100 * value).toFixed(1) + "%";
   const confidenceKey = (lane, arm, points) => [lane, arm, points].join("/");
+
+  function matchesResultLink(url, raceId) {
+    if (typeof url !== "string" || url.length > 2048) return false;
+    const match = /^https:\/\/keirin\.kdreams\.jp\/[a-z0-9-]+\/racedetail\/(\d{2})(20\d{6})(\d{2})00(\d{2})\/$/.exec(url);
+    if (!match || match[1] !== raceId.slice(8, 10) || match[4] !== raceId.slice(10) || Number(match[3]) < 1) return false;
+    const begin = match[2].replace(/(\d{4})(\d{2})(\d{2})/, "$1-$2-$3");
+    return validDay(begin) && new Date(Date.parse(begin) + (Number(match[3]) - 1) * 86400000)
+      .toISOString().slice(0, 10).replaceAll("-", "") === raceId.slice(0, 8);
+  }
+
+  function readPublicResults(day, rows, roster, packet) {
+    if (roster?.schema !== "KEIRIN_PUBLIC_RESULT_ROSTER_V1" || roster.date !== day ||
+        !validClock(roster.generated_at) || !/^[a-f0-9]{64}$/.test(roster.forecast_asset_sha256) ||
+        !Array.isArray(roster.races) || roster.races.length > 300 ||
+        packet?.schema !== "KEIRIN_PUBLISHED_RESULTS_V1" || packet.date !== day ||
+        !validClock(packet.checked_at) || !Array.isArray(packet.races) || packet.races.length > 300) return null;
+    const checked = Date.parse(packet.checked_at), eligible = new Set(rows.map(row => row.race_id));
+    const registrations = new Map(), outcomes = new Map(), seen = new Set();
+    const carNumber = car => Number.isInteger(car) && car >= 1 && car <= 9;
+    for (const row of roster.races) {
+      if (!eligible.has(row?.race_id)) continue;
+      if (registrations.has(row.race_id)) return null;
+      registrations.set(row.race_id, row);
+    }
+    for (const row of packet.races) {
+      if (!eligible.has(row?.race_id)) continue;
+      if (seen.has(row.race_id)) return null;
+      seen.add(row.race_id);
+      const registered = registrations.get(row.race_id);
+      if (!registered || registered.date !== day || !validClock(registered.published_cutoff_at) ||
+          jstToday(new Date(registered.published_cutoff_at)) !== day) continue;
+      if (row.state === "held" || row.state === "pending") {
+        outcomes.set(row.race_id, { reason: row.reason });
+        continue;
+      }
+      const result = row.comparison;
+      const cars = Array.isArray(registered.observed_riders) ? registered.observed_riders.map(rider => rider?.number) : [];
+      const cutoff = Date.parse(registered.published_cutoff_at), observed = Date.parse(result?.observed_at);
+      const winning = result?.winning_3t;
+      if (row.state !== "matched" || result?.race_id !== row.race_id || result.authority !== "cross_source_reference" ||
+          result.comparison_scope !== "POST_CUTOFF_REFERENCE" || !validClock(result.observed_at) ||
+          observed < cutoff || observed > checked || cars.length < 3 || cars.length > 9 ||
+          new Set(cars).size !== cars.length || !cars.every(carNumber) || !Array.isArray(winning) || winning.length !== 3 ||
+          new Set(winning).size !== 3 || !winning.every(car => cars.includes(car)) ||
+          !Array.isArray(result.winning_2t) || result.winning_2t.length !== 2 ||
+          !result.winning_2t.every((car, index) => car === winning[index]) ||
+          ![result.payouts_100yen?.["2t"], result.payouts_100yen?.["3t"]]
+            .every(value => Number.isSafeInteger(value) && value >= 100 && value <= 1e9) ||
+          !matchesResultLink(registered.source_url, row.race_id) || !Array.isArray(result.sources) || result.sources.length !== 2) continue;
+      const sourceLinks = { kdreams: registered.source_url + "?pageType=result",
+        netkeirin: "https://keirin.netkeiba.com/race/result/?race_id=" + row.race_id };
+      if (new Set(result.sources.map(source => source?.source_id)).size !== 2 || !result.sources.every(source =>
+        source && Object.hasOwn(sourceLinks, source.source_id) && source.url === sourceLinks[source.source_id] &&
+        validClock(source.checked_at) && cutoff <= Date.parse(source.checked_at) && Date.parse(source.checked_at) <= observed)) continue;
+      outcomes.set(row.race_id, { ...result, cutoff, cars: new Set(cars) });
+    }
+    return { checkedAt: packet.checked_at, outcomes };
+  }
 
   function confidenceRows(packet, day) {
     const entries = new Map();
@@ -245,6 +309,10 @@
       group.append(element("p", "", "保留"));
       return group;
     }
+    const result = element("span", "keirin-public-badge");
+    result.dataset.forecastArm = arm;
+    result.hidden = true;
+    group.append(result);
     if (replay && rating?.state !== "GRADED") {
       const { band } = replay;
       group.append(element("p", "keirin-public-clocks", "過去再現の推定的中率 " + percent(replay.probability) +
@@ -274,7 +342,7 @@
       const fromRacecard = row.status === "research" || row.status === "late-research";
       clocks.append(fromRacecard ? "　作成 " : "　保存 ", clock(row.saved_at, day));
     }
-    card.append(head, clocks);
+    card.append(head, clocks, element("p", "keirin-public-clocks keirin-public-result"));
     if (available) {
       const arms = element("div", "keirin-public-arms");
       const lane = row.status === "saved" ? "official" : row.status === "reference" ? "reference" : "racecard";
@@ -288,7 +356,81 @@
     return card;
   }
 
-  async function render(snapshot, referencePacket, researchPacket, confidencePacket, request) {
+  function renderResults(view, receipt) {
+    const outcomes = receipt?.outcomes || new Map();
+    const groups = { saved: "締切前保存", reference: "締切前の参考", research: "出走表の参考" };
+    const counts = new Map();
+    const yen = value => value.toLocaleString("ja-JP") + "円";
+    let matched = 0, held = 0;
+    for (const [index, row] of view.ordered.entries()) {
+      const card = races.children[index], result = outcomes.get(row.race_id);
+      const note = card.querySelector(".keirin-public-result");
+      const winner = result?.winning_3t;
+      if (winner) {
+        matched++;
+        note.replaceChildren("三連単 " + winner.join("–") + " · " + yen(result.payouts_100yen["3t"]),
+          "　2車単 " + result.winning_2t.join("–") + " · " + yen(result.payouts_100yen["2t"]), "　");
+        for (const source of result.sources) {
+          const link = element("a", "", source.source_id === "kdreams" ? "Kドリームス" : "netkeirin");
+          link.href = source.url;
+          link.target = "_blank";
+          link.rel = "noopener noreferrer";
+          note.append(link, " ");
+        }
+      } else {
+        const reasons = { source_disagreement: "結果確認中 · 2媒体に差異", special_result: "結果確認中 · 同着・返還等",
+          source_unavailable: "結果の取得再開待ち", result_unpublished: "結果発表待ち" };
+        if (["source_disagreement", "special_result"].includes(result?.reason)) held++;
+        note.textContent = Object.hasOwn(reasons, result?.reason) ? reasons[result.reason] : "結果待ち";
+      }
+      const eligible = winner && Object.hasOwn(groups, row.status) &&
+        Date.parse(row.saved_at) < Math.min(Date.parse(row.cutoff_at), result.cutoff);
+      const sameResearchRoster = !row.starter_cars ||
+        (row.starter_cars.length === result?.cars?.size && row.starter_cars.every(car => result.cars.has(car)));
+      for (const badge of card.querySelectorAll("[data-forecast-arm]")) {
+        const arm = badge.dataset.forecastArm, tickets = row[arm.toLowerCase()];
+        badge.hidden = !winner;
+        if (!winner) continue;
+        if (!sameResearchRoster || tickets.some(ticket => ticket.some(car => !result.cars.has(car)))) {
+          badge.classList.remove("is-saved");
+          badge.textContent = "出走車番の確認中";
+          continue;
+        }
+        const hit = tickets.some(ticket => ticket.every((car, i) => car === winner[i]));
+        badge.classList.toggle("is-saved", Boolean(hit));
+        badge.textContent = eligible ? (hit ? "的中" : "不的中") : (hit ? "参考一致" : "参考不一致");
+        if (!eligible) continue;
+        const key = row.status + arm, total = counts.get(key) || { hits: 0, races: 0 };
+        total.races++;
+        if (hit) total.hits++;
+        counts.set(key, total);
+      }
+    }
+    const title = element("strong", "", "結果照合 " + matched + " / " + view.ordered.length + "件");
+    const display = element("div", "");
+    display.append(title);
+    if (matched || held) display.append(" · 2媒体一致 " + matched + "件" + (held ? " · 確認中 " + held + "件" : ""));
+    if (receipt) {
+      const checked = element("p", "keirin-public-clocks");
+      checked.append("結果の最終確認 ", clock(receipt.checkedAt), " JST");
+      display.append(checked);
+    }
+    const stats = element("div", "");
+    stats.append(element("strong", "", "モデル別的中率"));
+    const rate = (lane, arm) => {
+      const item = counts.get(lane + arm);
+      return arm + " " + (item ? percent(item.hits / item.races) + "（" + item.hits + " / " + item.races + "）" : "照合待ち");
+    };
+    for (const [lane, label] of Object.entries(groups)) {
+      if (lane === "saved" || counts.has(lane + "A") || counts.has(lane + "B")) {
+        stats.append(element("p", "keirin-public-clocks", label + "　" + rate(lane, "A") + " · " + rate(lane, "B")));
+      }
+    }
+    scoreboard.replaceChildren(display, stats);
+    scoreboard.hidden = false;
+  }
+
+  async function render(snapshot, referencePacket, researchPacket, confidencePacket, resultPackets, request) {
     const references = publicCandidates(referencePacket, snapshot.day, false);
     const research = publicCandidates(researchPacket, snapshot.day, true);
     const ratings = confidenceRows(confidencePacket, snapshot.day);
@@ -318,10 +460,13 @@
     updated.replaceChildren("公開データ更新 ", clock(latest), " JST");
     updated.hidden = false;
     races.replaceChildren(...ordered.map(row => raceCard(row, snapshot.day, ratings, replay)));
+    const receipt = readPublicResults(snapshot.day, ordered, ...resultPackets);
+    activeDay = { day: snapshot.day, ordered, checkedAt: receipt?.checkedAt };
+    renderResults(activeDay, receipt);
   }
 
-  async function fetchDay(lane, day, request) {
-    const response = await fetch(base + lane + "/" + day + ".json", {
+  async function fetchDay(lane, day, request, origin = base) {
+    const response = await fetch(origin + lane + "/" + day + ".json", {
       cache: "no-store", credentials: "omit", redirect: "error", referrerPolicy: "no-referrer", signal: request.signal
     });
     if (response.status === 404) return undefined;
@@ -329,9 +474,37 @@
     return response.json().catch(() => null);
   }
 
+  function fetchResults(day, request) {
+    return Promise.all(["rosters", "results"].map(lane => fetchDay(lane, day, request, resultBase).catch(() => null)));
+  }
+
+  async function refreshResults() {
+    const view = activeDay;
+    if (!view || currentRequest || resultRequest || document.hidden || view.day !== jstToday()) return;
+    const request = new AbortController();
+    resultRequest = request;
+    const timeout = setTimeout(() => request.abort(), 15000);
+    try {
+      const data = await fetchResults(view.day, request);
+      if (activeDay !== view || request.signal.aborted) return;
+      const receipt = readPublicResults(view.day, view.ordered, ...data);
+      if (receipt && (!view.checkedAt || Date.parse(receipt.checkedAt) >= Date.parse(view.checkedAt))) {
+        view.checkedAt = receipt.checkedAt;
+        renderResults(view, receipt);
+      }
+    } finally {
+      clearTimeout(timeout);
+      if (resultRequest === request) resultRequest = null;
+    }
+  }
+
   async function load() {
     currentRequest?.abort();
     currentRequest = null;
+    resultRequest?.abort();
+    resultRequest = null;
+    activeDay = null;
+    scoreboard.hidden = true;
     updated.hidden = true;
     races.replaceChildren();
     dayInput.max = jstToday();
@@ -362,7 +535,8 @@
       const supplements = snapshot.races.some(row => row.status === "pending")
         ? ["references", "research"].map(lane => fetchDay(lane, day, request).catch(() => null))
         : [null, null];
-      const packets = await Promise.all([...supplements, fetchDay("measurements", "confidence-" + day, request).catch(() => null)]);
+      const packets = await Promise.all([...supplements, fetchDay("measurements", "confidence-" + day, request).catch(() => null),
+        fetchResults(day, request)]);
       if (currentRequest === request) await render(snapshot, ...packets, request);
     } catch {
       if (currentRequest === request) status.textContent = "公開予想を取得できませんでした。再読み込みで確認できます。";
@@ -378,6 +552,7 @@
   dayInput.value = jstToday();
   dayInput.addEventListener("change", load);
   byId("keirin-public-refresh").addEventListener("click", load);
+  window.setInterval(refreshResults, 60_000);
   load();
 })();
 

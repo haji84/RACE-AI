@@ -155,7 +155,7 @@ def discover_missing_links(day, missing, fetch):
 
 
 def build_public_roster(forecast_bytes, source_rows, official_rows, *, display_cutoffs=None, archived_links=None,
-                        previous=None, results=None, fetch=None):
+                        previous=None, results=None, fetch=None, allow_partial=False):
     from race_ai import keirin_public_forecasts as public
     from race_ai import keirin_secondary_result_consensus as consensus
 
@@ -193,8 +193,10 @@ def build_public_roster(forecast_bytes, source_rows, official_rows, *, display_c
         else:
             cutoff = cutoff or (source or {}).get('cutoff_at')
             field = source if source is not None else official.get(rid)
-            checked(cutoff is not None and field is not None and (source is not None or item['cutoff_at'] is not None),
-                    'PUBLIC_ROSTER_INPUT_INCOMPLETE')
+            if (cutoff is None or field is None or
+                    (source is None and item['cutoff_at'] is None and not allow_partial)):
+                checked(allow_partial, 'PUBLIC_ROSTER_INPUT_INCOMPLETE')
+                continue
             venue = rid[8:10]
             link = source['source_url'] if source else archived_links.get(rid)
             row = dict(race_id=rid, date=day, venue=VENUE_NAMES.get(venue, '開催コード ' + venue),
@@ -207,9 +209,13 @@ def build_public_roster(forecast_bytes, source_rows, official_rows, *, display_c
 
     if missing:
         resolved = discover_missing_links(day, missing, fetch)
-        checked(resolved.keys() == missing, 'PUBLIC_ROSTER_PUBLISHED_LINK_MISSING')
-        for rid, url in resolved.items():
-            rows[rid]['source_url'] = url
+        checked(allow_partial or resolved.keys() == missing, 'PUBLIC_ROSTER_PUBLISHED_LINK_MISSING')
+        for rid in missing:
+            if rid in resolved:
+                rows[rid]['source_url'] = resolved[rid]
+            else:
+                del rows[rid]
+    checked(bool(rows), 'PUBLIC_ROSTER_INPUT_INCOMPLETE')
     if previous is not None and rows == old:
         return previous
     roster = dict(schema='KEIRIN_PUBLIC_RESULT_ROSTER_V1', date=day,
@@ -294,7 +300,8 @@ def refresh_public_rosters(state, store, fetch, *, now):
                         checked(packet['day'] == day, 'PUBLIC_ROSTER_INPUT_DAY_MISMATCH')
                         archived_links = {row['race_id']: row['source_url'] for row in packet['races']}
             roster = build_public_roster(raw, context_rows, starter_rows, display_cutoffs=display_cutoffs,
-                                         archived_links=archived_links, previous=previous, results=results, fetch=fetch)
+                                         archived_links=archived_links, previous=previous, results=results,
+                                         fetch=fetch, allow_partial=True)
         except (ValueError, TypeError, KeyError) as error:
             if str(error) in SOURCE_STOP_CODES:
                 raise
@@ -302,9 +309,14 @@ def refresh_public_rosters(state, store, fetch, *, now):
                               if re.fullmatch(r'[A-Z0-9_]{3,90}', str(error)) else 'PUBLIC_ROSTER_VALIDATION_FAILED'}))
             ready = False
             continue
+        missing_count = len(snapshot['races']) - len(roster['races'])
+        if missing_count:
+            ready = False
         if roster != previous:
             target.write_text(json.dumps(roster, ensure_ascii=False, separators=(',', ':')) + '\n')
-            print(json.dumps({'roster_day':day,'roster_state':'registered','race_count':len(roster['races'])}))
+        if roster != previous or missing_count:
+            print(json.dumps({'roster_day':day,'roster_state':'partial' if missing_count else 'registered',
+                              'race_count':len(roster['races']),'missing_count':missing_count}))
     return ready
 
 
