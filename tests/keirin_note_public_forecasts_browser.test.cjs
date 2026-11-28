@@ -418,7 +418,7 @@ describe('KEIRIN anonymous forecast page', { skip: !chromium }, () => {
     let next = false;
     serve.supplement = (lane, day) => {
       if (lane === 'dt-r1') return dtPacket(day, [
-        { suffix: '2601', cutoff: '12:30', cars: [1, 2, 3, 4, 5, 6, 7] },
+        { suffix: '2601', cutoff: '12:30' },
         { suffix: '1102', cutoff: '12:40', cars: [1, 2, 3, 4, 5, 6, 7] },
       ]);
       if (lane === 'references') return { schema: 'RACE_AI_KEIRIN_PUBLIC_REFERENCE_FORECASTS_V1', day,
@@ -446,6 +446,7 @@ describe('KEIRIN anonymous forecast page', { skip: !chromium }, () => {
     await page.getByText(/結果照合 1 \/ 2/).waitFor();
     const first = page.locator('article').filter({ hasText: '西武園 1R' });
     assert.match(await first.innerText(), /三連単 1.2.3[\s\S]*5,620円[\s\S]*的中[\s\S]*不的中/);
+    assert.match(await first.locator('.keirin-public-dt-r1').innerText(), /着順の照合を保留中/);
     assert.match(await page.locator('#keirin-public-scoreboard').innerText(), /A 100\.0%（1 \/ 1）[\s\S]*B 0\.0%（0 \/ 1）/);
     assert.equal(await page.locator('article').filter({ hasText: '函館 2R' }).getByText('的中', { exact: true }).count(), 0);
     next = true;

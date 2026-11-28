@@ -385,7 +385,7 @@ if (typeof window === 'object' && typeof location === 'object') window.RaceNoteI
     return group;
   }
 
-  function dtResult(forecast, results) {
+  function dtResult(forecast, results, receipt) {
     const result = results?.get(forecast.race_id);
     const label = element("p", "keirin-public-clocks");
     if (!results) label.textContent = "公開結果を確認できません";
@@ -396,7 +396,10 @@ if (typeof window === 'object' && typeof location === 'object') window.RaceNoteI
     else {
       const { winning_3t: winner, observed_at: observed, sources } = result.comparison;
       const cutoff = instant(forecast.cutoff_at);
-      if (!winner.every(car => forecast.starter_cars.includes(car)) ||
+      const registered = receipt?.outcomes.get(forecast.race_id)?.cars;
+      const agreesWithRoster = !receipt || (registered?.size === forecast.starter_cars.length &&
+        forecast.starter_cars.every(car => registered.has(car)));
+      if (!agreesWithRoster || !winner.every(car => forecast.starter_cars.includes(car)) ||
           sources.some(source => instant(source.checked_at) < cutoff) || instant(observed) < cutoff) {
         label.textContent = "着順の照合を保留中";
       } else {
@@ -408,7 +411,7 @@ if (typeof window === 'object' && typeof location === 'object') window.RaceNoteI
     return label;
   }
 
-  function dtCard(row, day, results) {
+  function dtCard(row, day, results, receipt) {
     const group = element("section", "keirin-public-model keirin-public-dt-r1");
     const header = element("div", "keirin-public-race-head");
     header.append(element("h3", "", "DT-R1"), element("span", "keirin-public-badge", row.timing));
@@ -416,11 +419,11 @@ if (typeof window === 'object' && typeof location === 'object') window.RaceNoteI
     dates.append("締切 ", clock(row.cutoff_at, day, false), "　選定 ", clock(row.selected_at, day),
       "　掲載 ", clock(row.published_at, day));
     group.append(header, dates, element("p", "keirin-public-clocks", row.tickets.length + "点"),
-      rankedTickets("DT-R1", row.tickets), dtResult(row, results));
+      rankedTickets("DT-R1", row.tickets), dtResult(row, results, receipt));
     return group;
   }
 
-  function raceCard(row, day, ratings, replayRatings, dtRow, results) {
+  function raceCard(row, day, ratings, replayRatings, dtRow, results, receipt) {
     const venueCode = row.race_id.slice(8, 10);
     const name = (venues[venueCode] || "開催コード " + venueCode) + " " + Number(row.race_id.slice(-2)) + "R";
     const card = element("article", "keirin-public-race");
@@ -450,7 +453,7 @@ if (typeof window === 'object' && typeof location === 'object') window.RaceNoteI
       }
       card.append(arms);
     }
-    if (dtRow) card.append(dtCard(dtRow, day, results));
+    if (dtRow) card.append(dtCard(dtRow, day, results, receipt));
     return card;
   }
 
@@ -481,7 +484,7 @@ if (typeof window === 'object' && typeof location === 'object') window.RaceNoteI
         if (["source_disagreement", "special_result"].includes(result?.reason)) held++;
         note.textContent = Object.hasOwn(reasons, result?.reason) ? reasons[result.reason] : "結果待ち";
       }
-      const saved = instant(row.saved_at), forecastCutoff = instant(row.cutoff_at);
+      const saved = instant(row.status === "research" ? row.published_at : row.saved_at), forecastCutoff = instant(row.cutoff_at);
       const eligible = winner && Object.hasOwn(groups, row.status) && saved !== null && forecastCutoff !== null &&
         saved < forecastCutoff && saved < result.cutoff;
       const sameResearchRoster = !row.starter_cars ||
@@ -576,8 +579,8 @@ if (typeof window === 'object' && typeof location === 'object') window.RaceNoteI
       .map(row => ({ race_id: row.race_id, cutoff_at: row.cutoff_at, status: "dt-only" }))];
     const sortClock = row => Date.parse(row.cutoff_at ?? dtRows.get(row.race_id)?.cutoff_at) || Infinity;
     visible.sort((a, b) => sortClock(a) - sortClock(b) || a.race_id.localeCompare(b.race_id));
-    races.replaceChildren(...visible.map(row => raceCard(row, day, ratings, replay, dtRows.get(row.race_id), results)));
     const receipt = resultReceipt(day, roster, resultPacket, results);
+    races.replaceChildren(...visible.map(row => raceCard(row, day, ratings, replay, dtRows.get(row.race_id), results, receipt)));
     activeDay = { day, ordered: visible, dtRows, checkedAt: receipt?.checkedAt };
     renderResults(activeDay, receipt);
   }
