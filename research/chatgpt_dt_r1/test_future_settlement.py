@@ -1,6 +1,8 @@
 """Synthetic checks only, never actual-race evidence."""
 from itertools import permutations
+from types import SimpleNamespace
 import unittest
+from unittest.mock import patch
 from scripts import keirin_dt_r1_future_settle as settle
 from scripts import keirin_dt_r1_future_shadow as shadow
 
@@ -18,7 +20,9 @@ def forecast(rid):
 class FutureSettlementTests(unittest.TestCase):
     def entries(self):
         return [dict(slot_sha256=shadow.slot(DAY, rid),
-                     state=shadow.READY if i < 2 else 'HOLD') for i,rid in enumerate(RACES)]
+                     state=shadow.READY if i < 2 else 'HOLD',
+                     reason=None if i < 2 else 'SAVED_ORIGINAL_MISSING')
+                for i,rid in enumerate(RACES)]
 
     def test_originals_before_results_and_holds_remain_in_denominator(self):
         events = []
@@ -31,7 +35,7 @@ class FutureSettlementTests(unittest.TestCase):
             events.append('result')
             return dict(race_id=rid, day=DAY, top3=[1,2,3], result_status='VERIFIED_NORMAL')
         report = settle._score_registered(RACES, DAY, self.entries(),
-            [shadow.slot(DAY,rid) for rid in RACES[:2]], load_forecast, result)
+            [shadow.slot(DAY,rid) for rid in RACES[:2]], {}, load_forecast, result)
         self.assertEqual(events, ['forecast','forecast','result','result','result'])
         self.assertEqual(report['registered_races'], 3)
         self.assertEqual(report['owner_originals_replayed'], 1)
@@ -40,9 +44,47 @@ class FutureSettlementTests(unittest.TestCase):
         self.assertEqual(report['metrics']['trifecta']['1']['hits'], 1)
         self.assertAlmostEqual(report['metrics']['trifecta']['1']['all_target_rate'], 1/3)
         self.assertEqual(report['metrics']['trifecta']['1']['predicted_rate'], 1)
+        self.assertEqual(report['forecast_holds'], {
+            'SAVED_ORIGINAL_MISSING': 1, 'FORECAST_REPLAY_UNVERIFIED': 1})
+        self.assertNotIn('proper_scores', report['metrics'])
+
+    def late_slots(self):
+        return {shadow.slot(DAY, rid): 'SERVER_READBACK_AFTER_T15' for rid in RACES[:2]}
+
+    def test_late_reader_and_missing_original_are_distinct_registered_holds(self):
+        report = settle._score_registered(RACES, DAY, self.entries(), [], self.late_slots(),
+            lambda e,r: self.fail('late forecast opened'),
+            lambda r: dict(race_id=r, day=DAY, result_status='MISSING_SAVED_RESULT'))
+        self.assertEqual(report['registered_races'], 3)
+        self.assertEqual(report['forecast_holds'], {
+            'SERVER_READBACK_AFTER_T15': 2, 'SAVED_ORIGINAL_MISSING': 1})
+        self.assertEqual(sum(report['forecast_holds'].values()), report['registered_races'])
+
+    def test_nowhere_to_replay_is_distinct_from_missing_official_result(self):
+        store = SimpleNamespace(day=DAY, index=dict(originals={RACES[0]: {}}, results={}))
+        self.assertEqual(settle._result_row(store, RACES[0], b'', None, None)['result_status'],
+                         'MISSING_SAVED_RESULT')
+        self.assertEqual(settle._result_row(store, RACES[1], b'', None, None)['result_status'],
+                         'NO_SAVED_OFFICIAL_ORIGINAL')
+
+    def test_unverified_latest_revision_never_falls_back(self):
+        original, old, latest = {'original': 1}, {'revision': 1}, {'revision': 2}
+        store = SimpleNamespace(day=DAY, index=dict(
+            originals={RACES[0]: original}, results={RACES[0]: [old, latest]}))
+        seen = []
+
+        def replay(saved_store, saved_original, meta, private):
+            seen.append(meta)
+            raise ValueError('untrusted revision detail')
+
+        with patch.object(settle.records, '_replay_saved_result', side_effect=replay):
+            row = settle._result_row(store, RACES[0], b'', original, None)
+        self.assertEqual(row['result_status'], 'RESULT_REPLAY_UNVERIFIED')
+        self.assertEqual(seen, [latest])
+        self.assertNotIn('top3', row)
 
     def test_pending_result_does_not_become_miss(self):
-        report = settle._score_registered(RACES, DAY, self.entries(), [],
+        report = settle._score_registered(RACES, DAY, self.entries(), [], self.late_slots(),
             lambda e,r: self.fail('late forecast opened'),
             lambda r: dict(race_id=r,day=DAY,result_status='MISSING_SAVED_RESULT'))
         self.assertEqual(report['metrics']['evaluable'], 0)
@@ -52,13 +94,13 @@ class FutureSettlementTests(unittest.TestCase):
         one = shadow.slot(DAY,RACES[0])
         for eligible in ([one,one],[shadow.slot(DAY,RACES[2])],['f'*64]):
             with self.subTest(eligible=eligible), self.assertRaisesRegex(ValueError, 'REGISTRY_SLOT_MISMATCH'):
-                settle._score_registered(RACES,DAY,self.entries(),eligible,
+                settle._score_registered(RACES,DAY,self.entries(),eligible,{},
                     lambda e,r:self.fail('invalid forecast opened'),
                     lambda r:self.fail('invalid result opened'))
 
     def test_wrong_result_identity_stops_scoring(self):
         with self.assertRaisesRegex(ValueError, 'RESULT_IDENTITY'):
-            settle._score_registered(RACES,DAY,self.entries(),[],
+            settle._score_registered(RACES,DAY,self.entries(),[],self.late_slots(),
                 lambda e,r:self.fail('unexpected forecast'),
                 lambda r:dict(race_id='different',day=DAY,result_status='MISSING_SAVED_RESULT'))
 
