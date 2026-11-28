@@ -76,6 +76,45 @@ class PublicDailyRosterTests(unittest.TestCase):
                 publisher.build_public_roster(self.forecasts(), [self.source(0)], [])
         fallback.assert_not_called()
 
+    def test_partial_roster_keeps_ready_races_and_retries_missing_inputs(self):
+        official = [dict(race_id=IDS[1], riders=race(1)['observed_riders'])]
+        with patch.object(publisher, 'discover_missing_links', return_value={}):
+            partial = publisher.build_public_roster(self.forecasts(), [self.source(0)], official, allow_partial=True)
+        self.assertEqual(partial['races'], [race(0)])
+        restored = publisher.build_public_roster(self.forecasts(cutoff=None), [], official, previous=partial,
+            display_cutoffs={IDS[1]:race(1)['published_cutoff_at']},
+            archived_links={IDS[1]:race(1)['source_url']}, allow_partial=True)
+        self.assertEqual(restored['races'], [race(0), race(1)])
+        self.assertEqual(restored['generated_at'], partial['generated_at'])
+
+    def test_refresh_writes_a_partial_roster_until_all_registered_races_are_ready(self):
+        starters = dict(schema='RACE_AI_KEIRIN_PUBLIC_STARTERS_V1', day=DATE, published_at=NOW.isoformat(),
+            races=[dict(race_id=rid, source_at='2026-11-23T00:10:00Z', riders=[
+                dict(number=n, registration=f'{n:06}', name=f'選手 {n}') for n in range(1,8)]) for rid in IDS[:2]])
+        store = Mock()
+        store.head.return_value = 'a'*40
+
+        def read(_, path):
+            if path == f'forecasts/{DATE}.json':
+                return self.forecasts()
+            if path == f'starters/{DATE}.json':
+                return json.dumps(starters)
+            return None
+
+        store.read_previous.side_effect = read
+        with TemporaryDirectory() as folder, redirect_stdout(io.StringIO()) as log, \
+                patch.object(publisher, 'discover_missing_links', side_effect=[
+                    {IDS[0]:race(0)['source_url']}, {IDS[1]:race(1)['source_url']}]):
+            state = Path(folder)
+            file = state / 'rosters' / f'{DATE}.json'
+            self.assertFalse(publisher.refresh_public_rosters(state, store, None, now=NOW))
+            self.assertEqual(json.loads(file.read_text())['races'], [race(0)])
+            self.assertTrue(publisher.refresh_public_rosters(state, store, None, now=NOW))
+            self.assertEqual(json.loads(file.read_text())['races'], [race(0), race(1)])
+        events = [json.loads(line) for line in log.getvalue().splitlines()]
+        self.assertEqual([(event['roster_state'], event['race_count'], event['missing_count']) for event in events],
+                         [('partial', 1, 1), ('registered', 2, 0)])
+
     def test_dt_r1_pre_race_cards_fill_roster_gaps_with_the_same_result_link_checks(self):
         from research.chatgpt_dt_r1 import public_shortlists as dt
         rows = [dict(race_id=rid, cutoff_at='2026-11-23T09:00:00+09:00',
@@ -102,6 +141,13 @@ class PublicDailyRosterTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError,'PUBLIC_ROSTER_INPUT_INCOMPLETE'):
             publisher.build_public_roster(self.forecasts(cutoff='2026-11-23T08:00:00+09:00'),
                                          [self.source(0)], [], dt_shortlists=supplemental)
+        earlier = '2026-11-23T08:00:00+09:00'
+        result = publisher.build_public_roster(self.forecasts(cutoff=earlier), [self.source(0)], [],
+                                               dt_shortlists=supplemental, allow_partial=True)
+        self.assertEqual(result['races'], [race(0, earlier)])
+        with self.assertRaisesRegex(ValueError, 'PUBLIC_ROSTER_DT_R1_PARTITION'):
+            publisher.build_public_roster(self.forecasts(cutoff=earlier), [self.source(0)], [], allow_partial=True,
+                                          dt_shortlists=dict(supplemental, races=supplemental['races'][:1]))
 
     def test_representation_refresh_leaves_the_time_bound_to_existing_results(self):
         previous = roster([race(0), race(1)])

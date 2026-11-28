@@ -25,7 +25,7 @@ const MISSING = '2026-11-24';
 const INVALID = '2026-11-23';
 const A = [[1, 2, 3], [1, 3, 2], [2, 1, 3], [2, 3, 1], [3, 1, 2], [3, 2, 1], [1, 4, 3], [1, 3, 4]];
 const dayCalls = day => ['forecasts', 'references', 'research', 'dt-r1'].map(lane => BASE + lane + '/' + day + '.json')
-  .concat(BASE + 'measurements/confidence-' + day + '.json');
+  .concat(BASE + 'measurements/confidence-' + day + '.json', RESULTS + 'rosters/' + day + '.json', RESULTS + 'results/' + day + '.json');
 
 function snapshot(day) {
   const raceDay = day.replaceAll('-', '');
@@ -51,7 +51,7 @@ function dtPacket(day, specs) {
     published_at: stamp(day, '12:35'),
     races: specs.map(({ suffix, cutoff = '12:45', selected = '12:25', tickets = DT_TICKETS, cars = [1, 2, 3, 4, 5] }) => ({
       race_id: raceId(day, suffix), cutoff_at: stamp(day, cutoff), selected_at: stamp(day, selected),
-      source_at: stamp(day, '12:00'), starter_cars: cars, tickets, reason: 'MAX_POINTS',
+      source_at: stamp(day, '12:00'), starter_cars: cars, tickets: tickets.map(ticket => ticket.slice()), reason: 'MAX_POINTS',
     })),
   };
 }
@@ -109,7 +109,7 @@ describe('KEIRIN anonymous forecast page', { skip: !chromium }, () => {
     if (server) await new Promise(resolve => server.close(resolve));
   });
 
-  async function open(t, hash, serve) {
+  async function open(t, hash, serve, autoRefresh = false) {
     const context = await browser.newContext({ viewport: { width: 360, height: 760 }, timezoneId: 'America/Los_Angeles' });
     const page = await context.newPage();
     const calls = [], errors = [];
@@ -119,7 +119,9 @@ describe('KEIRIN anonymous forecast page', { skip: !chromium }, () => {
     });
     page.setDefaultTimeout(3000);
     page.on('pageerror', error => errors.push(error.message));
-    await page.clock.setFixedTime(new Date('2026-11-26T04:00:00Z'));
+    const time = new Date('2026-11-26T04:00:00Z');
+    if (autoRefresh) await page.clock.install({ time });
+    else await page.clock.setFixedTime(time);
     await page.route('**/*', async route => {
       const request = route.request(), url = request.url();
       if (url.startsWith(origin + '/')) return route.continue();
@@ -291,7 +293,7 @@ describe('KEIRIN anonymous forecast page', { skip: !chromium }, () => {
     assert.match(await page.locator('#keirin-public-status').innerText(), /^掲載済み 1 \/ 2 レース/);
     assert.doesNotMatch(await page.locator('#keirin-public-races').innerText(), /的中|払戻/);
     assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth));
-    assert.deepEqual(calls.sort(), [...dayCalls(TODAY), RESULTS + 'results/' + TODAY + '.json'].sort());
+    assert.deepEqual(calls.sort(), dayCalls(TODAY).sort());
   });
 
   test('refresh replaces result revisions and keeps result exceptions distinct', async t => {
@@ -358,7 +360,7 @@ describe('KEIRIN anonymous forecast page', { skip: !chromium }, () => {
       await official.waitFor();
       assert.equal(await dtHeading.count(), 0);
     }
-    assert.equal(calls.filter(url => url.startsWith(RESULTS)).length, 0);
+    assert.ok(calls.filter(url => url.startsWith(RESULTS)).every(url => url.endsWith('/' + TODAY + '.json')));
     await page.getByLabel('対象日（JST）').fill(PAST);
     await dtHeading.waitFor();
     assert.equal(await official.count(), 0);
@@ -397,5 +399,64 @@ describe('KEIRIN anonymous forecast page', { skip: !chromium }, () => {
     assert.equal(await page.getByText(/過去再現の推定的中率/).count(), 1);
     assert.equal(await page.getByText(/信頼度 低/).count(), 0);
     assert.ok(calls.includes(BASE + 'measurements/replay-confidence-' + TODAY + '.json'));
+  });
+
+  test('shows results, actual hit rates and the newly settled race after an automatic update', async t => {
+    const raceIds = ['202611262601', '202611261102'];
+    const before = TODAY + 'T12:20:00+09:00';
+    const cutoff = TODAY + 'T12:30:00+09:00';
+    const settled = TODAY + 'T12:45:00+09:00';
+    const urls = ['https://keirin.kdreams.jp/seibuen/racedetail/2620261126010001/',
+      'https://keirin.kdreams.jp/hakodate/racedetail/1120261126010002/'];
+    const serve = day => {
+      const forecasts = snapshot(day);
+      forecasts.races[0].b = [[7, 6, 5]];
+      if (next) forecasts.races[1] = { race_id: raceIds[1], status: 'saved', cutoff_at: cutoff,
+        saved_at: before, a: [[7, 6, 5]], b: [[1, 2, 9]] };
+      return forecasts;
+    };
+    let next = false;
+    serve.supplement = (lane, day) => {
+      if (lane === 'dt-r1') return dtPacket(day, [
+        { suffix: '2601', cutoff: '12:30' },
+        { suffix: '1102', cutoff: '12:40', cars: [1, 2, 3, 4, 5, 6, 7] },
+      ]);
+      if (lane === 'references') return { schema: 'RACE_AI_KEIRIN_PUBLIC_REFERENCE_FORECASTS_V1', day,
+        published_at: before, races: [{ race_id: raceIds[1], saved_at: before, cutoff_at: cutoff, a: [[4, 3, 2]], b: [[1, 2, 9]] }] };
+      if (lane === 'rosters') return { schema: 'KEIRIN_PUBLIC_RESULT_ROSTER_V1', date: day, generated_at: before,
+        forecast_asset_sha256: 'c'.repeat(64), races: raceIds.map((race_id, index) => ({ race_id,
+          date: day, venue: index === 0 ? '西武園' : '函館', race_no: index + 1,
+          published_cutoff_at: index === 0 ? cutoff : stamp(day, '12:40'),
+          source_url: urls[index], observed_riders: Array.from({ length: 7 }, (_, n) => ({ number: n + 1 })) })) };
+      if (lane === 'results') return { schema: 'KEIRIN_PUBLISHED_RESULTS_V1', date: day,
+        checked_at: next ? TODAY + 'T12:47:00+09:00' : settled,
+        races: raceIds.map((race_id, index) => {
+          const at = index === 1 && !next ? before : settled;
+          const winning = index === 0 ? [1, 2, 3] : [7, 6, 5];
+          return { race_id, state: 'matched', comparison: { race_id, observed_at: at, authority: 'cross_source_reference',
+            comparison_scope: 'POST_CUTOFF_REFERENCE', winning_3t: winning, winning_2t: winning.slice(0, 2),
+            payouts_100yen: { '2t': 830, '3t': 5620 }, sources: [
+              { source_id: 'kdreams', url: urls[index] + '?pageType=result', checked_at: at },
+              { source_id: 'netkeirin', url: 'https://keirin.netkeiba.com/race/result/?race_id=' + race_id, checked_at: at }
+            ] } };
+        }) };
+      return null;
+    };
+    const { page, calls } = await open(t, '#keirin-public', serve, true);
+    await page.getByText(/結果照合 1 \/ 2/).waitFor();
+    const first = page.locator('article').filter({ hasText: '西武園 1R' });
+    assert.match(await first.innerText(), /三連単 1.2.3[\s\S]*5,620円[\s\S]*的中[\s\S]*不的中/);
+    assert.match(await first.locator('.keirin-public-dt-r1').innerText(), /着順の照合を保留中/);
+    assert.match(await page.locator('#keirin-public-scoreboard').innerText(), /A 100\.0%（1 \/ 1）[\s\S]*B 0\.0%（0 \/ 1）/);
+    assert.equal(await page.locator('article').filter({ hasText: '函館 2R' }).getByText('的中', { exact: true }).count(), 0);
+    next = true;
+    await page.clock.fastForward(61_000);
+    await page.getByText(/結果照合 2 \/ 2/).waitFor();
+    const second = page.locator('article').filter({ hasText: '函館 2R' });
+    await second.getByText('的中', { exact: true }).waitFor();
+    assert.equal(await second.getByText('出走車番の確認中', { exact: true }).count(), 1);
+    assert.match(await page.locator('#keirin-public-scoreboard').innerText(), /締切前保存[\s\S]*A 100\.0%（2 \/ 2） · B 0\.0%（0 \/ 1）/);
+    assert.match(await page.locator('#keirin-public-scoreboard').innerText(), /DT-R1 締切前\s+0\.0%（0 \/ 1）/);
+    assert.equal(calls.filter(url => url.startsWith(BASE + 'forecasts/')).length, 2);
   });
 });
