@@ -172,6 +172,13 @@ class FutureShadowTests(unittest.TestCase):
         return json.loads((self.output / 'manifest.json').read_bytes())
 
     def test_official_history_changes_the_input_and_replays_from_the_sealed_policy(self):
+        self._assert_official_history_replays(paired=True)
+
+    def test_preexisting_v2_official_history_replays_without_a_paired_control(self):
+        with patch.object(self.api, '_no_history_forecast', return_value=None):
+            self._assert_official_history_replays(paired=False)
+
+    def _assert_official_history_replays(self, *, paired):
         from research.chatgpt_dt_r1.test_official_inputs import OfficialInputTests
         from scripts import keirin_dt_r1_future_settle as settlement
 
@@ -195,7 +202,8 @@ class FutureShadowTests(unittest.TestCase):
         ciphertext = (self.output / entry['cipher']['file']).read_bytes()
         original = codec.decrypt_evidence(ciphertext, self.private)
         material = original['shared_material']
-        self.assertEqual(material['schema'], self.api.HISTORY_MATERIAL_SCHEMA)
+        expected_schema = self.api.PAIRED_HISTORY_MATERIAL_SCHEMA if paired else self.api.HISTORY_MATERIAL_SCHEMA
+        self.assertEqual(material['schema'], expected_schema)
         self.assertEqual(material['history_status'], 'INDEPENDENTLY_VERIFIED')
         self.assertEqual(material['history_races'], 1)
         self.assertEqual(material['history_snapshot_sha256'], digest([historical_race]))
@@ -207,11 +215,24 @@ class FutureShadowTests(unittest.TestCase):
             original=self.original, trained=model, venues=venues, private=self.private,
             client=object(), cache={}, clock=lambda: self.current)
         self.assertNotEqual(cold['feature_input_sha256'], original['feature_row']['feature_input_sha256'])
+        if paired:
+            self.assertEqual(material['no_history_control']['feature_input_sha256'], cold['feature_input_sha256'])
+            self.assertEqual(material['no_history_control']['policy'], self.api.HISTORY_CONTROL_POLICY)
+        else:
+            self.assertNotIn('no_history_control', material)
+        controls = {}
         with patch.object(settlement, 'OfficialHistory', return_value=official_history) as reader:
             replayed = settlement._forecast_from_original(entry, ciphertext, manifest,
-                self.store, self.rid, self.private, model, venues, object(), {})
+                self.store, self.rid, self.private, model, venues, object(), {}, history_controls=controls)
         reader.assert_called_once_with(self.store, self.private)
         self.assertEqual(replayed, original['forecast'])
+        if paired:
+            self.assertEqual(set(controls), {self.rid})
+            self.assertEqual(controls[self.rid]['input_sha256'], replayed['input_sha256'])
+            self.assertEqual(controls[self.rid]['prediction_at'], replayed['prediction_at'])
+            self.assertNotEqual(controls[self.rid]['feature_input_sha256'], replayed['feature_input_sha256'])
+        else:
+            self.assertEqual(controls, {})
         self.assertEqual(calls, [NOW.isoformat(), NOW.isoformat()])
 
     def test_repeated_producer_skips_a_previously_retained_timely_slot(self):
@@ -260,6 +281,20 @@ class FutureShadowTests(unittest.TestCase):
         self.assertEqual(report['new_encrypted_forecasts'], 0)
         self.assertEqual(report['hold_reasons']['SOURCE_ADMISSION_UNVERIFIED'], 1)
         self.assertEqual(diagnostics, {'GITHUB_EVIDENCE_UNAVAILABLE': 1})
+
+    def test_source_replay_reports_only_allowlisted_details(self):
+        def broken_admission(*args, **kwargs):
+            kwargs['record_stage']('OFFICIAL_BASELINE_RECONSTRUCTION_FAILED')
+            raise ValueError('OFFICIAL_SP_RECORD_ORIGINAL_SOURCE_OR_MODEL_CHANGED')
+
+        self.admit.side_effect = broken_admission
+        diagnostics = Counter()
+        report = self.produce(source_diagnostics=diagnostics)
+        self.assertEqual(report['new_encrypted_forecasts'], 0)
+        self.assertEqual(diagnostics, {'OFFICIAL_SP_RECORD_ORIGINAL_SOURCE_OR_MODEL_CHANGED': 1})
+        self.assertEqual(self.api._source_failure('OFFICIAL_BASELINE_RECONSTRUCTION_FAILED',
+            ValueError('private HTML or rider identity')), 'OFFICIAL_BASELINE_RECONSTRUCTION_FAILED')
+        self.assertNotIn('source_diagnostics', self.manifest()['summary'])
 
     def test_registered_denominator_survives_missing_originals_and_results_are_never_read(self):
         report = self.produce()

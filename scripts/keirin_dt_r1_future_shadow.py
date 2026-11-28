@@ -45,6 +45,8 @@ PRIVATE_SCHEMA = 'DT_R1_FUTURE_SHADOW_ORIGINAL_V1'
 SUMMARY_SCHEMA = 'DT_R1_FUTURE_SHADOW_SUMMARY_V1'
 LEGACY_MATERIAL_SCHEMA = 'DT_R1_SHARED_FUTURE_MATERIAL_V1'
 HISTORY_MATERIAL_SCHEMA = 'DT_R1_SHARED_FUTURE_MATERIAL_V2'
+PAIRED_HISTORY_MATERIAL_SCHEMA = 'DT_R1_SHARED_FUTURE_MATERIAL_V3'
+HISTORY_CONTROL_POLICY = 'DT_R1_FROZEN_SAME_SOURCE_NO_PRIOR_HISTORY_V1'
 MODEL_FILE = 'research/chatgpt_dt_r1/evidence/20261128-resume/frozen_model.json'
 MODEL_FILE_SHA = 'dab8c7f014c41ac18e4fed1ae28ac9b36e994611d1fcf5992f8b06e31a4c618b'
 MODEL_SHA = '5e022092a35c0258954090c6f3d0f8fa14f03f22511b28d6aa9183f5a38c381c'
@@ -176,7 +178,16 @@ def _candidate(*, store, payload, original, trained, venues, private, client, ca
     return row, at, proofs
 
 
-def _shared_material(row, payload, original, store, proof):
+def _no_history_forecast(*, store, payload, original, trained, venues, private, client, cache,
+                         input_at, prediction_started_at):
+    row, _, _ = _candidate(store=store, payload=payload, original=original, trained=trained,
+        venues=venues, private=private, client=client, cache=cache, clock=lambda: parse_clock(input_at))
+    forecast = forecast_row(trained, row, prediction_at=prediction_started_at)
+    need(forecast['status'] == 'READY' and forecast['model_sha256'] == MODEL_SHA, 'HISTORY_CONTROL_UNVERIFIED')
+    return forecast
+
+
+def _shared_material(row, payload, original, store, proof, *, control=None):
     support = row['history_evidence']['official_support']
     shared = dict(schema=LEGACY_MATERIAL_SCHEMA,
         source_projection_sha256=digest(official_inputs.source_projection(payload, original)),
@@ -190,11 +201,22 @@ def _shared_material(row, payload, original, store, proof):
         shared.update(schema=HISTORY_MATERIAL_SCHEMA, history_policy=HISTORY_POLICY,
                       history_snapshot_sha256=support['history_snapshot_sha256'],
                       history_verification_receipt_sha256=support['verification_receipt_sha256'])
+    if control is not None:
+        need(support['history_races'] and control['race_id'] == row['race_id'] and
+             control['input_sha256'] == row['input_sha256'], 'HISTORY_CONTROL_INPUT')
+        # Both complete distributions were computed before the common seal.
+        # Retain compact ranked controls and the hash of the exact probabilities.
+        shared.update(schema=PAIRED_HISTORY_MATERIAL_SCHEMA, no_history_control=dict(
+            policy=HISTORY_CONTROL_POLICY, feature_input_sha256=control['feature_input_sha256'],
+            markets_sha256=digest({market: control[market] for market in ('trifectas', 'exactas')}),
+            trifecta_top12=[ticket['cars'] for ticket in control['trifectas'][:12]],
+            exacta_top2=[ticket['cars'] for ticket in control['exactas'][:2]]))
     return shared
 
 
 def _save_forecast(*, output, entry, row, forecast, payload, original, store, public, private,
-                   code_commit, input_at, prediction_started_at, proof, clock, remaining_cipher_bytes):
+                   code_commit, input_at, prediction_started_at, proof, clock, remaining_cipher_bytes,
+                   control=None):
     seal_at = _observe(clock)
     cutoff = row['cutoff_at']
     if not _same_day(seal_at, store.day):
@@ -204,7 +226,7 @@ def _save_forecast(*, output, entry, row, forecast, payload, original, store, pu
     if not _timely(seal_at, cutoff):
         return dict(entry, reason='POST_GENERATION_T15_MARGIN')
     feature_row = dict(row, features=row['features'].tolist(), feature_names=list(row['feature_names']))
-    shared = _shared_material(row, payload, original, store, proof)
+    shared = _shared_material(row, payload, original, store, proof, control=control)
     private_payload = dict(schema=PRIVATE_SCHEMA, day_jst=store.day, race_id=row['race_id'],
         observed_at=seal_at.isoformat(), reader_code_commit=code_commit, reader_run_id=os.environ['GITHUB_RUN_ID'],
         source_archive_commit=store.head, source_registry_reference=store.index['registry'],
@@ -237,8 +259,8 @@ def _save_forecast(*, output, entry, row, forecast, payload, original, store, pu
 
 
 def _source_failure(stage, error):
+    code = str(error)
     if isinstance(error, GitHubEvidenceError):
-        code = str(error)
         if code in {
             'GITHUB_EVIDENCE_HTTP_401', 'GITHUB_EVIDENCE_HTTP_403', 'GITHUB_EVIDENCE_HTTP_429',
             'GITHUB_EVIDENCE_UNAVAILABLE', 'GITHUB_EVIDENCE_ARTIFACT_EXPIRED_OR_INVALID',
@@ -249,6 +271,16 @@ def _source_failure(stage, error):
         return 'OFFICIAL_SOURCE_PROOF_INVALID'
     if isinstance(error, archive.GitCipherFetchTimeout):
         return 'OFFICIAL_SOURCE_ARCHIVE_TIMEOUT'
+    if isinstance(error, ValueError) and code in {
+        'ARCHIVE_BLOB_READ_UNAVAILABLE', 'ARCHIVE_BLOB_SIZE_INVALID',
+        'ARCHIVE_ORIGINAL_OR_RECEIPT_MISSING', 'ARCHIVE_RECEIPT_OR_SHA_MISMATCH',
+        'GIT_COMMAND_OR_REMOTE_UNAVAILABLE', 'OFFICIAL_SP_RECORD_BASELINE_ARCHIVE_LINEAGE',
+        'OFFICIAL_SP_RECORD_CONFIDENCE_PRESENCE_MISMATCH',
+        'OFFICIAL_SP_RECORD_CONFIDENCE_SOURCE_CIPHER_MISMATCH', 'OFFICIAL_SP_RECORD_ORIGINAL_COHORT',
+        'OFFICIAL_SP_RECORD_ORIGINAL_SCHEMA', 'OFFICIAL_SP_RECORD_ORIGINAL_SOURCE_OR_MODEL_CHANGED',
+        'OWNER_DECRYPT_OR_ZLIB_AUTH_FAILED',
+    }:
+        return code
     return stage
 
 
@@ -304,11 +336,16 @@ def produce_day(*, store, repo, output, owner_public_pem, owner_private_pem, cod
         if trained is None:
             entries.append(dict(entry, reason='FROZEN_MODEL_OR_CONTEXT_UNVERIFIED')); continue
         stage = 'OFFICIAL_SOURCE_CIPHERTEXT_REPLAY_FAILED'
+
+        def record_stage(value):
+            nonlocal stage
+            stage = value
+
         try:
             payload = store.read(meta, owner_private_pem)
-            stage = 'OFFICIAL_SOURCE_RECONSTRUCTION_FAILED'
             original, _ = records.admit_original(store, payload, owner_private_pem,
-                origin_client=origin_client, packet_cache=cache)
+                origin_client=origin_client, packet_cache=cache, record_stage=record_stage)
+            stage = 'OFFICIAL_SOURCE_BINDING_FAILED'
             need(original['race_id'] == rid and original['day_jst'] == store.day and
                  original['snapshot']['published_cutoff_at'] == meta['cutoff_at'], 'SOURCE_BINDING_CHANGED')
             entry['source_admitted'] = True
@@ -321,7 +358,9 @@ def produce_day(*, store, repo, output, owner_public_pem, owner_private_pem, cod
                 trained=trained, venues=venues, private=owner_private_pem, client=origin_client,
                 cache=cache, clock=clock, official_history=official_history)
             entry['context_geometry_present'] = bool(row['context_evidence']['venue_sources'])
-        except Exception:
+        except Exception as error:
+            if source_diagnostics is not None:
+                source_diagnostics[_source_failure('OFFICIAL_HISTORY_OR_INPUT_PROJECTION_FAILED', error)] += 1
             entries.append(dict(entry, reason='INPUT_PROJECTION_UNVERIFIED')); continue
         try:
             prediction_started = _observe(clock)
@@ -332,6 +371,11 @@ def produce_day(*, store, repo, output, owner_public_pem, owner_private_pem, cod
                 entries.append(dict(entry, reason='PRE_PREDICTION_T15_MARGIN')); continue
             forecast = forecast_row(trained, row, prediction_at=prediction_started.isoformat(), full=True)
             need(forecast['status'] == 'READY' and forecast['model_sha256'] == MODEL_SHA, 'PREDICTION_UNVERIFIED')
+            control = None
+            if row['history_evidence']['official_support']['history_races']:
+                control = _no_history_forecast(store=store, payload=payload, original=original,
+                    trained=trained, venues=venues, private=owner_private_pem, client=origin_client,
+                    cache=cache, input_at=input_at, prediction_started_at=prediction_started.isoformat())
             generated = _observe(clock)
             need(prediction_started <= generated, 'CLOCK_REGRESSION')
             if not _same_day(generated, store.day):
@@ -350,7 +394,7 @@ def produce_day(*, store, repo, output, owner_public_pem, owner_private_pem, cod
             payload=payload, original=original, store=store, public=owner_public_pem,
             private=owner_private_pem, code_commit=code_commit, input_at=input_at,
             prediction_started_at=prediction_started.isoformat(), proof=proof, clock=clock,
-            remaining_cipher_bytes=remaining_cipher_bytes)
+            remaining_cipher_bytes=remaining_cipher_bytes, control=control)
         if saved['cipher'] is not None:
             remaining_cipher_bytes -= saved['cipher']['bytes']
             history_uses += row['history_evidence']['official_support']['history_races']

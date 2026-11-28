@@ -116,7 +116,7 @@ def decrypt_conditioned(raw, *, expected_sha256, owner_private_pem, baseline):
     return result
 
 
-def replay_original(*, payload, raw_baseline, raw_conditioned, owner_private_pem):
+def replay_original(*, payload, raw_baseline, raw_conditioned, owner_private_pem, record_stage=None):
     """Authenticate stored models and original source bytes, not server timing."""
     need(type(payload) is dict and payload.get('schema')==PRE_SCHEMA,'ORIGINAL_SCHEMA')
     rid=payload['race_id'];day=payload['day_jst'];base=payload['baseline']
@@ -125,8 +125,12 @@ def replay_original(*, payload, raw_baseline, raw_conditioned, owner_private_pem
          payload['cohort'].get('schema')=='RACE_AI_KEIRIN_OFFICIAL_SP_DAY_COHORT_V1' and
          payload['cohort'].get('day_jst')==day and payload['cohort'].get('max_tickets_per_arm')==12 and
          rid in payload['cohort'].get('race_ids',[]),'ORIGINAL_COHORT')
+    if record_stage is not None:
+        record_stage('OFFICIAL_BASELINE_CIPHER_DECRYPT_FAILED')
     envelope,baseline,_,assessment=decrypt.decrypt_original_with_assessment(raw_cipher=raw_baseline,
         expected_cipher_sha256=payload['baseline_cipher_sha256'],owner_private_pem=owner_private_pem)
+    if record_stage is not None:
+        record_stage('OFFICIAL_BASELINE_CARD_REPLAY_FAILED')
     rebuilt=extension.build_baseline_candidate(**payload['baseline_arguments'],now=model.when(base['generated_at']))
     need(baseline==base and rebuilt['snapshot']==payload['snapshot'] and
          baseline['source_facts_sha256']==model.digest(payload['snapshot']) and
@@ -400,17 +404,25 @@ def archived_original(store, payload, *, strict_archive_reads=False):
     return raw,adjusted
 
 
-def admit_original(store, payload, owner_private_pem, *, origin_client=None, packet_cache=None):
+def admit_original(store, payload, owner_private_pem, *, origin_client=None, packet_cache=None, record_stage=None):
     from .keirin_github_evidence_client import GitHubEvidenceClient
+    if record_stage is not None:
+        record_stage('OFFICIAL_BASELINE_ARCHIVE_REPLAY_FAILED')
     raw,adjusted=archived_original(store,payload)
+    if record_stage is not None:
+        record_stage('OFFICIAL_BASELINE_RECONSTRUCTION_FAILED')
     original=replay_original(payload=payload,raw_baseline=raw,raw_conditioned=adjusted,
-                             owner_private_pem=owner_private_pem)
+                             owner_private_pem=owner_private_pem,record_stage=record_stage)
+    if record_stage is not None:
+        record_stage('OFFICIAL_BASELINE_RECEIPT_READ_FAILED')
     client=origin_client or GitHubEvidenceClient();cache=packet_cache if packet_cache is not None else {}
     run=payload['producer_run_id']
     if run not in cache:cache[run]=client.read_run_bundle(run,policy=POLICY)
     packets=cache[run]
     # Baseline origin is independent of conditioned archive/readback success.
     base_only=dict(original,conditioned=None)
+    if record_stage is not None:
+        record_stage('OFFICIAL_BASELINE_RECEIPT_VERIFICATION_FAILED')
     base_origin,_=verify_origins(base_only,raw,None,packets)
     condition_origin=None
     if original['conditioned'] is not None:

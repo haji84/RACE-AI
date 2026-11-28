@@ -1,0 +1,296 @@
+{
+  "archive": {
+    "commit": "2a1260fb0940ad11160b56a36f9c24cc4fb2f6d2",
+    "current_geometry_assumption_sha256": "a7d832a2661c6f05167e7a412a55e51183c21e746447f91dac44e14eeb4dfe19",
+    "dataset_sha256": "9bc3fbda8339b32ba178f5c9c39d6623216ad5c2d5519774870ac5491ba0a847",
+    "files": {
+      "keirin.db": "1bdad22b9744c9c5563f7bb1af31875170a3e6b7f4b0dd73fba8f98d645d8fc4",
+      "keirin_2026q4.db": "d915560877493816b90df8bcd5e7bdef45557f57100b4cd40a3d017cd959334d"
+    }
+  },
+  "candidate": {
+    "base_model_sha256": "5e022092a35c0258954090c6f3d0f8fa14f03f22511b28d6aa9183f5a38c381c",
+    "contract_sha256": "7cbeca142e393a192980a741ac9f22844305fe179efb3ed885c2c81444db8abe",
+    "schema": "DT_R1_BOOSTED_FIRST_CANDIDATE_V1",
+    "temperature": 1.25,
+    "train_races": 17797,
+    "train_riders": 126620,
+    "tune_races": 2244,
+    "weights_sha256": "4bb2e3113110051ca2355ce37474fecff46de28d57608e540c2a763cd3ba2069"
+  },
+  "candidate_sha256": "ce3fb02f29c304505729f9a18bca8c176d0ce60d2a4056dbd833d04eef24db18",
+  "code_base": "e55f032d02c12f92ffc9f6ff269189ec087f95ea",
+  "contract": {
+    "august_onward_used": false,
+    "bootstrap": {
+      "draws": 2000,
+      "seed": 462,
+      "unit": "paired_jst_day"
+    },
+    "common_july_expected": 2393,
+    "comparisons": [
+      "frozen_cold",
+      "frozen_seven"
+    ],
+    "development_only": true,
+    "history_days": 7,
+    "library": "LightGBM",
+    "library_version": "4.6.0",
+    "official_registration_authentication": false,
+    "original_july_temperature_and_selection_overlap": true,
+    "pre_cutoff_time_verified": false,
+    "probability_rule": "race_softmax_first_times_frozen_seven_day_conditional",
+    "rounds": 60,
+    "schema": "DT_R1_BOOSTED_FIRST_CONTRACT_V1",
+    "splits": {
+      "july": [
+        "2026-07-01",
+        "2026-07-31"
+      ],
+      "june": [
+        "2026-06-01",
+        "2026-06-30"
+      ],
+      "train": [
+        "2025-10-01",
+        "2026-05-31"
+      ]
+    },
+    "temperature_grid": [
+      0.6,
+      0.8,
+      1.0,
+      1.25,
+      1.5,
+      2.0
+    ],
+    "temperature_objective": "june_winner_log_loss_lower_temperature_tiebreak",
+    "tree": {
+      "deterministic": true,
+      "force_col_wise": true,
+      "lambda_l2": 1.0,
+      "learning_rate": 0.06,
+      "max_depth": 4,
+      "min_data_in_leaf": 150,
+      "num_leaves": 15,
+      "num_threads": 2,
+      "objective": "binary",
+      "seed": 462,
+      "verbosity": -1
+    }
+  },
+  "contract_sha256": "7cbeca142e393a192980a741ac9f22844305fe179efb3ed885c2c81444db8abe",
+  "frozen_at": "2026-11-28T07:33:33.764457+00:00",
+  "frozen_model": {
+    "features": 462,
+    "file_sha256": "dab8c7f014c41ac18e4fed1ae28ac9b36e994611d1fcf5992f8b06e31a4c618b",
+    "sha256": "5e022092a35c0258954090c6f3d0f8fa14f03f22511b28d6aa9183f5a38c381c"
+  },
+  "independent_accuracy_claim": false,
+  "july": {
+    "candidate_difference": {
+      "frozen_cold": {
+        "ex1": {
+          "ci95": [
+            -0.012078930836414155,
+            0.011438846030215359
+          ],
+          "delta": 0.0004178854993731718
+        },
+        "ex2": {
+          "ci95": [
+            -0.017106146182099744,
+            0.011021423973112386
+          ],
+          "delta": -0.0025073129962390303
+        },
+        "ex_brier": {
+          "ci95": [
+            -0.0034573426140901715,
+            0.0018836131959705643
+          ],
+          "delta": -0.0007832136088430571
+        },
+        "ex_log_loss": {
+          "ci95": [
+            -0.028128009759365427,
+            0.005612155006837793
+          ],
+          "delta": -0.010732402334316327
+        },
+        "tri1": {
+          "ci95": [
+            -0.011190788891146164,
+            0.0044808345402890535
+          ],
+          "delta": -0.0029251984956122023
+        },
+        "tri2": {
+          "ci95": [
+            -0.013710440188662158,
+            0.008041223567635453
+          ],
+          "delta": -0.0029251984956122023
+        },
+        "tri4": {
+          "ci95": [
+            -0.023421487908160073,
+            -0.0038889090250090637
+          ],
+          "delta": -0.013372335979941497
+        },
+        "tri_brier": {
+          "ci95": [
+            -0.0010925855735172759,
+            0.001648494164510052
+          ],
+          "delta": 0.00028425391140772554
+        },
+        "tri_log_loss": {
+          "ci95": [
+            -0.01782262187853779,
+            0.023952099063695585
+          ],
+          "delta": 0.004196898197012253
+        }
+      },
+      "frozen_seven": {
+        "ex1": {
+          "ci95": [
+            -0.007125720209996912,
+            0.017278219549836812
+          ],
+          "delta": 0.005014625992478061
+        },
+        "ex2": {
+          "ci95": [
+            -0.012726316786661614,
+            0.01074980726903008
+          ],
+          "delta": -0.001671541997492687
+        },
+        "ex_brier": {
+          "ci95": [
+            -0.002771116397524854,
+            0.0026783327539056673
+          ],
+          "delta": 4.5424388066141415e-06
+        },
+        "ex_log_loss": {
+          "ci95": [
+            -0.003447363025950814,
+            0.02366261080379974
+          ],
+          "delta": 0.010192562657294648
+        },
+        "tri1": {
+          "ci95": [
+            -0.005556391516193752,
+            0.007518875542387099
+          ],
+          "delta": 0.0008357709987463436
+        },
+        "tri2": {
+          "ci95": [
+            -0.007331376012341326,
+            0.007603781100792838
+          ],
+          "delta": 0.0
+        },
+        "tri4": {
+          "ci95": [
+            -0.00831972742915632,
+            0.007954611010936872
+          ],
+          "delta": 0.0
+        },
+        "tri_brier": {
+          "ci95": [
+            -0.0004349279040305542,
+            0.0019039886460056775
+          ],
+          "delta": 0.0007144286658107105
+        },
+        "tri_log_loss": {
+          "ci95": [
+            -0.0034473630259515315,
+            0.02366261080379918
+          ],
+          "delta": 0.010192562657293876
+        }
+      }
+    },
+    "cards": 2416,
+    "cohort_sha256": "7a3b4d924f5a449ba0b576f21fe20322aef36dc259dd6723a52c24ec8caceb11",
+    "common_scorable": 2393,
+    "days": 31,
+    "excluded_without_unique_trifecta": 23,
+    "metrics": {
+      "candidate": {
+        "hits": {
+          "ex1": 534,
+          "ex2": 878,
+          "tri1": 254,
+          "tri2": 433,
+          "tri4": 641
+        },
+        "proper": {
+          "ex_brier": 0.8883536754213903,
+          "ex_log_loss": 2.841636064443249,
+          "tri_brier": 0.9632885259759508,
+          "tri_log_loss": 4.257626698895424
+        }
+      },
+      "frozen_cold": {
+        "hits": {
+          "ex1": 533,
+          "ex2": 884,
+          "tri1": 261,
+          "tri2": 440,
+          "tri4": 673
+        },
+        "proper": {
+          "ex_brier": 0.8891368890302334,
+          "ex_log_loss": 2.8523684667775657,
+          "tri_brier": 0.9630042720645431,
+          "tri_log_loss": 4.253429800698411
+        }
+      },
+      "frozen_seven": {
+        "hits": {
+          "ex1": 522,
+          "ex2": 882,
+          "tri1": 252,
+          "tri2": 433,
+          "tri4": 641
+        },
+        "proper": {
+          "ex_brier": 0.8883491329825836,
+          "ex_log_loss": 2.8314435017859543,
+          "tri_brier": 0.9625740973101401,
+          "tri_log_loss": 4.247434136238131
+        }
+      }
+    }
+  },
+  "june": {
+    "evaluable": 2244,
+    "winner_log_loss": {
+      "0.6": 1.6923754567654212,
+      "0.8": 1.5459171580248723,
+      "1.0": 1.498491092281572,
+      "1.25": 1.493373126035985,
+      "1.5": 1.5111836011198783,
+      "2.0": 1.5628264483199026
+    }
+  },
+  "production_promoted": false,
+  "runtime_seconds": 112.911,
+  "schema": "DT_R1_BOOSTED_FIRST_STUDY_V1",
+  "source_sha256": "ab265dc25945fd2cacbcbbf1762ec78c9d019aa17c19dd8bf7f121f4801563b5",
+  "started_at": "2026-11-28T07:32:04.088118+00:00",
+  "train": {
+    "races": 17797,
+    "riders": 126620
+  }
+}

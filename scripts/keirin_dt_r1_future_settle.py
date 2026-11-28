@@ -65,7 +65,7 @@ def _same(a, b):
 
 
 def _forecast_from_original(entry, raw, manifest, source, rid, private, trained, venues, client, cache,
-                            *, history_sources=None):
+                            *, history_sources=None, history_controls=None):
     meta = source.index['originals'][rid]
     need(sha256(raw).hexdigest() == entry['cipher']['sha256'], 'FORECAST_CIPHER_CHANGED')
     with _stage('FORECAST_DECRYPT_UNVERIFIED'):
@@ -92,7 +92,7 @@ def _forecast_from_original(entry, raw, manifest, source, rid, private, trained,
     # The old input clock is used ONLY to reproduce already sealed bytes.
     with _stage('FEATURE_REPLAY_UNVERIFIED'):
         prior = None
-        if shared['schema'] == shadow.HISTORY_MATERIAL_SCHEMA:
+        if shared['schema'] in (shadow.HISTORY_MATERIAL_SCHEMA, shadow.PAIRED_HISTORY_MATERIAL_SCHEMA):
             need(shared.get('history_policy') == HISTORY_POLICY, 'HISTORY_POLICY_CHANGED')
             history_sources = {} if history_sources is None else history_sources
             if source.head not in history_sources:
@@ -104,6 +104,11 @@ def _forecast_from_original(entry, raw, manifest, source, rid, private, trained,
             store=source, payload=payload, original=original, trained=trained,
             venues=venues, private=private, client=client, cache=cache,
             clock=lambda: clock(clocks['input_at']), official_history=prior)
+        control = None
+        if shared['schema'] == shadow.PAIRED_HISTORY_MATERIAL_SCHEMA:
+            control = shadow._no_history_forecast(store=source, payload=payload, original=original,
+                trained=trained, venues=venues, private=private, client=client, cache=cache,
+                input_at=clocks['input_at'], prediction_started_at=clocks['prediction_started_at'])
     feature_row = dict(row, features=row['features'].tolist(),
                        feature_names=list(row['feature_names']))
     need(clock(replay_at) == clock(clocks['input_at']) and
@@ -111,7 +116,7 @@ def _forecast_from_original(entry, raw, manifest, source, rid, private, trained,
          row['input_sha256'] == entry['bindings']['input_sha256'] and
          row['feature_input_sha256'] == entry['bindings']['feature_input_sha256'] and
          row['source_attestation_sha256'] == entry['bindings']['source_receipt_sha256'] and
-         _same(shared, shadow._shared_material(row, payload, original, source, proof)),
+         _same(shared, shadow._shared_material(row, payload, original, source, proof, control=control)),
          'FEATURE_OR_SOURCE_REPLAY_CHANGED')
     replay = forecast_row(trained, row, prediction_at=clocks['prediction_started_at'], full=True)
     replay.update(prediction_at=clocks['prediction_at'],
@@ -122,6 +127,8 @@ def _forecast_from_original(entry, raw, manifest, source, rid, private, trained,
     checked = validate_forecast(saved['forecast'])
     need(checked['starters'] == sorted(r['car'] for r in original['snapshot']['riders']),
          'FORECAST_ROSTER_CHANGED')
+    if control is not None and history_controls is not None:
+        history_controls[rid] = dict(control, prediction_at=clocks['prediction_at'])
     return saved['forecast']
 
 
@@ -147,11 +154,14 @@ def _result_row(result_store, rid, private, original_meta, now):
             reason = REPLAY_CODES.get(str(error), 'OFFICIAL_RESULT_REPLAY_FAILED')
             raise SettlementError(reason) from None
         final = scored['official_result']
+        cutoff = clock(current['cutoff_at'])
+        observed = clock(final['observed_at'])
+        cancelled = final['status'] == 'CANCELLED' and final['refund_status'] == 'FULL'
         need(final['race_id'] == rid and
-             clock(final['official_cutoff_at']) == clock(current['cutoff_at']) and
-             clock(current['cutoff_at']) < clock(final['observed_at']) <= clock(meta['observed_at']) <= now,
+             clock(final['official_cutoff_at']) == cutoff and
+             observed <= clock(meta['observed_at']) <= now and (cancelled or cutoff < observed),
              'RESULT_CLOCK_OR_AUTHORITY')
-        if final['status'] == 'CANCELLED' and final['refund_status'] == 'FULL':
+        if cancelled:
             return dict(row, result_status='OFFICIAL_CANCELLED')
         if final['refund_status'] != 'NONE':
             return dict(row, result_status='OFFICIAL_REFUND')
@@ -189,7 +199,8 @@ def _placing_pdca(rid, forecast, outcome, entry):
         verify_observation=lambda _: False)
 
 
-def _score_registered(race_ids, day, entries, eligible, reader_holds, forecast_loader, result_loader):
+def _score_registered(race_ids, day, entries, eligible, reader_holds, forecast_loader, result_loader,
+                      *, history_controls=None):
     """Reverify all admitted forecast originals before opening any outcome."""
     need(len(race_ids) == len(set(race_ids)), 'DUPLICATE_REGISTRY')
     slots = {shadow.slot(day, rid): rid for rid in race_ids}
@@ -233,6 +244,17 @@ def _score_registered(race_ids, day, entries, eligible, reader_holds, forecast_l
     # A running series of exact probability means would disclose a private
     # outcome probability whenever a single newly verified result is added.
     del metrics['proper_scores']
+    paired_races = set(admitted).intersection(history_controls or {})
+    if paired_races:
+        paired_rows = [row for row in outcomes if row['race_id'] in paired_races]
+        paired = {}
+        for name, forecasts in (('official_history', admitted), ('no_history', history_controls)):
+            paired[name] = summarize_predictions([forecasts[rid] for rid in sorted(paired_races)], paired_rows)
+            del paired[name]['proper_scores']
+        need(paired['official_history']['predicted_evaluable'] == paired['no_history']['predicted_evaluable'],
+             'HISTORY_PAIR_DENOMINATOR')
+        metrics['paired_history'] = dict(policy=shadow.HISTORY_CONTROL_POLICY,
+                                         registered_day=len(race_ids), retained_pairs=len(paired_races), **paired)
     return dict(registered_races=len(race_ids), independently_timed_candidates=len(eligible),
                 owner_originals_replayed=len(admitted), forecast_holds=dict(holds),
                 result_states=dict(Counter(row['result_status'] for row in outcomes)),
@@ -296,7 +318,7 @@ def _score_archived_day(work, current, private, trained, venues, client, now, le
                 need(set(original_registry['registered_race_ids']) <= race_set, 'REGISTRY_LINEAGE')
                 sources[run] = source
     entries, pinned_originals = [], {}
-    cache, history_sources = {}, {}
+    cache, history_sources, history_controls = {}, {}, {}
     for slot, rid in slots.items():
         if slot in selected:
             candidate = selected[slot]
@@ -319,10 +341,11 @@ def _score_archived_day(work, current, private, trained, venues, client, now, le
                                          max_bytes=batch_retention.MAX_ARCHIVE_BYTES + 1)
         source = sources[manifest['summary']['reader_run_id']]
         return _forecast_from_original(entry, raw, manifest, source, rid, private, trained, venues, client, cache,
-                                       history_sources=history_sources)
+                                       history_sources=history_sources, history_controls=history_controls)
 
     result = _score_registered(races, day, entries, [slot for slot in slots if slot in selected], {},
-        forecast_loader, lambda rid: _result_row(current, rid, private, pinned_originals.get(rid), now()))
+        forecast_loader, lambda rid: _result_row(current, rid, private, pinned_originals.get(rid), now()),
+        history_controls=history_controls)
     return dict(result, day_inventory_complete=registry['day_inventory_complete'],
                 missing_venues=len(registry['missing_venues']),
                 timed_originals=dict(legacy=legacy_count, additional=len(additional)),
