@@ -1,6 +1,7 @@
 """Synthetic encrypted-archive boundaries for DT-R1's official prior form."""
 from copy import deepcopy
 from datetime import date, datetime
+import json
 from types import SimpleNamespace
 import unittest
 from unittest.mock import patch
@@ -126,6 +127,47 @@ class OfficialHistoryTests(unittest.TestCase):
         self.stub_replay.assert_called_once()
         with self.assertRaises(ValueError):
             self.history.for_day(SimpleNamespace(head='b' * 40, day='2030-01-16', repo=self.scope.repo))
+
+    def test_cross_pin_reuse_requires_identical_trees_and_conditioned_ancestry(self):
+        race = prior_race(self.target)
+        self.add(race)
+        other_head = 'c' * 40
+        prior_folder = f'{records.ROOT}/{PRIOR}'
+        baseline_folder = f'{official_history.archive.ROOT}/{PRIOR}'
+        _, form_path = official_history.archive._form_refs(race[0])
+        before = datetime.fromisoformat(stamp(PRIOR, '04:01'))
+        after = datetime.fromisoformat(stamp(PRIOR, '04:03'))
+
+        for changed_tree, related_parent, count in ((False, True, 1), (True, True, 2), (False, False, 2)):
+            with self.subTest(changed_tree=changed_tree, related_parent=related_parent):
+                def git_command(repo, _no_replace, op, *arguments, **kwargs):
+                    self.assertEqual(repo, self.scope.repo)
+                    if op == 'merge-base':
+                        ancestor, head = arguments[1:]
+                        self.assertEqual(ancestor, 'd' * 40)
+                        return (0 if head == HEAD or related_parent else 1), ''
+                    head = arguments[1]
+                    if '-r' in arguments:
+                        return 0, form_path
+                    official_tree = 'e' * 40 if head == HEAD or not changed_tree else 'f' * 40
+                    return 0, f'040000 tree {official_tree}\t{prior_folder}\n040000 tree {"1" * 40}\t{baseline_folder}'
+
+                cache = official_history.ArchiveHistoryCache(self.scope.repo, b'fixture-only')
+                self.assertIsNone(cache.for_store(self.scope, b'another-key'))
+                self.stub_replay.reset_mock()
+                rows = []
+                with (patch.object(official_history.archive, '_cmd', side_effect=git_command),
+                      patch.object(official_history.archive, 'read_blob_bytes',
+                                   return_value=json.dumps({'previous_archive_commit': 'd' * 40}).encode())):
+                    for head in (HEAD, other_head):
+                        scope = SimpleNamespace(head=head, day=DAY, repo=self.scope.repo)
+                        store = SimpleNamespace(head=head, day=PRIOR, repo=scope.repo, index=self.indexes[PRIOR])
+                        history = official_history.OfficialHistory(scope, b'fixture-only', shared_replays=cache)
+                        self.assertIsNone(history._latest(store, race[2], [race[-1]], before))
+                        rows.append(history._latest(store, race[2], [race[-1]], after))
+                self.assertEqual(rows[0], rows[1])
+                self.assertIsNotNone(rows[0])
+                self.assertEqual(self.stub_replay.call_count, count)
 
     def test_prefetch_selects_prior_ciphertexts_and_never_changes_replayed_history(self):
         race = prior_race(self.target)

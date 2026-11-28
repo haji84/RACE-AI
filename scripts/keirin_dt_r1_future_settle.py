@@ -27,7 +27,7 @@ from research.chatgpt_dt_r1 import back_official_shadow, future_batch_retention 
 from research.chatgpt_dt_r1.future_retention_gate import (
     FIRST_DAY as DAY, FIRST_PRODUCER as PRODUCER, FIRST_READER as READER,
     FIRST_SOURCE_PARENT as PARENT, read_legacy_first_retention)
-from research.chatgpt_dt_r1.official_history import OfficialHistory, POLICY as HISTORY_POLICY
+from research.chatgpt_dt_r1.official_history import ArchiveHistoryCache, OfficialHistory, POLICY as HISTORY_POLICY
 from research.chatgpt_dt_r1.official_feature_audit import OfficialFeatureAudit
 from research.chatgpt_dt_r1.pipeline import forecast_row, summarize_predictions
 from research.chatgpt_dt_r1.policy import clock, digest, validate_forecast
@@ -70,9 +70,9 @@ def _same(a, b):
 
 
 def _forecast_from_original(entry, raw, manifest, source, rid, private, trained, venues, client, cache,
-                            *, history_sources=None, history_controls=None, back_trial=None, back_pairs=None,
-                            back_holds=None, feature_rows=None, personal_add=None, personal_pairs=None,
-                            personal_holds=None):
+                            *, history_sources=None, history_controls=None, history_replay_cache=None,
+                            back_trial=None, back_pairs=None, back_holds=None, feature_rows=None,
+                            personal_add=None, personal_pairs=None, personal_holds=None):
     meta = source.index['originals'][rid]
     need(sha256(raw).hexdigest() == entry['cipher']['sha256'], 'FORECAST_CIPHER_CHANGED')
     with _stage('FORECAST_DECRYPT_UNVERIFIED'):
@@ -118,7 +118,8 @@ def _forecast_from_original(entry, raw, manifest, source, rid, private, trained,
             need(shared.get('history_policy') == HISTORY_POLICY, 'HISTORY_POLICY_CHANGED')
             history_sources = {} if history_sources is None else history_sources
             if source.head not in history_sources:
-                history_sources[source.head] = OfficialHistory(source, private)
+                options = {'shared_replays': history_replay_cache} if history_replay_cache is not None else {}
+                history_sources[source.head] = OfficialHistory(source, private, **options)
             prior = history_sources[source.head]
         row, replay_at, proof = shadow._candidate(
             store=source, payload=payload, original=original, trained=trained,
@@ -568,6 +569,7 @@ def _score_archived_day(work, current, private, trained, venues, client, now, le
         progress('OFFICIAL_INPUT_PREFETCH_' + prefetch)
     entries, pinned_originals = [], {}
     cache, history_sources, history_controls, back_pairs, back_holds = {}, {}, {}, {}, {}
+    history_replay_cache = ArchiveHistoryCache(current.repo, private)
     personal_pairs, personal_holds = {}, {}
     codex_report = None
     if codex_repo is not None:
@@ -618,6 +620,7 @@ def _score_archived_day(work, current, private, trained, venues, client, now, le
         source = sources[manifest['summary']['reader_run_id']]
         return _forecast_from_original(entry, raw, manifest, source, rid, private, trained, venues, client, cache,
                                        history_sources=history_sources, history_controls=history_controls,
+                                       history_replay_cache=history_replay_cache,
                                        back_trial=back_trial, back_pairs=back_pairs, back_holds=back_holds,
                                        feature_rows=feature_rows,
                                        personal_add=add_personal if personal_study is not None else None,
