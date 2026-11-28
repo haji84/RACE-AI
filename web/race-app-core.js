@@ -384,6 +384,16 @@
     return group;
   }
 
+  function dtMatch(forecast, comparison, registered) {
+    const { winning_3t: winner, observed_at: observed, sources } = comparison;
+    const cutoff = instant(forecast.cutoff_at);
+    if ((registered !== undefined && (registered?.size !== forecast.starter_cars.length ||
+        !forecast.starter_cars.every(car => registered.has(car)))) ||
+        !winner.every(car => forecast.starter_cars.includes(car)) ||
+        sources.some(source => instant(source.checked_at) < cutoff) || instant(observed) < cutoff) return null;
+    return forecast.tickets.some(ticket => ticket.every((car, i) => car === winner[i]));
+  }
+
   function dtResult(forecast, results, receipt) {
     const result = results?.get(forecast.race_id);
     const label = element("p", "keirin-public-clocks");
@@ -393,17 +403,12 @@
     else if (result.reason === "special_result") label.textContent = "中止・返還・同着の確認待ち";
     else if (result.reason === "source_disagreement") label.textContent = "出典間の相違を確認中";
     else {
-      const { winning_3t: winner, observed_at: observed, sources } = result.comparison;
-      const cutoff = instant(forecast.cutoff_at);
-      const registered = receipt?.outcomes.get(forecast.race_id)?.cars;
-      const agreesWithRoster = !receipt || (registered?.size === forecast.starter_cars.length &&
-        forecast.starter_cars.every(car => registered.has(car)));
-      if (!agreesWithRoster || !winner.every(car => forecast.starter_cars.includes(car)) ||
-          sources.some(source => instant(source.checked_at) < cutoff) || instant(observed) < cutoff) {
+      const registered = receipt ? receipt.outcomes.get(forecast.race_id)?.cars ?? null : undefined;
+      const matched = dtMatch(forecast, result.comparison, registered);
+      if (matched === null) {
         label.textContent = "着順の照合を保留中";
       } else {
-        const matched = forecast.tickets.some(ticket => ticket.every((car, i) => car === winner[i]));
-        label.append("公開結果（2媒体一致） " + winner.join("–") + " · ",
+        label.append("公開結果（2媒体一致） " + result.comparison.winning_3t.join("–") + " · ",
           element("strong", "", matched ? "一致" : "不一致"));
       }
     }
@@ -507,11 +512,10 @@
         counts.set(key, total);
       }
       const dt = view.dtRows.get(row.race_id);
-      if (winner && dt?.timing === "締切前掲載" && instant(dt.published_at) < result.cutoff &&
-          dt.starter_cars.length === result.cars.size && dt.starter_cars.every(car => result.cars.has(car)) &&
-          result.sources.every(source => instant(source.checked_at) >= instant(dt.cutoff_at))) {
+      const dtHit = winner && dt ? dtMatch(dt, result, result.cars) : null;
+      if (dtHit !== null) {
         dtScored++;
-        if (dt.tickets.some(ticket => ticket.every((car, i) => car === winner[i]))) dtHits++;
+        if (dtHit) dtHits++;
       }
     }
     const title = element("strong", "", "結果照合 " + matched + " / " + view.ordered.length + "件");
@@ -534,7 +538,7 @@
         stats.append(element("p", "keirin-public-clocks", label + "　" + rate(lane, "A") + " · " + rate(lane, "B")));
       }
     }
-    if (view.dtRows.size) stats.append(element("p", "keirin-public-clocks", "DT-R1 締切前　" +
+    if (view.dtRows.size) stats.append(element("p", "keirin-public-clocks", "DT-R1 当日照合（締切後の掲載・再計算を含む）　" +
       (dtScored ? percent(dtHits / dtScored) + "（" + dtHits + " / " + dtScored + "）" : "照合待ち")));
     scoreboard.replaceChildren(display, stats);
     scoreboard.hidden = false;

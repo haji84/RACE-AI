@@ -1,0 +1,1681 @@
+{
+  "by_month": {
+    "2026-01": {
+      "archive_only": {
+        "evaluable": 2287,
+        "exacta": {
+          "1": {
+            "all_target_rate": 0.23218189768255357,
+            "hits": 531,
+            "predicted_rate": 0.23218189768255357
+          },
+          "2": {
+            "all_target_rate": 0.38172278093572365,
+            "hits": 873,
+            "predicted_rate": 0.38172278093572365
+          }
+        },
+        "holds": {},
+        "not_evaluable": {
+          "DEAD_HEAT": 18
+        },
+        "predicted_evaluable": 2287,
+        "prediction_coverage": 1.0,
+        "proper_scores": {
+          "exacta_log_loss": 2.8157508589799143,
+          "joint_top3_log_loss": 4.2125656961507385,
+          "multiclass_brier": 0.959583369742994,
+          "n": 2287
+        },
+        "registered": 2305,
+        "trifecta": {
+          "1": {
+            "all_target_rate": 0.11630957586357674,
+            "hits": 266,
+            "predicted_rate": 0.11630957586357674
+          },
+          "12": {
+            "all_target_rate": 0.4818539571491036,
+            "hits": 1102,
+            "predicted_rate": 0.4818539571491036
+          },
+          "2": {
+            "all_target_rate": 0.19895059029296022,
+            "hits": 455,
+            "predicted_rate": 0.19895059029296022
+          },
+          "4": {
+            "all_target_rate": 0.2820288587669436,
+            "hits": 645,
+            "predicted_rate": 0.2820288587669436
+          },
+          "9": {
+            "all_target_rate": 0.4223874070835155,
+            "hits": 966,
+            "predicted_rate": 0.4223874070835155
+          }
+        }
+      },
+      "coverage": {
+        "archived_cards": 2305,
+        "archived_days": 31,
+        "crosschecked": 2264,
+        "different_starters": 23,
+        "multiple_public_orders": 18,
+        "public_result_days": 31,
+        "public_result_rows": 2305,
+        "public_without_archived_card": 0
+      },
+      "crosschecked": {
+        "evaluable": 2264,
+        "exacta": {
+          "1": {
+            "all_target_rate": 0.232773851590106,
+            "hits": 527,
+            "predicted_rate": 0.232773851590106
+          },
+          "2": {
+            "all_target_rate": 0.3820671378091873,
+            "hits": 865,
+            "predicted_rate": 0.3820671378091873
+          }
+        },
+        "holds": {},
+        "not_evaluable": {},
+        "predicted_evaluable": 2264,
+        "prediction_coverage": 1.0,
+        "proper_scores": {
+          "exacta_log_loss": 2.814845608053746,
+          "joint_top3_log_loss": 4.213529898429966,
+          "multiclass_brier": 0.9596712685808089,
+          "n": 2264
+        },
+        "registered": 2264,
+        "trifecta": {
+          "1": {
+            "all_target_rate": 0.11616607773851591,
+            "hits": 263,
+            "predicted_rate": 0.11616607773851591
+          },
+          "12": {
+            "all_target_rate": 0.48100706713780916,
+            "hits": 1089,
+            "predicted_rate": 0.48100706713780916
+          },
+          "2": {
+            "all_target_rate": 0.19920494699646643,
+            "hits": 451,
+            "predicted_rate": 0.19920494699646643
+          },
+          "4": {
+            "all_target_rate": 0.2826855123674912,
+            "hits": 640,
+            "predicted_rate": 0.2826855123674912
+          },
+          "9": {
+            "all_target_rate": 0.42226148409893993,
+            "hits": 956,
+            "predicted_rate": 0.42226148409893993
+          }
+        }
+      },
+      "probability_only": {
+        "coverage_target": 0.2,
+        "hits": 535,
+        "market": "trifecta",
+        "max_points": 12,
+        "points_distribution": {
+          "1": 199,
+          "2": 567,
+          "3": 503,
+          "4": 367,
+          "5": 217,
+          "6": 138,
+          "7": 113,
+          "8": 65,
+          "9": 36,
+          "10": 19,
+          "11": 16,
+          "12": 24
+        },
+        "pre_cutoff_odds_used": false,
+        "predicted_n": 2264
+      }
+    },
+    "2026-02": {
+      "archive_only": {
+        "evaluable": 2117,
+        "exacta": {
+          "1": {
+            "all_target_rate": 0.2409069437883798,
+            "hits": 510,
+            "predicted_rate": 0.2409069437883798
+          },
+          "2": {
+            "all_target_rate": 0.37269721303731695,
+            "hits": 789,
+            "predicted_rate": 0.37269721303731695
+          }
+        },
+        "holds": {},
+        "not_evaluable": {
+          "DEAD_HEAT": 17,
+          "INCOMPLETE": 12,
+          "MISSING": 9,
+          "SPECIAL_OR_INCOMPLETE": 3
+        },
+        "predicted_evaluable": 2117,
+        "prediction_coverage": 1.0,
+        "proper_scores": {
+          "exacta_log_loss": 2.813383711220887,
+          "joint_top3_log_loss": 4.193752245758,
+          "multiclass_brier": 0.9595696476465431,
+          "n": 2117
+        },
+        "registered": 2158,
+        "trifecta": {
+          "1": {
+            "all_target_rate": 0.10911667453944261,
+            "hits": 231,
+            "predicted_rate": 0.10911667453944261
+          },
+          "12": {
+            "all_target_rate": 0.4704770902220123,
+            "hits": 996,
+            "predicted_rate": 0.4704770902220123
+          },
+          "2": {
+            "all_target_rate": 0.19083608880491262,
+            "hits": 404,
+            "predicted_rate": 0.19083608880491262
+          },
+          "4": {
+            "all_target_rate": 0.27775153519130846,
+            "hits": 588,
+            "predicted_rate": 0.27775153519130846
+          },
+          "9": {
+            "all_target_rate": 0.4194615021256495,
+            "hits": 888,
+            "predicted_rate": 0.4194615021256495
+          }
+        }
+      },
+      "coverage": {
+        "archived_cards": 2158,
+        "archived_days": 28,
+        "crosschecked": 2091,
+        "different_starters": 27,
+        "multiple_public_orders": 16,
+        "no_public_result": 24,
+        "public_result_days": 28,
+        "public_result_rows": 2134,
+        "public_without_archived_card": 0
+      },
+      "crosschecked": {
+        "evaluable": 2091,
+        "exacta": {
+          "1": {
+            "all_target_rate": 0.2391200382592061,
+            "hits": 500,
+            "predicted_rate": 0.2391200382592061
+          },
+          "2": {
+            "all_target_rate": 0.3706360593017695,
+            "hits": 775,
+            "predicted_rate": 0.3706360593017695
+          }
+        },
+        "holds": {},
+        "not_evaluable": {},
+        "predicted_evaluable": 2091,
+        "prediction_coverage": 1.0,
+        "proper_scores": {
+          "exacta_log_loss": 2.8195838444824655,
+          "joint_top3_log_loss": 4.201353113981719,
+          "multiclass_brier": 0.9595342398126456,
+          "n": 2091
+        },
+        "registered": 2091,
+        "trifecta": {
+          "1": {
+            "all_target_rate": 0.10856049736967958,
+            "hits": 227,
+            "predicted_rate": 0.10856049736967958
+          },
+          "12": {
+            "all_target_rate": 0.46724055475848875,
+            "hits": 977,
+            "predicted_rate": 0.46724055475848875
+          },
+          "2": {
+            "all_target_rate": 0.19033955045432807,
+            "hits": 398,
+            "predicted_rate": 0.19033955045432807
+          },
+          "4": {
+            "all_target_rate": 0.2764227642276423,
+            "hits": 578,
+            "predicted_rate": 0.2764227642276423
+          },
+          "9": {
+            "all_target_rate": 0.41750358680057387,
+            "hits": 873,
+            "predicted_rate": 0.41750358680057387
+          }
+        }
+      },
+      "probability_only": {
+        "coverage_target": 0.2,
+        "hits": 492,
+        "market": "trifecta",
+        "max_points": 12,
+        "points_distribution": {
+          "1": 176,
+          "2": 538,
+          "3": 428,
+          "4": 328,
+          "5": 224,
+          "6": 146,
+          "7": 94,
+          "8": 57,
+          "9": 34,
+          "10": 21,
+          "11": 17,
+          "12": 28
+        },
+        "pre_cutoff_odds_used": false,
+        "predicted_n": 2091
+      }
+    },
+    "2026-03": {
+      "archive_only": {
+        "evaluable": 2242,
+        "exacta": {
+          "1": {
+            "all_target_rate": 0.24531668153434433,
+            "hits": 550,
+            "predicted_rate": 0.24531668153434433
+          },
+          "2": {
+            "all_target_rate": 0.39741302408563783,
+            "hits": 891,
+            "predicted_rate": 0.39741302408563783
+          }
+        },
+        "holds": {},
+        "not_evaluable": {
+          "DEAD_HEAT": 15,
+          "INCOMPLETE": 3,
+          "MISSING": 11,
+          "SPECIAL_OR_INCOMPLETE": 3
+        },
+        "predicted_evaluable": 2242,
+        "prediction_coverage": 1.0,
+        "proper_scores": {
+          "exacta_log_loss": 2.7350896903624364,
+          "joint_top3_log_loss": 4.1119156669578505,
+          "multiclass_brier": 0.956738929949161,
+          "n": 2242
+        },
+        "registered": 2274,
+        "trifecta": {
+          "1": {
+            "all_target_rate": 0.12622658340767173,
+            "hits": 283,
+            "predicted_rate": 0.12622658340767173
+          },
+          "12": {
+            "all_target_rate": 0.5022301516503123,
+            "hits": 1126,
+            "predicted_rate": 0.5022301516503123
+          },
+          "2": {
+            "all_target_rate": 0.20517395182872436,
+            "hits": 460,
+            "predicted_rate": 0.20517395182872436
+          },
+          "4": {
+            "all_target_rate": 0.31088314005352363,
+            "hits": 697,
+            "predicted_rate": 0.31088314005352363
+          },
+          "9": {
+            "all_target_rate": 0.4429081177520071,
+            "hits": 993,
+            "predicted_rate": 0.4429081177520071
+          }
+        }
+      },
+      "coverage": {
+        "archived_cards": 2274,
+        "archived_days": 31,
+        "crosschecked": 2206,
+        "different_starters": 36,
+        "multiple_public_orders": 15,
+        "no_public_result": 17,
+        "public_result_days": 31,
+        "public_result_rows": 2257,
+        "public_without_archived_card": 0
+      },
+      "crosschecked": {
+        "evaluable": 2206,
+        "exacta": {
+          "1": {
+            "all_target_rate": 0.2470534904805077,
+            "hits": 545,
+            "predicted_rate": 0.2470534904805077
+          },
+          "2": {
+            "all_target_rate": 0.400271985494107,
+            "hits": 883,
+            "predicted_rate": 0.400271985494107
+          }
+        },
+        "holds": {},
+        "not_evaluable": {},
+        "predicted_evaluable": 2206,
+        "prediction_coverage": 1.0,
+        "proper_scores": {
+          "exacta_log_loss": 2.7313733488405645,
+          "joint_top3_log_loss": 4.107423979350954,
+          "multiclass_brier": 0.956249624393793,
+          "n": 2206
+        },
+        "registered": 2206,
+        "trifecta": {
+          "1": {
+            "all_target_rate": 0.12828649138712603,
+            "hits": 283,
+            "predicted_rate": 0.12828649138712603
+          },
+          "12": {
+            "all_target_rate": 0.5036264732547597,
+            "hits": 1111,
+            "predicted_rate": 0.5036264732547597
+          },
+          "2": {
+            "all_target_rate": 0.20761559383499548,
+            "hits": 458,
+            "predicted_rate": 0.20761559383499548
+          },
+          "4": {
+            "all_target_rate": 0.31233000906618313,
+            "hits": 689,
+            "predicted_rate": 0.31233000906618313
+          },
+          "9": {
+            "all_target_rate": 0.443336355394379,
+            "hits": 978,
+            "predicted_rate": 0.443336355394379
+          }
+        }
+      },
+      "probability_only": {
+        "coverage_target": 0.2,
+        "hits": 595,
+        "market": "trifecta",
+        "max_points": 12,
+        "points_distribution": {
+          "1": 217,
+          "2": 520,
+          "3": 432,
+          "4": 342,
+          "5": 229,
+          "6": 177,
+          "7": 98,
+          "8": 69,
+          "9": 34,
+          "10": 26,
+          "11": 25,
+          "12": 37
+        },
+        "pre_cutoff_odds_used": false,
+        "predicted_n": 2206
+      }
+    },
+    "2026-04": {
+      "archive_only": {
+        "evaluable": 2323,
+        "exacta": {
+          "1": {
+            "all_target_rate": 0.2535514421007318,
+            "hits": 589,
+            "predicted_rate": 0.2535514421007318
+          },
+          "2": {
+            "all_target_rate": 0.39087386999569523,
+            "hits": 908,
+            "predicted_rate": 0.39087386999569523
+          }
+        },
+        "holds": {},
+        "not_evaluable": {
+          "DEAD_HEAT": 17,
+          "SPECIAL_OR_INCOMPLETE": 1
+        },
+        "predicted_evaluable": 2323,
+        "prediction_coverage": 1.0,
+        "proper_scores": {
+          "exacta_log_loss": 2.7282248008256187,
+          "joint_top3_log_loss": 4.09217905342739,
+          "multiclass_brier": 0.9543326572288162,
+          "n": 2323
+        },
+        "registered": 2341,
+        "trifecta": {
+          "1": {
+            "all_target_rate": 0.12656048213517004,
+            "hits": 294,
+            "predicted_rate": 0.12656048213517004
+          },
+          "12": {
+            "all_target_rate": 0.4984933275936289,
+            "hits": 1158,
+            "predicted_rate": 0.4984933275936289
+          },
+          "2": {
+            "all_target_rate": 0.20103314679294015,
+            "hits": 467,
+            "predicted_rate": 0.20103314679294015
+          },
+          "4": {
+            "all_target_rate": 0.29832113646147224,
+            "hits": 693,
+            "predicted_rate": 0.29832113646147224
+          },
+          "9": {
+            "all_target_rate": 0.44080929832113647,
+            "hits": 1024,
+            "predicted_rate": 0.44080929832113647
+          }
+        }
+      },
+      "coverage": {
+        "archived_cards": 2341,
+        "archived_days": 30,
+        "crosschecked": 2301,
+        "different_starters": 22,
+        "multiple_public_orders": 17,
+        "no_public_result": 1,
+        "public_result_days": 30,
+        "public_result_rows": 2340,
+        "public_without_archived_card": 0
+      },
+      "crosschecked": {
+        "evaluable": 2301,
+        "exacta": {
+          "1": {
+            "all_target_rate": 0.2551064754454585,
+            "hits": 587,
+            "predicted_rate": 0.2551064754454585
+          },
+          "2": {
+            "all_target_rate": 0.3898305084745763,
+            "hits": 897,
+            "predicted_rate": 0.3898305084745763
+          }
+        },
+        "holds": {},
+        "not_evaluable": {},
+        "predicted_evaluable": 2301,
+        "prediction_coverage": 1.0,
+        "proper_scores": {
+          "exacta_log_loss": 2.7305740548362727,
+          "joint_top3_log_loss": 4.095563405065005,
+          "multiclass_brier": 0.954407529919923,
+          "n": 2301
+        },
+        "registered": 2301,
+        "trifecta": {
+          "1": {
+            "all_target_rate": 0.12690134724033028,
+            "hits": 292,
+            "predicted_rate": 0.12690134724033028
+          },
+          "12": {
+            "all_target_rate": 0.49674054758800523,
+            "hits": 1143,
+            "predicted_rate": 0.49674054758800523
+          },
+          "2": {
+            "all_target_rate": 0.20078226857887874,
+            "hits": 462,
+            "predicted_rate": 0.20078226857887874
+          },
+          "4": {
+            "all_target_rate": 0.29726205997392435,
+            "hits": 684,
+            "predicted_rate": 0.29726205997392435
+          },
+          "9": {
+            "all_target_rate": 0.44024337244676226,
+            "hits": 1013,
+            "predicted_rate": 0.44024337244676226
+          }
+        }
+      },
+      "probability_only": {
+        "coverage_target": 0.2,
+        "hits": 570,
+        "market": "trifecta",
+        "max_points": 12,
+        "points_distribution": {
+          "1": 240,
+          "2": 525,
+          "3": 488,
+          "4": 359,
+          "5": 242,
+          "6": 163,
+          "7": 127,
+          "8": 55,
+          "9": 46,
+          "10": 23,
+          "11": 9,
+          "12": 24
+        },
+        "pre_cutoff_odds_used": false,
+        "predicted_n": 2301
+      }
+    },
+    "2026-05": {
+      "archive_only": {
+        "evaluable": 2292,
+        "exacta": {
+          "1": {
+            "all_target_rate": 0.23865619546247818,
+            "hits": 547,
+            "predicted_rate": 0.23865619546247818
+          },
+          "2": {
+            "all_target_rate": 0.37347294938917974,
+            "hits": 856,
+            "predicted_rate": 0.37347294938917974
+          }
+        },
+        "holds": {},
+        "not_evaluable": {
+          "DEAD_HEAT": 17,
+          "SPECIAL_OR_INCOMPLETE": 3
+        },
+        "predicted_evaluable": 2292,
+        "prediction_coverage": 1.0,
+        "proper_scores": {
+          "exacta_log_loss": 2.7715599607152877,
+          "joint_top3_log_loss": 4.156785735766702,
+          "multiclass_brier": 0.9578333123999602,
+          "n": 2292
+        },
+        "registered": 2312,
+        "trifecta": {
+          "1": {
+            "all_target_rate": 0.12085514834205933,
+            "hits": 277,
+            "predicted_rate": 0.12085514834205933
+          },
+          "12": {
+            "all_target_rate": 0.4816753926701571,
+            "hits": 1104,
+            "predicted_rate": 0.4816753926701571
+          },
+          "2": {
+            "all_target_rate": 0.19284467713787085,
+            "hits": 442,
+            "predicted_rate": 0.19284467713787085
+          },
+          "4": {
+            "all_target_rate": 0.2879581151832461,
+            "hits": 660,
+            "predicted_rate": 0.2879581151832461
+          },
+          "9": {
+            "all_target_rate": 0.43150087260034903,
+            "hits": 989,
+            "predicted_rate": 0.43150087260034903
+          }
+        }
+      },
+      "coverage": {
+        "archived_cards": 2312,
+        "archived_days": 31,
+        "crosschecked": 2276,
+        "different_starters": 16,
+        "multiple_public_orders": 17,
+        "no_public_result": 3,
+        "public_result_days": 31,
+        "public_result_rows": 2309,
+        "public_without_archived_card": 0
+      },
+      "crosschecked": {
+        "evaluable": 2276,
+        "exacta": {
+          "1": {
+            "all_target_rate": 0.23945518453427064,
+            "hits": 545,
+            "predicted_rate": 0.23945518453427064
+          },
+          "2": {
+            "all_target_rate": 0.37390158172231985,
+            "hits": 851,
+            "predicted_rate": 0.37390158172231985
+          }
+        },
+        "holds": {},
+        "not_evaluable": {},
+        "predicted_evaluable": 2276,
+        "prediction_coverage": 1.0,
+        "proper_scores": {
+          "exacta_log_loss": 2.767941047290181,
+          "joint_top3_log_loss": 4.1550188493988705,
+          "multiclass_brier": 0.9578351617109178,
+          "n": 2276
+        },
+        "registered": 2276,
+        "trifecta": {
+          "1": {
+            "all_target_rate": 0.12126537785588752,
+            "hits": 276,
+            "predicted_rate": 0.12126537785588752
+          },
+          "12": {
+            "all_target_rate": 0.48154657293497366,
+            "hits": 1096,
+            "predicted_rate": 0.48154657293497366
+          },
+          "2": {
+            "all_target_rate": 0.19332161687170474,
+            "hits": 440,
+            "predicted_rate": 0.19332161687170474
+          },
+          "4": {
+            "all_target_rate": 0.28690685413005274,
+            "hits": 653,
+            "predicted_rate": 0.28690685413005274
+          },
+          "9": {
+            "all_target_rate": 0.4310193321616872,
+            "hits": 981,
+            "predicted_rate": 0.4310193321616872
+          }
+        }
+      },
+      "probability_only": {
+        "coverage_target": 0.2,
+        "hits": 561,
+        "market": "trifecta",
+        "max_points": 12,
+        "points_distribution": {
+          "1": 211,
+          "2": 507,
+          "3": 483,
+          "4": 362,
+          "5": 237,
+          "6": 141,
+          "7": 111,
+          "8": 83,
+          "9": 41,
+          "10": 29,
+          "11": 16,
+          "12": 55
+        },
+        "pre_cutoff_odds_used": false,
+        "predicted_n": 2276
+      }
+    },
+    "2026-06": {
+      "archive_only": {
+        "evaluable": 2244,
+        "exacta": {
+          "1": {
+            "all_target_rate": 0.23440285204991088,
+            "hits": 526,
+            "predicted_rate": 0.23440285204991088
+          },
+          "2": {
+            "all_target_rate": 0.3836898395721925,
+            "hits": 861,
+            "predicted_rate": 0.3836898395721925
+          }
+        },
+        "holds": {},
+        "not_evaluable": {
+          "DEAD_HEAT": 19,
+          "MISSING": 7,
+          "SPECIAL_OR_INCOMPLETE": 4
+        },
+        "predicted_evaluable": 2244,
+        "prediction_coverage": 1.0,
+        "proper_scores": {
+          "exacta_log_loss": 2.8000759889231386,
+          "joint_top3_log_loss": 4.2038033415125255,
+          "multiclass_brier": 0.9613218404496537,
+          "n": 2244
+        },
+        "registered": 2274,
+        "trifecta": {
+          "1": {
+            "all_target_rate": 0.10204991087344029,
+            "hits": 229,
+            "predicted_rate": 0.10204991087344029
+          },
+          "12": {
+            "all_target_rate": 0.47237076648841353,
+            "hits": 1060,
+            "predicted_rate": 0.47237076648841353
+          },
+          "2": {
+            "all_target_rate": 0.17959001782531195,
+            "hits": 403,
+            "predicted_rate": 0.17959001782531195
+          },
+          "4": {
+            "all_target_rate": 0.27718360071301246,
+            "hits": 622,
+            "predicted_rate": 0.27718360071301246
+          },
+          "9": {
+            "all_target_rate": 0.41354723707664887,
+            "hits": 928,
+            "predicted_rate": 0.41354723707664887
+          }
+        }
+      },
+      "coverage": {
+        "archived_cards": 2274,
+        "archived_days": 30,
+        "crosschecked": 2218,
+        "different_starters": 28,
+        "multiple_public_orders": 17,
+        "no_public_result": 11,
+        "public_result_days": 30,
+        "public_result_rows": 2263,
+        "public_without_archived_card": 0
+      },
+      "crosschecked": {
+        "evaluable": 2218,
+        "exacta": {
+          "1": {
+            "all_target_rate": 0.23489630297565375,
+            "hits": 521,
+            "predicted_rate": 0.23489630297565375
+          },
+          "2": {
+            "all_target_rate": 0.3841298467087466,
+            "hits": 852,
+            "predicted_rate": 0.3841298467087466
+          }
+        },
+        "holds": {},
+        "not_evaluable": {},
+        "predicted_evaluable": 2218,
+        "prediction_coverage": 1.0,
+        "proper_scores": {
+          "exacta_log_loss": 2.8007836230945213,
+          "joint_top3_log_loss": 4.207020330874027,
+          "multiclass_brier": 0.9613164404628283,
+          "n": 2218
+        },
+        "registered": 2218,
+        "trifecta": {
+          "1": {
+            "all_target_rate": 0.10234445446348062,
+            "hits": 227,
+            "predicted_rate": 0.10234445446348062
+          },
+          "12": {
+            "all_target_rate": 0.47069431920649235,
+            "hits": 1044,
+            "predicted_rate": 0.47069431920649235
+          },
+          "2": {
+            "all_target_rate": 0.17944093778178538,
+            "hits": 398,
+            "predicted_rate": 0.17944093778178538
+          },
+          "4": {
+            "all_target_rate": 0.2768259693417493,
+            "hits": 614,
+            "predicted_rate": 0.2768259693417493
+          },
+          "9": {
+            "all_target_rate": 0.4125338142470694,
+            "hits": 915,
+            "predicted_rate": 0.4125338142470694
+          }
+        }
+      },
+      "probability_only": {
+        "coverage_target": 0.2,
+        "hits": 524,
+        "market": "trifecta",
+        "max_points": 12,
+        "points_distribution": {
+          "1": 206,
+          "2": 499,
+          "3": 475,
+          "4": 346,
+          "5": 237,
+          "6": 153,
+          "7": 108,
+          "8": 70,
+          "9": 42,
+          "10": 23,
+          "11": 18,
+          "12": 41
+        },
+        "pre_cutoff_odds_used": false,
+        "predicted_n": 2218
+      }
+    },
+    "2026-07": {
+      "archive_only": {
+        "evaluable": 2393,
+        "exacta": {
+          "1": {
+            "all_target_rate": 0.22858336815712496,
+            "hits": 547,
+            "predicted_rate": 0.22858336815712496
+          },
+          "2": {
+            "all_target_rate": 0.37233597994149603,
+            "hits": 891,
+            "predicted_rate": 0.37233597994149603
+          }
+        },
+        "holds": {},
+        "not_evaluable": {
+          "DEAD_HEAT": 21,
+          "INCOMPLETE": 1,
+          "SPECIAL_OR_INCOMPLETE": 1
+        },
+        "predicted_evaluable": 2393,
+        "prediction_coverage": 1.0,
+        "proper_scores": {
+          "exacta_log_loss": 2.790895711859476,
+          "joint_top3_log_loss": 4.175453234728925,
+          "multiclass_brier": 0.958141294771008,
+          "n": 2393
+        },
+        "registered": 2416,
+        "trifecta": {
+          "1": {
+            "all_target_rate": 0.11491851232762224,
+            "hits": 275,
+            "predicted_rate": 0.11491851232762224
+          },
+          "12": {
+            "all_target_rate": 0.47889678228165483,
+            "hits": 1146,
+            "predicted_rate": 0.47889678228165483
+          },
+          "2": {
+            "all_target_rate": 0.19306310071040536,
+            "hits": 462,
+            "predicted_rate": 0.19306310071040536
+          },
+          "4": {
+            "all_target_rate": 0.29335562055996656,
+            "hits": 702,
+            "predicted_rate": 0.29335562055996656
+          },
+          "9": {
+            "all_target_rate": 0.4254074383618888,
+            "hits": 1018,
+            "predicted_rate": 0.4254074383618888
+          }
+        }
+      },
+      "coverage": {
+        "archived_cards": 2416,
+        "archived_days": 31,
+        "crosschecked": 2379,
+        "different_starters": 14,
+        "multiple_public_orders": 21,
+        "no_public_result": 2,
+        "public_result_days": 31,
+        "public_result_rows": 2414,
+        "public_without_archived_card": 0
+      },
+      "crosschecked": {
+        "evaluable": 2379,
+        "exacta": {
+          "1": {
+            "all_target_rate": 0.22866750735603195,
+            "hits": 544,
+            "predicted_rate": 0.22866750735603195
+          },
+          "2": {
+            "all_target_rate": 0.3724253888188314,
+            "hits": 886,
+            "predicted_rate": 0.3724253888188314
+          }
+        },
+        "holds": {},
+        "not_evaluable": {},
+        "predicted_evaluable": 2379,
+        "prediction_coverage": 1.0,
+        "proper_scores": {
+          "exacta_log_loss": 2.7901770533356127,
+          "joint_top3_log_loss": 4.176108597522487,
+          "multiclass_brier": 0.9581092719277507,
+          "n": 2379
+        },
+        "registered": 2379,
+        "trifecta": {
+          "1": {
+            "all_target_rate": 0.11517444304329551,
+            "hits": 274,
+            "predicted_rate": 0.11517444304329551
+          },
+          "12": {
+            "all_target_rate": 0.4787725935266919,
+            "hits": 1139,
+            "predicted_rate": 0.4787725935266919
+          },
+          "2": {
+            "all_target_rate": 0.1937788986969315,
+            "hits": 461,
+            "predicted_rate": 0.1937788986969315
+          },
+          "4": {
+            "all_target_rate": 0.2938209331651955,
+            "hits": 699,
+            "predicted_rate": 0.2938209331651955
+          },
+          "9": {
+            "all_target_rate": 0.4253888188314418,
+            "hits": 1012,
+            "predicted_rate": 0.4253888188314418
+          }
+        }
+      },
+      "probability_only": {
+        "coverage_target": 0.2,
+        "hits": 588,
+        "market": "trifecta",
+        "max_points": 12,
+        "points_distribution": {
+          "1": 186,
+          "2": 608,
+          "3": 453,
+          "4": 408,
+          "5": 239,
+          "6": 178,
+          "7": 117,
+          "8": 68,
+          "9": 44,
+          "10": 27,
+          "11": 9,
+          "12": 42
+        },
+        "pre_cutoff_odds_used": false,
+        "predicted_n": 2379
+      }
+    },
+    "2026-08": {
+      "archive_only": {
+        "evaluable": 2329,
+        "exacta": {
+          "1": {
+            "all_target_rate": 0.20781451266638043,
+            "hits": 484,
+            "predicted_rate": 0.20781451266638043
+          },
+          "2": {
+            "all_target_rate": 0.3598110777157578,
+            "hits": 838,
+            "predicted_rate": 0.3598110777157578
+          }
+        },
+        "holds": {},
+        "not_evaluable": {
+          "DEAD_HEAT": 21
+        },
+        "predicted_evaluable": 2329,
+        "prediction_coverage": 1.0,
+        "proper_scores": {
+          "exacta_log_loss": 2.875138668099958,
+          "joint_top3_log_loss": 4.30004465537317,
+          "multiclass_brier": 0.9645375351474167,
+          "n": 2329
+        },
+        "registered": 2350,
+        "trifecta": {
+          "1": {
+            "all_target_rate": 0.09660798626019751,
+            "hits": 225,
+            "predicted_rate": 0.09660798626019751
+          },
+          "12": {
+            "all_target_rate": 0.45255474452554745,
+            "hits": 1054,
+            "predicted_rate": 0.45255474452554745
+          },
+          "2": {
+            "all_target_rate": 0.1678832116788321,
+            "hits": 391,
+            "predicted_rate": 0.1678832116788321
+          },
+          "4": {
+            "all_target_rate": 0.25762129669386,
+            "hits": 600,
+            "predicted_rate": 0.25762129669386
+          },
+          "9": {
+            "all_target_rate": 0.3984542722198368,
+            "hits": 928,
+            "predicted_rate": 0.3984542722198368
+          }
+        }
+      },
+      "coverage": {
+        "archived_cards": 2350,
+        "archived_days": 31,
+        "crosschecked": 2308,
+        "different_starters": 21,
+        "multiple_public_orders": 21,
+        "public_result_days": 31,
+        "public_result_rows": 2352,
+        "public_without_archived_card": 2
+      },
+      "crosschecked": {
+        "evaluable": 2308,
+        "exacta": {
+          "1": {
+            "all_target_rate": 0.207105719237435,
+            "hits": 478,
+            "predicted_rate": 0.207105719237435
+          },
+          "2": {
+            "all_target_rate": 0.3596187175043328,
+            "hits": 830,
+            "predicted_rate": 0.3596187175043328
+          }
+        },
+        "holds": {},
+        "not_evaluable": {},
+        "predicted_evaluable": 2308,
+        "prediction_coverage": 1.0,
+        "proper_scores": {
+          "exacta_log_loss": 2.8798243652702156,
+          "joint_top3_log_loss": 4.3053009433782385,
+          "multiclass_brier": 0.9647429102560883,
+          "n": 2308
+        },
+        "registered": 2308,
+        "trifecta": {
+          "1": {
+            "all_target_rate": 0.09705372616984402,
+            "hits": 224,
+            "predicted_rate": 0.09705372616984402
+          },
+          "12": {
+            "all_target_rate": 0.4506065857885615,
+            "hits": 1040,
+            "predicted_rate": 0.4506065857885615
+          },
+          "2": {
+            "all_target_rate": 0.16724436741767765,
+            "hits": 386,
+            "predicted_rate": 0.16724436741767765
+          },
+          "4": {
+            "all_target_rate": 0.2569324090121317,
+            "hits": 593,
+            "predicted_rate": 0.2569324090121317
+          },
+          "9": {
+            "all_target_rate": 0.3968804159445407,
+            "hits": 916,
+            "predicted_rate": 0.3968804159445407
+          }
+        }
+      },
+      "probability_only": {
+        "coverage_target": 0.2,
+        "hits": 519,
+        "market": "trifecta",
+        "max_points": 12,
+        "points_distribution": {
+          "1": 139,
+          "2": 488,
+          "3": 465,
+          "4": 391,
+          "5": 274,
+          "6": 169,
+          "7": 112,
+          "8": 92,
+          "9": 59,
+          "10": 24,
+          "11": 28,
+          "12": 67
+        },
+        "pre_cutoff_odds_used": false,
+        "predicted_n": 2308
+      }
+    },
+    "2026-09": {
+      "archive_only": {
+        "evaluable": 2167,
+        "exacta": {
+          "1": {
+            "all_target_rate": 0.1975080756806645,
+            "hits": 428,
+            "predicted_rate": 0.1975080756806645
+          },
+          "2": {
+            "all_target_rate": 0.3387171204430088,
+            "hits": 734,
+            "predicted_rate": 0.3387171204430088
+          }
+        },
+        "holds": {},
+        "not_evaluable": {
+          "DEAD_HEAT": 18,
+          "SPECIAL_OR_INCOMPLETE": 1
+        },
+        "predicted_evaluable": 2167,
+        "prediction_coverage": 1.0,
+        "proper_scores": {
+          "exacta_log_loss": 2.8987034435851813,
+          "joint_top3_log_loss": 4.3724774527988854,
+          "multiclass_brier": 0.9710534485680179,
+          "n": 2167
+        },
+        "registered": 2186,
+        "trifecta": {
+          "1": {
+            "all_target_rate": 0.07798800184586986,
+            "hits": 169,
+            "predicted_rate": 0.07798800184586986
+          },
+          "12": {
+            "all_target_rate": 0.43054914628518687,
+            "hits": 933,
+            "predicted_rate": 0.43054914628518687
+          },
+          "2": {
+            "all_target_rate": 0.13982464236271344,
+            "hits": 303,
+            "predicted_rate": 0.13982464236271344
+          },
+          "4": {
+            "all_target_rate": 0.22981079833871712,
+            "hits": 498,
+            "predicted_rate": 0.22981079833871712
+          },
+          "9": {
+            "all_target_rate": 0.37055837563451777,
+            "hits": 803,
+            "predicted_rate": 0.37055837563451777
+          }
+        }
+      },
+      "coverage": {
+        "archived_cards": 2186,
+        "archived_days": 29,
+        "crosschecked": 2155,
+        "different_starters": 12,
+        "multiple_public_orders": 18,
+        "no_public_result": 1,
+        "public_result_days": 30,
+        "public_result_rows": 2264,
+        "public_without_archived_card": 79
+      },
+      "crosschecked": {
+        "evaluable": 2155,
+        "exacta": {
+          "1": {
+            "all_target_rate": 0.19675174013921112,
+            "hits": 424,
+            "predicted_rate": 0.19675174013921112
+          },
+          "2": {
+            "all_target_rate": 0.33781902552204174,
+            "hits": 728,
+            "predicted_rate": 0.33781902552204174
+          }
+        },
+        "holds": {},
+        "not_evaluable": {},
+        "predicted_evaluable": 2155,
+        "prediction_coverage": 1.0,
+        "proper_scores": {
+          "exacta_log_loss": 2.8995307695703865,
+          "joint_top3_log_loss": 4.3761450191649,
+          "multiclass_brier": 0.9711804274108923,
+          "n": 2155
+        },
+        "registered": 2155,
+        "trifecta": {
+          "1": {
+            "all_target_rate": 0.07703016241299304,
+            "hits": 166,
+            "predicted_rate": 0.07703016241299304
+          },
+          "12": {
+            "all_target_rate": 0.4283062645011601,
+            "hits": 923,
+            "predicted_rate": 0.4283062645011601
+          },
+          "2": {
+            "all_target_rate": 0.13921113689095127,
+            "hits": 300,
+            "predicted_rate": 0.13921113689095127
+          },
+          "4": {
+            "all_target_rate": 0.2283062645011601,
+            "hits": 492,
+            "predicted_rate": 0.2283062645011601
+          },
+          "9": {
+            "all_target_rate": 0.3679814385150812,
+            "hits": 793,
+            "predicted_rate": 0.3679814385150812
+          }
+        }
+      },
+      "probability_only": {
+        "coverage_target": 0.2,
+        "hits": 450,
+        "market": "trifecta",
+        "max_points": 12,
+        "points_distribution": {
+          "1": 98,
+          "2": 359,
+          "3": 402,
+          "4": 338,
+          "5": 269,
+          "6": 209,
+          "7": 128,
+          "8": 112,
+          "9": 60,
+          "10": 53,
+          "11": 32,
+          "12": 95
+        },
+        "pre_cutoff_odds_used": false,
+        "predicted_n": 2155
+      }
+    },
+    "2026-10": {
+      "archive_only": {
+        "evaluable": 1850,
+        "exacta": {
+          "1": {
+            "all_target_rate": 0.2437837837837838,
+            "hits": 451,
+            "predicted_rate": 0.2437837837837838
+          },
+          "2": {
+            "all_target_rate": 0.3816216216216216,
+            "hits": 706,
+            "predicted_rate": 0.3816216216216216
+          }
+        },
+        "holds": {},
+        "not_evaluable": {
+          "DEAD_HEAT": 14,
+          "SPECIAL_OR_INCOMPLETE": 2
+        },
+        "predicted_evaluable": 1850,
+        "prediction_coverage": 1.0,
+        "proper_scores": {
+          "exacta_log_loss": 2.806175370999778,
+          "joint_top3_log_loss": 4.202503144321811,
+          "multiclass_brier": 0.959147746314857,
+          "n": 1850
+        },
+        "registered": 1866,
+        "trifecta": {
+          "1": {
+            "all_target_rate": 0.11945945945945946,
+            "hits": 221,
+            "predicted_rate": 0.11945945945945946
+          },
+          "12": {
+            "all_target_rate": 0.4772972972972973,
+            "hits": 883,
+            "predicted_rate": 0.4772972972972973
+          },
+          "2": {
+            "all_target_rate": 0.1881081081081081,
+            "hits": 348,
+            "predicted_rate": 0.1881081081081081
+          },
+          "4": {
+            "all_target_rate": 0.2810810810810811,
+            "hits": 520,
+            "predicted_rate": 0.2810810810810811
+          },
+          "9": {
+            "all_target_rate": 0.4275675675675676,
+            "hits": 791,
+            "predicted_rate": 0.4275675675675676
+          }
+        }
+      },
+      "coverage": {
+        "archived_cards": 1866,
+        "archived_days": 26,
+        "crosschecked": 1834,
+        "different_starters": 16,
+        "multiple_public_orders": 14,
+        "no_public_result": 2,
+        "public_result_days": 31,
+        "public_result_rows": 2268,
+        "public_without_archived_card": 404
+      },
+      "crosschecked": {
+        "evaluable": 1834,
+        "exacta": {
+          "1": {
+            "all_target_rate": 0.24427480916030533,
+            "hits": 448,
+            "predicted_rate": 0.24427480916030533
+          },
+          "2": {
+            "all_target_rate": 0.3822246455834242,
+            "hits": 701,
+            "predicted_rate": 0.3822246455834242
+          }
+        },
+        "holds": {},
+        "not_evaluable": {},
+        "predicted_evaluable": 1834,
+        "prediction_coverage": 1.0,
+        "proper_scores": {
+          "exacta_log_loss": 2.8065981748916236,
+          "joint_top3_log_loss": 4.204372047808047,
+          "multiclass_brier": 0.959131387404436,
+          "n": 1834
+        },
+        "registered": 1834,
+        "trifecta": {
+          "1": {
+            "all_target_rate": 0.11941112322791712,
+            "hits": 219,
+            "predicted_rate": 0.11941112322791712
+          },
+          "12": {
+            "all_target_rate": 0.4765539803707743,
+            "hits": 874,
+            "predicted_rate": 0.4765539803707743
+          },
+          "2": {
+            "all_target_rate": 0.18865866957470012,
+            "hits": 346,
+            "predicted_rate": 0.18865866957470012
+          },
+          "4": {
+            "all_target_rate": 0.2802617230098146,
+            "hits": 514,
+            "predicted_rate": 0.2802617230098146
+          },
+          "9": {
+            "all_target_rate": 0.42693565976008724,
+            "hits": 783,
+            "predicted_rate": 0.42693565976008724
+          }
+        }
+      },
+      "probability_only": {
+        "coverage_target": 0.2,
+        "hits": 434,
+        "market": "trifecta",
+        "max_points": 12,
+        "points_distribution": {
+          "1": 164,
+          "2": 455,
+          "3": 407,
+          "4": 266,
+          "5": 174,
+          "6": 125,
+          "7": 101,
+          "8": 56,
+          "9": 30,
+          "10": 18,
+          "11": 9,
+          "12": 29
+        },
+        "pre_cutoff_odds_used": false,
+        "predicted_n": 1834
+      }
+    }
+  },
+  "code_base": "c0bf7b1621dd434ba81cd527e83a01330a1afa76",
+  "end": "2026-10-31",
+  "forecast_sha256_by_month": {
+    "2026-01": "1d90baa6741148d5d5177ec8c97247e4037cfca8471c03bb3804ae50a55175b6",
+    "2026-02": "dcca6bed9f31928cb53dcf8d6023796463131bf35c010213ad71bc5decdeb924",
+    "2026-03": "512c8736891e929b0c43d50f6e5e525237db1699e8f08f884641d7f1883066eb",
+    "2026-04": "df93456b04ff71d54a1e5f24c26c3492f316e2a7e0c7fa26c62ea900411d339e",
+    "2026-05": "f769096d627fb6af91e0c602c9839c6d53b5844cab32d026902d7a39923d9cb3",
+    "2026-06": "c0bb88b0eec9badac91370fac8c653ab033ede65f34efb2bf17c4617c1a0c0ef",
+    "2026-07": "89d38688c13c0ede03cc234031eaddeb13736da54516437c36885abc9c84c4da",
+    "2026-08": "0eca96b38df8237155a1f79691dbb0176c084ce50f307b23483f543e9ebc3fbe",
+    "2026-09": "54fe24bcd8ec57815d1e6bb9ee91c3811eddb6afe422ce4126aa975e3f03bf1e",
+    "2026-10": "fecb41f2666fdd440777bf5f99005709ecd45728ab77e045160e8b7a3524094a"
+  },
+  "model": {
+    "candidate_selection_and_temperature_through": "2026-07-31",
+    "confidence_audit_month": "2026-09",
+    "confidence_calibration_month": "2026-08",
+    "feature_count": 462,
+    "file_sha256": "dab8c7f014c41ac18e4fed1ae28ac9b36e994611d1fcf5992f8b06e31a4c618b",
+    "id": "chatgpt-dt-r1",
+    "model_sha256": "5e022092a35c0258954090c6f3d0f8fa14f03f22511b28d6aa9183f5a38c381c",
+    "october_scope": "SUBSET_OF_PREVIOUS_FINAL_TEST",
+    "weights_fit_through": "2026-06-30"
+  },
+  "overall": {
+    "archive_only": {
+      "evaluable": 22244,
+      "exacta": {
+        "1": {
+          "all_target_rate": 0.23210753461607625,
+          "hits": 5163,
+          "predicted_rate": 0.23210753461607625
+        },
+        "2": {
+          "all_target_rate": 0.3752472576874663,
+          "hits": 8347,
+          "predicted_rate": 0.3752472576874663
+        }
+      },
+      "holds": {},
+      "not_evaluable": {
+        "DEAD_HEAT": 177,
+        "INCOMPLETE": 16,
+        "MISSING": 27,
+        "SPECIAL_OR_INCOMPLETE": 18
+      },
+      "predicted_evaluable": 22244,
+      "prediction_coverage": 1.0,
+      "proper_scores": {
+        "exacta_log_loss": 2.8029493334579367,
+        "joint_top3_log_loss": 4.201335136342839,
+        "multiclass_brier": 0.9601868327559335,
+        "n": 22244
+      },
+      "registered": 22482,
+      "trifecta": {
+        "1": {
+          "all_target_rate": 0.11104117964394893,
+          "hits": 2470,
+          "predicted_rate": 0.11104117964394893
+        },
+        "12": {
+          "all_target_rate": 0.4748246718216148,
+          "hits": 10562,
+          "predicted_rate": 0.4748246718216148
+        },
+        "2": {
+          "all_target_rate": 0.18589282503146917,
+          "hits": 4135,
+          "predicted_rate": 0.18589282503146917
+        },
+        "4": {
+          "all_target_rate": 0.2798507462686567,
+          "hits": 6225,
+          "predicted_rate": 0.2798507462686567
+        },
+        "9": {
+          "all_target_rate": 0.419349037942816,
+          "hits": 9328,
+          "predicted_rate": 0.419349037942816
+        }
+      }
+    },
+    "coverage": {
+      "archived_cards": 22482,
+      "archived_days": 298,
+      "crosschecked": 22032,
+      "different_starters": 215,
+      "multiple_public_orders": 174,
+      "no_public_result": 61,
+      "public_result_days": 304,
+      "public_result_rows": 22906,
+      "public_without_archived_card": 485
+    },
+    "crosschecked": {
+      "evaluable": 22032,
+      "exacta": {
+        "1": {
+          "all_target_rate": 0.23234386347131444,
+          "hits": 5119,
+          "predicted_rate": 0.23234386347131444
+        },
+        "2": {
+          "all_target_rate": 0.3752723311546841,
+          "hits": 8268,
+          "predicted_rate": 0.3752723311546841
+        }
+      },
+      "holds": {},
+      "not_evaluable": {},
+      "predicted_evaluable": 22032,
+      "prediction_coverage": 1.0,
+      "proper_scores": {
+        "exacta_log_loss": 2.803615122954233,
+        "joint_top3_log_loss": 4.20344641988007,
+        "multiclass_brier": 0.9601852904244564,
+        "n": 22032
+      },
+      "registered": 22032,
+      "trifecta": {
+        "1": {
+          "all_target_rate": 0.11124727668845316,
+          "hits": 2451,
+          "predicted_rate": 0.11124727668845316
+        },
+        "12": {
+          "all_target_rate": 0.4736746550472041,
+          "hits": 10436,
+          "predicted_rate": 0.4736746550472041
+        },
+        "2": {
+          "all_target_rate": 0.18609295570079884,
+          "hits": 4100,
+          "predicted_rate": 0.18609295570079884
+        },
+        "4": {
+          "all_target_rate": 0.27941176470588236,
+          "hits": 6156,
+          "predicted_rate": 0.27941176470588236
+        },
+        "9": {
+          "all_target_rate": 0.41848220769789396,
+          "hits": 9220,
+          "predicted_rate": 0.41848220769789396
+        }
+      }
+    }
+  },
+  "pre_cutoff_time_verified": false,
+  "prediction_files_frozen_at": "2026-11-28T06:26:44.969294+00:00",
+  "private_forecasts_published": false,
+  "probability_only": {
+    "coverage_target": 0.2,
+    "hits": 5268,
+    "max_points": 12,
+    "points_distribution": {
+      "1": 1836,
+      "2": 5066,
+      "3": 4536,
+      "4": 3507,
+      "5": 2342,
+      "6": 1599,
+      "7": 1109,
+      "8": 727,
+      "9": 426,
+      "10": 263,
+      "11": 179,
+      "12": 442
+    },
+    "pre_cutoff_odds_used": false,
+    "predicted_n": 22032
+  },
+  "production_promoted": false,
+  "replay_source_sha256": "2941e4b2a3ee705d846fd98dbb50d45a252a3a3da0418499086504d9d1785acb",
+  "runtime_seconds": 196.018,
+  "schema": "DT_R1_HISTORICAL_REPLAY_V1",
+  "scope": "RETROSPECTIVE_REUSED_ARCHIVE",
+  "source": {
+    "archive_commit": "2a1260fb0940ad11160b56a36f9c24cc4fb2f6d2",
+    "archive_dataset_sha256": "9bc3fbda8339b32ba178f5c9c39d6623216ad5c2d5519774870ac5491ba0a847",
+    "archive_files": {
+      "keirin.db": "1bdad22b9744c9c5563f7bb1af31875170a3e6b7f4b0dd73fba8f98d645d8fc4",
+      "keirin_2026q4.db": "d915560877493816b90df8bcd5e7bdef45557f57100b4cd40a3d017cd959334d"
+    },
+    "public_results": {
+      "commit": "b7996aa5ede0d99cad3240beb55c31a53b3ff178",
+      "files": {
+        "2026-01": {
+          "rows": 2305,
+          "sha256": "a106dc6859ad15249e772545c65bf844e2aaf8489db2f3ec6db405804f876f3a"
+        },
+        "2026-02": {
+          "rows": 2134,
+          "sha256": "6ba1f8046234ea291ee0fc94f733eb97a044768506d7522442c390351556e8af"
+        },
+        "2026-03": {
+          "rows": 2257,
+          "sha256": "1408614c3311da9684a433e0f89d65dd5723627f293e62f416b6beb58cfd2943"
+        },
+        "2026-04": {
+          "rows": 2340,
+          "sha256": "5e6d708d3851ab04ece7ad5e36879293e96ff94727f499454e9f8fcf45b5b51b"
+        },
+        "2026-05": {
+          "rows": 2309,
+          "sha256": "38cce1aa08a226c1aed60bf24f7fcc40b5a539a1a68db428d3b670c760707558"
+        },
+        "2026-06": {
+          "rows": 2263,
+          "sha256": "2eb9ae26ed8db6c2e95869e6fdc0bf975d44287d79f66afc319c2e4228407e57"
+        },
+        "2026-07": {
+          "rows": 2414,
+          "sha256": "5e639b189557b7ef58380a56dae94987e9a67aa646a873752ee422bce70dc06f"
+        },
+        "2026-08": {
+          "rows": 2352,
+          "sha256": "4ab2fb18495fadef9121fc8bd87c762c247ed853b4be040970abc239fa1d3ed2"
+        },
+        "2026-09": {
+          "rows": 2264,
+          "sha256": "9cdcbb62c2a2aa1040fc109390ec9747fb68ba69dfc866e00abbc4ddaef99eda"
+        },
+        "2026-10": {
+          "rows": 2268,
+          "sha256": "11f7f212a0625a2b71a6efba13de3061f900db4aa44e8eef31347476e4961050"
+        }
+      },
+      "manifest_sha256": "3a32a256c1a0d2697a315d60a91e7c1ead395ef8be2a0f85fa8bb06a92b67d58"
+    },
+    "venue_sha256": "a7d832a2661c6f05167e7a412a55e51183c21e746447f91dac44e14eeb4dfe19"
+  },
+  "start": "2026-01-01",
+  "started_at": "2026-11-28T06:23:46.034823+00:00"
+}
