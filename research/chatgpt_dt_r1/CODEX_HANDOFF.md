@@ -10,6 +10,8 @@
 
 06:25 JSTの公式資料取得は登録54枠、保全31枠、追加0枠。取得上限の順番待ち15枠、公式ラインの保留8枠の内訳は図と表記のグループ数不一致7、表記未認識1。取得レシートSHA256は `bbc85cd2cd6b68b3b76e139589a5a27ca5dfe255996db2dc437b66341e1ef02c`。[公式取得](https://github.com/haji84/RACE-AI/actions/runs/46191263810)
 
+公式用語では単騎はラインを形成しない。公式図の1段配置、全車番、競りの有無を確認し、単騎を保持したうえで分戦表記が複数選手のライン数とも一致する場合を読めるようにした。次の公式取得と独立読戻しで実データの保全増を確認する。[公式用語集](https://keirin.jp/pc/static/beginner/keirin-glossary/ta-to.html) · [公式のライン解説](https://keirin.jp/pc/static/beginner/basics/lines.html)
+
 06:06 JST、11月28日の認証済み公式着順50件すべてで `agari` 欄とB形式の値を持つ欄を確認した。50件が参照する公式結果レンダラーは、着順行の `back` と `agari` を各表示欄に結び付けている。確認したレンダラーのSHA256は `97bcd07542bbad2d4d9432cd9a4c39122d888a5a7aa43ad3d4305d01d9cb3009`。50件の集計は項目の形状を確認したもので、次は同じ公式原本の `back` と公式上がりの件数を保護ランナーで確かめる。[保護実行](https://github.com/haji84/RACE-AI/actions/runs/46188746926) · [SHA固定の集計](evidence/20261128-engine-history-followup/nov28-official-phase-field-audit.json) · [公式結果レンダラー](https://keirin.jp/sp/static/js/SJ0326_v.js) · [公式上がりの定義](https://keirin.jp/pc/dfw/portal/guest/guide/question/race.html)
 
 単一のB印が確認できた公式通常着順を、締切前に保全済みの最終バック先頭予測と照合する。先頭予測は暗号原本に封印した確率分布のダイジェストが一致した場合に採点する。公開する的中集計は、開催日を過ぎて保全済みの比較がすべて確定し、的中・不的中が各2件以上ある集団に限る。早期の実行では照合可能件数を確認する。11月29日の採点は最早08:47 JSTの締切枠の公式結果保存から再開する。[公式記号の定義](https://keirin.jp/pc/static/beginner/basics/racecard.html)

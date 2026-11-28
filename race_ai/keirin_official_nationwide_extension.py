@@ -156,7 +156,10 @@ def parse_published_lines(detail_raw, *, detail_sha256, starters, competition,
         label = line.get('lineKeitai')
         _need(expected_label is not None, 'LINE_LAYOUT_GROUP_COUNT_UNSUPPORTED')
         _need(label in _LINE_GROUP_LABELS.values(), 'LINE_LABEL_UNRECOGNIZED')
-        _need(label == expected_label, 'LINE_LABEL_GROUP_COUNT_MISMATCH')
+        # The official guide defines a solo rider as having no line. The
+        # published diagram still gives that rider a distinct position group.
+        paired_line_label = _LINE_GROUP_LABELS.get(sum(len(group) > 1 for group in groups))
+        _need(label in (expected_label, paired_line_label), 'LINE_LABEL_GROUP_COUNT_MISMATCH')
         kind = 'PUBLISHED_UNCONTESTED_LINES'
     return dict(kind=kind, groups=groups, provider_raw=line.get('teikyo', ''),
                 source_sha256=detail_sha256, view_source_sha256=view_sha,

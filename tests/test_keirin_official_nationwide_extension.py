@@ -31,6 +31,16 @@ class NationwideExtensionTests(unittest.TestCase):
         data,script=line_fixture()
         self.assertEqual(parse_lines(data,script)['groups'],[[1,2],[3],[4,5],[6,7]])
 
+    def test_line_label_may_count_only_groups_with_multiple_riders(self):
+        data, script = line_fixture()
+        line = data['SJ0314']['narabiyoso']
+        line.update(lineKeitai='三分戦', lineKeitaiClass='sanbusen')
+        self.assertEqual(parse_lines(data, script)['groups'], [[1, 2], [3], [4, 5], [6, 7]])
+        for label in ('二分戦', '五分戦'):
+            with self.subTest(label=label), self.assertRaisesRegex(ValueError, 'LINE_LABEL_GROUP_COUNT_MISMATCH'):
+                line['lineKeitai'] = label
+                parse_lines(data, script)
+
     def test_contest_multilevel_parenthesis_and_duplicate_position_hold(self):
         for mutate in (
             lambda l:l.update(kyoHyoji='true'),
