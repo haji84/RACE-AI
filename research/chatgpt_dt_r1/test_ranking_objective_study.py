@@ -4,7 +4,7 @@ import unittest
 import numpy as np
 from scipy.optimize import check_grad
 
-from . import ranking_objective_study as study
+from research.chatgpt_dt_r1 import ranking_objective_study as study
 
 
 class RankingObjectiveTests(unittest.TestCase):
