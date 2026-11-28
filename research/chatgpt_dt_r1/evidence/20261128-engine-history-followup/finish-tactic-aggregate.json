@@ -1,0 +1,426 @@
+{
+  "code_base": "2ac235087c277ddb92b28113f50d44ce0de28002",
+  "contract": {
+    "august_onward_used": false,
+    "bootstrap": {
+      "samples": 2000,
+      "seed": 462,
+      "unit": "paired JST day"
+    },
+    "coupled_forecast": "condition on candidate winner, replace tactic mass by the fixed probability blend",
+    "exacta": "exact prefix marginal of trifecta",
+    "field_context": [
+      "line state",
+      "line count capped at 4",
+      "field size capped at 7"
+    ],
+    "field_prior": 50.0,
+    "identity_scope": "UNRESOLVED_SOURCE_COMPOSITE",
+    "independent_validation": false,
+    "label_scope": "archived races.kimarite; not a verified first-place or intermediate-motion event",
+    "later_places": "retain same conditional on winner",
+    "marks": {
+      "accepted": {
+        "まくり": 1,
+        "マ": 3,
+        "マーク": 3,
+        "差": 2,
+        "差し": 2,
+        "捲": 1,
+        "捲り": 1,
+        "逃": 0,
+        "逃げ": 0
+      },
+      "normalized": [
+        "逃",
+        "捲",
+        "差",
+        "マ"
+      ]
+    },
+    "original_frozen_temperature_overlaps_july": true,
+    "original_frozen_training_overlaps_selection": true,
+    "periods": {
+      "fit": [
+        "2026-01-01",
+        "2026-05-31"
+      ],
+      "july": [
+        "2026-07-01",
+        "2026-07-31"
+      ],
+      "select": [
+        "2026-06-01",
+        "2026-06-30"
+      ]
+    },
+    "pre_cutoff_time_verified": false,
+    "prior_jst_days": 7,
+    "production_promoted": false,
+    "schema": "DT_R1_ARCHIVED_FINISH_TACTIC_CONTRACT_V1",
+    "selection_guard": "June joint trifecta and marginal exacta log loss no worse than frozen",
+    "selection_order": [
+      "trifecta_top1",
+      "exacta_top1",
+      "smaller_strength"
+    ],
+    "strengths": [
+      0.0,
+      0.25,
+      0.5,
+      1.0
+    ],
+    "tactic_control": "unconditional pre-June four-label frequency with one pseudo-observation per class",
+    "training_labels": "normalizable race tactic and unique trifecta; label rows never become features",
+    "unobserved_class": "retain the prespecified pseudocount and report zero observed training support",
+    "winner_context": [
+      "field context",
+      "archived pre-race style",
+      "published line lead/follow/single or missing state"
+    ],
+    "winner_prior": 25.0
+  },
+  "contract_sha256": "3b2568d3978ede51680742d6af693e195d4e022a186bd12d25af5824e82c1174",
+  "fit": {
+    "classes_without_training_observations": [
+      "マ"
+    ],
+    "counts": {
+      "KNOWN": 11336,
+      "MISSING_MARK": 43,
+      "UNKNOWN_MARK": 11,
+      "cards": 11390,
+      "matched_labels_with_unique_trifecta": 11250
+    },
+    "field_buckets": 15,
+    "tactic_class_counts": {
+      "マ": 0,
+      "差": 5093,
+      "捲": 3344,
+      "逃": 2813
+    },
+    "winner_buckets": 82
+  },
+  "july": {
+    "common_scorable": 2393,
+    "counts": {
+      "KNOWN": 2409,
+      "MISSING_MARK": 2,
+      "UNKNOWN_MARK": 5,
+      "cards": 2416,
+      "scorable": 2393,
+      "scorable_with_tactic": 2388
+    },
+    "days": 31,
+    "racing_metrics": {
+      "candidate": {
+        "hits": {
+          "ex1": 522,
+          "ex2": 882,
+          "tri1": 252,
+          "tri2": 433,
+          "tri4": 641
+        },
+        "n": 2393,
+        "proper": {
+          "ex_brier": 0.8883491329825836,
+          "ex_log_loss": 2.8314435017859547,
+          "tri_brier": 0.96257409731014,
+          "tri_log_loss": 4.247434136238129
+        },
+        "rates": {
+          "ex1": 0.21813623067279567,
+          "ex2": 0.3685750104471375,
+          "tri1": 0.10530714584203928,
+          "tri2": 0.18094442122858337,
+          "tri4": 0.2678646050982031
+        }
+      },
+      "frozen": {
+        "hits": {
+          "ex1": 522,
+          "ex2": 882,
+          "tri1": 252,
+          "tri2": 433,
+          "tri4": 641
+        },
+        "n": 2393,
+        "proper": {
+          "ex_brier": 0.8883491329825836,
+          "ex_log_loss": 2.8314435017859547,
+          "tri_brier": 0.96257409731014,
+          "tri_log_loss": 4.247434136238129
+        },
+        "rates": {
+          "ex1": 0.21813623067279567,
+          "ex2": 0.3685750104471375,
+          "tri1": 0.10530714584203928,
+          "tri2": 0.18094442122858337,
+          "tri4": 0.2678646050982031
+        }
+      },
+      "full_tactic": {
+        "hits": {
+          "ex1": 519,
+          "ex2": 871,
+          "tri1": 238,
+          "tri2": 422,
+          "tri4": 651
+        },
+        "n": 2393,
+        "proper": {
+          "ex_brier": 0.8896013769410255,
+          "ex_log_loss": 2.8344650911017735,
+          "tri_brier": 0.9636686311991275,
+          "tri_log_loss": 4.250455725553948
+        },
+        "rates": {
+          "ex1": 0.21688257417467613,
+          "ex2": 0.3639782699540326,
+          "tri1": 0.09945674885081487,
+          "tri2": 0.1763476807354785,
+          "tri4": 0.2720434600919348
+        }
+      }
+    },
+    "racing_paired_candidate_minus_frozen": {
+      "ex1": {
+        "ci95": [
+          0.0,
+          0.0
+        ],
+        "delta": 0.0
+      },
+      "ex2": {
+        "ci95": [
+          0.0,
+          0.0
+        ],
+        "delta": 0.0
+      },
+      "ex_brier": {
+        "ci95": [
+          0.0,
+          0.0
+        ],
+        "delta": 0.0
+      },
+      "ex_log_loss": {
+        "ci95": [
+          0.0,
+          0.0
+        ],
+        "delta": 0.0
+      },
+      "tri1": {
+        "ci95": [
+          0.0,
+          0.0
+        ],
+        "delta": 0.0
+      },
+      "tri2": {
+        "ci95": [
+          0.0,
+          0.0
+        ],
+        "delta": 0.0
+      },
+      "tri4": {
+        "ci95": [
+          0.0,
+          0.0
+        ],
+        "delta": 0.0
+      },
+      "tri_brier": {
+        "ci95": [
+          0.0,
+          0.0
+        ],
+        "delta": 0.0
+      },
+      "tri_log_loss": {
+        "ci95": [
+          0.0,
+          0.0
+        ],
+        "delta": 0.0
+      }
+    },
+    "tactic_metrics": {
+      "candidate": {
+        "log_loss": 1.0361733533263333,
+        "n": 2388,
+        "top1_hits": 1132,
+        "top1_rate": 0.474036850921273
+      },
+      "frozen": {
+        "log_loss": 1.0361733533263333,
+        "n": 2388,
+        "top1_hits": 1132,
+        "top1_rate": 0.474036850921273
+      },
+      "full_tactic": {
+        "log_loss": 1.057770809194122,
+        "n": 2388,
+        "top1_hits": 1089,
+        "top1_rate": 0.45603015075376885
+      },
+      "unconditional": {
+        "log_loss": 1.0715988449470628,
+        "n": 2388,
+        "top1_hits": 1048,
+        "top1_rate": 0.4388609715242881
+      }
+    },
+    "tactic_paired_full_minus_frequency": {
+      "log_loss": {
+        "ci95": [
+          -0.019002614411537447,
+          -0.009140165786644427
+        ],
+        "delta": -0.013828035752940795
+      },
+      "top1": {
+        "ci95": [
+          0.008184899626997519,
+          0.026426507901596053
+        ],
+        "delta": 0.017169179229480736
+      }
+    }
+  },
+  "june": {
+    "counts": {
+      "KNOWN": 2262,
+      "MISSING_MARK": 11,
+      "UNKNOWN_MARK": 1,
+      "cards": 2274,
+      "scorable": 2244,
+      "scorable_with_tactic": 2243
+    },
+    "days": 30,
+    "grid": [
+      {
+        "hits": {
+          "ex1": 516,
+          "ex2": 826,
+          "tri1": 223,
+          "tri2": 375,
+          "tri4": 589
+        },
+        "n": 2244,
+        "proper": {
+          "ex_brier": 0.8907338225043492,
+          "ex_log_loss": 2.8535368204351292,
+          "tri_brier": 0.9651640374360859,
+          "tri_log_loss": 4.285006331398086
+        },
+        "rates": {
+          "ex1": 0.22994652406417113,
+          "ex2": 0.3680926916221034,
+          "tri1": 0.09937611408199644,
+          "tri2": 0.16711229946524064,
+          "tri4": 0.2624777183600713
+        },
+        "strength": 0.0
+      },
+      {
+        "hits": {
+          "ex1": 510,
+          "ex2": 825,
+          "tri1": 214,
+          "tri2": 369,
+          "tri4": 595
+        },
+        "n": 2244,
+        "proper": {
+          "ex_brier": 0.8909112828826455,
+          "ex_log_loss": 2.854961272202645,
+          "tri_brier": 0.965306092422962,
+          "tri_log_loss": 4.286430783165603
+        },
+        "rates": {
+          "ex1": 0.22727272727272727,
+          "ex2": 0.36764705882352944,
+          "tri1": 0.09536541889483066,
+          "tri2": 0.16443850267379678,
+          "tri4": 0.26515151515151514
+        },
+        "strength": 0.25
+      },
+      {
+        "hits": {
+          "ex1": 512,
+          "ex2": 826,
+          "tri1": 214,
+          "tri2": 365,
+          "tri4": 593
+        },
+        "n": 2244,
+        "proper": {
+          "ex_brier": 0.8915046772055708,
+          "ex_log_loss": 2.858741203583889,
+          "tri_brier": 0.9655811590428993,
+          "tri_log_loss": 4.290210714546846
+        },
+        "rates": {
+          "ex1": 0.2281639928698752,
+          "ex2": 0.3680926916221034,
+          "tri1": 0.09536541889483066,
+          "tri2": 0.1626559714795009,
+          "tri4": 0.2642602495543672
+        },
+        "strength": 0.5
+      },
+      {
+        "hits": {
+          "ex1": 504,
+          "ex2": 806,
+          "tri1": 213,
+          "tri2": 368,
+          "tri4": 584
+        },
+        "n": 2244,
+        "proper": {
+          "ex_brier": 0.8939392676853076,
+          "ex_log_loss": 2.8725038715604647,
+          "tri_brier": 0.9665303271819572,
+          "tri_log_loss": 4.303973382523422
+        },
+        "rates": {
+          "ex1": 0.22459893048128343,
+          "ex2": 0.3591800356506239,
+          "tri1": 0.09491978609625669,
+          "tri2": 0.16399286987522282,
+          "tri4": 0.26024955436720143
+        },
+        "strength": 1.0
+      }
+    ]
+  },
+  "model": {
+    "file_sha256": "dab8c7f014c41ac18e4fed1ae28ac9b36e994611d1fcf5992f8b06e31a4c618b",
+    "historical_geometry_assumption_sha256": "a7d832a2661c6f05167e7a412a55e51183c21e746447f91dac44e14eeb4dfe19",
+    "id": "chatgpt-dt-r1",
+    "sha256": "5e022092a35c0258954090c6f3d0f8fa14f03f22511b28d6aa9183f5a38c381c"
+  },
+  "production_promoted": false,
+  "runtime_seconds": 34.359,
+  "schema": "DT_R1_ARCHIVED_FINISH_TACTIC_STUDY_V1",
+  "selected": {
+    "strength": 0.0,
+    "tactic_weights_sha256": "3cdecb0069e22d0764f81f8337f90773c8667e0a62f38d923c3c0447721a311f"
+  },
+  "source": {
+    "commit": "2a1260fb0940ad11160b56a36f9c24cc4fb2f6d2",
+    "dataset_sha256": "9bc3fbda8339b32ba178f5c9c39d6623216ad5c2d5519774870ac5491ba0a847",
+    "files": {
+      "keirin.db": "1bdad22b9744c9c5563f7bb1af31875170a3e6b7f4b0dd73fba8f98d645d8fc4",
+      "keirin_2026q4.db": "d915560877493816b90df8bcd5e7bdef45557f57100b4cd40a3d017cd959334d"
+    }
+  },
+  "started_at": "2026-11-28T11:33:30.475924+00:00",
+  "study_sha256": "f1dc1110a7ed61071d91967362513c31013e5d461a39247a00ad695e7bc77fcb"
+}
