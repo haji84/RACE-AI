@@ -176,9 +176,15 @@ def _official_sp_context():
 
 
 def _run_official_sp_watch(*,summary,repo,root,private,commit,clock,monotonic,sleep,
-                          interval_seconds,duration_seconds,max_ticks):
+                          interval_seconds,duration_seconds,max_ticks,selection=None):
     from scripts import keirin_official_nationwide_continuation as continuation
     context=continuation.SettlementContext();last_state=None
+    scope = {}
+    if selection is not None:
+        day, slots = selection
+        scope = dict(days=(day,), slot_hashes=slots)
+        summary['requested_slot_count'] = len(slots)
+        summary['backlog_check_every_ticks'] = None
     def stop_check():
         if context.lease is not None:
             try:context.lease.assert_active(repo=repo,now=clock())
@@ -189,7 +195,7 @@ def _run_official_sp_watch(*,summary,repo,root,private,commit,clock,monotonic,sl
     def tick():
         nonlocal last_state
         out=continuation.settle_tick(repo=repo,owner_private_pem=private,private_root=root,
-            clock=clock,max_races=RESULT_RACE_BUDGET,context=context,publish=True,source_commit=commit)
+            clock=clock,max_races=RESULT_RACE_BUDGET,context=context,publish=True,source_commit=commit,**scope)
         last_state=out['state']
         summary['provider_requests']+=out['source_requests']
         summary['published_races']+=out['published_races']
@@ -202,6 +208,9 @@ def _run_official_sp_watch(*,summary,repo,root,private,commit,clock,monotonic,sl
         summary['source_unavailable']=out['source_unavailable']
         summary['safe_diagnostics']=out['safe_diagnostics'][-32:]
         summary['safe_holds']=out.get('safe_holds',[])[-32:]
+        if selection is not None:
+            summary['safe_holds'] = [{k: v for k, v in row.items() if k != 'race_id'}
+                                     for row in summary['safe_holds']]
         # settle_tick publishes each captured, archived race immediately. The
         # controller only bounds the next poll; no private result enters this
         # summary or waits for the whole observation window to end.
@@ -223,7 +232,8 @@ def _run_official_sp_watch(*,summary,repo,root,private,commit,clock,monotonic,sl
 
 def run_watch(*, repo, mode, private_root, owner_public_path, owner_private_pem,
               clock=None, monotonic=None, sleep=None, interval_seconds=60,
-              duration_seconds=540, max_ticks=10, source_commit=None):
+              duration_seconds=540, max_ticks=10, source_commit=None,
+              observation_day=None, observation_slots=None):
     """Reuse the official settlement path with its existing eight-race budget.
 
     saved-only visits each selected existing day once without waiting and never
@@ -252,10 +262,20 @@ def run_watch(*, repo, mode, private_root, owner_public_path, owner_private_pem,
         target_interval_seconds=interval_seconds, result_race_budget=RESULT_RACE_BUDGET,
         current_day_priority=True, backlog_check_every_ticks=BACKLOG_EVERY_TICKS,
         due_current_originals=None)
+    selection = None
+    if observation_day is not None or observation_slots is not None:
+        from race_ai.keirin_official_nationwide_records import MAX_RACES
+        need(mode == 'observe' and _official_sp_context() and os.getenv('GITHUB_EVENT_NAME') == 'workflow_dispatch'
+             and observation_day == summary['day_jst'] and isinstance(observation_slots, str) and
+             len(observation_slots) <= MAX_RACES * 65, 'SLOT_OBSERVATION_SCOPE')
+        slots = observation_slots.split(',')
+        need(1 <= len(slots) <= MAX_RACES and len(set(slots)) == len(slots) and
+             all(re.fullmatch('[0-9a-f]{64}', slot) for slot in slots), 'SLOT_OBSERVATION_HASHES')
+        selection = observation_day, frozenset(slots)
     if mode=='observe' and _official_sp_context():
         return _run_official_sp_watch(summary=summary,repo=repo,root=root,private=owner_private_pem,
             commit=commit,clock=clock,monotonic=monotonic,sleep=sleep,interval_seconds=interval_seconds,
-            duration_seconds=duration_seconds,max_ticks=max_ticks)
+            duration_seconds=duration_seconds,max_ticks=max_ticks,selection=selection)
     if mode == 'observe' and not (
             os.getenv('RACE_AI_KEIRIN_AB_GIT_STORE_ENABLED') == 'true' and
             os.getenv('RACE_AI_KEIRIN_OFFICIAL_SOURCE_ENABLED') == 'true'):
@@ -497,6 +517,8 @@ def main(argv=None):
     parser.add_argument('--interval-seconds', type=int, default=60)
     parser.add_argument('--duration-seconds', type=int, default=540)
     parser.add_argument('--max-ticks', type=int, default=10)
+    parser.add_argument('--observation-day')
+    parser.add_argument('--observation-slots')
     args = parser.parse_args(argv)
     out = None
     stage = 'REPORT_PATH'
@@ -507,7 +529,7 @@ def main(argv=None):
             private_root=Path(args.private_root), owner_public_path=Path(args.owner_public_pem),
             owner_private_pem=os.getenv('RACE_AI_KEIRIN_PRIVATE_RSA_PEM', '').encode(),
             interval_seconds=args.interval_seconds, duration_seconds=args.duration_seconds,
-            max_ticks=args.max_ticks)
+            max_ticks=args.max_ticks, observation_day=args.observation_day, observation_slots=args.observation_slots)
         failed = report['state'].startswith('HOLD_') and report['state'] not in {
             'HOLD_RESULT_OBSERVER_PROVIDER_STOP', 'HOLD_RESULT_WATCH_SOURCE_DISABLED'}
     except Exception as exc:
