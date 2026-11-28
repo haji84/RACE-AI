@@ -98,12 +98,15 @@ def _prefetch_targets(store, ids, *, results=False):
         return 'BOUNDED_LAZY_READ_FALLBACK'
 
 
-def run_holdout(work, *, owner_private_pem, trained, client, now, day=None, progress=None):
+def run_holdout(work, *, owner_private_pem, trained, client, now, day=None, earlier_batch=False, progress=None):
     """Read from a protected caller's fixed official state Git fetch."""
     _need(day is None or day in DAYS, 'HOLDOUT_DAY_OUTSIDE_FIXED_PERIOD')
+    _need(day is None or not earlier_batch, 'HOLDOUT_BATCH_AND_DAY_CONFLICT')
     _need(trained.to_dict()['model_sha256'] == shadow.MODEL_SHA and
           trained.fit_meta['parameter_information_end_day'] == '2026-07-31', 'HOLDOUT_FROZEN_MODEL_BINDING')
-    chosen_days = DAYS if day is None else (day,)
+    chosen_days = DAYS[:-1] if earlier_batch else DAYS
+    if day is not None:
+        chosen_days = (day,)
     stores, registries, paired = {}, {}, {}
     holds, by_day, cache = Counter(), {}, {}
     day_holds = {}

@@ -173,6 +173,11 @@ on:
         description: Compare DT-R1's official profile history in retrospective day settlement
         default: false
         required: false
+      dt_r1_earlier_holdout:
+        type: boolean
+        description: Run November 23–26 in the fixed DT-R1 holdout
+        default: false
+        required: false
   schedule:
     # Start/recover the bounded observer during 08:00-23:59 JST.
     # GitHub may delay starts; this is not a push or wall-clock latency SLA.
@@ -320,6 +325,7 @@ jobs:
           DOSSIER_DAY: ${{ inputs.dossier_day }}
           DT_R1_COMPARE_BACK: ${{ inputs.dt_r1_compare_back || false }}
           DT_R1_COMPARE_PERSONAL: ${{ inputs.dt_r1_compare_personal || false }}
+          DT_R1_EARLIER_HOLDOUT: ${{ inputs.dt_r1_earlier_holdout || false }}
         run: |
           set -euo pipefail
           root="$RUNNER_TEMP/keirin-result-live-$GITHUB_RUN_ID"
@@ -363,6 +369,10 @@ jobs:
             holdout_args=()
             if [ -n "$DOSSIER_DAY" ]; then
               holdout_args+=(--day "$DOSSIER_DAY")
+            fi
+            if [[ "$DT_R1_EARLIER_HOLDOUT" == true ]]; then
+              [[ -z "$DOSSIER_DAY" ]]
+              holdout_args+=(--earlier-batch)
             fi
             python -m scripts.keirin_dt_r1_official_holdout --repo "$GITHUB_WORKSPACE" \
               --private-root "$root/private" \

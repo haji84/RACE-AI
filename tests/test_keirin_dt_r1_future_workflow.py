@@ -66,6 +66,15 @@ class FutureWorkflowTests(unittest.TestCase):
         self.assertIn('[[ -n "$DOSSIER_DAY" ]]', branch)
         self.assertIn('day_arg+=(--compare-personal-history)', branch)
 
+    def test_earlier_holdout_batch_is_distinct_from_the_single_day_argument(self):
+        start = self.job.index('if [ "$RESULT_MODE" = dt-r1-official-holdout ]; then')
+        end = self.job.index('if [ "$RESULT_MODE" = dt-r1-retain ]; then', start)
+        branch = self.job[start:end]
+        self.assertEqual(self.job.count('--earlier-batch'), 1)
+        self.assertIn('if [[ "$DT_R1_EARLIER_HOLDOUT" == true ]]; then', branch)
+        self.assertIn('[[ -z "$DOSSIER_DAY" ]]', branch)
+        self.assertIn('holdout_args+=(--earlier-batch)', branch)
+
     def test_retention_asks_for_an_independent_run_and_uses_no_private_key(self):
         start = self.job.index('if [ "$RESULT_MODE" = dt-r1-retain ]; then')
         end = self.job.index('if [[ "$RESULT_MODE" = dt-r1-shadow', start)

@@ -93,6 +93,17 @@ class OfficialHoldoutTests(unittest.TestCase):
             get.assert_called_once_with(None, study.DAYS[-1], index_commit=study.ARCHIVE_COMMIT)
             self.assertEqual([event for event, _ in events],
                              ['prefetch-original', 'forecast', 'prefetch-result', 'result', 'result'])
+            events.clear()
+            get.reset_mock()
+            earlier = study.run_holdout(None, owner_private_pem=b'', trained=frozen, client=None,
+                now=lambda: datetime(2026, 11, 28, tzinfo=timezone.utc), earlier_batch=True)
+            self.assertEqual(tuple(earlier['evaluated_days']), study.DAYS[:-1])
+            self.assertEqual(tuple(call.args[1] for call in get.call_args_list), study.DAYS[:-1])
+            self.assertEqual([event for event, _ in events],
+                             ['prefetch-original', 'forecast'] * 4 + ['prefetch-result', 'result', 'result'] * 4)
+            with self.assertRaisesRegex(ValueError, 'HOLDOUT_BATCH_AND_DAY_CONFLICT'):
+                study.run_holdout(None, owner_private_pem=b'', trained=frozen, client=None,
+                    now=lambda: None, day=study.DAYS[-1], earlier_batch=True)
         self.assertEqual([event for event, _ in first_events],
                          ['prefetch-original', 'forecast'] * 5 + ['prefetch-result', 'result', 'result'] * 5)
         self.assertEqual((restricted['registered_races'], restricted['common_scorable_races']), (2, 1))
