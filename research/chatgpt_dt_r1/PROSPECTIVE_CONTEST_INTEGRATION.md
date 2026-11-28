@@ -74,6 +74,8 @@ Codexの暗号文は専用の成果物へ保存する。別runの `codex-readbac
 
 11月28日の実行で、同じ公式資料と締切を使ったDT-R1とCodex独自モデルの原本8組を再現し、公式着順が揃った共通3組を採点した。両モデルの三連単1点と二車単1点は各1/3。既存統合A/B各50%の原本が揃うまで、正式な3モデル対戦は0件。[共通採点の実行](https://github.com/haji84/RACE-AI/actions/runs/46149314017) · [両モデルの集計](evidence/20261128-engine-history-followup/codex-same-source-first-official-score-20261128.json)
 
+同日最終締切後の保護採点では、8組のうち7組の公式通常着順が確認できた。三連単1点はDT-R1 1/7、Codex独自2/7、二車単1点は2/7と3/7。追加の1組は公式結果の検査で保留。継続的な予想能力の比較には複数日の共通実レースが必要。[当日の保護採点](https://github.com/haji84/RACE-AI/actions/runs/46155753431) · [全登録と共通枠の集計](evidence/20261128-engine-history-followup/official-endday-combined-settlement-2352-20261128.json)
+
 ## 公式入力と復元の実接続
 
 `official_inputs.project` は、既存の `keirin_learned_official_inputs.project` が再解析する同じ公式原資料からDTの正規化行を作る。`verification_payload` の内容を既存 `records.admit_original` の実再検証結果と照合するcallbackが必須。新しい実処理時計と、元のsource証跡の時計を分ける。登録番号のある公式履歴だけを同じnamespaceで参照し、過去archiveの名前等による複合IDを公式IDへ推測変換しない。空履歴は欠測として残す。
