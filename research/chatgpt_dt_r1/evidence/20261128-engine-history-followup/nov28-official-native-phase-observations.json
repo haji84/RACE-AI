@@ -1,0 +1,45 @@
+{
+  "back_leader_forecasts_with_official_observation": 0,
+  "day_jst": "2026-11-28",
+  "official_phase_source_audit": {
+    "marker_token_fields": {
+      "back": {
+        "B": 51
+      }
+    },
+    "native_observations": {
+      "agari_timed_races": 51,
+      "agari_timed_riders": 354,
+      "back_leader_races": 51,
+      "source_binding": "JKA_SJ0326_BACK_AND_AGARI"
+    },
+    "phase_semantics_verified": false,
+    "races_with_unlisted_fields": 51,
+    "races_with_unlisted_result_scripts": 51,
+    "result_view_scripts": {
+      "/sp/static/js/SJ0326.js": 51,
+      "/sp/static/js/SJ0326_v.js": 51
+    },
+    "row_fields": {
+      "agari": 51,
+      "back": 51,
+      "kojinStateItemSubData": 51,
+      "syaban": 51,
+      "tyaku": 51
+    },
+    "schema": "DT_R1_OFFICIAL_PHASE_FIELD_AUDIT_V2",
+    "scorer_verified_normal_results": 51,
+    "uncounted_result_shapes": 0,
+    "unlisted_marker_token_races": {},
+    "unverified_result_shapes": 0,
+    "verified_result_shapes": 51
+  },
+  "provider_source_requests": 0,
+  "reader_code_commit": "bc6182cbfa2694eaeff79defe2fb9e4fd10aeac9",
+  "reader_run_id": 46193569251,
+  "receipt_artifact_id": 15282589771,
+  "receipt_json_sha256": "f65cf662b0a47fa2f33ea80ab3eed5fa44881a6445599414a453c5945bea04b9",
+  "receipt_zip_sha256": "e17eb44935a143670c94bd70637c578d2123f3eeeff2c03d37567fdbb7ead29e",
+  "result_archive_commit": "6dea07afaabedb070adc09fff955d510dd637e48",
+  "state_writes": 0
+}
