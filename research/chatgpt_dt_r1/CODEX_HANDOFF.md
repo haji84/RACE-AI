@@ -4,6 +4,12 @@
 
 ## 11月29日の締切前検証の再開地点
 
+02:52 JSTまでにDT-R1とCodex独自の同じ7枠を追加した。独立読戻しとT−15認証後、両モデルそれぞれで既存21枠の参照バイトを維持し、同じ28枠をGitHubに暗号保全した。新規7予想でDT-R1が参照した公式7日履歴は延べ21レース。登録54件のうち現時点の公式事前資料28件に予想原本が揃い、公式結果は0件。独立した所有者鍵での先行再現は初回7組を確認済み。後続21組は公式着順が保存された後の保護採点で再現する。[DT-R1保全レシート](evidence/20261128-engine-history-followup/nov29-fifth-dt-r1-prospective-retention.json) · [Codex保全レシート](evidence/20261128-engine-history-followup/nov29-fifth-codex-prospective-retention.json) · [共通28枠の固定索引](https://github.com/haji84/RACE-AI/commit/0a47c14d5969c011af92f26ff3fb40f68a289620)
+
+次の再開信号は二つある。02:47 JSTに既存Mac監視が前回の公式取得と20分の間隔を確認し、次の公式取得をGitHubへ起動した。その取得と別ランナーの独立読戻しが終わり、新規事前資料があれば締切前に後続予想を保全する。正式採点は最早08:47 JST締切枠の公式着順が暗号索引に保存された時点で開始する。定期結果監視の設定は08:02〜23:57 JSTの5分ごと。必要時は公表後に現在の保全枠を対象に観測する。[次の公式取得run](https://github.com/haji84/RACE-AI/actions/runs/46172359439) · [既存の監視条件](../../scripts/keirin_official_sp_watchdog.py)
+
+映像の独立工程は02:30 JSTにMac実機で15分間隔の登録と起動90回、最終終了コード0を確認した。02:16 JSTの集計は連続映像1レース、適格観測3、新規録画0。取得は既存の承認範囲の検査で保留。非映像の事前対照と保護採点は各自の入力条件で進める。[映像工程 #409](https://github.com/haji84/RACE-AI/pull/409)
+
 02:25 JSTにDT-R1とCodex独自へ同じ3枠を追加し、別ランナーの読戻しとT−15認証を経て保全した。両モデルの既存18枠の参照バイトと追加3枠の一致を照合し、同じ21枠を固定した。公式事前資料は登録54件中28件に増え、追加7件を別ランナーで確認した。まだ公式事前原本のない26件の内訳は取得上限25、公式ライン表記の確認1。追加7枠の最早締切は14:25 JST。新しい保護予想を起動した。公式結果の暗号索引は0件。[DT-R1保全](evidence/20261128-engine-history-followup/nov29-fourth-dt-r1-prospective-retention.json) · [Codex保全](evidence/20261128-engine-history-followup/nov29-fourth-codex-prospective-retention.json) · [共通21枠の固定索引](https://github.com/haji84/RACE-AI/commit/f1d4ae84769d263c7b05f9c9e24d8f6ee067117a) · [後続7枠の公式取得と読戻し](https://github.com/haji84/RACE-AI/actions/runs/46169622187) · [保護予想](https://github.com/haji84/RACE-AI/actions/runs/46170584446)
 
 01:58 JSTまでにDT-R1とCodex独自で同じ7枠を追加し、別ランナーで読戻しとT−15を認証した。最初の11枠のGit参照バイトをモデルごとに照合し、両モデルの同じ18枠が保全済みであることを確認。DT-R1は追加7予想全体で公式7日履歴を延べ30レース参照した。後続の再現と着順採点は公式結果を保存した後の保護runで行う。DT-R1生成中にmainの選手カルテ更新が入ったため、該当する予想・読戻し・保存経路のソース差分を確認し、保存済みの生成runから先を続行した。[DT-R1保全レシート](evidence/20261128-engine-history-followup/nov29-third-dt-r1-prospective-retention.json) · [Codex保全レシート](evidence/20261128-engine-history-followup/nov29-third-codex-prospective-retention.json) · [共通18枠の固定索引](https://github.com/haji84/RACE-AI/commit/703970ddfc54b422cfd6000818bffdaa1f9cd807)
