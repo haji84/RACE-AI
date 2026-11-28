@@ -41,11 +41,18 @@ class OfficialHoldoutTests(unittest.TestCase):
             self.assertEqual(pair['history_races'], 1)
             self.assertTrue(all(law is joint for law in pair['laws'].values()))
             self.assertEqual(rows, [history, None])
+            rows.clear()
+            with patch.object(study, '_adjust_residual', return_value=joint) as adjust:
+                pair = study._replay_pair(store, rid, meta, b'', None, object(), {}, history,
+                                          residual_context='fixture')
+            self.assertEqual(tuple(pair['laws']), study.RESIDUAL_ARMS)
+            self.assertEqual(rows, [history])
+            self.assertEqual(adjust.call_args.args[0], 'fixture')
             official['origin_receipts']['baseline_origin']['latest_server_evidence_at'] = (
                 before + timedelta(microseconds=1)).isoformat()
             with self.assertRaisesRegex(ValueError, 'OFFICIAL_ORIGIN_AFTER_T15'):
                 study._replay_pair(store, rid, meta, b'', None, object(), {}, history)
-            self.assertEqual(len(rows), 2)
+            self.assertEqual(len(rows), 1)
 
     def test_all_target_forecasts_precede_results_and_small_proper_scores_are_hidden(self):
         events = []
@@ -129,3 +136,44 @@ class OfficialHoldoutTests(unittest.TestCase):
         report = study._paired_metrics(scores)[1]
         self.assertIn('proper_scores', report)
         self.assertNotIn('a', report['proper_scores'])
+
+    def test_residual_uses_fixed_unused_archive_and_only_two_matched_arms(self):
+        events = []
+        frozen = SimpleNamespace(to_dict=lambda: {'model_sha256': study.shadow.MODEL_SHA},
+                                 fit_meta={'parameter_information_end_day': '2026-07-31'})
+        law = {ticket: 1/6 for ticket in permutations((1, 2, 3))}
+
+        def store(_, day, *, index_commit):
+            self.assertEqual(index_commit, study.RESIDUAL_ARCHIVE)
+            rid = day.replace('-', '') + '2401'
+            return SimpleNamespace(day=day, head=index_commit, rid=rid, index={'originals': {rid: {}}, 'results': {}})
+
+        def replay(source, rid, *_, residual_context):
+            self.assertEqual(residual_context, 'frozen-candidate')
+            events.append(('forecast', source.day))
+            return dict(history_races=0, laws=dict.fromkeys(study.RESIDUAL_ARMS, law))
+
+        def outcome(source, rid, *_):
+            events.append(('result', source.day))
+            return dict(race_id=rid, day=source.day, result_status='VERIFIED_NORMAL', top3=[1, 2, 3])
+
+        with (
+            patch.object(study.records, 'RecordStore', side_effect=store),
+            patch.object(study.settlement, '_load_registry', side_effect=lambda source, _: {
+                'registered_race_ids': [source.rid], 'day_inventory_complete': True, 'missing_venues': []}),
+            patch.object(study.settlement, '_result_row', side_effect=outcome),
+            patch.object(study, 'OfficialHistory'),
+            patch.object(study, '_replay_pair', side_effect=replay),
+            patch.object(study, '_prefetch_targets'),
+        ):
+            report = study.run_holdout(None, owner_private_pem=b'', trained=frozen, client=None,
+                now=lambda: datetime(2026, 11, 29, tzinfo=timezone.utc), residual_context='frozen-candidate')
+        self.assertEqual([kind for kind, _ in events], ['forecast', 'forecast', 'result', 'result'])
+        self.assertEqual(report['fixed_period'], list(study.RESIDUAL_DAYS))
+        self.assertEqual(report['archive_commit'], study.RESIDUAL_ARCHIVE)
+        self.assertEqual(report['common_scorable_races'], 2)
+        self.assertEqual(set(report['metrics']), set(study.RESIDUAL_ARMS))
+        self.assertEqual(report['metrics']['winner_residual']['hits']['tri1'], 2)
+        self.assertEqual(report['winner_residual_file_sha256'], study.RESIDUAL_FILE_SHA)
+        self.assertNotIn('proper_scores', report)
+        self.assertFalse(report['prospectively_sealed'])

@@ -142,7 +142,7 @@ on:
         type: choice
         required: true
         default: test
-        options: [test, saved-only, observe, rider-dossiers, dossier-context, measure-results, measure-confidence, combined-study, learned-replay, dt-r1-restore, dt-r1-shadow, dt-r1-readback, dt-r1-settle, dt-r1-retain, dt-r1-official-holdout, codex-shadow, codex-readback, codex-retain, codex-settle]
+        options: [test, saved-only, observe, rider-dossiers, dossier-context, measure-results, measure-confidence, combined-study, learned-replay, dt-r1-restore, dt-r1-shadow, dt-r1-readback, dt-r1-settle, dt-r1-retain, dt-r1-official-holdout, dt-r1-official-residual-holdout, codex-shadow, codex-readback, codex-retain, codex-settle]
       dossier_day:
         type: string
         description: JST day for source-free dossier replay, measurement or DT-R1 day settlement
@@ -302,6 +302,7 @@ jobs:
          inputs.mode == 'combined-study' || inputs.mode == 'learned-replay' || inputs.mode == 'dt-r1-restore' ||
          inputs.mode == 'dt-r1-shadow' || inputs.mode == 'dt-r1-readback' || inputs.mode == 'dt-r1-settle' ||
          inputs.mode == 'dt-r1-retain' || inputs.mode == 'dt-r1-official-holdout' ||
+         inputs.mode == 'dt-r1-official-residual-holdout' ||
          inputs.mode == 'codex-shadow' || inputs.mode == 'codex-readback' || inputs.mode == 'codex-retain' ||
          inputs.mode == 'codex-settle')))
     runs-on: ubuntu-24.04
@@ -321,7 +322,7 @@ jobs:
           persist-credentials: true
       - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
         with:
-          python-version: ${{ (inputs.mode == 'dt-r1-restore' || inputs.mode == 'dt-r1-shadow' || inputs.mode == 'dt-r1-readback' || inputs.mode == 'dt-r1-settle' || inputs.mode == 'dt-r1-retain' || inputs.mode == 'dt-r1-official-holdout' || startsWith(inputs.mode, 'codex-')) && '3.12' || '3.11' }}
+          python-version: ${{ (inputs.mode == 'dt-r1-restore' || inputs.mode == 'dt-r1-shadow' || inputs.mode == 'dt-r1-readback' || inputs.mode == 'dt-r1-settle' || inputs.mode == 'dt-r1-retain' || startsWith(inputs.mode, 'dt-r1-official-') || startsWith(inputs.mode, 'codex-')) && '3.12' || '3.11' }}
       - name: Observe admitted results and publish each encrypted update
         shell: bash
         env:
@@ -374,12 +375,18 @@ jobs:
               | tee "$root/safe/summary.json" "$GITHUB_STEP_SUMMARY"
             exit 0
           fi
-          if [ "$RESULT_MODE" = dt-r1-official-holdout ]; then
+          if [[ "$RESULT_MODE" == dt-r1-official-holdout || "$RESULT_MODE" == dt-r1-official-residual-holdout ]]; then
             umask 077
+            holdout_args=()
+            extra_deps=()
+            if [ "$RESULT_MODE" = dt-r1-official-residual-holdout ]; then
+              [[ -z "$DOSSIER_DAY" && "$DT_R1_EARLIER_HOLDOUT" != true ]]
+              holdout_args+=(--winner-residual)
+              extra_deps+=('lightgbm==4.6.0')
+            fi
             env -u RACE_AI_KEIRIN_PRIVATE_RSA_PEM -u GITHUB_TOKEN \
               python -m pip install --disable-pip-version-check --only-binary=:all: \
-                -r research/chatgpt_dt_r1/requirements.txt 'beautifulsoup4>=4.12,<5'
-            holdout_args=()
+                -r research/chatgpt_dt_r1/requirements.txt 'beautifulsoup4>=4.12,<5' "${extra_deps[@]}"
             if [ -n "$DOSSIER_DAY" ]; then
               holdout_args+=(--day "$DOSSIER_DAY")
             fi

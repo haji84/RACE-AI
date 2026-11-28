@@ -5,7 +5,9 @@ import unittest
 
 ROOT = Path(__file__).resolve().parents[1]
 MODES = ('dt-r1-shadow', 'dt-r1-readback', 'dt-r1-settle', 'dt-r1-retain',
+         'dt-r1-official-holdout', 'dt-r1-official-residual-holdout',
          'codex-shadow', 'codex-readback', 'codex-retain', 'codex-settle')
+HOLDOUT_BRANCH = 'if [[ "$RESULT_MODE" == dt-r1-official-holdout ||'
 
 
 class FutureWorkflowTests(unittest.TestCase):
@@ -60,7 +62,7 @@ class FutureWorkflowTests(unittest.TestCase):
     def test_personal_study_is_opt_in_for_protected_shadow_and_retrospective_settlement(self):
         self.assertIn('dt_r1_compare_personal:', self.text.split('  schedule:', 1)[0])
         start = self.job.index('if [[ "$RESULT_MODE" = dt-r1-settle')
-        end = self.job.index('if [ "$RESULT_MODE" = dt-r1-official-holdout ]; then', start)
+        end = self.job.index(HOLDOUT_BRANCH, start)
         self.assertEqual(self.job.count('--compare-personal-history'), 2)
         branch = self.job[start:end]
         self.assertIn('if [[ "$DT_R1_COMPARE_PERSONAL" == true ]]; then', branch)
@@ -73,13 +75,23 @@ class FutureWorkflowTests(unittest.TestCase):
         self.assertIn('dt_shadow_args+=(--compare-personal-history)', self.job[shadow_start:shadow_end])
 
     def test_earlier_holdout_batch_is_distinct_from_the_single_day_argument(self):
-        start = self.job.index('if [ "$RESULT_MODE" = dt-r1-official-holdout ]; then')
+        start = self.job.index(HOLDOUT_BRANCH)
         end = self.job.index('if [[ "$RESULT_MODE" = dt-r1-retain', start)
         branch = self.job[start:end]
         self.assertEqual(self.job.count('--earlier-batch'), 1)
         self.assertIn('if [[ "$DT_R1_EARLIER_HOLDOUT" == true ]]; then', branch)
         self.assertIn('[[ -z "$DOSSIER_DAY" ]]', branch)
         self.assertIn('holdout_args+=(--earlier-batch)', branch)
+
+    def test_residual_holdout_loads_only_the_fixed_pair_in_owner_job(self):
+        start = self.job.index(HOLDOUT_BRANCH)
+        end = self.job.index('if [[ "$RESULT_MODE" = dt-r1-retain', start)
+        branch = self.job[start:end]
+        self.assertIn('[[ -z "$DOSSIER_DAY" && "$DT_R1_EARLIER_HOLDOUT" != true ]]', branch)
+        self.assertIn('holdout_args+=(--winner-residual)', branch)
+        self.assertIn("extra_deps+=('lightgbm==4.6.0')", branch)
+        self.assertIn('env -u RACE_AI_KEIRIN_PRIVATE_RSA_PEM -u GITHUB_TOKEN', branch)
+        self.assertNotIn('scripts.keirin_result_watch', branch)
 
     def test_retention_asks_for_an_independent_run_and_uses_no_private_key(self):
         start = self.job.index('if [[ "$RESULT_MODE" = dt-r1-retain')
@@ -113,7 +125,7 @@ class FutureWorkflowTests(unittest.TestCase):
 
     def test_codex_settle_reuses_the_source_free_job_and_requires_the_explicit_day(self):
         start = self.job.index('if [[ "$RESULT_MODE" = dt-r1-settle')
-        end = self.job.index('if [ "$RESULT_MODE" = dt-r1-official-holdout ]; then', start)
+        end = self.job.index(HOLDOUT_BRANCH, start)
         branch = self.job[start:end]
         self.assertIn("extra_deps+=('lightgbm==4.6.0')", branch)
         self.assertIn('if [ "$RESULT_MODE" = codex-settle ]; then\n              [[ -n "$DOSSIER_DAY" ]]', branch)
