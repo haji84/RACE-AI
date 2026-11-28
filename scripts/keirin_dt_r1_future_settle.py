@@ -21,6 +21,7 @@ from race_ai import keirin_official_nationwide_records as records
 from race_ai import keirin_official_run_history as codec
 from race_ai.keirin_github_evidence_client import GitHubEvidenceClient
 from race_ai.keirin_official_paired_measurement import REPLAY_CODES
+from race_ai.keirin_paired_measurement import _difference_ci
 from research.chatgpt_dt_r1 import back_official_shadow, future_batch_retention as batch_retention
 from research.chatgpt_dt_r1.future_retention_gate import (
     FIRST_DAY as DAY, FIRST_PRODUCER as PRODUCER, FIRST_READER as READER,
@@ -279,6 +280,28 @@ def _fixed_point_hits(forecasts, results, error):
     return {market: {k: cell['hits'] for k, cell in score[market].items()} for market in ('trifecta', 'exacta')}
 
 
+def _paired_one_point(results, *, baseline, baseline_forecasts, comparison, comparison_forecasts):
+    """Measure the same official outcomes after both arms pass the fixed-point scorer."""
+    count = len(results)
+    report = dict(baseline=baseline, comparison=comparison,
+                  interval_scope='EXPLORATORY_NOMINAL_WILSON_RACES_UNCLUSTERED')
+    for market, width in (('trifecta', 3), ('exacta', 2)):
+        gained = lost = 0
+        for row in results:
+            rid = row['race_id']
+            target = tuple(row['top3'][:width])
+            hits = []
+            for forecasts in (baseline_forecasts, comparison_forecasts):
+                first = min(forecasts[rid][market + 's'], key=lambda ticket: (-ticket['probability'], ticket['cars']))
+                hits.append(tuple(first['cars']) == target)
+            baseline_hit, comparison_hit = hits
+            gained += comparison_hit and not baseline_hit
+            lost += baseline_hit and not comparison_hit
+        report[market] = dict(paired_races=count, difference=(gained - lost) / count if count else None,
+                              difference_ci95=_difference_ci(gained, lost, count))
+    return report
+
+
 def _score_back_pairs(admitted, outcomes, back_pairs, back_holds):
     paired_races = admitted.keys() & back_pairs.keys()
     held_races = admitted.keys() & back_holds.keys()
@@ -289,9 +312,11 @@ def _score_back_pairs(admitted, outcomes, back_pairs, back_holds):
     summary = dict(registered_day=len(outcomes), retained_pairs=len(paired_races),
                    official_scorable_pairs=len(paired_rows), back_leader_observations=0,
                    replay_holds=dict(Counter(back_holds[rid] for rid in held_races)))
-    for name in BACK_ARMS:
-        summary[name] = _fixed_point_hits([back_pairs[rid][name] for rid in sorted(paired_races)],
-                                          paired_rows, 'BACK_STUDY_PAIR_DENOMINATOR')
+    arms = {name: {rid: back_pairs[rid][name] for rid in sorted(paired_races)} for name in BACK_ARMS}
+    for name, forecasts in arms.items():
+        summary[name] = _fixed_point_hits(list(forecasts.values()), paired_rows, 'BACK_STUDY_PAIR_DENOMINATOR')
+    summary['paired_one_point'] = _paired_one_point(paired_rows, baseline='direct', baseline_forecasts=arms['direct'],
+        comparison='back_mixture', comparison_forecasts=arms['back_mixture'])
     return summary
 
 
@@ -311,7 +336,9 @@ def _score_personal_pairs(admitted, outcomes, personal_pairs, personal_holds):
         replay_holds=dict(Counter(personal_holds[rid] for rid in held_races)),
         official_prior_personal_finish_exposures=sum(personal_pairs[rid]['used_finishes'] for rid in paired_races),
         archive_seven=_fixed_point_hits([admitted[rid] for rid in paired_races], scorable, error),
-        seven_and_personal_days_8_to_30=_fixed_point_hits([personal_pairs[rid] for rid in paired_races], scorable, error))
+        seven_and_personal_days_8_to_30=_fixed_point_hits([personal_pairs[rid] for rid in paired_races], scorable, error),
+        paired_one_point=_paired_one_point(scorable, baseline='archive_seven', baseline_forecasts=admitted,
+            comparison='seven_and_personal_days_8_to_30', comparison_forecasts=personal_pairs))
 
 
 def _score_codex_pair(admitted, outcomes, codex, same_source, retained, holds):
@@ -329,7 +356,9 @@ def _score_codex_pair(admitted, outcomes, codex, same_source, retained, holds):
         codex_all_targets=codex_total, formal_three_way_races=0,
         common={name: _fixed_point_hits([forecasts[rid] for rid in sorted(comparable)], scorable,
                                          'CODEX_COMMON_RESULT_DENOMINATOR')
-                for name, forecasts in (('dt_r1', admitted), ('codex', codex))})
+                for name, forecasts in (('dt_r1', admitted), ('codex', codex))},
+        paired_one_point=_paired_one_point(scorable, baseline='codex', baseline_forecasts=codex,
+            comparison='dt_r1', comparison_forecasts=admitted))
 
 
 def _score_registered(race_ids, day, entries, eligible, reader_holds, forecast_loader, result_loader,
@@ -387,10 +416,13 @@ def _score_registered(race_ids, day, entries, eligible, reader_holds, forecast_l
         for name, forecasts in (('official_history', admitted), ('no_history', history_controls)):
             paired[name] = summarize_predictions([forecasts[rid] for rid in sorted(paired_races)], paired_rows)
             del paired[name]['proper_scores']
-        need(paired['official_history']['predicted_evaluable'] == paired['no_history']['predicted_evaluable'],
+        scorable = [row for row in paired_rows if row['result_status'] == 'VERIFIED_NORMAL']
+        need(paired['official_history']['predicted_evaluable'] == paired['no_history']['predicted_evaluable'] == len(scorable),
              'HISTORY_PAIR_DENOMINATOR')
         metrics['paired_history'] = dict(policy=shadow.HISTORY_CONTROL_POLICY,
-                                         registered_day=len(race_ids), retained_pairs=len(paired_races), **paired)
+            registered_day=len(race_ids), retained_pairs=len(paired_races), **paired,
+            paired_one_point=_paired_one_point(scorable, baseline='no_history', baseline_forecasts=history_controls,
+                comparison='official_history', comparison_forecasts=admitted))
     paired_back = _score_back_pairs(admitted, outcomes, back_pairs or {}, back_holds or {})
     if paired_back is not None:
         metrics['paired_back'] = paired_back

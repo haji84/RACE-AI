@@ -45,6 +45,12 @@ class FutureSettlementTests(unittest.TestCase):
         self.assertEqual(metrics['official_scorable_pairs'], 1)
         self.assertEqual(metrics['common']['codex']['trifecta']['1'], 1)
         self.assertEqual(metrics['common']['dt_r1']['trifecta']['1'], 1)
+        paired = metrics['paired_one_point']
+        self.assertEqual((paired['baseline'], paired['comparison']), ('codex', 'dt_r1'))
+        self.assertEqual(paired['trifecta']['paired_races'], 1)
+        self.assertEqual(paired['exacta']['difference'], 0.)
+        self.assertLess(paired['exacta']['difference_ci95'][0], 0.)
+        self.assertGreater(paired['exacta']['difference_ci95'][1], 0.)
         self.assertNotIn('proper_scores', str(metrics))
         self.assertNotIn(first, str(metrics))
 
@@ -235,6 +241,12 @@ class FutureSettlementTests(unittest.TestCase):
         self.assertEqual(paired['direct']['trifecta']['1'], 0)
         self.assertEqual(paired['direct']['exacta']['1'], 1)
         self.assertEqual(set(paired['direct']), {'trifecta', 'exacta'})
+        one_point = paired['paired_one_point']
+        self.assertEqual((one_point['baseline'], one_point['comparison']), ('direct', 'back_mixture'))
+        self.assertEqual(one_point['trifecta']['paired_races'], 1)
+        self.assertEqual(one_point['trifecta']['difference'], 1.)
+        self.assertEqual(one_point['exacta']['difference'], 0.)
+        self.assertLess(one_point['trifecta']['difference_ci95'][0], 0.)
         self.assertNotIn('probability', str(paired))
         self.assertNotIn(RACES[0], str(paired))
 
@@ -251,6 +263,8 @@ class FutureSettlementTests(unittest.TestCase):
         self.assertEqual((paired['registered_day'], paired['retained_pairs'], paired['official_scorable_pairs']),
                          (3, 0, 0))
         self.assertEqual(paired['replay_holds'], {'BACK_STUDY_RESTORE_UNVERIFIED': 1})
+        self.assertEqual(paired['paired_one_point']['trifecta'],
+                         dict(paired_races=0, difference=None, difference_ci95=None))
 
     def test_profile_study_failure_preserves_the_authenticated_original_score(self):
         rid = RACES[0]
@@ -492,12 +506,19 @@ class FutureSettlementTests(unittest.TestCase):
         self.assertEqual(report['metrics']['paired_back']['official_scorable_pairs'], 1)
         self.assertEqual(report['metrics']['paired_personal_history']['official_scorable_pairs'], 1)
         self.assertEqual(report['metrics']['paired_personal_history']['official_prior_personal_finish_exposures'], 2)
+        personal = report['metrics']['paired_personal_history']['paired_one_point']
+        self.assertEqual((personal['baseline'], personal['comparison']),
+                         ('archive_seven', 'seven_and_personal_days_8_to_30'))
+        self.assertEqual(personal['exacta']['paired_races'], 1)
         self.assertEqual(report['metrics']['personal_history_study'],
                          dict(state='HOLD_PROFILE_STUDY_SCORING_UNVERIFIED', prospectively_sealed=False))
         paired = report['metrics']['paired_history']
         self.assertEqual((paired['registered_day'], paired['retained_pairs']), (4, 1))
         self.assertEqual(paired['official_history']['predicted_evaluable'], 1)
         self.assertEqual(paired['no_history']['predicted_evaluable'], 1)
+        self.assertEqual(paired['paired_one_point']['baseline'], 'no_history')
+        self.assertEqual(paired['paired_one_point']['comparison'], 'official_history')
+        self.assertEqual(paired['paired_one_point']['trifecta']['paired_races'], 1)
         self.assertNotIn('proper_scores', paired['no_history'])
         self.assertFalse(report['day_inventory_complete'])
         self.assertEqual(report['missing_venues'], 1)
