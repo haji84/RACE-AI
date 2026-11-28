@@ -4,7 +4,11 @@
 
 ## 11月29日の締切前検証の再開地点
 
-1着確率の補正候補を2026年3〜5月の6,857件で学習し、6月の固定条件を通過した。校正にも使った7月の2,393件では三連単1点252→251、二車単1点522→528。三連単1点の改善は未実証。固定重みを92レースで復元し、11月21〜22日の公式暗号アーカイブを未使用期間の初回評価に指定した。認証済み同一事前資料と7日履歴で保護比較 `dt-r1-official-residual-holdout` を実行する。[実データの学習・比較](evidence/20261128-engine-history-followup/RESULTS.md#凍結版の1着確率への勾配ブースティング補正) · [期間の事前指定 #67](https://github.com/haji84/RACE-AI/issues/67#issuecomment-7244060730)
+11月28日の認証済み公式通常着順51件を再現し、全件で公式最終バック先頭を示すB印を一意に確認した。公式上がりは51件・延べ354選手。保存済みの同日のDT-R1原本は着順を31件採点できた。最終バック先頭を締切前に保全した対照は11月29日の31組で、結果が保存された枠から採点する。[公式実測の保護実行](https://github.com/haji84/RACE-AI/actions/runs/46193569251) · [固定集計](evidence/20261128-engine-history-followup/nov28-official-native-phase-observations.json)
+
+11月21〜22日の未使用公式期間で1着補正候補を照合した。登録125件、公式通常着順22件、認証済み事前資料との共通21件、過去履歴を使えた5件。三連単1点は凍結版・補正版とも0/21、二車単1点はともに3/21。この候補の採用を見送り、同じ期間での追加調整を打ち切った。最終バックと直接着順の当日比較は、新しい公式結果の保存後に実行する。[保護採点](https://github.com/haji84/RACE-AI/actions/runs/46193048925) · [公式集計](evidence/20261128-engine-history-followup/nov21-22-winner-residual-official-holdout.json)
+
+1着確率の補正候補は2026年3〜5月の6,857件で学習し、6月の固定条件を通過した。校正にも使った7月の2,393件では三連単1点252→251、二車単1点522→528。固定重みを92レースで復元した。[実データの学習・比較](evidence/20261128-engine-history-followup/RESULTS.md#凍結版の1着確率への勾配ブースティング補正)
 
 7月の開発用2,393件で、凍結7日版の三連単1点252件・二車単1点522件を再現した。三連単の外れ2,141件中1,395件（65.16%）で1着が異なった。1着まで一致した外れは472件、1・2着まで一致した外れは274件。次は最終バック混合候補と直接着順の共通原本を、当日の公式結果で固定点数比較する。[実レースの集計と再現](evidence/20261128-engine-history-followup/RESULTS.md#三連単1点の外れを着順別に確認)
 
@@ -12,7 +16,7 @@
 
 公式用語では単騎はラインを形成しない。公式図の1段配置、全車番、競りの有無を確認し、単騎を保持したうえで分戦表記が複数選手のライン数とも一致する場合を読めるようにした。次の公式取得と独立読戻しで実データの保全増を確認する。[公式用語集](https://keirin.jp/pc/static/beginner/keirin-glossary/ta-to.html) · [公式のライン解説](https://keirin.jp/pc/static/beginner/basics/lines.html)
 
-06:06 JST、11月28日の認証済み公式着順50件すべてで `agari` 欄とB形式の値を持つ欄を確認した。50件が参照する公式結果レンダラーは、着順行の `back` と `agari` を各表示欄に結び付けている。確認したレンダラーのSHA256は `97bcd07542bbad2d4d9432cd9a4c39122d888a5a7aa43ad3d4305d01d9cb3009`。50件の集計は項目の形状を確認したもので、次は同じ公式原本の `back` と公式上がりの件数を保護ランナーで確かめる。[保護実行](https://github.com/haji84/RACE-AI/actions/runs/46188746926) · [SHA固定の集計](evidence/20261128-engine-history-followup/nov28-official-phase-field-audit.json) · [公式結果レンダラー](https://keirin.jp/sp/static/js/SJ0326_v.js) · [公式上がりの定義](https://keirin.jp/pc/dfw/portal/guest/guide/question/race.html)
+06:06 JSTの項目調査では、11月28日の認証済み公式着順50件すべてで `agari` 欄とB形式の値を持つ欄を確認した。50件が参照する公式結果レンダラーは、着順行の `back` と `agari` を各表示欄に結び付けている。確認したレンダラーのSHA256は `97bcd07542bbad2d4d9432cd9a4c39122d888a5a7aa43ad3d4305d01d9cb3009`。[項目調査の保護実行](https://github.com/haji84/RACE-AI/actions/runs/46188746926) · [SHA固定の項目調査](evidence/20261128-engine-history-followup/nov28-official-phase-field-audit.json) · [公式結果レンダラー](https://keirin.jp/sp/static/js/SJ0326_v.js) · [公式上がりの定義](https://keirin.jp/pc/dfw/portal/guest/guide/question/race.html)
 
 単一のB印が確認できた公式通常着順を、締切前に保全済みの最終バック先頭予測と照合する。先頭予測は暗号原本に封印した確率分布のダイジェストが一致した場合に採点する。公開する的中集計は、開催日を過ぎて保全済みの比較がすべて確定し、的中・不的中が各2件以上ある集団に限る。早期の実行では照合可能件数を確認する。11月29日の採点は最早08:47 JSTの締切枠の公式結果保存から再開する。[公式記号の定義](https://keirin.jp/pc/static/beginner/basics/racecard.html)
 
