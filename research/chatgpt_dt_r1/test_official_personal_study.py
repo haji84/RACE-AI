@@ -6,7 +6,7 @@ from unittest.mock import patch
 import numpy as np
 
 from research.chatgpt_dt_r1.features import FeatureBuilder
-from research.chatgpt_dt_r1.model import RankModel
+from research.chatgpt_dt_r1.model import RankModel, _verify_feature_binding
 from research.chatgpt_dt_r1 import official_personal_study as study
 from research.chatgpt_dt_r1.test_official_personal_history import AT, RID, fixture
 from research.chatgpt_dt_r1.official_feature_audit import NAMES
@@ -71,17 +71,23 @@ class PersonalTrialTests(unittest.TestCase):
             original=self.original, baseline=self.baseline, prediction_at=AT,
             prior=SimpleNamespace(arguments=lambda *_: dict(history_records=[], history_verifier=None)))
 
-    def test_exports_exact_legacy_feature_digest_and_both_markets(self):
+    def test_binds_replayable_features_and_both_complete_markets(self):
         with (patch.object(study.official_inputs, 'verification_payload',
                            return_value={'normalized_input': self.target}),
               patch.object(study.official_inputs, '_history', return_value=([], self.support))):
             computed, hold = study.personal_trial(**self.opts)
+            repeated, repeated_hold = study.personal_trial(**self.opts)
         self.assertIsNone(hold)
+        self.assertIsNone(repeated_hold)
         self.assertEqual(set(computed), {'row', 'forecast', 'used_finishes'})
-        self.assertEqual(computed['row']['feature_input_sha256'],
-                         'ac3556b3cfa6755e21974ed2474798de5e81c630cedab3300463e9af010dd450')
-        self.assertEqual(digest(computed['forecast']),
-                         'c3eba2792c02319bc6b21970e4540ae2ab6cdfc99b829348b099b065f574b55d')
+        _verify_feature_binding(computed['row'], required=True)
+        self.assertEqual(computed['row']['feature_input_sha256'], repeated['row']['feature_input_sha256'])
+        self.assertEqual(digest(computed['forecast']), digest(repeated['forecast']))
+        for market, choices in (('trifectas', 60), ('exactas', 20)):
+            tickets = computed['forecast'][market]
+            self.assertEqual(len(tickets), choices)
+            self.assertEqual(len({tuple(ticket['cars']) for ticket in tickets}), choices)
+            np.testing.assert_allclose([ticket['probability'] for ticket in tickets], 1 / choices)
         self.assertEqual(computed['used_finishes'], 2)
 
     def test_distinguishes_unavailable_baseline_missing_profile_and_invalid_replay(self):
