@@ -263,6 +263,23 @@ def _check_archive_commit(repo, head):
         need(status==0,'INDEX_COMMIT_OUTSIDE_OFFICIAL_ARCHIVE')
 
 
+def prefetch_original_sources(store, race_ids):
+    """Warm the listed pre-race artifacts at the archive pin before verification."""
+    folder = f'{ROOT}/{store.day}'
+    paths = set()
+    for race_id in race_ids:
+        original = store.index['originals'].get(race_id)
+        if original is not None:
+            paths.add(f"{folder}/{original['evidence_sha256']}.sealed.json")
+            paths.update(archive._refs(race_id))
+            paths.update(archive._form_refs(race_id))
+    try:
+        return archive.prefetch_pinned_blobs(store.repo, store.head, paths,
+                                             (folder, f'{archive.ROOT}/{store.day}'))
+    except archive.GitCipherArchiveError:
+        return 'BOUNDED_LAZY_READ_FALLBACK'
+
+
 class RecordStore:
     """Select bounded encrypted records without scanning all historical bytes."""
     def __init__(self, repo, day, *, synthetic_local=False, partial_read=False,

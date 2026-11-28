@@ -418,7 +418,8 @@ class FutureSettlementTests(unittest.TestCase):
         registry_meta = dict(cipher_sha256='a'*64, evidence_sha256='b'*64)
         def store(head, race_ids, original_ids, *, complete=True):
             return SimpleNamespace(day=DAY, head=head,
-                index=dict(registry=registry_meta, originals={rid: {'source': rid} for rid in original_ids}),
+                index=dict(registry=registry_meta, originals={rid: {'source': rid,
+                    'evidence_sha256': sha256(rid.encode()).hexdigest()} for rid in original_ids}),
                 read=lambda *_: dict(event_day=DAY, registered_race_ids=race_ids,
                                      day_inventory_complete=complete, missing_venues=[] if complete else ['98']))
         old = store(settle.PARENT, RACES, RACES[:1])
@@ -459,11 +460,21 @@ class FutureSettlementTests(unittest.TestCase):
             self.assertEqual(original_meta, current.index['originals'].get(rid) if rid in RACES[:2] else None)
             return dict(race_id=rid, day=DAY, result_status='VERIFIED_NORMAL', top3=[1,2,3])
 
-        def prefetch_results(repo, head, paths, prefixes):
+        def prefetch(repo, head, paths, prefixes):
             folder = f'{settle.records.ROOT}/{DAY}'
-            self.assertEqual((repo, head, prefixes), (current.repo, current.head, (folder,)))
-            self.assertEqual(paths, {f"{folder}/{'b'*64}.sealed.json", f"{folder}/{'c'*64}.sealed.json"})
-            events.append(('prefetch', current.head))
+            self.assertEqual((repo, head), (current.repo, current.head))
+            if prefixes == (folder,):
+                self.assertEqual(paths, {f"{folder}/{'b'*64}.sealed.json", f"{folder}/{'c'*64}.sealed.json"})
+                events.append(('prefetch-results', current.head))
+            else:
+                self.assertEqual(prefixes, (folder, f'{settle.archive.ROOT}/{DAY}'))
+                expected = {f"{folder}/{meta['evidence_sha256']}.sealed.json"
+                            for meta in current.index['originals'].values()}
+                for rid in RACES:
+                    expected.update(settle.archive._refs(rid))
+                    expected.update(settle.archive._form_refs(rid))
+                self.assertEqual(paths, expected)
+                events.append(('prefetch-inputs', current.head))
             raise settle.archive.GitCipherArchiveError('PREFETCH_FIXTURE_FAILURE')
         with TemporaryDirectory() as tmp:
             directory = Path(tmp)
@@ -476,7 +487,7 @@ class FutureSettlementTests(unittest.TestCase):
                 patch.object(settle.records, 'RecordStore', side_effect=lambda _, __, *, index_commit:
                              {old.head: old, later.head: later}[index_commit]),
                 patch.object(settle.archive, 'read_blob_bytes', return_value=b'later'),
-                patch.object(settle.archive, 'prefetch_pinned_blobs', side_effect=prefetch_results),
+                patch.object(settle.archive, 'prefetch_pinned_blobs', side_effect=prefetch),
                 patch.object(settle, '_forecast_from_original', side_effect=forecast_replay),
                 patch.object(settle, '_result_row', side_effect=result_replay),
             ):
@@ -490,14 +501,19 @@ class FutureSettlementTests(unittest.TestCase):
                 audit = SimpleNamespace(add=lambda row, _: seen.append(row),
                                         report=lambda: {'audited_races': len(seen)})
                 report = settle._score_archived_day(None, current, b'', None, None, None, lambda: None, legacy,
-                                                   feature_audit=audit, personal_study=personal)
+                    feature_audit=audit, personal_study=personal,
+                    progress=lambda stage: events.append(('stage', stage)))
                 self.assertEqual(adds, [legacy_rid])
                 additional[legacy_slot] = additional[later_slot]
                 with self.assertRaisesRegex(ValueError, 'DUPLICATE_FIRST_SLOT'):
                     settle._score_archived_day(None, current, b'', None, None, None, lambda: None, legacy)
-        self.assertEqual(events[:2], [('forecast', legacy_rid, old.head), ('forecast', later_rid, later.head)])
-        self.assertEqual(events[2:], [('prefetch', current.head),
-                                     *(('result', rid, current.head) for rid in [*RACES, added_rid])])
+        self.assertEqual(events, [
+            ('stage', 'OFFICIAL_INPUT_PREFETCH_STARTED'), ('prefetch-inputs', current.head),
+            ('stage', 'OFFICIAL_INPUT_PREFETCH_BOUNDED_LAZY_READ_FALLBACK'),
+            ('forecast', legacy_rid, old.head), ('forecast', later_rid, later.head), ('stage', 'DT_REPLAY_FINISHED'),
+            ('prefetch-results', current.head), *(('result', rid, current.head) for rid in [*RACES, added_rid]),
+            ('stage', 'RESULT_REPLAY_FINISHED'),
+        ])
         self.assertEqual(set(seen), {legacy_rid, later_rid})
         self.assertEqual(report['feature_audit'], {'audited_races': 2, 'unaudited_replayed_races': 0})
         self.assertEqual(report['registered_races'], 4)

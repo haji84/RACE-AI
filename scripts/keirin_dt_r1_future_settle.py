@@ -13,6 +13,7 @@ import argparse
 import json
 import os
 from pathlib import Path
+import sys
 from tempfile import TemporaryDirectory
 
 from race_ai import keirin_form_fall_blind_pdca as pdca
@@ -524,7 +525,7 @@ def _prepare_codex_pair(*, work, current, private, repo, client, slots, dt_selec
 
 
 def _score_archived_day(work, current, private, trained, venues, client, now, legacy, *, back_trial=None,
-                        feature_audit=None, personal_study=None, codex_repo=None):
+                        feature_audit=None, personal_study=None, codex_repo=None, progress=None):
     day = current.day
     with _stage('REGISTRY_REPLAY_UNVERIFIED'):
         registry = _load_registry(current, private)
@@ -560,6 +561,11 @@ def _score_archived_day(work, current, private, trained, venues, client, now, le
                 original_registry = _load_registry(source, private, manifest)
                 need(set(original_registry['registered_race_ids']) <= race_set, 'REGISTRY_LINEAGE')
                 sources[run] = source
+    if progress is not None:
+        progress('OFFICIAL_INPUT_PREFETCH_STARTED')
+    prefetch = records.prefetch_original_sources(current, races)
+    if progress is not None:
+        progress('OFFICIAL_INPUT_PREFETCH_' + prefetch)
     entries, pinned_originals = [], {}
     cache, history_sources, history_controls, back_pairs, back_holds = {}, {}, {}, {}, {}
     personal_pairs, personal_holds = {}, {}
@@ -573,6 +579,8 @@ def _score_archived_day(work, current, private, trained, venues, client, now, le
             codex_report = lambda *_: dict(state=state, formal_three_way_races=0)
         except Exception:
             codex_report = lambda *_: dict(state='HOLD_CODEX_PAIR_REPLAY_UNVERIFIED', formal_three_way_races=0)
+        if progress is not None:
+            progress('CODEX_REPLAY_FINISHED')
     feature_rows = {} if feature_audit is not None else None
     personal_failed = False
     for slot, rid in slots.items():
@@ -615,12 +623,19 @@ def _score_archived_day(work, current, private, trained, venues, client, now, le
                                        personal_add=add_personal if personal_study is not None else None,
                                        personal_pairs=personal_pairs, personal_holds=personal_holds)
 
+    def prepare_result_reads():
+        if progress is not None:
+            progress('DT_REPLAY_FINISHED')
+        _prefetch_result_ciphers(current, races)
+
     result = _score_registered(races, day, entries, [slot for slot in slots if slot in selected], {},
         forecast_loader, lambda rid: _result_row(current, rid, private, pinned_originals.get(rid), now()),
         history_controls=history_controls, back_pairs=back_pairs, back_holds=back_holds,
         personal_pairs=personal_pairs, personal_holds=personal_holds,
         personal_report=report_personal if personal_study is not None else None, codex_report=codex_report,
-        prefetch_results=partial(_prefetch_result_ciphers, current, races))
+        prefetch_results=prepare_result_reads)
+    if progress is not None:
+        progress('RESULT_REPLAY_FINISHED')
     if feature_audit is not None:
         for row, original in feature_rows.values():
             try:
@@ -668,7 +683,8 @@ def _lazy_back_trial(contexts, repo, root, private):
 
 
 def run_settlement(*, repo, private_root, owner_public_pem, owner_private_pem, day=DAY,
-                   archived_day=False, compare_personal_history=False, compare_codex=False, now=continuation.now_utc):
+                   archived_day=False, compare_personal_history=False, compare_codex=False,
+                   now=continuation.now_utc, progress=None):
     with _stage('PROTECTED_RUNTIME_UNVERIFIED'):
         repo, root, day, _, commit = continuation._runtime(repo=repo, private_root=private_root,
             owner_public_pem=owner_public_pem, owner_private_pem=owner_private_pem, day=day,
@@ -691,6 +707,8 @@ def run_settlement(*, repo, private_root, owner_public_pem, owner_private_pem, d
         with _stage('REGISTRY_REPLAY_UNVERIFIED'):
             current = records.RecordStore(work, day, index_commit=tip)
         if archived_day:
+            if progress is not None:
+                progress('ARCHIVE_LOADED')
             personal = None
             if compare_personal_history:
                 from research.chatgpt_dt_r1.official_personal_study import OfficialPersonalStudy
@@ -699,7 +717,7 @@ def run_settlement(*, repo, private_root, owner_public_pem, owner_private_pem, d
                                          client, now, legacy[:2] if legacy else None,
                                          back_trial=_lazy_back_trial(contexts, repo, root, owner_private_pem),
                                          feature_audit=OfficialFeatureAudit(trained), personal_study=personal,
-                                         codex_repo=repo if compare_codex else None)
+                                         codex_repo=repo if compare_codex else None, progress=progress)
             scope_fields = dict(schema=DAY_SCHEMA, scope=DAY_SCOPE)
         else:
             verified, origin, retention = legacy
@@ -740,11 +758,16 @@ def main(argv=None):
     parser.add_argument('--compare-codex', action='store_true', help='Score both independently retained first originals')
     args = parser.parse_args(argv)
     private = os.environ.pop('RACE_AI_KEIRIN_PRIVATE_RSA_PEM', '').encode()
+
+    def report_stage(stage):
+        print(f'DT_R1_SETTLEMENT_STAGE {stage}', file=sys.stderr, flush=True)
+
     try:
         report = run_settlement(repo=args.repo, private_root=args.private_root,
             owner_public_pem=args.owner_public_pem, owner_private_pem=private,
             day=args.day if args.day is not None else DAY, archived_day=args.day is not None,
-            compare_personal_history=args.compare_personal_history, compare_codex=args.compare_codex)
+            compare_personal_history=args.compare_personal_history, compare_codex=args.compare_codex,
+            progress=report_stage)
     except Exception as error:
         reason = (error.reason if isinstance(error, SettlementError)
                   else 'RUNTIME_OR_ORIGINAL_AUTHENTICATION_FAILED')
