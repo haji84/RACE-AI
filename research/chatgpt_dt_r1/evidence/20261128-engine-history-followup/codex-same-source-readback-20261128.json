@@ -1,0 +1,29 @@
+{
+  "day_jst": "2026-11-28",
+  "formal_three_way_races": 0,
+  "independent_server_timing_verified": false,
+  "locally_read_back_before_t15": 8,
+  "manifest_sha256": "9d139c636d8ee43497a63bdea607a1d93cfcdd2b2a02f2e363b2a950fe1bed27",
+  "model": {
+    "model_file_sha256": "ba14eb787dca7d0a6b94af4e322f5a1b85ea9e5e90d4fae84d23ed7bdca87386",
+    "model_id": "keirin-conditional-order-trees-v1",
+    "model_sha256": "17d8fddfbe4f6ba25871c9e869175e5ca2ca5e7475e96ab5f5b6a19e1bf0d7c6",
+    "venue_file_sha256": null
+  },
+  "observed_at": "2026-11-28T12:21:55.195886+00:00",
+  "owner_decryption_verified": false,
+  "producer_cipher_archive_sha256": "7a848903a99a3884928ad1452ced4b5a8d29433ed648bd306074aca60e379d79",
+  "producer_cipher_artifact_id": 15263067459,
+  "producer_code_commit": "739d6a894f519a9280332aade1e0cbb76cdd3095",
+  "producer_run_id": "46143663895",
+  "provider_source_requests": 0,
+  "reader_code_commit": "739d6a894f519a9280332aade1e0cbb76cdd3095",
+  "reader_run_id": "46144051204",
+  "registered_races": 78,
+  "schema": "KEIRIN_CODEX_READBACK_AGGREGATE_V1",
+  "source_archive_commit": "d030ed9e381cea00d3fe3f19bd4babb5bb38361e",
+  "source_receipt_schema": "DT_R1_FUTURE_SHADOW_READBACK_V1",
+  "source_receipt_sha256": "07b0179a92cf4b04a7fce664647cdd4f25781583c25f281c7d43c43064baa369",
+  "state": "CIPHERTEXT_VERIFIED_PENDING_SERVER_PROOF",
+  "verified_cipher_files": 8
+}
