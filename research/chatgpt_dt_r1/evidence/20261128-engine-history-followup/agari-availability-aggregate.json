@@ -1,0 +1,468 @@
+{
+  "code_base": "06e081218b6bd50ce5c42d622085c92b9bf4f984",
+  "contract": {
+    "accepted_timing": "positive finite normalized archival agari field only",
+    "allowed_feature_changes": [
+      "half_lap_history",
+      "agari_interactions",
+      "existing_deterministic_agari_descendants"
+    ],
+    "archived_identity_scope": "UNRESOLVED_SOURCE_COMPOSITE",
+    "arms": {
+      "place_and_half_lap": "same prior roster and facts plus archived half_lap_seconds for numeric nonincident finishes",
+      "place_only": "history_window_study.history_projection"
+    },
+    "availability_authenticated": false,
+    "coverage": [
+      "target_races_with_timing",
+      "target_riders_with_timing",
+      "prior_timing_exposures",
+      "target_races_with_changed_features",
+      "target_riders_with_changed_features"
+    ],
+    "current_geometry_shared_assumption": true,
+    "evaluation_days": [
+      "2026-07-01",
+      "2026-07-31"
+    ],
+    "excluded": [
+      "full_last_lap_seconds",
+      "historical_sb_mark",
+      "weather",
+      "current_race_outcomes"
+    ],
+    "expected_common_scorable": 2393,
+    "fitting": false,
+    "independent_official_registration_verified": false,
+    "independent_validation": false,
+    "metrics": [
+      "tri1",
+      "ex1",
+      "tri2",
+      "tri4",
+      "ex2",
+      "tri_log_loss",
+      "ex_log_loss",
+      "tri_brier",
+      "ex_brier"
+    ],
+    "paired_bootstrap": {
+      "samples": 2000,
+      "seed": 462,
+      "unit": "JST day"
+    },
+    "parameter_selection": false,
+    "prior_jst_days": 7,
+    "prior_target_day_excluded": true,
+    "production_promoted": false,
+    "schema": "DT_R1_AGARI_AVAILABILITY_CONTRACT_V1",
+    "scope": "RETROSPECTIVE_DEVELOPMENT_ONLY",
+    "subgroups": [
+      "all",
+      "7_cars",
+      "9_cars"
+    ],
+    "target": "same blinded card, no weather",
+    "threads": 1,
+    "timeout_seconds": 360
+  },
+  "contract_sha256": "f4b2d32de85b55ef4e7e728250480581f55f40797d247883ab74d2066c682da6",
+  "frozen": {
+    "geometry_sha256": "a7d832a2661c6f05167e7a412a55e51183c21e746447f91dac44e14eeb4dfe19",
+    "id": "chatgpt-dt-r1",
+    "july_overlaps_frozen_temperature_calibration": true,
+    "model_file_sha256": "dab8c7f014c41ac18e4fed1ae28ac9b36e994611d1fcf5992f8b06e31a4c618b",
+    "model_sha256": "5e022092a35c0258954090c6f3d0f8fa14f03f22511b28d6aa9183f5a38c381c"
+  },
+  "inputs": {
+    "commit": "2a1260fb0940ad11160b56a36f9c24cc4fb2f6d2",
+    "dataset_sha256": "9bc3fbda8339b32ba178f5c9c39d6623216ad5c2d5519774870ac5491ba0a847",
+    "files": {
+      "keirin.db": "1bdad22b9744c9c5563f7bb1af31875170a3e6b7f4b0dd73fba8f98d645d8fc4",
+      "keirin_2026q4.db": "d915560877493816b90df8bcd5e7bdef45557f57100b4cd40a3d017cd959334d"
+    }
+  },
+  "july": {
+    "cards": 2416,
+    "common_cohort_sha256": "7a3b4d924f5a449ba0b576f21fe20322aef36dc259dd6723a52c24ec8caceb11",
+    "common_scorable": 2393,
+    "coverage": {
+      "7_cars": {
+        "prior_timing_exposures": 20760,
+        "target_races_with_changed_features": 2077,
+        "target_races_with_timing": 2077,
+        "target_rider_rows": 14735,
+        "target_riders_with_changed_features": 11444,
+        "target_riders_with_timing": 11444
+      },
+      "9_cars": {
+        "prior_timing_exposures": 2445,
+        "target_races_with_changed_features": 162,
+        "target_races_with_timing": 162,
+        "target_rider_rows": 1476,
+        "target_riders_with_changed_features": 1168,
+        "target_riders_with_timing": 1168
+      },
+      "all": {
+        "prior_timing_exposures": 24560,
+        "target_races_with_changed_features": 2363,
+        "target_races_with_timing": 2363,
+        "target_rider_rows": 16961,
+        "target_riders_with_changed_features": 13318,
+        "target_riders_with_timing": 13318
+      }
+    },
+    "excluded_without_unique_trifecta": 23,
+    "metrics": {
+      "7_cars": {
+        "place_and_half_lap": {
+          "hits": {
+            "ex1": 466,
+            "ex2": 777,
+            "tri1": 225,
+            "tri2": 409,
+            "tri4": 589
+          },
+          "n": 2105,
+          "proper": {
+            "ex_brier": 0.8827706599170196,
+            "ex_log_loss": 2.7956678862678834,
+            "tri_brier": 0.9599029711734155,
+            "tri_log_loss": 4.197665275950441
+          },
+          "rates": {
+            "ex1": 0.22137767220902613,
+            "ex2": 0.3691211401425178,
+            "tri1": 0.10688836104513064,
+            "tri2": 0.19429928741092636,
+            "tri4": 0.27980997624703086
+          }
+        },
+        "place_only": {
+          "hits": {
+            "ex1": 465,
+            "ex2": 787,
+            "tri1": 230,
+            "tri2": 406,
+            "tri4": 585
+          },
+          "n": 2105,
+          "proper": {
+            "ex_brier": 0.8821280494190924,
+            "ex_log_loss": 2.795054242507987,
+            "tri_brier": 0.9602346271467737,
+            "tri_log_loss": 4.200702444575012
+          },
+          "rates": {
+            "ex1": 0.2209026128266033,
+            "ex2": 0.37387173396674583,
+            "tri1": 0.10926365795724466,
+            "tri2": 0.19287410926365794,
+            "tri4": 0.27790973871733965
+          }
+        }
+      },
+      "9_cars": {
+        "place_and_half_lap": {
+          "hits": {
+            "ex1": 25,
+            "ex2": 46,
+            "tri1": 9,
+            "tri2": 16,
+            "tri4": 28
+          },
+          "n": 164,
+          "proper": {
+            "ex_brier": 0.9409764484849242,
+            "ex_log_loss": 3.365112841881859,
+            "tri_brier": 0.985729349210575,
+            "tri_log_loss": 5.0699781158031305
+          },
+          "rates": {
+            "ex1": 0.1524390243902439,
+            "ex2": 0.2804878048780488,
+            "tri1": 0.054878048780487805,
+            "tri2": 0.0975609756097561,
+            "tri4": 0.17073170731707318
+          }
+        },
+        "place_only": {
+          "hits": {
+            "ex1": 25,
+            "ex2": 46,
+            "tri1": 10,
+            "tri2": 14,
+            "tri4": 29
+          },
+          "n": 164,
+          "proper": {
+            "ex_brier": 0.943600026813194,
+            "ex_log_loss": 3.3708353842276173,
+            "tri_brier": 0.9868469435750225,
+            "tri_log_loss": 5.080662745933209
+          },
+          "rates": {
+            "ex1": 0.1524390243902439,
+            "ex2": 0.2804878048780488,
+            "tri1": 0.06097560975609756,
+            "tri2": 0.08536585365853659,
+            "tri4": 0.17682926829268292
+          }
+        }
+      },
+      "all": {
+        "place_and_half_lap": {
+          "hits": {
+            "ex1": 515,
+            "ex2": 867,
+            "tri1": 245,
+            "tri2": 444,
+            "tri4": 650
+          },
+          "n": 2393,
+          "proper": {
+            "ex_brier": 0.8878866427539724,
+            "ex_log_loss": 2.833118404480496,
+            "tri_brier": 0.9622066213112386,
+            "tri_log_loss": 4.246140402713977
+          },
+          "rates": {
+            "ex1": 0.21521103217718346,
+            "ex2": 0.3623067279565399,
+            "tri1": 0.10238194734642708,
+            "tri2": 0.18554116172168825,
+            "tri4": 0.27162557459256165
+          }
+        },
+        "place_only": {
+          "hits": {
+            "ex1": 516,
+            "ex2": 879,
+            "tri1": 251,
+            "tri2": 440,
+            "tri4": 647
+          },
+          "n": 2393,
+          "proper": {
+            "ex_brier": 0.887306763507852,
+            "ex_log_loss": 2.831119269651476,
+            "tri_brier": 0.9624777187124032,
+            "tri_log_loss": 4.247883471725263
+          },
+          "rates": {
+            "ex1": 0.21562891767655662,
+            "ex2": 0.367321353949018,
+            "tri1": 0.10488926034266612,
+            "tri2": 0.18386961972419558,
+            "tri4": 0.2703719180944421
+          }
+        }
+      }
+    },
+    "paired_deltas": {
+      "7_cars": {
+        "ex1": {
+          "ci95": [
+            -0.006439070644354819,
+            0.008188923323351208
+          ],
+          "delta": 0.00047505938242280285
+        },
+        "ex2": {
+          "ci95": [
+            -0.011724618102165102,
+            0.0022689911776337533
+          ],
+          "delta": -0.004750593824228029
+        },
+        "ex_brier": {
+          "ci95": [
+            -0.0004897571416741641,
+            0.001667064647523961
+          ],
+          "delta": 0.0006426104979272845
+        },
+        "ex_log_loss": {
+          "ci95": [
+            -0.004839106467905542,
+            0.006270574342630147
+          ],
+          "delta": 0.0006136437598966559
+        },
+        "tri1": {
+          "ci95": [
+            -0.0065071604267584165,
+            0.0014752818771876911
+          ],
+          "delta": -0.0023752969121140144
+        },
+        "tri2": {
+          "ci95": [
+            -0.005629180938369233,
+            0.00805350907626585
+          ],
+          "delta": 0.0014251781472684087
+        },
+        "tri4": {
+          "ci95": [
+            -0.004610739272142003,
+            0.007922362924901975
+          ],
+          "delta": 0.0019002375296912114
+        },
+        "tri_brier": {
+          "ci95": [
+            -0.0008141870434313947,
+            9.334717708626992e-05
+          ],
+          "delta": -0.00033165597335826707
+        },
+        "tri_log_loss": {
+          "ci95": [
+            -0.008916918258226726,
+            0.0030223288008868116
+          ],
+          "delta": -0.003037168624572003
+        }
+      },
+      "9_cars": {
+        "ex1": {
+          "ci95": [
+            -0.0189873417721519,
+            0.01744186046511628
+          ],
+          "delta": 0.0
+        },
+        "ex2": {
+          "ci95": [
+            -0.01744186046511628,
+            0.019230769230769232
+          ],
+          "delta": 0.0
+        },
+        "ex_brier": {
+          "ci95": [
+            -0.004694458656436588,
+            -0.0006231086935801936
+          ],
+          "delta": -0.002623578328269679
+        },
+        "ex_log_loss": {
+          "ci95": [
+            -0.026424685043708537,
+            0.01589251202749609
+          ],
+          "delta": -0.005722542345758357
+        },
+        "tri1": {
+          "ci95": [
+            -0.020137629239978232,
+            0.0
+          ],
+          "delta": -0.006097560975609756
+        },
+        "tri2": {
+          "ci95": [
+            0.0,
+            0.029766360136869095
+          ],
+          "delta": 0.012195121951219513
+        },
+        "tri4": {
+          "ci95": [
+            -0.02924406604747162,
+            0.012345679012345678
+          ],
+          "delta": -0.006097560975609756
+        },
+        "tri_brier": {
+          "ci95": [
+            -0.002061450772135918,
+            -0.00024051207384310073
+          ],
+          "delta": -0.0011175943644474663
+        },
+        "tri_log_loss": {
+          "ci95": [
+            -0.03279391797781277,
+            0.013403039259650341
+          ],
+          "delta": -0.010684630130078752
+        }
+      },
+      "all": {
+        "ex1": {
+          "ci95": [
+            -0.006717539440540899,
+            0.006523158904792509
+          ],
+          "delta": -0.0004178854993731718
+        },
+        "ex2": {
+          "ci95": [
+            -0.012272534913245875,
+            0.0016579120044204988
+          ],
+          "delta": -0.005014625992478061
+        },
+        "ex_brier": {
+          "ci95": [
+            -0.0004338926243881645,
+            0.0015132029813615512
+          ],
+          "delta": 0.0005798792461205269
+        },
+        "ex_log_loss": {
+          "ci95": [
+            -0.003570428623369863,
+            0.007376764151200551
+          ],
+          "delta": 0.001999134829019503
+        },
+        "tri1": {
+          "ci95": [
+            -0.006548081334007175,
+            0.0012702450794034794
+          ],
+          "delta": -0.0025073129962390303
+        },
+        "tri2": {
+          "ci95": [
+            -0.004447697495393535,
+            0.007353180011718848
+          ],
+          "delta": 0.001671541997492687
+        },
+        "tri4": {
+          "ci95": [
+            -0.004173666270506515,
+            0.006541694033751992
+          ],
+          "delta": 0.0012536564981195152
+        },
+        "tri_brier": {
+          "ci95": [
+            -0.0006378373486537857,
+            0.00010173025149309164
+          ],
+          "delta": -0.0002710974011646854
+        },
+        "tri_log_loss": {
+          "ci95": [
+            -0.007793514594441725,
+            0.00419316895037927
+          ],
+          "delta": -0.001743069011285659
+        }
+      }
+    },
+    "prior_place_only_control_reproduced": true
+  },
+  "no_promotions": true,
+  "prior_control_aggregate_sha256": "dd3221ae100d7f1fae9442541f2eef988bb140fc1d222fe503703e9c42d77297",
+  "runtime_seconds": 32.365,
+  "schema": "DT_R1_AGARI_AVAILABILITY_STUDY_V1",
+  "started_at": "2026-11-28T12:57:09.530352+00:00",
+  "stop_reason": "FIXED_DEVELOPMENT_COMPARISON_COMPLETED",
+  "study_sha256": "94e83da069f789fe03d3914b04185082a9c00bb06c1f3a8fb00190b9b62a6266"
+}
