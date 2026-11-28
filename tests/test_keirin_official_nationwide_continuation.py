@@ -194,7 +194,7 @@ class RunnerTests(unittest.TestCase):
         for label, contiguous, expected in (
             ('四分戦', True, 'LINE_LAYOUT_GROUP_COUNT_UNSUPPORTED'),
             ('未知表示', False, 'LINE_LABEL_UNRECOGNIZED'),
-            ('三分戦', False, 'LINE_LABEL_GROUP_COUNT_MISMATCH'),
+            ('二分戦', False, 'LINE_LABEL_GROUP_COUNT_MISMATCH'),
         ):
             with self.subTest(expected=expected):
                 data, script = line_fixture()
