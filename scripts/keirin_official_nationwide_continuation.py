@@ -725,7 +725,7 @@ def _recover_saved_results(repo,private,context,days,commit,publish,documents,re
                 _hold(context,stage,'SAVED_RESULT_REPLAY_OR_PUBLICATION_HELD',rid)
 
 
-def _pending_originals(repo,private,clock,context,max_races,days=None):
+def _pending_originals(repo,private,clock,context,max_races,days=None,slot_hashes=None):
     from race_ai.keirin_github_evidence_client import GitHubEvidenceClient
     now=form._aware(clock());selected=_known_days(repo,clock,context,days)
     context.client=context.client or GitHubEvidenceClient()
@@ -739,6 +739,7 @@ def _pending_originals(repo,private,clock,context,max_races,days=None):
             item[1]['cutoff_at'],item[0]))
         for rid,meta in candidates:
             if len(out)>=max_races or attempts>=32:return out,held
+            if slot_hashes is not None and model.digest(dict(day_jst=day,race_id=rid)) not in slot_hashes:continue
             if form._aware(meta['cutoff_at'])>=now:continue
             previous=store.index['results'].get(rid,[])
             if previous and previous[-1]['monetary_complete']:continue
@@ -754,7 +755,7 @@ def _pending_originals(repo,private,clock,context,max_races,days=None):
 
 
 def settle_tick(*,repo,owner_private_pem,private_root,clock=now_utc,max_races=8,
-                context=None,days=None,publish=True,source_commit=None):
+                context=None,days=None,publish=True,source_commit=None,slot_hashes=None):
     """One bounded SP poll. No source lease is opened when nothing is due."""
     need(type(max_races) is int and 1<=max_races<=8,'RESULT_RACE_BOUND')
     public=pipeline.check_owner_private_key(owner_private_pem)
@@ -770,9 +771,10 @@ def settle_tick(*,repo,owner_private_pem,private_root,clock=now_utc,max_races=8,
     documents=[];before=context.session.count if context.session else 0
     try:
         known=_known_days(repo,clock,context,days)
-        _recover_saved_originals(repo,owner_private_pem,context,known,commit,publish,report)
-        _recover_saved_results(repo,owner_private_pem,context,known,commit,publish,documents,report)
-        pending,held=_pending_originals(repo,owner_private_pem,clock,context,max_races,known)
+        if slot_hashes is None:
+            _recover_saved_originals(repo,owner_private_pem,context,known,commit,publish,report)
+            _recover_saved_results(repo,owner_private_pem,context,known,commit,publish,documents,report)
+        pending,held=_pending_originals(repo,owner_private_pem,clock,context,max_races,known,slot_hashes=slot_hashes)
         report['origin_held']+=held
         if not pending:
             if report['publication_acks'] or report['original_publication_acks']:

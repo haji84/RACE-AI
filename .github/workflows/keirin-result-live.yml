@@ -178,6 +178,10 @@ on:
         description: Run November 23–26 in the fixed DT-R1 holdout
         default: false
         required: false
+      dt_r1_observe_slots:
+        type: string
+        description: Optional comma-separated saved DT-R1 slot hashes for manual official result observation
+        required: false
   schedule:
     # Start/recover the bounded observer during 08:00-23:59 JST.
     # GitHub may delay starts; this is not a push or wall-clock latency SLA.
@@ -326,6 +330,7 @@ jobs:
           DT_R1_COMPARE_BACK: ${{ inputs.dt_r1_compare_back || false }}
           DT_R1_COMPARE_PERSONAL: ${{ inputs.dt_r1_compare_personal || false }}
           DT_R1_EARLIER_HOLDOUT: ${{ inputs.dt_r1_earlier_holdout || false }}
+          DT_R1_OBSERVE_SLOTS: ${{ inputs.dt_r1_observe_slots }}
         run: |
           set -euo pipefail
           root="$RUNNER_TEMP/keirin-result-live-$GITHUB_RUN_ID"
@@ -455,13 +460,18 @@ jobs:
             exit 0
           fi
           status=0
+          observation_scope=()
+          if [[ -n "$DT_R1_OBSERVE_SLOTS" ]]; then
+            [[ "$RESULT_MODE" = observe && -n "$DOSSIER_DAY" ]]
+            observation_scope+=(--observation-day "$DOSSIER_DAY" --observation-slots "$DT_R1_OBSERVE_SLOTS")
+          fi
           python -m scripts.keirin_result_watch \
             --mode "$RESULT_MODE" \
             --repo "$GITHUB_WORKSPACE" \
             --private-root "$root/private" \
             --owner-public-pem "$GITHUB_WORKSPACE/docs/evidence/2026-11-18/keirin_owner_existing_rsa_public_spki3072.pem" \
             --report "$root/safe/summary.json" \
-            --interval-seconds 60 --duration-seconds 540 --max-ticks 10 || status=$?
+            --interval-seconds 60 --duration-seconds 540 --max-ticks 10 "${observation_scope[@]}" || status=$?
           if [ -f "$root/safe/summary.json" ]; then
             cat "$root/safe/summary.json" >> "$GITHUB_STEP_SUMMARY"
           fi

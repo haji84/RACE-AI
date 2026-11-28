@@ -771,6 +771,22 @@ class RunnerTests(unittest.TestCase):
         self.assertEqual([r['original']['race_id'] for r in first],ids[:2])
         self.assertEqual([r['original']['race_id'] for r in second],ids[2:])
 
+    def test_pending_slot_filter_still_requires_a_saved_due_official_original(self):
+        api = self.api()
+        day = '2030-01-15'
+        now = datetime.fromisoformat(day + 'T15:00:00+09:00')
+        store = FakeStore('/synthetic', day)
+        due, future, other = ('2030011598' + f'{n:02d}' for n in range(1, 4))
+        store.index['originals'] = {rid: dict(race_id=rid, cutoff_at=day + time)
+            for rid, time in ((due, 'T14:00:00+09:00'), (future, 'T16:00:00+09:00'), (other, 'T13:00:00+09:00'))}
+        store.read = lambda meta, key: dict(race_id=meta['race_id'])
+        slots = {api.model.digest(dict(day_jst=day, race_id=rid)) for rid in (due, future)}
+        with (patch.object(api.records, 'RecordStore', return_value=store),
+              patch.object(api.records, 'admit_original', side_effect=lambda _, payload, __, **kw: (payload, {}))):
+            rows, held = api._pending_originals('/synthetic', self.private, lambda: now, api.SettlementContext(),
+                                                8, days=[day], slot_hashes=slots)
+        self.assertEqual((held, [row['original']['race_id'] for row in rows]), (0, [due]))
+
     def test_archive_success_publication_failure_recovers_on_next_tick_without_result_fetch(self):
         api=self.api();day='2030-01-15';rid='203001159801';clock=lambda:datetime.fromisoformat(day+'T15:00:00+09:00')
         store=FakeStore('/synthetic',day);meta=dict(race_id=rid,cutoff_at=day+'T12:00:00+09:00',evidence_sha256='a'*64)

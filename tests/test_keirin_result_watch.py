@@ -159,6 +159,30 @@ class ResultWatchTests(unittest.TestCase):
         self.assertEqual(out['state'],'HOLD_OFFICIAL_SP_RESULT_GATE_OR_SOURCE_FAILED')
         self.settle.assert_not_called();self.http.assert_not_called()
 
+    def test_manual_saved_slots_use_the_official_guard_and_hide_slot_identity(self):
+        from scripts import keirin_official_nationwide_continuation as continuation
+        slot = 'd' * 64
+        with self.assertRaisesRegex(watch.ResultWatchError, 'SLOT_OBSERVATION_SCOPE'):
+            self.run_case(max_ticks=1, observation_day=DAY, observation_slots=slot)
+        with patch.dict('os.environ', {
+            'GITHUB_ACTIONS': 'true', 'GITHUB_REPOSITORY_ID': '1416489937',
+            'GITHUB_WORKFLOW_REF': continuation.WATCH_WORKFLOW, 'GITHUB_JOB': 'observe-results'}), \
+             patch.object(continuation, 'settle_tick', return_value=dict(
+                 state='OFFICIAL_SP_RESULT_POLL_COMPLETE', source_requests=1, provider_denied=False,
+                 source_unavailable=False, publication_acks=0, published_races=0, safe_diagnostics=[],
+                 safe_holds=[dict(code='HOLD', stage='RESULT', race_id=RACE)], updates=None)) as tick:
+            out = self.run_case(max_ticks=1, observation_day=DAY, observation_slots=slot)
+            with patch.dict('os.environ', {'GITHUB_EVENT_NAME': 'schedule'}), self.assertRaisesRegex(
+                    watch.ResultWatchError, 'SLOT_OBSERVATION_SCOPE'):
+                self.run_case(max_ticks=1, observation_day=DAY, observation_slots=slot)
+            self.assertEqual(tick.call_count, 1)
+        self.assertEqual(tick.call_args.kwargs['days'], (DAY,))
+        self.assertEqual(tick.call_args.kwargs['slot_hashes'], frozenset({slot}))
+        self.assertEqual(out['requested_slot_count'], 1)
+        self.assertNotIn(RACE, json.dumps(out))
+        self.assertNotIn(slot, json.dumps(out))
+        self.settle.assert_not_called();self.http.assert_not_called()
+
     def test_sp_saved_only_restores_original_and_result_packets_without_source_lease(self):
         from scripts import keirin_official_nationwide_continuation as continuation
         from race_ai import keirin_official_nationwide_records as records
