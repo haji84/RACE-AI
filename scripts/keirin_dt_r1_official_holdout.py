@@ -46,7 +46,7 @@ def main(argv=None):
                           'scope': 'RETROSPECTIVE_OFFICIAL_HOLDOUT', 'production_promoted': False}))
         return 2
     print(json.dumps(report, sort_keys=True, allow_nan=False))
-    return 0
+    return 0 if report['state'] == 'OFFICIAL_HOLDOUT_SCORED' else 2
 
 
 if __name__ == '__main__':
