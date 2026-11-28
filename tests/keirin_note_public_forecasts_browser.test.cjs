@@ -587,6 +587,8 @@ describe('KEIRIN anonymous forecast page', { skip: !chromium }, () => {
     assert.match(await dialog.innerText(), /1着確率\s+14\.0%/);
     assert.equal(await dialog.getByText('このレースの確定着順').count(), 0);
     checkedField = true;
+    // A stalled archive read cannot hide an independently confirmed finish.
+    await page.route(BASE + 'rider-history/latest.json', () => {});
     await page.clock.fastForward(61_000);
     await dialog.getByText('このレースの確定着順').waitFor();
     assert.match(await dialog.innerText(), /このレースの確定着順\s*3着/);

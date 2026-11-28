@@ -116,6 +116,8 @@ class PublicDailyRosterTests(unittest.TestCase):
                          [('partial', 1, 1), ('registered', 2, 0)])
 
     def test_refresh_fills_missing_result_roster_from_one_scoped_reference_meeting_read(self):
+        from research.chatgpt_dt_r1 import public_shortlists as dt
+
         url = 'https://keirin.kdreams.jp/hiroshima/racecard/62202611220200/'
         riders = [dict(number=n, registration=f'{n:06}', name=f'選手{n}',
                        region='広島', style='追', cohort=100) for n in range(1, 8)]
@@ -127,9 +129,15 @@ class PublicDailyRosterTests(unittest.TestCase):
             '<div class="header"><dl><dt>締切</dt><dd>09:00</dd></dl></div></li>' for i in range(2)) + '</ul>'
         store = Mock()
         store.head.return_value = 'a'*40
+        partial_dt = dt.project_day(DATE, model_sha256=dt.MODEL_SHA, input_commit='b'*40,
+            published_at='2026-11-23T10:03:00+09:00', races=[
+                dict(race_id=IDS[0], cutoff_at='2026-11-23T09:00:00+09:00',
+                     selected_at='2026-11-23T08:30:00+09:00', source_at='2026-11-23T08:00:00+09:00',
+                     starter_cars=list(range(1,8)), tickets=[[1,2,3]], reason='COVERAGE_REACHED')])
         store.read_previous.side_effect = lambda _, path: {
             f'forecasts/{DATE}.json': self.forecasts(cutoff=None),
             f'reference-starters/{DATE}.json': json.dumps(reference),
+            f'dt-r1/{DATE}.json': json.dumps(partial_dt),
         }.get(path)
         fetch = Mock(return_value=meeting.encode())
         with (TemporaryDirectory() as folder, redirect_stdout(io.StringIO()),
@@ -272,8 +280,7 @@ class PublicResultRefreshTests(unittest.TestCase):
                              dict(number=3, name='選手3', registration='014003', place=5))
             self.assertEqual([source['source_id'] for source in row['sources']], ['kdreams', 'netkeirin'])
 
-            # A previously matched payout can be repaired once from the same
-            # evidence path. Disagreeing lower ranks cannot modify that payout.
+            # Disagreeing lower ranks do not change the saved payout.
             result_path = state / 'results' / f'{DATE}.json'
             saved_payout = result_path.read_bytes()
             sidecar_path = state / 'results' / 'rider-finishes' / f'{DATE}.json'
@@ -285,14 +292,13 @@ class PublicResultRefreshTests(unittest.TestCase):
                   redirect_stdout(io.StringIO())):
                 clock.now.return_value = NOW
                 self.assertEqual(publisher.main(), 0)
-                self.assertEqual(publisher.main(), 0)
             self.assertEqual(fetch.call_count, 2)
             self.assertFalse(sidecar_path.exists())
             self.assertEqual(result_path.read_bytes(), saved_payout)
+            attempts = state / 'results' / 'rider-finish-repair.json'
+            self.assertEqual(json.loads(attempts.read_bytes()), {DATE:{IDS[0]:1}})
 
-            # When no attempt has taken place, a valid old pair adds only the
-            # new roster finish sidecar and leaves the settled payout intact.
-            (state / 'results' / 'rider-finish-repair.json').unlink()
+            # The next scheduled run can recover the completed field.
             with (patch('sys.argv', ['publisher', '--state-directory', directory]),
                   patch.object(publisher, 'datetime', wraps=datetime) as clock,
                   patch.object(capture, 'fetch_once', side_effect=[kd, net]) as fetch,
@@ -301,6 +307,7 @@ class PublicResultRefreshTests(unittest.TestCase):
                 self.assertEqual(publisher.main(), 0)
                 self.assertEqual(publisher.main(), 0)
             self.assertEqual(fetch.call_count, 2)
+            self.assertEqual(json.loads(attempts.read_bytes()), {DATE:{IDS[0]:2}})
             self.assertEqual(json.loads(sidecar_path.read_bytes()), sidecar)
             self.assertEqual(result_path.read_bytes(), saved_payout)
 

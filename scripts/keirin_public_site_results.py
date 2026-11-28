@@ -16,6 +16,7 @@ from unicodedata import category, normalize
 PAYOUT_TABLES = {'Kdreams': 'table.refund_table', 'netkeirin': 'table.Payout_Detail_Table'}
 RIDER_FINISH_SCHEMA = 'RACE_AI_KEIRIN_PUBLIC_REFERENCE_FINISHES_V1'
 MAX_FINISH_REPLAYS = 4
+MAX_FINISH_REPAIR_ATTEMPTS = 2
 SOURCE_STOP_CODES = {
     'PROVIDER_DENIED_OR_RATE_LIMITED_STOP', 'PUBLIC_PROVIDER_HTTP_ERROR_STOP',
     'PUBLIC_PROVIDER_UNAVAILABLE_STOP', 'PROVIDER_NON_HTML_OR_REDIRECT',
@@ -383,6 +384,7 @@ def refresh_public_rosters(state, store, fetch, *, now):
     from race_ai import keirin_dossier_secondary as secondary
     from race_ai import keirin_public_forecast_odds as odds
     from race_ai import keirin_public_forecasts as public
+    from research.chatgpt_dt_r1 import public_shortlists as dt
     from scripts.keirin_public_rider_projection import _checked_starters
 
     head = store.head()
@@ -405,7 +407,8 @@ def refresh_public_rosters(state, store, fetch, *, now):
             snapshot = public.checked(json.loads(raw))
             checked(snapshot['day'] == day and public.when(snapshot['published_at']) <= now,
                     'PUBLIC_ROSTER_INPUT_DAY_MISMATCH')
-            missing = {r['race_id'] for r in snapshot['races']} - {r['race_id'] for r in (previous or {}).get('races', [])}
+            registered = {row['race_id'] for row in snapshot['races']}
+            missing = registered - {r['race_id'] for r in (previous or {}).get('races', [])}
             display_cutoffs = published_display_cutoffs(store, head, snapshot) if any(
                 row['cutoff_at'] is None for row in snapshot['races']) else {}
             context_rows, starter_rows = [], []
@@ -437,9 +440,14 @@ def refresh_public_rosters(state, store, fetch, *, now):
                     if missing_inputs:
                         dt_raw = store.read_previous(head, f'dt-r1/{day}.json')
                         if dt_raw is not None:
-                            dt_shortlists = public._json(dt_raw)
-                            checked(public.when(dt_shortlists['published_at']) <= now, 'PUBLIC_ROSTER_DT_R1_CLOCK')
-                        else:
+                            try:
+                                candidate = dt.checked(public._json(dt_raw))
+                                if (candidate['day'] == day and public.when(candidate['published_at']) <= now and
+                                        {row['race_id'] for row in candidate['races']} == registered):
+                                    dt_shortlists = candidate
+                            except (ValueError, TypeError, KeyError):
+                                pass
+                        if dt_shortlists is None:
                             reference = store.read_previous(head, f'reference-starters/{day}.json')
                             if reference is not None:
                                 for row, link, cutoff in _reference_roster_inputs(reference, day, missing_inputs, fetch, now):
@@ -601,14 +609,18 @@ def _read_rider_finishes(path, day, packet, now):
     return dict(zip(ids, rows))
 
 
-def _repair_rider_finishes(published, packet, finishes, fetch, consensus, *, attempted, limit, can_poll):
+def _repair_rider_finishes(published, packet, finishes, fetch, consensus, *, attempts, limit, can_poll):
     """Backfill previously settled rows without changing their payout evidence."""
     old = {row['race_id']: row.get('comparison', {})
            for row in (packet or {}).get('races', []) if row['state'] == 'matched'}
     count = 0
-    for race in sorted(published['races'], key=lambda row: row['race_id']):
+    def priority(row):
+        rid = row['race_id']
+        return attempts.get(rid, 0), rid
+
+    for race in sorted(published['races'], key=priority):
         rid = race['race_id']
-        if rid in attempted or rid in finishes or not all(
+        if attempts.get(rid, 0) >= MAX_FINISH_REPAIR_ATTEMPTS or rid in finishes or not all(
                 field in old.get(rid, {}) for field in ('winning_3t', 'winning_2t', 'payouts_100yen')):
             continue
         if count == limit or not can_poll():
@@ -622,7 +634,7 @@ def _repair_rider_finishes(published, packet, finishes, fetch, consensus, *, att
         except (ValueError, OSError) as error:
             if str(error) in SOURCE_STOP_CODES and getattr(error, 'http_status', None) != 404:
                 return count, error
-        attempted.add(rid)
+        attempts[rid] = attempts.get(rid, 0) + 1
     return count, None
 
 
@@ -688,9 +700,10 @@ def main():
     repair_path = result_dir / 'rider-finish-repair.json'
     repair = json.loads(repair_path.read_bytes()) if repair_path.exists() else {}
     checked(type(repair) is dict and len(repair) <= 2 and all(
-        re.fullmatch(r'20\d\d-\d\d-\d\d', day) and type(rids) is list and len(rids) <= 300 and
-        all(type(rid) is str and re.fullmatch(day.replace('-', '') + r'\d{4}', rid) for rid in rids) and
-        rids == sorted(set(rids)) for day, rids in repair.items()), 'INVALID_PUBLIC_RIDER_FINISH_REPAIR')
+        re.fullmatch(r'20\d\d-\d\d-\d\d', day) and type(counts) is dict and len(counts) <= 300 and all(
+            type(rid) is str and re.fullmatch(day.replace('-', '') + r'\d{4}', rid) and
+            type(count) is int and 1 <= count <= MAX_FINISH_REPAIR_ATTEMPTS for rid, count in counts.items())
+        for day, counts in repair.items()), 'INVALID_PUBLIC_RIDER_FINISH_REPAIR')
     eligible = {(now.astimezone(JST).date() - timedelta(days=offset)).isoformat() for offset in (0, 1)}
     repair_next = {day: rids for day, rids in repair.items() if day in eligible}
     backfill = []
@@ -733,11 +746,11 @@ def main():
     budget = MAX_FINISH_REPLAYS
     for day, published, previous, prior, finishes, finish_path in sorted(backfill, reverse=True):
         if status == 0 and budget and day in eligible:
-            attempted = set(repair_next.get(day, []))
+            attempts = dict(repair_next.get(day, {}))
             count, error = _repair_rider_finishes(published, previous, finishes, fetch_once, consensus,
-                attempted=attempted, limit=budget, can_poll=can_poll)
-            if attempted:
-                repair_next[day] = sorted(attempted)
+                attempts=attempts, limit=budget, can_poll=can_poll)
+            if attempts:
+                repair_next[day] = attempts
             budget -= count
             if error is not None:
                 pause = provider_pause(error, datetime.now(timezone.utc))

@@ -137,7 +137,7 @@
         node("p", "", methods.join(" · ")),
         node("p", "kd-note", "掲載のある記録 " + startDay + "〜" + endDay));
     }
-    section.append(node("h3", "", "直近着順（新しい順）"));
+    section.append(node("h3", "", "直近着順（収録分・新しい順）"));
     const recent = node("ul", "kd-recents");
     for (const row of (rider.recent || []).slice(0, 10)) {
       const label = row.rank ? row.rank + "着" : row.counts.map((n, i) => n ? (i + 1) + "着" + n + "回" : "").filter(Boolean).join("・") + "（同日）";
@@ -290,8 +290,9 @@
             const source = updateRequest = new AbortController();
             const timeout = setTimeout(() => source.abort(), 15000);
             try {
-              const update = await refresh(data, source);
-              if (dialog.open && !source.signal.aborted) apply(update);
+              await refresh(data, source, update => {
+                if (dialog.open && !source.signal.aborted) apply(update);
+              });
             } catch {
               // Keep the last confirmed result visible when GitHub is temporarily unavailable.
             } finally {

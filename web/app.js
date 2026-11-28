@@ -692,19 +692,22 @@ if (typeof window === 'object' && typeof location === 'object') window.RaceNoteI
       latestAt = manifest.published;
       return checked.confirmedHistory(data, manifest, daily);
     }
-    async function refresh(data, request) {
-      const [latest, results] = await Promise.all([
-        fetchDay("rider-history", "latest", request).catch(() => null),
-        fetchDay("results/rider-finishes", day, request, resultsBase).catch(() => null)
+    async function refresh(data, request, apply) {
+      await Promise.allSettled([
+        fetchDay("rider-history", "latest", request).then(async packet => {
+          const history = await readHistory(data, packet, request);
+          if (history) apply({history});
+        }),
+        fetchDay("results/rider-finishes", day, request, resultsBase).then(packet => {
+          const published = instant(packet?.published_at);
+          if (request.signal.aborted || published === null || (resultsAt !== null && published <= resultsAt)) return;
+          const finishes = dossierFinishes(packet, row, day, data);
+          if (finishes) {
+            resultsAt = published;
+            apply({finishes});
+          }
+        })
       ]);
-      let finishes = null;
-      const published = instant(results?.published_at);
-      if (published !== null && (resultsAt === null || published > resultsAt)) {
-        finishes = dossierFinishes(results, row, day, data);
-        if (finishes) resultsAt = published;
-      }
-      const history = await readHistory(data, latest, request);
-      return {history, finishes};
     }
     globalThis.RaceKeirinDossier.open({ raceId: row.race_id, title, venue, day, opener,
       load: request => loadDossier(row, day, request), refresh });
@@ -5079,7 +5082,7 @@ if (!globalThis.document?.body?.classList.contains("keirin-public-page")) {
         node("p", "", methods.join(" · ")),
         node("p", "kd-note", "掲載のある記録 " + startDay + "〜" + endDay));
     }
-    section.append(node("h3", "", "直近着順（新しい順）"));
+    section.append(node("h3", "", "直近着順（収録分・新しい順）"));
     const recent = node("ul", "kd-recents");
     for (const row of (rider.recent || []).slice(0, 10)) {
       const label = row.rank ? row.rank + "着" : row.counts.map((n, i) => n ? (i + 1) + "着" + n + "回" : "").filter(Boolean).join("・") + "（同日）";
@@ -5232,8 +5235,9 @@ if (!globalThis.document?.body?.classList.contains("keirin-public-page")) {
             const source = updateRequest = new AbortController();
             const timeout = setTimeout(() => source.abort(), 15000);
             try {
-              const update = await refresh(data, source);
-              if (dialog.open && !source.signal.aborted) apply(update);
+              await refresh(data, source, update => {
+                if (dialog.open && !source.signal.aborted) apply(update);
+              });
             } catch {
               // Keep the last confirmed result visible when GitHub is temporarily unavailable.
             } finally {

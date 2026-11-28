@@ -691,19 +691,22 @@
       latestAt = manifest.published;
       return checked.confirmedHistory(data, manifest, daily);
     }
-    async function refresh(data, request) {
-      const [latest, results] = await Promise.all([
-        fetchDay("rider-history", "latest", request).catch(() => null),
-        fetchDay("results/rider-finishes", day, request, resultsBase).catch(() => null)
+    async function refresh(data, request, apply) {
+      await Promise.allSettled([
+        fetchDay("rider-history", "latest", request).then(async packet => {
+          const history = await readHistory(data, packet, request);
+          if (history) apply({history});
+        }),
+        fetchDay("results/rider-finishes", day, request, resultsBase).then(packet => {
+          const published = instant(packet?.published_at);
+          if (request.signal.aborted || published === null || (resultsAt !== null && published <= resultsAt)) return;
+          const finishes = dossierFinishes(packet, row, day, data);
+          if (finishes) {
+            resultsAt = published;
+            apply({finishes});
+          }
+        })
       ]);
-      let finishes = null;
-      const published = instant(results?.published_at);
-      if (published !== null && (resultsAt === null || published > resultsAt)) {
-        finishes = dossierFinishes(results, row, day, data);
-        if (finishes) resultsAt = published;
-      }
-      const history = await readHistory(data, latest, request);
-      return {history, finishes};
     }
     globalThis.RaceKeirinDossier.open({ raceId: row.race_id, title, venue, day, opener,
       load: request => loadDossier(row, day, request), refresh });
