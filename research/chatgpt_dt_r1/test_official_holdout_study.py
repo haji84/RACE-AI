@@ -52,8 +52,9 @@ class OfficialHoldoutTests(unittest.TestCase):
         stores = {}
         for day in study.DAYS:
             ids = [day.replace('-', '') + suffix for suffix in ('2401', '2402')]
-            stores[day] = SimpleNamespace(day=day, head=study.ARCHIVE_COMMIT, ids=ids,
-                                          index={'originals': {ids[0]: {'retained': True}}})
+            stores[day] = SimpleNamespace(repo='partial-reader', day=day, head=study.ARCHIVE_COMMIT, ids=ids,
+                index={'originals': {ids[0]: {'evidence_sha256': 'original'}},
+                       'results': {ids[0]: [{'evidence_sha256': 'result'}]}})
 
         def forecast(store, rid, *_):
             events.append(('forecast', rid))
@@ -66,6 +67,11 @@ class OfficialHoldoutTests(unittest.TestCase):
                 return {'race_id': rid, 'day': store.day, 'result_status': 'MISSING_SAVED_RESULT'}
             return {'race_id': rid, 'day': store.day, 'result_status': 'VERIFIED_NORMAL', 'top3': [1, 2, 3]}
 
+        def prefetch(repo, head, paths, _):
+            self.assertEqual((repo, head), ('partial-reader', study.ARCHIVE_COMMIT))
+            stage = 'prefetch-result' if any(path.endswith('/result.sealed.json') for path in paths) else 'prefetch-original'
+            events.append((stage, None))
+
         frozen = SimpleNamespace(to_dict=lambda: {'model_sha256': study.shadow.MODEL_SHA},
                                  fit_meta={'parameter_information_end_day': '2026-07-31'})
         with (
@@ -75,6 +81,7 @@ class OfficialHoldoutTests(unittest.TestCase):
             patch.object(study.settlement, '_result_row', side_effect=outcome),
             patch.object(study, 'OfficialHistory'),
             patch.object(study, '_replay_pair', side_effect=forecast),
+            patch('race_ai.keirin_nationwide_cipher_history.prefetch_pinned_blobs', side_effect=prefetch),
         ):
             report = study.run_holdout(None, owner_private_pem=b'', trained=frozen, client=None,
                                       now=lambda: datetime(2026, 11, 28, tzinfo=timezone.utc))
@@ -84,8 +91,10 @@ class OfficialHoldoutTests(unittest.TestCase):
             restricted = study.run_holdout(None, owner_private_pem=b'', trained=frozen, client=None,
                 now=lambda: datetime(2026, 11, 28, tzinfo=timezone.utc), day=study.DAYS[-1])
             get.assert_called_once_with(None, study.DAYS[-1], index_commit=study.ARCHIVE_COMMIT)
-            self.assertEqual([event for event, _ in events], ['forecast', 'result', 'result'])
-        self.assertEqual([event for event, _ in first_events], ['forecast'] * 5 + ['result'] * 10)
+            self.assertEqual([event for event, _ in events],
+                             ['prefetch-original', 'forecast', 'prefetch-result', 'result', 'result'])
+        self.assertEqual([event for event, _ in first_events],
+                         ['prefetch-original', 'forecast'] * 5 + ['prefetch-result', 'result', 'result'] * 5)
         self.assertEqual((restricted['registered_races'], restricted['common_scorable_races']), (2, 1))
         self.assertEqual(restricted['state'], 'OFFICIAL_HOLDOUT_SCORED')
         self.assertNotIn('proper_scores', restricted)

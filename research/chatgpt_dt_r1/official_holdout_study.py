@@ -8,6 +8,7 @@ from collections import Counter
 from datetime import timedelta
 from math import fsum
 
+from race_ai import keirin_nationwide_cipher_history as archive
 from race_ai import keirin_official_nationwide_records as records
 from scripts import keirin_dt_r1_future_settle as settlement
 from scripts import keirin_dt_r1_future_shadow as shadow
@@ -76,7 +77,28 @@ def _paired_metrics(scores):
     return hits, dict(proper_scores=proper, paired_difference_from_cold=differences)
 
 
-def run_holdout(work, *, owner_private_pem, trained, client, now, day=None):
+def _prefetch_targets(store, ids, *, results=False):
+    folder = f'{records.ROOT}/{store.day}'
+    paths = set()
+    for rid in ids:
+        if results:
+            versions = store.index['results'].get(rid, ())
+            if versions:
+                paths.add(f"{folder}/{versions[-1]['evidence_sha256']}.sealed.json")
+        else:
+            original = store.index['originals'].get(rid)
+            if original is not None:
+                paths.add(f"{folder}/{original['evidence_sha256']}.sealed.json")
+                paths.update(archive._refs(rid))
+                paths.update(archive._form_refs(rid))
+    try:
+        return archive.prefetch_pinned_blobs(store.repo, store.head, paths,
+                                             (folder, f'{archive.ROOT}/{store.day}'))
+    except archive.GitCipherArchiveError:
+        return 'BOUNDED_LAZY_READ_FALLBACK'
+
+
+def run_holdout(work, *, owner_private_pem, trained, client, now, day=None, progress=None):
     """Read from a protected caller's fixed official state Git fetch."""
     _need(day is None or day in DAYS, 'HOLDOUT_DAY_OUTSIDE_FIXED_PERIOD')
     _need(trained.to_dict()['model_sha256'] == shadow.MODEL_SHA and
@@ -97,6 +119,9 @@ def run_holdout(work, *, owner_private_pem, trained, client, now, day=None):
         _need(len(set(ids)) == len(ids) and all(rid[:8] == target_day.replace('-', '') for rid in ids),
               'HOLDOUT_REGISTRY_BINDING')
         registries[target_day] = registry
+        prefetch = _prefetch_targets(store, ids)
+        if progress is not None:
+            progress('ORIGINALS_PREFETCH', target_day, prefetch)
         guard = Counter()
         history = OfficialHistory(store, owner_private_pem)
         for rid in ids:
@@ -112,6 +137,8 @@ def run_holdout(work, *, owner_private_pem, trained, client, now, day=None):
                 guard[shadow._source_failure('SOURCE_OR_FEATURE_REPLAY_UNVERIFIED', error)] += 1
         holds.update(guard)
         day_holds[target_day] = dict(guard)
+        if progress is not None:
+            progress('FORECASTS_REPLAYED', target_day, len(ids) - sum(guard.values()))
 
     result_states, result_holds = Counter(), Counter()
     official_scorable, scores = 0, {}
@@ -120,6 +147,9 @@ def run_holdout(work, *, owner_private_pem, trained, client, now, day=None):
         held, states = Counter(), Counter()
         t15_pairs = history_pairs = scorable = 0
         store, registry = stores[target_day], registries[target_day]
+        prefetch = _prefetch_targets(store, registry['registered_race_ids'], results=True)
+        if progress is not None:
+            progress('RESULTS_PREFETCH', target_day, prefetch)
         for rid in registry['registered_race_ids']:
             pair = paired.get(rid)
             if pair is not None:
@@ -150,6 +180,8 @@ def run_holdout(work, *, owner_private_pem, trained, client, now, day=None):
         official_scorable += scorable
         result_states.update(states)
         result_holds.update(held)
+        if progress is not None:
+            progress('RESULTS_REPLAYED', target_day, n)
 
     common = sum(d['common_scorable_races'] for d in by_day.values())
     metrics, optional = _paired_metrics(scores)

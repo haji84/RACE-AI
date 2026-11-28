@@ -3,6 +3,7 @@ import argparse
 import json
 import os
 from pathlib import Path
+import sys
 from tempfile import TemporaryDirectory
 
 from race_ai import keirin_nationwide_cipher_history as archive
@@ -11,6 +12,10 @@ from race_ai.keirin_github_evidence_client import GitHubEvidenceClient
 from research.chatgpt_dt_r1 import official_holdout_study
 from scripts import keirin_dt_r1_future_shadow as shadow
 from scripts import keirin_official_nationwide_continuation as continuation
+
+
+def _progress(stage, day, outcome):
+    print(json.dumps(dict(stage=stage, day=day, outcome=outcome)), file=sys.stderr, flush=True)
 
 
 def run(*, repo, private_root, owner_public_pem, owner_private_pem, day=None,
@@ -27,7 +32,7 @@ def run(*, repo, private_root, owner_public_pem, owner_private_pem, day=None,
         archive._cmd(work, 'config', '--local', 'remote.origin.partialclonefilter', 'blob:none')
         records.fetch_partial_head(work, with_ancestry=True)
         report = official_holdout_study.run_holdout(work, owner_private_pem=owner_private_pem,
-            trained=trained, client=GitHubEvidenceClient(), now=now, day=day)
+            trained=trained, client=GitHubEvidenceClient(), now=now, day=day, progress=_progress)
     return dict(report, reader_code_commit=commit, reader_run_id=os.environ['GITHUB_RUN_ID'])
 
 
