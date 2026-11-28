@@ -28,7 +28,7 @@ from race_ai import keirin_official_nationwide_records as records
 from race_ai import keirin_official_run_history as codec
 from race_ai.keirin_github_evidence_client import GitHubEvidenceClient, GitHubEvidenceError
 from race_ai.keirin_github_origin_evidence import MAX_ARCHIVE_BYTES, OriginEvidenceError
-from research.chatgpt_dt_r1 import back_official_shadow, official_inputs
+from research.chatgpt_dt_r1 import back_official_shadow, codex_future_candidate, official_inputs
 from research.chatgpt_dt_r1.abilities import augment_abilities
 from research.chatgpt_dt_r1.agari import augment_agari
 from research.chatgpt_dt_r1.context import augment_features
@@ -46,6 +46,11 @@ from scripts import keirin_official_nationwide_continuation as continuation
 SCHEMA = 'DT_R1_FUTURE_SHADOW_MANIFEST_V1'
 PRIVATE_SCHEMA = 'DT_R1_FUTURE_SHADOW_ORIGINAL_V1'
 SUMMARY_SCHEMA = 'DT_R1_FUTURE_SHADOW_SUMMARY_V1'
+CODEX_PRIVATE_SCHEMA = 'KEIRIN_CODEX_FUTURE_ORIGINAL_V1'
+CODEX_SUMMARY_SCHEMA = 'KEIRIN_CODEX_FUTURE_SHADOW_SUMMARY_V1'
+CODEX_MATERIAL_SCHEMA = 'KEIRIN_CODEX_SHARED_FUTURE_MATERIAL_V1'
+CODEX_PEER_FIELDS = frozenset(('dt_producer_run_id', 'dt_manifest_sha256'))
+CODEX_PEER_HOLD = 'SAVED_DT_PAIR_INPUT_MISSING'
 LEGACY_MATERIAL_SCHEMA = 'DT_R1_SHARED_FUTURE_MATERIAL_V1'
 HISTORY_MATERIAL_SCHEMA = 'DT_R1_SHARED_FUTURE_MATERIAL_V2'
 PAIRED_HISTORY_MATERIAL_SCHEMA = 'DT_R1_SHARED_FUTURE_MATERIAL_V3'
@@ -93,7 +98,8 @@ RUNTIME_CODES = frozenset('OFFICIAL_CONTINUATION_' + code for code in (
     'OWNER_KEY_PAIR_REQUIRED', 'PRIVATE_ROOT_OUTSIDE_REPOSITORY',
     'RUN_CODE_IDENTITY_REQUIRED', 'CHECKOUT_CODE_CHANGED')) | frozenset('DT_R1_FUTURE_' + code for code in (
     'ACTUAL_JST_DAY_REQUIRED', 'OUTPUT_ALREADY_EXISTS', 'SAVED_REGISTRY_REQUIRED',
-    'SAVED_REGISTRY_UNVERIFIED', 'REGISTRY_FROM_FUTURE'))
+    'SAVED_REGISTRY_UNVERIFIED', 'REGISTRY_FROM_FUTURE', 'CODEX_PAIR_SCOPE',
+    'CODEX_PEER_IDENTITY', 'CODEX_PEER_DAY', 'CODEX_PEER_REGISTRY_CHANGED', 'CODEX_PEER_COHORT_EMPTY'))
 
 
 def need(ok, code):
@@ -112,6 +118,21 @@ def slot(day, race_id):
 def _model_identity():
     return dict(model_id='chatgpt-dt-r1', model_sha256=MODEL_SHA,
                 model_file_sha256=MODEL_FILE_SHA, venue_file_sha256=VENUE_SHA, feature_count=462)
+
+
+def _report_scope(codex):
+    return 'CODEX_ONLY_FUTURE_SHADOW' if codex else 'DT_ONLY_FUTURE_SHADOW'
+
+
+def _report_state(ready, codex):
+    name = 'CODEX_SHADOW' if codex else 'DT_SHADOW'
+    return name + '_SAVED_PENDING_INDEPENDENT_READBACK' if ready else 'HOLD_' + name + '_NO_TIMELY_LOCAL_ORIGINAL'
+
+
+def _check_codex_peer(peer, current_run):
+    need(type(peer) is dict and set(peer) == CODEX_PEER_FIELDS and
+         type(peer['dt_producer_run_id']) is str and archive.RUN.fullmatch(peer['dt_producer_run_id']) and
+         peer['dt_producer_run_id'] != current_run and _sha(peer['dt_manifest_sha256']), 'CODEX_PEER_IDENTITY')
 
 
 def load_frozen(repo):
@@ -272,7 +293,7 @@ def _shared_material(row, payload, original, store, proof, *, control=None, back
 
 def _save_forecast(*, output, entry, row, forecast, payload, original, store, public, private,
                    code_commit, input_at, prediction_started_at, proof, clock, remaining_cipher_bytes,
-                   control=None, back_study=None, personal_study=None, source_diagnostics=None):
+                   control=None, back_study=None, personal_study=None, source_diagnostics=None, codex_peer=None):
     seal_at = _observe(clock)
     cutoff = row['cutoff_at']
     if not _same_day(seal_at, store.day):
@@ -281,16 +302,25 @@ def _save_forecast(*, output, entry, row, forecast, payload, original, store, pu
         return dict(entry, reason='CLOCK_REGRESSION')
     if not _timely(seal_at, cutoff):
         return dict(entry, reason='POST_GENERATION_T15_MARGIN')
-    feature_row = dict(row, features=row['features'].tolist(), feature_names=list(row['feature_names']))
-    frozen = _shared_material(row, payload, original, store, proof, control=control, back_study=back_study)
+    codex = codex_peer is not None
+    if codex:
+        feature_row = row
+        frozen = dict(schema=CODEX_MATERIAL_SCHEMA, **codex_peer,
+            source_projection_sha256=row['source_projection_sha256'], source_archive_commit=store.head,
+            source_original_reference=store.index['originals'][row['race_id']], source_verification=row['source_proof'],
+            input_sha256=row['input_sha256'])
+    else:
+        feature_row = dict(row, features=row['features'].tolist(), feature_names=list(row['feature_names']))
+        frozen = _shared_material(row, payload, original, store, proof, control=control, back_study=back_study)
     shared = frozen if personal_study is None else dict(schema=PERSONAL_STUDY_MATERIAL_SCHEMA,
         frozen_material=frozen, personal_history_trial=personal_study)
-    private_payload = dict(schema=PRIVATE_SCHEMA, day_jst=store.day, race_id=row['race_id'],
+    private_payload = dict(schema=CODEX_PRIVATE_SCHEMA if codex else PRIVATE_SCHEMA,
+        day_jst=store.day, race_id=row['race_id'],
         observed_at=seal_at.isoformat(), reader_code_commit=code_commit, reader_run_id=os.environ['GITHUB_RUN_ID'],
         source_archive_commit=store.head, source_registry_reference=store.index['registry'],
         source_original_reference=store.index['originals'][row['race_id']],
         forecast=forecast, feature_row=feature_row, shared_material=shared,
-        safe_report=dict(day_jst=store.day, scope='DT_ONLY_FUTURE_SHADOW', new_forecasts=1,
+        safe_report=dict(day_jst=store.day, scope=_report_scope(codex), new_forecasts=1,
                          confidence='HOLD', independently_admitted_new_forecasts=0))
     plaintext = records.wire(private_payload)
     raw = codec.seal_evidence(plaintext, public, store.day, seal_at.isoformat())
@@ -355,7 +385,7 @@ def _source_failure(stage, error):
 def produce_day(*, store, repo, output, owner_public_pem, owner_private_pem, code_commit,
                 origin_client, clock=continuation.now_utc, source_diagnostics=None,
                 _ciphertext_byte_cap=None, accepted_slots=(), official_history=None, back_trial=None,
-                compare_personal_history=False):
+                compare_personal_history=False, codex_peer=None, codex_inputs=None):
     """Internal protected owner-job worker. A private cap can lower the default budget."""
     started = _observe(clock)
     need(_same_day(started, store.day), 'ACTUAL_JST_DAY_REQUIRED')
@@ -372,7 +402,18 @@ def produce_day(*, store, repo, output, owner_public_pem, owner_private_pem, cod
              rid.startswith(store.day.replace('-', '')) for rid in race_ids) and
          set(originals) <= set(race_ids), 'SAVED_REGISTRY_UNVERIFIED')
     accepted_slots = frozenset(accepted_slots)
-    need(accepted_slots <= {slot(store.day, rid) for rid in originals}, 'PRESERVED_SLOT_SCOPE')
+    known_slots = {slot(store.day, rid) for rid in originals}
+    need(accepted_slots <= known_slots, 'PRESERVED_SLOT_SCOPE')
+    codex = codex_peer is not None
+    if codex:
+        _check_codex_peer(codex_peer, os.environ['GITHUB_RUN_ID'])
+        need(official_history is None and back_trial is None and not compare_personal_history and
+             type(codex_inputs) is dict and codex_inputs.keys() <= known_slots and
+             all(type(pin) is tuple and len(pin) == 2 and _sha(pin[0]) and
+                 _same_day(parse_clock(pin[1]), store.day) for pin in codex_inputs.values()), 'CODEX_PAIR_SCOPE')
+    else:
+        need(codex_inputs is None, 'CODEX_PAIR_SCOPE')
+    identity = codex_future_candidate.model_identity() if codex else _model_identity()
     zip_reserve = ZIP_CONTAINER_RESERVE_BYTES + ZIP_MEMBER_RESERVE_BYTES * (len(race_ids) + 1)
     remaining_cipher_bytes = MAX_ARCHIVE_BYTES - MAX_MANIFEST_BYTES - zip_reserve
     if _ciphertext_byte_cap is not None:
@@ -381,7 +422,10 @@ def produce_day(*, store, repo, output, owner_public_pem, owner_private_pem, cod
         remaining_cipher_bytes = _ciphertext_byte_cap
     output = capture_files._private_directory(output)
     try:
-        trained, venues = load_frozen(repo)
+        if codex:
+            trained, venues = codex_future_candidate.load_frozen(repo, owner_private_pem, store.day), None
+        else:
+            trained, venues = load_frozen(repo)
     except Exception:
         trained, venues = None, None
     entries, cache, history_uses = [], {}, 0
@@ -397,6 +441,8 @@ def produce_day(*, store, repo, output, owner_public_pem, owner_private_pem, cod
         meta = originals.get(rid)
         if meta is None:
             entries.append(entry); continue
+        if codex and entry['slot_sha256'] not in codex_inputs:
+            entries.append(dict(entry, reason=CODEX_PEER_HOLD)); continue
         now = _observe(clock)
         if not _same_day(now, store.day):
             entries.append(dict(entry, reason='ACTUAL_JST_DAY_CHANGED')); continue
@@ -423,10 +469,21 @@ def produce_day(*, store, repo, output, owner_public_pem, owner_private_pem, cod
                 source_diagnostics[_source_failure(stage, error)] += 1
             entries.append(dict(entry, reason='SOURCE_ADMISSION_UNVERIFIED')); continue
         try:
-            row, input_at, proof = _candidate(store=store, payload=payload, original=original,
-                trained=trained, venues=venues, private=owner_private_pem, client=origin_client,
-                cache=cache, clock=clock, official_history=official_history)
-            entry['context_geometry_present'] = bool(row['context_evidence']['venue_sources'])
+            if codex:
+                input_at = _observe(clock).isoformat()
+                common = official_inputs.verification_payload(payload, original, prediction_at=input_at)['normalized_input']
+                input_pin, cutoff_pin = codex_inputs[entry['slot_sha256']]
+                need(common['input_sha256'] == input_pin and parse_clock(meta['cutoff_at']) == parse_clock(cutoff_pin),
+                     'CODEX_COMMON_INPUT_CHANGED')
+                row = codex_future_candidate.project(payload, original, day=store.day, cutoff_at=meta['cutoff_at'],
+                    input_at=input_at, original_meta=meta, input_sha256=common['input_sha256'])
+                need(row['input_sha256'] == common['input_sha256'], 'CODEX_COMMON_INPUT_CHANGED')
+                proof = None
+            else:
+                row, input_at, proof = _candidate(store=store, payload=payload, original=original,
+                    trained=trained, venues=venues, private=owner_private_pem, client=origin_client,
+                    cache=cache, clock=clock, official_history=official_history)
+                entry['context_geometry_present'] = bool(row['context_evidence']['venue_sources'])
         except Exception as error:
             if source_diagnostics is not None:
                 source_diagnostics[_source_failure('OFFICIAL_HISTORY_OR_INPUT_PROJECTION_FAILED', error)] += 1
@@ -438,10 +495,12 @@ def produce_day(*, store, repo, output, owner_public_pem, owner_private_pem, cod
                 entries.append(dict(entry, reason='ACTUAL_JST_DAY_CHANGED')); continue
             if not _timely(prediction_started, row['cutoff_at']):
                 entries.append(dict(entry, reason='PRE_PREDICTION_T15_MARGIN')); continue
-            forecast = forecast_row(trained, row, prediction_at=prediction_started.isoformat(), full=True)
-            need(forecast['status'] == 'READY' and forecast['model_sha256'] == MODEL_SHA, 'PREDICTION_UNVERIFIED')
+            forecast = (codex_future_candidate.forecast(trained, row, generated_or_started_at=prediction_started.isoformat())
+                        if codex else forecast_row(trained, row, prediction_at=prediction_started.isoformat(), full=True))
+            need(forecast['status'] == 'READY' and forecast['model_id'] == identity['model_id'] and
+                 forecast['model_sha256'] == identity['model_sha256'], 'PREDICTION_UNVERIFIED')
             control = None
-            if row['history_evidence']['official_support']['history_races']:
+            if not codex and row['history_evidence']['official_support']['history_races']:
                 control = _no_history_forecast(store=store, payload=payload, original=original,
                     trained=trained, venues=venues, private=owner_private_pem, client=origin_client,
                     cache=cache, input_at=input_at, prediction_started_at=prediction_started.isoformat())
@@ -468,7 +527,8 @@ def produce_day(*, store, repo, output, owner_public_pem, owner_private_pem, cod
                 entries.append(dict(entry, reason='ACTUAL_JST_DAY_CHANGED')); continue
             if not _timely(generated, row['cutoff_at']):
                 entries.append(dict(entry, reason='POST_GENERATION_T15_MARGIN')); continue
-            validate_prediction_inputs(row, prediction_at=generated.isoformat(), model_meta=trained.fit_meta)
+            if not codex:
+                validate_prediction_inputs(row, prediction_at=generated.isoformat(), model_meta=trained.fit_meta)
             personal_study = None
             if personal is not None:
                 try:
@@ -479,7 +539,7 @@ def produce_day(*, store, repo, output, owner_public_pem, owner_private_pem, cod
                 safe = personal_hold if personal_hold in PERSONAL_TRIAL_SOURCE_HOLDS else 'PERSONAL_STUDY_COMPUTE_UNVERIFIED'
                 source_diagnostics[safe] += 1
             forecast.update(prediction_at=generated.isoformat(),
-                scope='DT_ONLY_FUTURE_SHADOW_PENDING_INDEPENDENT_READBACK',
+                scope=_report_scope(codex) + '_PENDING_INDEPENDENT_READBACK',
                 forecast_original_independently_read_back=False, production_promoted=False)
         except Exception:
             entries.append(dict(entry, reason='PREDICTION_UNVERIFIED')); continue
@@ -490,14 +550,15 @@ def produce_day(*, store, repo, output, owner_public_pem, owner_private_pem, cod
             private=owner_private_pem, code_commit=code_commit, input_at=input_at,
             prediction_started_at=prediction_started.isoformat(), proof=proof, clock=clock,
             remaining_cipher_bytes=remaining_cipher_bytes, control=control, back_study=back_study,
-            personal_study=personal_study, source_diagnostics=source_diagnostics)
+            personal_study=personal_study, source_diagnostics=source_diagnostics, codex_peer=codex_peer)
         if saved['cipher'] is not None:
             remaining_cipher_bytes -= saved['cipher']['bytes']
-            history_uses += row['history_evidence']['official_support']['history_races']
+            if not codex:
+                history_uses += row['history_evidence']['official_support']['history_races']
         entries.append(saved)
     eligible = sum(r['state'] == READY for r in entries)
-    report = dict(schema=SUMMARY_SCHEMA, scope='DT_ONLY_FUTURE_SHADOW', day_jst=store.day,
-        state='DT_SHADOW_SAVED_PENDING_INDEPENDENT_READBACK' if eligible else 'HOLD_DT_SHADOW_NO_TIMELY_LOCAL_ORIGINAL',
+    report = dict(schema=CODEX_SUMMARY_SCHEMA if codex else SUMMARY_SCHEMA, scope=_report_scope(codex), day_jst=store.day,
+        state=_report_state(eligible, codex),
         source_archive_commit=store.head, reader_code_commit=code_commit, reader_run_id=os.environ['GITHUB_RUN_ID'],
         started_at=started.isoformat(), finished_at=_observe(clock).isoformat(), registered_races=len(race_ids),
         saved_originals=len(store.index['originals']), source_admitted_races=sum(r['source_admitted'] for r in entries),
@@ -508,19 +569,21 @@ def produce_day(*, store, repo, output, owner_public_pem, owner_private_pem, cod
         history_races=history_uses, reviewed_motion_records=0, weather_records=0, confidence='HOLD',
         formal_three_way_races=0, independently_admitted_new_forecasts=0,
         provider_source_requests=0, result_reads=0, training_runs=0, state_writes=0, production_promoted=False)
-    manifest = dict(schema=SCHEMA, model=_model_identity(), summary=report,
+    if codex:
+        report.update(codex_peer)
+    manifest = dict(schema=SCHEMA, model=identity, summary=report,
         registry={key: store.index['registry'][key] for key in ('evidence_sha256', 'cipher_sha256')}, entries=entries)
     manifest_raw = codec._canonical(manifest)
     need(0 < len(manifest_raw) <= MAX_MANIFEST_BYTES, 'MANIFEST_BYTE_LIMIT')
     capture_files._save_once(output / 'manifest.json', manifest_raw)
     manifest_sha = sha256(manifest_raw).hexdigest()
-    verify_output(output, expected_manifest_sha256=manifest_sha)
+    verify_output(output, expected_manifest_sha256=manifest_sha, codex=codex)
     return dict(report, manifest_sha256=manifest_sha, manifest_bytes=len(manifest_raw),
                 cipher_files=report['new_encrypted_forecasts'],
                 cipher_bytes=sum(r['cipher']['bytes'] for r in entries if r['cipher'] is not None))
 
 
-def verify_output(directory, *, expected_manifest_sha256=None):
+def verify_output(directory, *, expected_manifest_sha256=None, codex=False):
     """Check only local ciphertext/manifest integrity; never assert independence."""
     directory = Path(directory)
     path = directory / 'manifest.json'
@@ -529,12 +592,17 @@ def verify_output(directory, *, expected_manifest_sha256=None):
     need(0 < len(raw) <= MAX_MANIFEST_BYTES and (expected_manifest_sha256 is None or
          _sha(expected_manifest_sha256) and sha256(raw).hexdigest() == expected_manifest_sha256), 'MANIFEST_SHA')
     manifest = codec._json(raw)
+    identity = codex_future_candidate.model_identity() if codex else _model_identity()
     need(type(manifest) is dict and set(manifest) == {'schema', 'model', 'summary', 'registry', 'entries'} and
-         manifest['schema'] == SCHEMA and manifest['model'] == _model_identity(), 'MANIFEST_SCHEMA')
+         manifest['schema'] == SCHEMA and manifest['model'] == identity, 'MANIFEST_SCHEMA')
     report, entries = manifest['summary'], manifest['entries']
-    need(type(report) is dict and set(report) == SUMMARY_FIELDS and report['schema'] == SUMMARY_SCHEMA and
-         report['scope'] == 'DT_ONLY_FUTURE_SHADOW' and report['confidence'] == 'HOLD' and
+    fields = SUMMARY_FIELDS | CODEX_PEER_FIELDS if codex else SUMMARY_FIELDS
+    summary_schema = CODEX_SUMMARY_SCHEMA if codex else SUMMARY_SCHEMA
+    need(type(report) is dict and set(report) == fields and report['schema'] == summary_schema and
+         report['scope'] == _report_scope(codex) and report['confidence'] == 'HOLD' and
          report['production_promoted'] is False, 'PUBLIC_SUMMARY_SCHEMA')
+    if codex:
+        _check_codex_peer({key: report[key] for key in CODEX_PEER_FIELDS}, report['reader_run_id'])
     codec._day(report['day_jst'])
     need(type(manifest['registry']) is dict and set(manifest['registry']) == {'evidence_sha256', 'cipher_sha256'} and
          all(_sha(v) for v in manifest['registry'].values()), 'REGISTRY_PINS')
@@ -549,6 +617,7 @@ def verify_output(directory, *, expected_manifest_sha256=None):
         need(type(report[key]) is str and re.fullmatch('[0-9a-f]{40}', report[key]), 'CODE_OR_ARCHIVE_PIN')
     need(type(report['reader_run_id']) is str and re.fullmatch('[1-9][0-9]*', report['reader_run_id']), 'RUN_ID')
     need(parse_clock(report['started_at']) <= parse_clock(report['finished_at']), 'REPORT_CLOCK')
+    hold_reasons = HOLD_REASONS | {CODEX_PEER_HOLD} if codex else HOLD_REASONS
     seen, files = set(), {'manifest.json'}
     for entry in entries:
         need(type(entry) is dict and set(entry) == ENTRY_FIELDS and _sha(entry['slot_sha256']) and
@@ -556,13 +625,18 @@ def verify_output(directory, *, expected_manifest_sha256=None):
              (entry['context_geometry_present'] is None or type(entry['context_geometry_present']) is bool), 'ENTRY_SCHEMA')
         seen.add(entry['slot_sha256'])
         need(entry['state'] in (READY, 'HOLD') and (entry['reason'] is None if entry['state'] == READY else
-             entry['reason'] in HOLD_REASONS), 'ENTRY_STATE')
+             entry['reason'] in hold_reasons), 'ENTRY_STATE')
+        if codex:
+            need(entry['context_geometry_present'] is None, 'CODEX_CONTEXT_SCOPE')
+        geometry_checked = codex or type(entry['context_geometry_present']) is bool
         if entry['reason'] == PRESERVED:
             need(entry['cipher'] is None and not entry['source_admitted'] and
                  entry['context_geometry_present'] is None, 'PRESERVED_SLOT_ENTRY')
         if entry['reason'] == UPLOAD_BUDGET_HOLD:
             need(entry['cipher'] is None and entry['source_admitted'] and
-                 type(entry['context_geometry_present']) is bool, 'UPLOAD_BYTE_BUDGET_ENTRY')
+                 geometry_checked, 'UPLOAD_BYTE_BUDGET_ENTRY')
+        if entry['reason'] == CODEX_PEER_HOLD:
+            need(entry['cipher'] is None and not entry['source_admitted'], 'CODEX_PEER_HOLD_ENTRY')
         if entry['cipher'] is None:
             need(entry['state'] == 'HOLD' and entry['clocks'] is None and entry['bindings'] is None, 'UNSAVED_ENTRY')
             continue
@@ -582,7 +656,7 @@ def verify_output(directory, *, expected_manifest_sha256=None):
              set(bindings) == BINDING_FIELDS and all(_sha(v) for v in bindings.values()), 'CIPHER_BINDING')
         times = [parse_clock(clocks[key]) for key in CLOCK_FIELDS]
         need(_same_day(parse_clock(clocks['cutoff_at']), report['day_jst']) and
-             type(entry['context_geometry_present']) is bool and
+             geometry_checked and
              all(_same_day(t, report['day_jst']) for t in times[:-1]) and
              parse_clock(report['started_at']) <= times[0] and
              times[-1] <= parse_clock(report['finished_at']), 'CIPHER_CLOCK_SCOPE')
@@ -601,20 +675,35 @@ def verify_output(directory, *, expected_manifest_sha256=None):
          type(report['saved_originals']) is int and counts['source_admitted_races'] <= report['saved_originals'] <= len(entries) and
          report['hold_reasons'] == dict(Counter(r['reason'] for r in entries if r['state'] == 'HOLD')), 'SUMMARY_COUNT_MISMATCH')
     need(type(report['history_races']) is int and 0 <= report['history_races'] <=
-         100_000 * counts['new_encrypted_forecasts'], 'HISTORY_COUNT_BOUND')
-    expected_state = ('DT_SHADOW_SAVED_PENDING_INDEPENDENT_READBACK' if counts['locally_saved_before_t15'] else
-                      'HOLD_DT_SHADOW_NO_TIMELY_LOCAL_ORIGINAL')
+         (0 if codex else 100_000 * counts['new_encrypted_forecasts']), 'HISTORY_COUNT_BOUND')
+    expected_state = _report_state(counts['locally_saved_before_t15'], codex)
     need(report['state'] == expected_state and
          (report['frozen_model_verified'] or counts['new_encrypted_forecasts'] == 0), 'PUBLIC_SUMMARY_STATE')
     return manifest
 
 
+def _codex_source(day, dt_producer_run, client):
+    from scripts.keirin_dt_r1_future_readback import verified_producer
+
+    with verified_producer(dt_producer_run, client=client) as batch:
+        manifest = batch['manifest']
+        need(manifest['summary']['day_jst'] == day, 'CODEX_PEER_DAY')
+        inputs = {entry['slot_sha256']: (entry['bindings']['input_sha256'], entry['clocks']['cutoff_at'])
+                  for entry in manifest['entries'] if entry['state'] == READY}
+        need(bool(inputs), 'CODEX_PEER_COHORT_EMPTY')
+        peer = dict(dt_producer_run_id=dt_producer_run, dt_manifest_sha256=batch['manifest_sha256'])
+    _check_codex_peer(peer, os.environ['GITHUB_RUN_ID'])
+    return manifest['summary']['source_archive_commit'], manifest['registry'], peer, inputs
+
+
 def run_future_shadow(*, repo, private_root, output, owner_public_pem, owner_private_pem,
                       day=None, clock=continuation.now_utc, source_diagnostics=None, compare_back=False,
-                      compare_personal_history=False):
+                      compare_personal_history=False, dt_producer_run=None):
     repo, root, day, public, commit = continuation._runtime(repo=repo, private_root=private_root,
         owner_public_pem=owner_public_pem, owner_private_pem=owner_private_pem, day=day, clock=clock, mode='study')
     need(_same_day(_observe(clock), day), 'ACTUAL_JST_DAY_REQUIRED')
+    codex = dt_producer_run is not None
+    need(not codex or not (compare_back or compare_personal_history), 'CODEX_PAIR_SCOPE')
     with TemporaryDirectory(prefix='dt-future-reader-', dir=root) as folder, ExitStack() as research:
         reader = Path(folder)
         archive._cmd(reader, 'init', '--quiet', '--template=')
@@ -622,16 +711,24 @@ def run_future_shadow(*, repo, private_root, output, owner_public_pem, owner_pri
         archive._cmd(reader, 'config', '--local', 'remote.origin.promisor', 'true')
         archive._cmd(reader, 'config', '--local', 'remote.origin.partialclonefilter', 'blob:none')
         head = records.fetch_partial_head(reader, with_ancestry=True)
-        store = records.RecordStore(reader, day, index_commit=head)
         from research.chatgpt_dt_r1.future_batch_retention import retained_slots
         from research.chatgpt_dt_r1.future_retention_gate import legacy_timely_slots
         from scripts.keirin_dt_r1_future_readback import verify_saved_batch
 
         client = GitHubEvidenceClient()
+        source_head, registry, peer, shared_inputs = (head, None, None, None)
+        if codex:
+            source_head, registry, peer, shared_inputs = _codex_source(day, dt_producer_run, client)
+        store = records.RecordStore(reader, day, index_commit=source_head)
+        if codex:
+            saved_registry = store.index['registry']
+            need(saved_registry is not None and
+                 {key: saved_registry.get(key) for key in registry} == registry, 'CODEX_PEER_REGISTRY_CHANGED')
+        model_sha = codex_future_candidate.model_identity()['model_sha256'] if codex else MODEL_SHA
         provisioned = {slot(day, rid) for rid in store.index['originals']}
-        accepted = retained_slots(reader, head, day, MODEL_SHA, provisioned,
-                                  authenticate_batch=partial(verify_saved_batch, client=client))
-        legacy = legacy_timely_slots(reader, head, day, model_sha256=MODEL_SHA, client=client)
+        accepted = retained_slots(reader, head, day, model_sha, provisioned,
+                                  authenticate_batch=partial(verify_saved_batch, client=client, codex=codex))
+        legacy = set() if codex else legacy_timely_slots(reader, head, day, model_sha256=MODEL_SHA, client=client)
         back_trial = None
         if compare_back:
             from scripts.keirin_dt_r1_owner_restore import BACK_RECEIPT
@@ -641,8 +738,8 @@ def run_future_shadow(*, repo, private_root, output, owner_public_pem, owner_pri
             owner_private_pem=owner_private_pem, code_commit=commit, origin_client=client,
             clock=clock, source_diagnostics=source_diagnostics,
             accepted_slots=accepted | (legacy & provisioned),
-            official_history=OfficialHistory(store, owner_private_pem), back_trial=back_trial,
-            compare_personal_history=compare_personal_history)
+            official_history=None if codex else OfficialHistory(store, owner_private_pem), back_trial=back_trial,
+            compare_personal_history=compare_personal_history, codex_peer=peer, codex_inputs=shared_inputs)
 
 
 def main(argv=None):
@@ -654,17 +751,20 @@ def main(argv=None):
     parser.add_argument('--day')
     parser.add_argument('--compare-back', action='store_true')
     parser.add_argument('--compare-personal-history', action='store_true')
+    parser.add_argument('--dt-producer-run', help='Use a verified DT-R1 producer only to pin Codex source material')
     args = parser.parse_args(argv)
+    codex = args.dt_producer_run is not None
     private = os.environ.pop('RACE_AI_KEIRIN_PRIVATE_RSA_PEM', '').encode()
     source_diagnostics = Counter()
     try:
         report = run_future_shadow(repo=args.repo, private_root=args.private_root, output=args.output,
             owner_public_pem=args.owner_public_pem, owner_private_pem=private, day=args.day,
             source_diagnostics=source_diagnostics, compare_back=args.compare_back,
-            compare_personal_history=args.compare_personal_history)
+            compare_personal_history=args.compare_personal_history, dt_producer_run=args.dt_producer_run)
     except Exception as error:
-        report = dict(schema=SUMMARY_SCHEMA, scope='DT_ONLY_FUTURE_SHADOW',
-            state='HOLD_DT_SHADOW_RUNTIME_OR_BUNDLE_UNVERIFIED', registered_races=None,
+        report = dict(schema=CODEX_SUMMARY_SCHEMA if codex else SUMMARY_SCHEMA, scope=_report_scope(codex),
+            state='HOLD_CODEX_SHADOW_RUNTIME_OR_BUNDLE_UNVERIFIED' if codex else 'HOLD_DT_SHADOW_RUNTIME_OR_BUNDLE_UNVERIFIED',
+            registered_races=None,
             reason=str(error) if str(error) in RUNTIME_CODES else 'RUNTIME_OR_CIPHERTEXT_BUNDLE_UNVERIFIED',
             denominator_authenticated=False, independent_forecast_admission=False, production_promoted=False)
     finally:
@@ -675,7 +775,7 @@ def main(argv=None):
         print(json.dumps(dict(schema='DT_R1_FUTURE_SOURCE_DIAGNOSTICS_V1',
                               source_hold_counts=source_diagnostics), sort_keys=True), file=sys.stderr)
     print(json.dumps(report, sort_keys=True, allow_nan=False))
-    return 0 if report['state'] == 'DT_SHADOW_SAVED_PENDING_INDEPENDENT_READBACK' else 2
+    return 0 if report['state'] == _report_state(True, codex) else 2
 
 
 if __name__ == '__main__':

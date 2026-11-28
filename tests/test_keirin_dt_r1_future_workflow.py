@@ -4,7 +4,8 @@ from types import SimpleNamespace as NS
 import unittest
 
 ROOT = Path(__file__).resolve().parents[1]
-MODES = ('dt-r1-shadow', 'dt-r1-readback', 'dt-r1-settle', 'dt-r1-retain')
+MODES = ('dt-r1-shadow', 'dt-r1-readback', 'dt-r1-settle', 'dt-r1-retain',
+         'codex-shadow', 'codex-readback', 'codex-retain')
 
 
 class FutureWorkflowTests(unittest.TestCase):
@@ -73,7 +74,7 @@ class FutureWorkflowTests(unittest.TestCase):
 
     def test_earlier_holdout_batch_is_distinct_from_the_single_day_argument(self):
         start = self.job.index('if [ "$RESULT_MODE" = dt-r1-official-holdout ]; then')
-        end = self.job.index('if [ "$RESULT_MODE" = dt-r1-retain ]; then', start)
+        end = self.job.index('if [[ "$RESULT_MODE" = dt-r1-retain', start)
         branch = self.job[start:end]
         self.assertEqual(self.job.count('--earlier-batch'), 1)
         self.assertIn('if [[ "$DT_R1_EARLIER_HOLDOUT" == true ]]; then', branch)
@@ -81,7 +82,7 @@ class FutureWorkflowTests(unittest.TestCase):
         self.assertIn('holdout_args+=(--earlier-batch)', branch)
 
     def test_retention_asks_for_an_independent_run_and_uses_no_private_key(self):
-        start = self.job.index('if [ "$RESULT_MODE" = dt-r1-retain ]; then')
+        start = self.job.index('if [[ "$RESULT_MODE" = dt-r1-retain')
         end = self.job.index('if [[ "$RESULT_MODE" = dt-r1-shadow', start)
         branch = self.job[start:end]
         self.assertIn('dt_r1_readback_run', branch)
@@ -98,6 +99,17 @@ class FutureWorkflowTests(unittest.TestCase):
         research = (ROOT / '.github/workflows/keirin-chatgpt-dt-r1.yml').read_text()
         self.assertIn('tests.test_keirin_dt_r1_future_shadow', research)
         self.assertIn('tests.test_keirin_dt_r1_future_readback', research)
+
+    def test_codex_producer_links_the_prior_dt_source_and_has_its_own_cipher_artifact(self):
+        start = self.job.index('if [ "$RESULT_MODE" = codex-shadow ]; then')
+        end = self.job.index('exit 0', start)
+        branch = self.job[start:end]
+        self.assertIn('scripts.keirin_dt_r1_future_shadow', branch)
+        self.assertIn('--dt-producer-run "$producer_run"', branch)
+        self.assertIn('/safe/codex-future-cipher', branch)
+        self.assertNotIn('scripts.keirin_result_watch', branch)
+        artifact = self.job.split('name: keirin-codex-future-cipher-${{ github.run_id }}', 1)[1]
+        self.assertIn('/safe/codex-future-cipher/', artifact.split('retention-days:', 1)[0])
 
 
 if __name__ == '__main__':

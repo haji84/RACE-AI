@@ -2,7 +2,7 @@
 
 ## 現在の判定
 
-**実レースの3者対戦はHOLD。** `prospective_contest.py` は、既存の比較器へ原本を渡すための受付契約である。予想producer、元資料の認証局、独立readbackジョブ、公式結果取得を新設していない。新規テストは合成原本による契約検証であり、実際の未来予想やモデルの優劣を証明しない。
+**実レースの3者対戦はHOLD。** `prospective_contest.py` は、既存の比較器へ原本を渡すための受付契約である。DT-R1とCodex独立モデルは、既存の公式資料認証、別ランナーの読戻し、Git暗号保全を共用できる。正式対戦には、A/B各50%の真正な両分布、3者の締切前原本、同じ条件で照合できる公式結果が必要。合成原本は接続と境界の検証に使う。
 
 旧v1は3者の予測時刻完全一致を引き続き要求する。任意のv2では、同じ時刻に固定した同じ入力を各モデルが処理し、実際の生成時刻が異なる場合を扱う。時計を書き換えて一致させない。過去の原本をv2未来原本へ昇格させない。
 
@@ -13,7 +13,7 @@ mainの確認基準は `837189bc2e5a54af6a02555a658a44af0d9cab58`。同commitま
 | 役割 | 確認済みnative ID | 保存実体・現在の接続 |
 | --- | --- | --- |
 | 既存統合候補 | `official-and-research-ensemble-v1` | mainの `race_ai/keirin_official_condition_trial.py:build_combined`。既存captureの暗号原本へ `combined_forecast` として保存する。参加者としての正確なartifact manifestと、所有者の指定との一致確認は未了。 |
-| Codex独立候補 | `keirin-conditional-order-trees-v1` | mainの `docs/evidence/keirin-learned-order-20261128/model.sealed.json`。既存owner鍵で復号する。公開manifestとtreeのハッシュを照合する実装がある。現在の `keirin_official_learned_replay.py` は事後専用で、未来producerは未接続。 |
+| Codex独立候補 | `keirin-conditional-order-trees-v1` | mainの `docs/evidence/keirin-learned-order-20261128/model.sealed.json`。既存owner鍵で復号する。専用の保護手動実行で締切前の生成・読戻し・保全を行う。事後の `keirin_official_learned_replay.py` は従来の検証として扱う。 |
 | ChatGPT DT-R1 | `chatgpt-dt-r1` | `evidence/20261128-resume/frozen_model.json` の内部モデルSHAは `5e022092a35c0258954090c6f3d0f8fa14f03f22511b28d6aa9183f5a38c381c`。原本・校正・契約を含む暗号化studyの保全と実owner鍵での復号検証は別工程。 |
 
 Codexの保存実体は次のハッシュで区別する。
@@ -54,13 +54,21 @@ registryへ追加する2項目は `input_snapshot_sha256` と `input_frozen_at`�
 | --- | --- | --- |
 | 共通資料の固定 | mainの `scripts/keirin_official_nationwide_continuation.py:_seal_and_archive`、既存暗号履歴 | 対象全予定、同じsource bundleと補助資料、契約pin、実時刻を3者へ供給する。資料不足は予定台帳へ残す。 |
 | 統合の推論 | `build_combined` と保存済み `combined_forecast` | 確定recipeとartifact manifestを実原本へ結ぶ。部分研究資料での再配分を契約と一致させる。 |
-| Codexの推論 | `keirin_learned_official_inputs.project`、`keirin_learned_order.load_frozen` / `predict` | 既存owner鍵で固定モデルを復元し、同じ認証済みpayloadから未来推論する薄いadapter。事後専用の `_prepare` の締切条件を偽装しない。 |
+| Codexの推論 | `keirin_learned_official_inputs.project`、`keirin_learned_order.load_frozen` / `predict` | 合成原本で既存owner復元証跡・共通資料のSHA・別候補の暗号化・T−15の独立時計を照合した。実レースの原本保全と公式採点を確認する。 |
 | DT-R1の推論 | `OfficialAdmissionAdapter` と `run_shadow_cycle` | 実際の履歴・contextを既存support verifierへ結び、同じ共通snapshotを使う。rivalの予想をDT-R1の学習や入力に混ぜない。 |
 | 原本の形式変換 | native `JointFinish`、既存 `validate_forecast` / `fixed_selection` | nativeの `order` を比較用 `cars` へ写し、三連単の全分布と同じ分布の二車単周辺分布を保存する。変換前後のSHA、native ID、実時刻を残す。 |
 | 独立readback | 既存GitHub producer/readback、`records.replay_condition_pair` 等 | 締切前に3者のモデル・共通資料・原本を別runnerで再照合し、v2 receiptの全項目へ結ぶ。結果がまだない段階で、結果を必要とする `admit_saved_pair` を代用しない。 |
 | 公式採点 | `OfficialAdmissionAdapter.result_verifier`、既存結果replay、`compare_models` | 原本の固定後に公式結果を追加。全予定と3者共通対象を別集計し、過去と未来のbootstrapを分ける。 |
 
 mainの実source処理には、repository、main ref、workflow、job、実行event、owner鍵の既存チェックがある。研究ブランチから環境変数を作ってこのguardを迂回しない。既存の保護された経路へ接続する変更とレビューが必要であり、この契約だけでproducerや秘密鍵の利用が始まることはない。
+
+## Codex独立モデルの締切前保全
+
+既存の `keirin-result-live.yml` をmainから手動実行する。`codex-shadow` に `dossier_day` と `dt_r1_producer_run` を渡す。認証済みDT-R1バッチと同じ公式アーカイブのコミット、登録原本、各レースの正規化入力を再認証する。対象日・出走者・締切を確認し、Codexの凍結木と固有の特徴量で両市場を計算する。DT-R1の予想や学習済み重みは入力に含めない。登録全体を分母に保持し、対象となるDT-R1原本がないレースは保留として記録する。
+
+Codexの暗号文は専用の成果物へ保存する。別runの `codex-readback` にCodex producerのrun IDを `dt_r1_producer_run` で渡す。GitHubが記録した元バッチ・Codex生成・独立読戻しの時計と、共通資料のSHAを照合する。`codex-retain` にCodex producerと独立読戻しのrun IDを渡す。締切15分前までに独立読戻しを終えた最初の原本を、既存の暗号化アーカイブでCodexの木のSHAごとに保全する。予想値や個人情報は暗号文に保持する。
+
+この経路の保全と、公式結果につながる3者の正式対戦は別の受入工程。共通資料と2モデルの独立原本を確認し、完全分布をもつA/B各50%の実原本が揃った時点でv2の比較に進む。
 
 ## 公式入力と復元の実接続
 
