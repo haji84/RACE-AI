@@ -113,6 +113,50 @@ if (typeof window === 'object' && typeof location === 'object') window.RaceNoteI
     return records;
   }
 
+  const confidenceBands = [[.90, "VERY_HIGH", "激アツ🔥"], [.80, "HIGH", "高"], [.60, "MEDIUM", "中"], [0, "LOW", "低"]];
+  const probability = value => Number.isFinite(value) && value >= 0 && value <= 1;
+  const percent = value => (100 * value).toFixed(1) + "%";
+  const confidenceKey = (lane, arm, points) => [lane, arm, points].join("/");
+
+  function confidenceRows(packet, day) {
+    const entries = new Map();
+    if (packet?.schema !== "RACE_AI_KEIRIN_PUBLIC_SHORTLIST_CONFIDENCE_V1" || packet.day !== day ||
+        !validClock(packet.assessed_at) || !/^[a-f0-9]{40}$/.test(packet.archive_commit) ||
+        !Array.isArray(packet.rows) || packet.rows.length > 48) return entries;
+    const dayAt = Date.parse(day + "T00:00:00Z");
+    const relative = offset => new Date(dayAt - offset * 86400000).toISOString().slice(0, 10);
+    if (JSON.stringify(packet.training_window) !== JSON.stringify([relative(10), relative(4)]) ||
+        JSON.stringify(packet.validation_window) !== JSON.stringify([relative(3), relative(1)])) return entries;
+    const counts = (row, maxDays) => row && Number.isInteger(row.n) && row.n >= 0 && row.n <= 300 * maxDays &&
+      Number.isInteger(row.hits) && row.hits >= 0 && row.hits <= row.n &&
+      Number.isInteger(row.days) && row.days >= (row.n ? 1 : 0) && row.days <= Math.min(row.n, maxDays);
+    for (const row of packet.rows) {
+      if (!["official", "reference", "racecard"].includes(row?.lane) || !["A", "B"].includes(row.arm) ||
+          !Number.isInteger(row.points) || row.points < 1 || row.points > 8 || !counts(row.fit, 7) ||
+          !counts(row.validation, 3)) return new Map();
+      const key = confidenceKey(row.lane, row.arm, row.points);
+      if (entries.has(key)) return new Map();
+      if (row.ci95 !== null && (!Array.isArray(row.ci95) || row.ci95.length !== 2 ||
+          !row.ci95.every(probability) || row.ci95[0] > row.ci95[1])) return new Map();
+      if (row.state === "GRADED") {
+        const rate = row.probability;
+        if (!probability(rate) || rate !== row.fit.hits / row.fit.n || row.fit.n < 20 || row.fit.days < 3 ||
+            row.validation.n < 30 || row.validation.days < 3 || !row.ci95) return new Map();
+        const [threshold, grade, label] = confidenceBands.find(([value]) => rate >= value);
+        const observed = row.validation.hits / row.validation.n;
+        if (row.grade !== grade || observed < threshold || Math.abs(observed - rate) > .10 ||
+            rate < row.ci95[0] || rate > row.ci95[1] ||
+            (threshold >= .8 && row.ci95[0] < threshold)) return new Map();
+        entries.set(key, { ...row, label, window: packet.validation_window });
+      } else {
+        if (typeof row.state !== "string" || !/^HOLD_CALIBRATION_[A-Z_]{1,45}$/.test(row.state) ||
+            row.probability !== null || row.grade !== null) return new Map();
+        entries.set(key, row);
+      }
+    }
+    return entries;
+  }
+
   function element(tag, className, label) {
     const result = document.createElement(tag);
     if (className) result.className = className;
@@ -129,13 +173,36 @@ if (typeof window === 'object' && typeof location === 'object') window.RaceNoteI
     return result;
   }
 
-  function ticketList(arm, tickets) {
+  function confidenceText(points, rating) {
+    if (!rating) return points + "点 · 同じ方式・点数の照合実績を収集中";
+    const { fit, validation } = rating;
+    if (rating.state === "GRADED") {
+      return "信頼度 " + rating.label + " · 的中確率 " + percent(rating.probability) + " · " + points +
+        "点。検証 " + validation.hits + " / " + validation.n + "件的中（" +
+        rating.window.map(day => day.slice(5).replace("-", "/")).join("〜") + "）";
+    }
+    const actual = validation.n ? validation.hits + " / " + validation.n + "件（" +
+      percent(validation.hits / validation.n) + "）" : "0件";
+    const reasons = {
+      HOLD_CALIBRATION_ERROR: "検証期間での差が大きい",
+      HOLD_CALIBRATION_FIT_INSUFFICIENT: "校正用の件数が不足",
+      HOLD_CALIBRATION_INSUFFICIENT: "別期間の検証件数が不足",
+      HOLD_CALIBRATION_OUT_OF_TIME_MISSING: "別期間の照合記録が不足",
+      HOLD_CALIBRATION_MODEL_PROVENANCE: "予想方式の版を照合中",
+    };
+    const fitText = fit.n ? " · 校正用 " + fit.hits + " / " + fit.n + "件" : "";
+    return points + "点 · 検証実績 " + actual + fitText + "。" +
+      (reasons[rating.state] || "信頼度の認定基準に未達");
+  }
+
+  function ticketList(arm, tickets, rating) {
     const group = element("div", "keirin-public-model");
     group.append(element("h3", "", arm));
     if (!tickets.length) {
       group.append(element("p", "", "保留"));
       return group;
     }
+    group.append(element("p", "keirin-public-clocks", confidenceText(tickets.length, rating)));
     const list = element("ol");
     list.setAttribute("aria-label", arm + "の三連単（予想順）");
     list.append(...tickets.map(ticket => element("li", "", ticket.join("–"))));
@@ -143,7 +210,7 @@ if (typeof window === 'object' && typeof location === 'object') window.RaceNoteI
     return group;
   }
 
-  function raceCard(row, day) {
+  function raceCard(row, day, ratings) {
     const venueCode = row.race_id.slice(8, 10);
     const name = (venues[venueCode] || "開催コード " + venueCode) + " " + Number(row.race_id.slice(-2)) + "R";
     const card = element("article", "keirin-public-race");
@@ -162,15 +229,20 @@ if (typeof window === 'object' && typeof location === 'object') window.RaceNoteI
     card.append(head, clocks);
     if (available) {
       const arms = element("div", "keirin-public-arms");
-      arms.append(ticketList("A", row.a), ticketList("B", row.b));
+      const lane = row.status === "saved" ? "official" : row.status === "reference" ? "reference" : "racecard";
+      for (const [arm, tickets] of [["A", row.a], ["B", row.b]]) {
+        const rating = row.status === "late-research" ? null : ratings.get(confidenceKey(lane, arm, tickets.length));
+        arms.append(ticketList(arm, tickets, rating));
+      }
       card.append(arms);
     }
     return card;
   }
 
-  function render(snapshot, referencePacket, researchPacket) {
+  function render(snapshot, referencePacket, researchPacket, confidencePacket) {
     const references = publicCandidates(referencePacket, snapshot.day, false);
     const research = publicCandidates(researchPacket, snapshot.day, true);
+    const ratings = confidenceRows(confidencePacket, snapshot.day);
     const ordered = snapshot.races.map(row => {
       if (row.status === "saved") return row;
       const supplements = [references.get(row.race_id), research.get(row.race_id)];
@@ -190,7 +262,7 @@ if (typeof window === 'object' && typeof location === 'object') window.RaceNoteI
       Date.parse(row.published_at) > Date.parse(time) ? row.published_at : time, snapshot.published_at);
     updated.replaceChildren("公開データ更新 ", clock(latest), " JST");
     updated.hidden = false;
-    races.replaceChildren(...ordered.map(row => raceCard(row, snapshot.day)));
+    races.replaceChildren(...ordered.map(row => raceCard(row, snapshot.day, ratings)));
   }
 
   async function fetchDay(lane, day, request) {
@@ -233,9 +305,10 @@ if (typeof window === 'object' && typeof location === 'object') window.RaceNoteI
         return;
       }
       const supplements = snapshot.races.some(row => row.status === "pending")
-        ? await Promise.all(["references", "research"].map(lane => fetchDay(lane, day, request).catch(() => null)))
-        : [];
-      if (currentRequest === request) render(snapshot, ...supplements);
+        ? ["references", "research"].map(lane => fetchDay(lane, day, request).catch(() => null))
+        : [null, null];
+      const packets = await Promise.all([...supplements, fetchDay("measurements", "confidence-" + day, request).catch(() => null)]);
+      if (currentRequest === request) render(snapshot, ...packets);
     } catch {
       if (currentRequest === request) status.textContent = "公開予想を取得できませんでした。再読み込みで確認できます。";
     } finally {
@@ -3928,7 +4001,7 @@ if (!globalThis.document?.body?.classList.contains("keirin-public-page")) {
       <section class="kn-history" aria-label="保存履歴を探す"><div class="kn-history-top"><label>日付を指定<input id="kn-date" type="date"></label><button type="button" data-history="all">全期間から探す</button></div><details id="kn-history-filters"><summary>期間・レース番号で絞り込む</summary><div class="kn-history-grid"><label>検索する期間<select id="kn-period"><option value="day">指定した1日</option><option value="range">期間を指定</option><option value="all">すべての保存日</option></select></label><label>レース番号<select id="kn-race-number"><option value="">すべてのレース</option>${Array.from({length:12},(_,i)=>'<option value="'+(i+1)+'">'+(i+1)+'R</option>').join('')}</select></label><label id="kn-from-label" hidden>開始日<input id="kn-from" type="date"></label><label id="kn-to-label" hidden>終了日<input id="kn-to" type="date"></label></div><div class="kn-history-shortcuts"><button type="button" data-history="latest">最新日</button><button type="button" data-history="week">直近7日</button><button type="button" id="kn-reset-search">条件をリセット</button></div></details><p id="kn-period-status" class="kn-small" role="status"></p></section>
       <nav id="kn-days" class="kn-day-tabs" aria-label="予想の日付"></nav><section id="kn-metrics" class="kn-metrics"></section>
       <details id="kn-growth" class="kn-growth" hidden><summary>成長記録</summary><div id="kn-growth-content" class="kn-growth-content"></div><div id="kn-shadow-growth"></div></details>
-      <section class="kn-tools"><div id="kn-venues" class="kn-venues" aria-label="会場"></div><div class="kn-prediction-tabs" aria-label="通常予想と転がし予想"><button type="button" data-prediction="flexible">通常予想</button><button type="button" data-prediction="rollover">転がし予想</button><button type="button" data-confidence-filter="high_plus">高以上だけ見る</button></div><div class="kn-controls"><label>券種<select id="kn-market"><option value="3t">3連単</option><option value="2t">2車単</option></select></label><label>表示する予想<select id="kn-variant"><option value="flexible">通常予想・改訂版</option><option value="original">通常予想・原版</option><option value="rollover">転がし予想</option><option value="A">参考A</option><option value="B">参考B・6局面</option><option value="C">参考Cの状況</option></select></label><label>信頼度<select id="kn-confidence"><option value="all">すべて</option><option value="high_plus">高以上（高・激アツ🔥）</option><option value="hot">激アツ🔥のみ</option><option value="high">高のみ</option><option value="medium">中のみ</option><option value="low">低のみ</option><option value="unrated">未評価のみ</option></select></label><label class="kn-search-label">検索<input id="kn-search" type="search" placeholder="会場・選手・レース名"></label></div><div class="kn-small-controls"><label><input id="kn-future" type="checkbox">これからのレース</label><label><input id="kn-selected" type="checkbox">検討リストのみ</label><span id="kn-count"></span></div><p id="kn-confidence-count" class="kn-small" aria-live="polite"></p><p class="kn-small">信頼度は保存された予想の評価です。新方式は展開と買い目の整合を評価し、的中率は未校正です。</p></section>
+      <section class="kn-tools"><div id="kn-venues" class="kn-venues" aria-label="会場"></div><div class="kn-prediction-tabs" aria-label="通常予想と転がし予想"><button type="button" data-prediction="flexible">通常予想</button><button type="button" data-prediction="rollover">転がし予想</button><button type="button" data-confidence-filter="high_plus">高以上だけ見る</button></div><div class="kn-controls"><label>券種<select id="kn-market"><option value="3t">3連単</option><option value="2t">2車単</option></select></label><label>表示する予想<select id="kn-variant"><option value="flexible">通常予想・改訂版</option><option value="original">通常予想・原版</option><option value="rollover">転がし予想</option><option value="A">参考A</option><option value="B">参考B・6局面</option><option value="C">参考Cの状況</option></select></label><label>展開評価<select id="kn-confidence"><option value="all">すべて</option><option value="high_plus">高以上（高・激アツ🔥）</option><option value="hot">激アツ🔥のみ</option><option value="high">高のみ</option><option value="medium">中のみ</option><option value="low">低のみ</option><option value="unrated">未評価のみ</option></select></label><label class="kn-search-label">検索<input id="kn-search" type="search" placeholder="会場・選手・レース名"></label></div><div class="kn-small-controls"><label><input id="kn-future" type="checkbox">これからのレース</label><label><input id="kn-selected" type="checkbox">検討リストのみ</label><span id="kn-count"></span></div><p id="kn-confidence-count" class="kn-small" aria-live="polite"></p><p class="kn-small">展開評価は保存時の展開と買い目の整合です。<a href="#keirin-public">的中確率と検証実績を見る</a></p></section>
       <section id="kn-nationwide-summary" class="kn-result kn-nationwide-summary" hidden></section><section id="kn-research-summary" class="kn-result" hidden></section><div id="kn-result-only"></div><div id="kn-races" class="kn-grid"></div>
       <details class="kn-rollover"><summary>転がし・2段階の資金配分を試算する</summary><p>受取額は払戻と返還の合計を手入力します。実購入の記録とは別の試算です。</p><div class="kn-controls"><label>初回の予算<select id="kn-roll-budget"><option>2000</option><option selected>2500</option><option>3000</option></select></label><label>1戦目の受取額<input id="kn-return-one" type="number" min="0" max="100000000" step="100" placeholder="未入力"></label><label>2戦目の受取額<input id="kn-return-two" type="number" min="0" max="100000000" step="100" placeholder="未入力"></label></div><div id="kn-roll-result"></div></details>
       <footer class="kn-footer"><p>個別分析・改訂・参考A/Bはそれぞれの保存原本を保持します。参考Cの未生成も表示します。参考モデルの重みは校正済み確率ではありません。</p><p>画面での選択と配分は購入候補です。投票・決済は行いません。データと本人用リンクの鍵は外部へ送信しません。</p><p id="kn-provenance"></p></footer></div>
@@ -4103,10 +4176,10 @@ if (!globalThis.document?.body?.classList.contains("keirin-public-page")) {
     $('kn-pagination').hidden=page.pages<=1;$('kn-page-prev').disabled=page.page<=1;$('kn-page-next').disabled=page.page>=page.pages;
     $('kn-page').value=String(page.page);$('kn-page').max=String(page.pages);$('kn-page-total').textContent='/ '+page.pages+'ページ';
     const counts=[0,0,0,0,0];for(const row of candidates)for(const prediction of displayedPredictions(row))if(prediction.tickets.length)counts[C.normalize(prediction.confidence).rank]++;
-    $('kn-confidence-count').textContent='表示条件内の保存予想：激アツ🔥 '+counts[4]+'件 / 高 '+counts[3]+'件 / 中 '+counts[2]+'件 / 低 '+counts[1]+'件 / 未評価 '+counts[0]+'件';
+    $('kn-confidence-count').textContent='表示条件内の展開評価：激アツ🔥 '+counts[4]+'件 / 高 '+counts[3]+'件 / 中 '+counts[2]+'件 / 低 '+counts[1]+'件 / 未評価 '+counts[0]+'件';
     for(const button of root.querySelectorAll('[data-prediction]'))button.setAttribute('aria-pressed',String(button.dataset.prediction==='rollover'?variant==='rollover':['original','flexible'].includes(variant)));
     root.querySelector('[data-confidence-filter]').setAttribute('aria-pressed',String(confidenceFilter==='high_plus'));
-    const empty=data?(confidenceFilter==='high_plus'||confidenceFilter==='hot'?'この条件に合う保存予想はありません。信頼度は保存時の評価を表示しています。':variant==='rollover'?'この条件の転がし候補はありません。':'条件に合うレースはありません。'):'本人用リンク、または保存データを開くと予想を表示します。';
+    const empty=data?(confidenceFilter==='high_plus'||confidenceFilter==='hot'?'この条件に合う保存予想はありません。展開評価は保存時の判定を表示しています。':variant==='rollover'?'この条件の転がし候補はありません。':'条件に合うレースはありません。'):'本人用リンク、または保存データを開くと予想を表示します。';
     $('kn-races').innerHTML=page.items.length?page.items.map(renderRace).join(''):'<div class="kn-empty">'+empty+'</div>';
     renderNationwideSummary();
     renderResearchSummary(list);
@@ -4114,10 +4187,10 @@ if (!globalThis.document?.body?.classList.contains("keirin-public-page")) {
     if(riderDetails&&$('kn-rider-details').open)renderRiderDetails(riderDetails.number);
   }
   function displayedPredictions(row){return M.displayedPredictions(row,market,variant);}
-  function confidenceBadge(prediction){const value=C.normalize(prediction.confidence);return '<span class="kn-confidence kn-confidence-'+value.rank+'" data-confidence-rank="'+value.rank+'">信頼度 '+esc(C.displayLabel(prediction.confidence))+'</span>';}
+  function confidenceBadge(prediction){const value=C.normalize(prediction.confidence);return '<span class="kn-confidence kn-confidence-'+value.rank+'" data-confidence-rank="'+value.rank+'">展開評価 '+esc(C.displayLabel(prediction.confidence))+'</span>';}
   function confidenceEvidence(prediction){
     const entry=prediction.confidenceAssessment,bundle=prediction.confidenceBundle;if(!entry||!bundle)return '';
-    return '<details class="kn-details kn-confidence-evidence"><summary>信頼度の根拠</summary><p>保存時のルール評価・的中率は未校正</p><ul>'+entry.reasons.map(reason=>'<li>'+esc(reason.message)+'</li>').join('')+'</ul><p class="kn-small">'+entry.limitations.map(esc).join('<br>')+'</p><p class="kn-small">評価 '+stamp(bundle.assessed_at)+' · ルール '+esc(bundle.rules_version)+'</p></details>';
+    return '<details class="kn-details kn-confidence-evidence"><summary>展開評価の根拠</summary><p>保存時の展開と買い目の整合を評価した記録です。</p><ul>'+entry.reasons.map(reason=>'<li>'+esc(reason.message)+'</li>').join('')+'</ul><p class="kn-small">'+entry.limitations.map(esc).join('<br>')+'</p><p class="kn-small">評価 '+stamp(bundle.assessed_at)+' · ルール '+esc(bundle.rules_version)+'</p></details>';
   }
   function lineHtml(row){
     const line=n=>Number.isInteger(n)?car(n):n&&Array.isArray(n.contest)?'<span class="kn-contest">'+n.contest.map(car).join('')+'<small>競り</small></span>':'';
