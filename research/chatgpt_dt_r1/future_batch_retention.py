@@ -182,8 +182,16 @@ def _batch_metadata(repo, head, stem, day, model_sha256, pointer):
     return manifest_sha, origin_sha, entries, eligible, manifest, origin
 
 
+def _prefetch_archive_blobs(repo, head, paths, namespace):
+    try:
+        archive.prefetch_pinned_blobs(repo, head, paths, (namespace,))
+    except archive.GitCipherArchiveError:
+        # A cache failure leaves the normal authenticated reads available.
+        pass
+
+
 def read_retained_forecasts(repo, head, day, model_sha256, slots, *,
-                            authenticate_batch=None, verify_registry=False):
+                            authenticate_batch=None, verify_registry=False, prefetch_blobs=False):
     """Check first-parent introductions and return the pinned ciphertext references."""
     _need(type(head) is str and archive.COMMIT.fullmatch(head), 'ARCHIVE_HEAD_PIN')
     _need(authenticate_batch is None or callable(authenticate_batch), 'ARCHIVE_AUTHENTICATOR')
@@ -194,6 +202,8 @@ def read_retained_forecasts(repo, head, day, model_sha256, slots, *,
         return {}
     _require_complete_history(repo, head)
     introductions = _pointer_introductions(repo, head, paths, namespace=namespace if verify_registry else None)
+    if prefetch_blobs:
+        _prefetch_archive_blobs(repo, head, set(introductions), namespace)
     pointers, introduced_files = {}, {}
     for path, commit in introductions.items():
         slot = paths[path]
@@ -212,6 +222,9 @@ def read_retained_forecasts(repo, head, day, model_sha256, slots, *,
         pointers[slot] = pointer
     for commit, files in introduced_files.items():
         _check_introduction(repo, head, commit, files)
+    if prefetch_blobs:
+        batch_paths = set().union(*introduced_files.values()).difference(introductions)
+        _prefetch_archive_blobs(repo, head, batch_paths, f'{prefix}/batches')
 
     batches, forecasts = {}, {}
     for slot, pointer in pointers.items():

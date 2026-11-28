@@ -143,6 +143,37 @@ class FutureBatchRetentionTests(unittest.TestCase):
             self.assertEqual(saved[SLOT]['entry']['slot_sha256'], SLOT)
             self.assertEqual(saved[SLOT]['cipher_path'], batch_path('456', SLOT + '.sealed.json'))
 
+            for failed in (False, True):
+                with self.subTest(failed=failed):
+                    events = []
+                    read_blob = archive.read_blob_bytes
+
+                    def read(repo, commit, path, **kwargs):
+                        events.append(('read', path))
+                        return read_blob(repo, commit, path, **kwargs)
+
+                    def prefetch(repo, commit, paths, prefixes):
+                        self.assertEqual((repo, commit), (self.other, head))
+                        events.append(('prefetch', prefixes, set(paths)))
+                        if failed:
+                            raise archive.GitCipherArchiveError('PREFETCH_FIXTURE_FAILURE')
+
+                    authenticated.clear()
+                    with (patch.object(archive, 'prefetch_pinned_blobs', side_effect=prefetch),
+                          patch.object(archive, 'read_blob_bytes', side_effect=read)):
+                        replayed = retention.read_retained_forecasts(self.other, head, DAY, shadow.MODEL_SHA,
+                            [SLOT, SLOT_2], authenticate_batch=lambda *args: authenticated.append(args),
+                            prefetch_blobs=True)
+                    self.assertEqual(events[:3], [
+                        ('prefetch', (STEM + '/first-slots',), {POINTER}),
+                        ('read', POINTER),
+                        ('prefetch', (STEM + '/batches',), {
+                            batch_path('456', name) for name in ('manifest.json', 'readback.json', SLOT + '.sealed.json')
+                        }),
+                    ])
+                    self.assertEqual(replayed, saved)
+                    self.assertEqual(authenticated, [(manifest, origin, verified['manifest_sha256'])])
+
     def test_day_replay_detects_a_removed_registry_slot_even_if_its_pointer_was_deleted(self):
         with self.verified_batch() as (verified, origin):
             self.append(verified, origin)

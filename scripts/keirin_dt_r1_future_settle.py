@@ -487,7 +487,7 @@ def _prepare_codex_pair(*, work, current, private, repo, client, slots, dt_selec
     with _stage('CODEX_RETENTION_AUTHENTICATION_FAILED'):
         retained = batch_retention.read_retained_forecasts(work, current.head, current.day, model['model_sha256'],
             slots, authenticate_batch=partial(reader.verify_saved_batch, client=client, codex=True),
-            verify_registry=True)
+            verify_registry=True, prefetch_blobs=True)
     trained = None
     if retained:
         with _stage('CODEX_FROZEN_MODEL_UNVERIFIED'):
@@ -533,7 +533,8 @@ def _score_archived_day(work, current, private, trained, venues, client, now, le
         race_set = set(races)
     with _stage('RETENTION_AUTHENTICATION_FAILED'):
         additional = batch_retention.read_retained_forecasts(work, current.head, day, shadow.MODEL_SHA, slots,
-            authenticate_batch=partial(reader.verify_saved_batch, client=client), verify_registry=True)
+            authenticate_batch=partial(reader.verify_saved_batch, client=client), verify_registry=True,
+            prefetch_blobs=True)
     selected, legacy_late = {}, {}
     if legacy:
         verified, origin = legacy
