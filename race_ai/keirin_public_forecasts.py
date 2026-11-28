@@ -18,7 +18,8 @@ REFERENCE_SCHEMA = 'RACE_AI_KEIRIN_PUBLIC_REFERENCE_FORECASTS_V1'
 RESEARCH_SCHEMA = 'RACE_AI_KEIRIN_PUBLIC_RESULT_UNREAD_AB_V1'
 REF = 'state/keirin-public-forecasts'
 PATH = re.compile(r'(?:(?:forecasts|references|research|updates|details|odds|operations|starters|rider-history|rider-context|rider-context-secondary|rank-distributions|rider-conditions|rider-condition-results|rider-condition-archive|measurements)/'
-                  r'20[0-9]{2}-[0-9]{2}-[0-9]{2}\.json|(?:rider-history|measurements)/latest\.json)')
+                  r'20[0-9]{2}-[0-9]{2}-[0-9]{2}\.json|(?:rider-history|measurements)/latest\.json|'
+                  r'measurements/confidence-20[0-9]{2}-[0-9]{2}-[0-9]{2}\.json)')
 LIMIT = 8
 MAX_BYTES = 512 * 1024
 

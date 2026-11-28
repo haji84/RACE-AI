@@ -112,6 +112,50 @@
     return records;
   }
 
+  const confidenceBands = [[.90, "VERY_HIGH", "激アツ🔥"], [.80, "HIGH", "高"], [.60, "MEDIUM", "中"], [0, "LOW", "低"]];
+  const probability = value => Number.isFinite(value) && value >= 0 && value <= 1;
+  const percent = value => (100 * value).toFixed(1) + "%";
+  const confidenceKey = (lane, arm, points) => [lane, arm, points].join("/");
+
+  function confidenceRows(packet, day) {
+    const entries = new Map();
+    if (packet?.schema !== "RACE_AI_KEIRIN_PUBLIC_SHORTLIST_CONFIDENCE_V1" || packet.day !== day ||
+        !validClock(packet.assessed_at) || !/^[a-f0-9]{40}$/.test(packet.archive_commit) ||
+        !Array.isArray(packet.rows) || packet.rows.length > 48) return entries;
+    const dayAt = Date.parse(day + "T00:00:00Z");
+    const relative = offset => new Date(dayAt - offset * 86400000).toISOString().slice(0, 10);
+    if (JSON.stringify(packet.training_window) !== JSON.stringify([relative(10), relative(4)]) ||
+        JSON.stringify(packet.validation_window) !== JSON.stringify([relative(3), relative(1)])) return entries;
+    const counts = (row, maxDays) => row && Number.isInteger(row.n) && row.n >= 0 && row.n <= 300 * maxDays &&
+      Number.isInteger(row.hits) && row.hits >= 0 && row.hits <= row.n &&
+      Number.isInteger(row.days) && row.days >= (row.n ? 1 : 0) && row.days <= Math.min(row.n, maxDays);
+    for (const row of packet.rows) {
+      if (!["official", "reference", "racecard"].includes(row?.lane) || !["A", "B"].includes(row.arm) ||
+          !Number.isInteger(row.points) || row.points < 1 || row.points > 8 || !counts(row.fit, 7) ||
+          !counts(row.validation, 3)) return new Map();
+      const key = confidenceKey(row.lane, row.arm, row.points);
+      if (entries.has(key)) return new Map();
+      if (row.ci95 !== null && (!Array.isArray(row.ci95) || row.ci95.length !== 2 ||
+          !row.ci95.every(probability) || row.ci95[0] > row.ci95[1])) return new Map();
+      if (row.state === "GRADED") {
+        const rate = row.probability;
+        if (!probability(rate) || rate !== row.fit.hits / row.fit.n || row.fit.n < 20 || row.fit.days < 3 ||
+            row.validation.n < 30 || row.validation.days < 3 || !row.ci95) return new Map();
+        const [threshold, grade, label] = confidenceBands.find(([value]) => rate >= value);
+        const observed = row.validation.hits / row.validation.n;
+        if (row.grade !== grade || observed < threshold || Math.abs(observed - rate) > .10 ||
+            rate < row.ci95[0] || rate > row.ci95[1] ||
+            (threshold >= .8 && row.ci95[0] < threshold)) return new Map();
+        entries.set(key, { ...row, label, window: packet.validation_window });
+      } else {
+        if (typeof row.state !== "string" || !/^HOLD_CALIBRATION_[A-Z_]{1,45}$/.test(row.state) ||
+            row.probability !== null || row.grade !== null) return new Map();
+        entries.set(key, row);
+      }
+    }
+    return entries;
+  }
+
   function element(tag, className, label) {
     const result = document.createElement(tag);
     if (className) result.className = className;
@@ -128,13 +172,29 @@
     return result;
   }
 
-  function ticketList(arm, tickets) {
+  function confidenceText(points, rating) {
+    if (!rating) return points + "点 · 同じ方式・点数の照合実績を収集中";
+    const { fit, validation } = rating;
+    if (rating.state === "GRADED") {
+      return "信頼度 " + rating.label + " · 的中確率 " + percent(rating.probability) + " · " + points +
+        "点。検証 " + validation.hits + " / " + validation.n + "件的中（" +
+        rating.window.map(day => day.slice(5).replace("-", "/")).join("〜") + "）";
+    }
+    const n = fit.n + validation.n, hits = fit.hits + validation.hits;
+    const history = n ? "過去の的中 " + hits + " / " + n + "件（" + percent(hits / n) + "）" : "過去の照合0件";
+    const reason = rating.state === "HOLD_CALIBRATION_MODEL_PROVENANCE" ? "。予想方式の版を照合中" :
+      "。検証 " + validation.n + "件・" + validation.days + "日で確認中";
+    return points + "点 · " + history + reason;
+  }
+
+  function ticketList(arm, tickets, rating) {
     const group = element("div", "keirin-public-model");
     group.append(element("h3", "", arm));
     if (!tickets.length) {
       group.append(element("p", "", "保留"));
       return group;
     }
+    group.append(element("p", "keirin-public-clocks", confidenceText(tickets.length, rating)));
     const list = element("ol");
     list.setAttribute("aria-label", arm + "の三連単（予想順）");
     list.append(...tickets.map(ticket => element("li", "", ticket.join("–"))));
@@ -142,7 +202,7 @@
     return group;
   }
 
-  function raceCard(row, day) {
+  function raceCard(row, day, ratings) {
     const venueCode = row.race_id.slice(8, 10);
     const name = (venues[venueCode] || "開催コード " + venueCode) + " " + Number(row.race_id.slice(-2)) + "R";
     const card = element("article", "keirin-public-race");
@@ -161,15 +221,20 @@
     card.append(head, clocks);
     if (available) {
       const arms = element("div", "keirin-public-arms");
-      arms.append(ticketList("A", row.a), ticketList("B", row.b));
+      const lane = row.status === "saved" ? "official" : row.status === "reference" ? "reference" : "racecard";
+      for (const [arm, tickets] of [["A", row.a], ["B", row.b]]) {
+        const rating = row.status === "late-research" ? null : ratings.get(confidenceKey(lane, arm, tickets.length));
+        arms.append(ticketList(arm, tickets, rating));
+      }
       card.append(arms);
     }
     return card;
   }
 
-  function render(snapshot, referencePacket, researchPacket) {
+  function render(snapshot, referencePacket, researchPacket, confidencePacket) {
     const references = publicCandidates(referencePacket, snapshot.day, false);
     const research = publicCandidates(researchPacket, snapshot.day, true);
+    const ratings = confidenceRows(confidencePacket, snapshot.day);
     const ordered = snapshot.races.map(row => {
       if (row.status === "saved") return row;
       const supplements = [references.get(row.race_id), research.get(row.race_id)];
@@ -189,7 +254,7 @@
       Date.parse(row.published_at) > Date.parse(time) ? row.published_at : time, snapshot.published_at);
     updated.replaceChildren("公開データ更新 ", clock(latest), " JST");
     updated.hidden = false;
-    races.replaceChildren(...ordered.map(row => raceCard(row, snapshot.day)));
+    races.replaceChildren(...ordered.map(row => raceCard(row, snapshot.day, ratings)));
   }
 
   async function fetchDay(lane, day, request) {
@@ -232,9 +297,10 @@
         return;
       }
       const supplements = snapshot.races.some(row => row.status === "pending")
-        ? await Promise.all(["references", "research"].map(lane => fetchDay(lane, day, request).catch(() => null)))
-        : [];
-      if (currentRequest === request) render(snapshot, ...supplements);
+        ? ["references", "research"].map(lane => fetchDay(lane, day, request).catch(() => null))
+        : [null, null];
+      const packets = await Promise.all([...supplements, fetchDay("measurements", "confidence-" + day, request).catch(() => null)]);
+      if (currentRequest === request) render(snapshot, ...packets);
     } catch {
       if (currentRequest === request) status.textContent = "公開予想を取得できませんでした。再読み込みで確認できます。";
     } finally {

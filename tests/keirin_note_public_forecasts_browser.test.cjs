@@ -22,7 +22,8 @@ const PAST = '2026-11-25';
 const MISSING = '2026-11-24';
 const INVALID = '2026-11-23';
 const A = [[1, 2, 3], [1, 3, 2], [2, 1, 3], [2, 3, 1], [3, 1, 2], [3, 2, 1], [1, 4, 3], [1, 3, 4]];
-const dayCalls = day => ['forecasts', 'references', 'research'].map(lane => BASE + lane + '/' + day + '.json');
+const dayCalls = day => ['forecasts', 'references', 'research'].map(lane => BASE + lane + '/' + day + '.json')
+  .concat(BASE + 'measurements/confidence-' + day + '.json');
 
 function snapshot(day) {
   const raceDay = day.replaceAll('-', '');
@@ -193,5 +194,33 @@ describe('KEIRIN anonymous forecast page', { skip: !chromium }, () => {
     assert.match(await research.innerText(), /出走表の参考[\s\S]*7.6.5[\s\S]*B[\s\S]*保留/);
     assert.equal(await page.getByText('久留米 4R', { exact: true }).count(), 0);
     assert.match(await page.locator('article').filter({ hasText: '久留米 6R' }).innerText(), /未掲載[\s\S]*21:35/);
+  });
+
+  test('shows calibrated confidence and exact supporting counts for the matching model and points', async t => {
+    const serve = snapshot;
+    serve.supplement = (lane) => lane !== 'measurements' ? null : {
+      schema: 'RACE_AI_KEIRIN_PUBLIC_SHORTLIST_CONFIDENCE_V1',
+      day: TODAY,
+      assessed_at: TODAY + 'T10:00:00+09:00',
+      archive_commit: 'b'.repeat(40),
+      training_window: ['2026-11-16', '2026-11-22'],
+      validation_window: ['2026-11-23', '2026-11-25'],
+      rows: [
+        { lane: 'official', arm: 'A', points: 8, state: 'GRADED', probability: .35, grade: 'LOW',
+          fit: { hits: 14, n: 40, days: 4 }, validation: { hits: 30, n: 80, days: 3 }, ci95: [.2769, .4845] },
+        { lane: 'official', arm: 'B', points: 8, state: 'HOLD_CALIBRATION_INSUFFICIENT', probability: null, grade: null,
+          fit: { hits: 4, n: 22, days: 3 }, validation: { hits: 4, n: 16, days: 2 }, ci95: [.1018, .4950] }
+      ],
+    };
+    try {
+      const { page } = await open(t, '#keirin-public', serve);
+      const official = page.locator('article').filter({ hasText: '西武園 1R' });
+      await official.getByText(/的中確率\s*35\.0%/).waitFor();
+      assert.match(await official.innerText(), /信頼度\s*低[\s\S]*8点[\s\S]*30\s*\/\s*80/);
+      assert.match(await official.innerText(), /B[\s\S]*8点[\s\S]*検証[\s\S]*16件/);
+      assert.doesNotMatch(await official.innerText(), /未校正|不明/);
+    } finally {
+      delete serve.supplement;
+    }
   });
 });
