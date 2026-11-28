@@ -8,3 +8,8 @@
 - [固定state](https://github.com/haji84/RACE-AI/tree/ad17c6edccaa2dc05497fc99c7c653a08fd37cf2/research/chatgpt-dt-r1/future/20261128/5e022092a35c0258954090c6f3d0f8fa14f03f22511b28d6aa9183f5a38c381c) から17暗号原本とmanifestの実バイトを取得し、first pinの18 SHA-256とbyte数に全一致。1,476,673 bytes。first pin SHAも固定した。
 - [producer](https://github.com/haji84/RACE-AI/actions/runs/46082459814) 78登録、17生成・暗号保存、38原本不足・23source確認不足。[独立reader](https://github.com/haji84/RACE-AI/actions/runs/46083220254) 17読戻し、別runnerの実完了08:36:34 JST。締切15分前の計算では16候補、08:47締切の1件は除外（期限08:32）。この確認はログ/メタデータ/保存manifestの照合であり、既存の全artifact認証verifierをこのターン実行したとは扱わない。
 - `future_retention_gate.py` を追加し既存 `verified_producer` / `verify_readback` へfirst pinと保存実バイトの一致を接続。合成テスト1本（正常1＋改変等拒否5）成功。正式な運用callerは固定archive commitのlineage確認・保護済みowner復号・公式原本/結果replayへ接続すること。このPRはそのcaller、実際の採点、実運用CI成功や3者対戦の代用ではない。
+
+
+## 採点callerの追加（研究PR、運用未実証）
+- 固定初回batchのみの `scripts/keirin_dt_r1_future_settle.py` を追加。外部固定first pin、保存時と現stateの同一バイト、Git lineage、認証済みproducer/reader artifact、実owner復号、固定462列の入力再現と凍結モデルの分布一致を要求する。全候補の再検証が終了するまで結果を開かない。既存official result replayの最新改訂を使用し、失敗時に旧改訂へ戻らない。全78登録を残し、結果未取得・同着・予測不足を区別して固定K成績を出す。動画取得、再学習、新規予測、provider GET、state書換え、払戻評価、本番昇格は行わない。
+- 既存main限定手動observe-resultsの `dt-r1-settle` モードをDraft内に接続。既存のowner keyと権限を維持、スケジュール変更なし。CI/独立レビュー/main保護マージ/実owner実行/公式採点は別の受入条件。今回は実際の3者対戦や未来改善とは数えない。

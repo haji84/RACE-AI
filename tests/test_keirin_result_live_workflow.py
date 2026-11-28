@@ -86,7 +86,7 @@ class LiveWorkflowTests(unittest.TestCase):
     def test_dossier_update_reuses_scheduled_result_run_or_source_free_dispatch(self):
         text = self.text()
         job = text.split('  publish-rider-dossiers:\n', 1)[1].split('  measured-results:\n', 1)[0]
-        self.assertIn('options: [test, saved-only, observe, rider-dossiers, dossier-context, measure-results, combined-study, learned-replay, dt-r1-restore, dt-r1-shadow, dt-r1-readback]', text)
+        self.assertIn('options: [test, saved-only, observe, rider-dossiers, dossier-context, measure-results, combined-study, learned-replay, dt-r1-restore, dt-r1-shadow, dt-r1-readback, dt-r1-settle]', text)
         self.assertIn('needs: [tests, observe-results]', job)
         self.assertIn('scripts.keirin_daily_rider_update', job)
         self.assertNotIn('scripts.keirin_result_watch', job)
