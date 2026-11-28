@@ -1,7 +1,7 @@
 from datetime import datetime
 import json
 import unittest
-from unittest.mock import Mock
+from unittest.mock import Mock, patch
 
 from race_ai import keirin_public_forecasts as public
 from scripts import keirin_publish_meeting_rosters as publication
@@ -49,6 +49,17 @@ class MeetingRosterPublicationTests(unittest.TestCase):
         report = publication.refresh(None,DAY,now=datetime.fromisoformat(AT),collect=collect,store=storage)
         self.assertEqual(report['state'],'ROSTERS_ALREADY_PUBLISHED')
         collect.assert_not_called()
+
+    def test_today_rosters_can_publish_before_the_forecast_registry(self):
+        storage = PublicStore()
+        publication.publish(storage,[],directory())
+        collect = Mock(return_value=reference())
+        with patch.object(publication.stops,'read_for_observed_day',return_value=None):
+            report = publication.refresh(None,DAY,now=datetime.fromisoformat(AT),collect=collect,store=storage)
+            repeated = publication.refresh(None,DAY,now=datetime.fromisoformat(AT),collect=collect,store=storage)
+        self.assertEqual(report['state'],'PUBLISHED_ROSTERS')
+        self.assertEqual(repeated['state'],'ROSTERS_ALREADY_PUBLISHED')
+        collect.assert_called_once_with(DAY)
 
     def test_source_race_must_have_the_same_day_and_venue_as_the_page(self):
         packet = reference()

@@ -163,9 +163,9 @@ def refresh(repo, day, *, now=None, collect=source.collect_day, store=None):
     store.fetch(head)
     registry = store.read_previous(head, f'forecasts/{day}.json')
     directory = store.read_previous(head, DIRECTORY_PATH)
-    if registry is None or directory is None:
-        return {'state':'WAITING_FOR_PUBLISHED_REGISTRY', 'day':day}
-    registered = {row['race_id'] for row in public.checked(public._json(registry))['races']}
+    if directory is None:
+        return {'state':'WAITING_FOR_IDENTITY_DIRECTORY', 'day':day}
+    registered = {row['race_id'] for row in public.checked(public._json(registry))['races']} if registry else set()
     prior = store.read_previous(head, _path(day))
     if prior is not None:
         packet = checked_packet(public._json(prior))
