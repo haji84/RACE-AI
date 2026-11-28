@@ -116,6 +116,23 @@ class FutureSettlementTests(unittest.TestCase):
         self.assertEqual(row['result_hold_reason'], 'RESULT_REVISION_ORDER_UNVERIFIED')
         replay.assert_not_called()
 
+    def test_official_precutoff_cancellation_is_neutral_but_early_finish_is_held(self):
+        rid = RACES[0]
+        original = {'cutoff_at': DAY + 'T03:00:00Z'}
+        revision = {'observed_at': DAY + 'T02:55:00Z'}
+        store = SimpleNamespace(day=DAY, index=dict(originals={rid: original}, results={rid: [revision]}))
+        final = dict(race_id=rid, official_cutoff_at=original['cutoff_at'],
+                     observed_at=DAY + 'T02:50:00Z')
+        for status, refund, expected in (
+            ('CANCELLED', 'FULL', 'OFFICIAL_CANCELLED'),
+            ('FINAL_NORMAL', 'NONE', 'RESULT_REPLAY_UNVERIFIED'),
+        ):
+            with self.subTest(status=status), patch.object(settle.records, '_replay_saved_result',
+                    return_value=(None, {'official_result': dict(final, status=status, refund_status=refund)}, None)):
+                row = settle._result_row(store, rid, b'', original, settle.clock(DAY + 'T02:59:00Z'))
+            self.assertEqual(row['result_status'], expected)
+            self.assertNotIn('top3', row)
+
     def test_pending_result_does_not_become_miss(self):
         report = settle._score_registered(RACES, DAY, self.entries(), [], self.late_slots(),
             lambda e,r: self.fail('late forecast opened'),
@@ -161,10 +178,12 @@ class FutureSettlementTests(unittest.TestCase):
         additional = {later_slot: dict(entry=later_manifest['entries'][1], manifest=later_manifest,
                                        cipher_path='verified/later.sealed.json')}
         events = []
-        def forecast_replay(entry, raw, manifest, source, rid, *args, history_sources):
+        def forecast_replay(entry, raw, manifest, source, rid, *args, history_sources, history_controls):
             events.append(('forecast', rid, source.head))
             self.assertEqual(raw, b'first' if rid == legacy_rid else b'later')
             self.assertEqual(history_sources, {})
+            if rid == later_rid:
+                history_controls[rid] = forecast(rid)
             return forecast(rid)
         def result_replay(source, rid, key, original_meta, now):
             events.append(('result', rid, source.head))
@@ -193,6 +212,11 @@ class FutureSettlementTests(unittest.TestCase):
         self.assertEqual(report['registered_races'], 4)
         self.assertEqual(report['owner_originals_replayed'], 2)
         self.assertEqual(report['metrics']['predicted_evaluable'], 2)
+        paired = report['metrics']['paired_history']
+        self.assertEqual((paired['registered_day'], paired['retained_pairs']), (4, 1))
+        self.assertEqual(paired['official_history']['predicted_evaluable'], 1)
+        self.assertEqual(paired['no_history']['predicted_evaluable'], 1)
+        self.assertNotIn('proper_scores', paired['no_history'])
         self.assertFalse(report['day_inventory_complete'])
         self.assertEqual(report['missing_venues'], 1)
         self.assertEqual(report['timed_originals'], {'legacy': 1, 'additional': 1})

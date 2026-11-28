@@ -34,6 +34,13 @@ replays through its original empty-history path. The report's `history_races`
 counts the number of prior race records used across sealed forecasts, including
 reuses. The `result_reads` counter refers to target-day results and remains zero.
 
+For a matched history study the protected producer also runs the same frozen
+model without prior history before sealing. The encrypted material includes the
+matched ranks, input hash, and exact market-distribution hash. Settlement
+recomputes both sides from the same snapshot and clock before opening any
+target outcome. Its paired report uses fixed points and the same admissible
+race set on both sides, and preserves the independently timed day denominator.
+
 Each usable original must pass the existing `records.admit_original` with the
 real `GitHubEvidenceClient`. `official_inputs.prepare` then requires a second
 re-admission and an exact digest comparison of its private source/normalized
