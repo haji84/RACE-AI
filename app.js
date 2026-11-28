@@ -28,6 +28,7 @@ if (typeof window === 'object' && typeof location === 'object') window.RaceNoteI
   const races = byId("keirin-public-races");
   const base = "https://raw.githubusercontent.com/haji84/RACE-AI/state/keirin-public-forecasts/";
   const resultsBase = "https://raw.githubusercontent.com/haji84/RACE-AI/state/keirin-public-results/";
+  const unpublished = "この日の公開予想は掲載されていません。";
   const scoreboard = element("section", "keirin-public-summary");
   scoreboard.id = "keirin-public-scoreboard";
   scoreboard.setAttribute("aria-label", "結果照合とモデル別的中率");
@@ -610,18 +611,20 @@ if (typeof window === 'object' && typeof location === 'object') window.RaceNoteI
 
   async function loadDossier(row, day, request) {
     const read = (lane, date = day) => fetchDay(lane, date, request).catch(() => null);
-    const sources = { starters: "starters", official: "rider-context", secondary: "rider-context-secondary",
-      conditions: "rider-conditions", rank: "rank-distributions", details: "details" };
+    const sources = { starters: ["starters"], official: ["rider-context"], secondary: ["rider-context-secondary"],
+      conditions: ["rider-conditions"], rank: ["rank-distributions"], details: ["details"], archive: ["rider-history", "archive"] };
     let packets = dossierCache?.day === day && Date.now() - dossierCache.at < 60000 ? dossierCache.packets : null;
     if (!packets) {
-      packets = Object.fromEntries(await Promise.all(Object.entries(sources).map(async ([key, lane]) => [key, await read(lane)])));
+      packets = Object.fromEntries(await Promise.all(Object.entries(sources).map(async ([key, source]) =>
+        [key, await read(...source)])));
       if (!request.signal.aborted) dossierCache = { day, at: Date.now(), packets };
     }
     const checked = globalThis.RaceKeirinDossierData.prepare;
     const input = { raceId: row.race_id, cutoffAt: row.cutoff_at,
       publishedForecast: row.status === "saved" ? { savedAt: row.saved_at, b: row.b } : null, packets };
     const initial = checked(input);
-    if (initial?.riders.some(rider => !rider.recent.length) && !packets.recentDays && !request.signal.aborted) {
+    const needsDaily = initial.riders.some(rider => rider.history || !rider.recent.length);
+    if (needsDaily && !packets.recentDays && !request.signal.aborted) {
       const midnight = Date.parse(day + "T00:00:00Z");
       packets.recentDays = await Promise.all(Array.from({ length: 7 }, (_, i) =>
         read("rider-history", new Date(midnight - (i + 1) * 86400000).toISOString().slice(0, 10))));
@@ -646,7 +649,7 @@ if (typeof window === 'object' && typeof location === 'object') window.RaceNoteI
     const dtRows = dtShortlists(dtPacket.value, day);
     if (!snapshot && !dtRows.size) {
       return forecast.status === "rejected" ? "公開予想を取得できませんでした。再読み込みで確認できます。" :
-        forecast.value === undefined ? "この日の公開予想は掲載されていません。" : "公開データの形式を確認できません。";
+        forecast.value === undefined ? unpublished : "公開データの形式を確認できません。";
     }
     const supplements = snapshot?.races.some(row => row.status === "pending")
       ? ["references", "research"].map(lane => fetchDay(lane, day, request).catch(() => null))
@@ -680,7 +683,7 @@ if (typeof window === 'object' && typeof location === 'object') window.RaceNoteI
     }
   }
 
-  async function load() {
+  async function load(showRecent = false) {
     currentRequest?.abort();
     currentRequest = null;
     resultRequest?.abort();
@@ -705,6 +708,20 @@ if (typeof window === 'object' && typeof location === 'object') window.RaceNoteI
     const timeout = setTimeout(() => request.abort(), 15000);
     try {
       const message = await loadDay(day, request);
+      if (showRecent && message === unpublished && currentRequest === request && !request.signal.aborted) {
+        const midnight = Date.parse(day + "T00:00:00Z");
+        for (let offset = 1; offset <= 7; offset++) {
+          const previous = new Date(midnight - offset * 86400000).toISOString().slice(0, 10);
+          const previousMessage = await loadDay(previous, request);
+          if (currentRequest !== request || request.signal.aborted) return;
+          if (activeDay?.day === previous && activeDay.ordered.length) {
+            dayInput.value = previous;
+            status.prepend(day + "分は掲載待ちです。" + previous + "分を表示しています。 ");
+            return;
+          }
+          if (previousMessage && previousMessage !== unpublished) break;
+        }
+      }
       if (message && currentRequest === request) status.textContent = message;
     } catch {
       if (currentRequest === request) status.textContent = "公開予想を取得できませんでした。再読み込みで確認できます。";
@@ -721,11 +738,18 @@ if (typeof window === 'object' && typeof location === 'object') window.RaceNoteI
   const requestedDay = requestedRace.replace(/^(\d{4})(\d{2})(\d{2})\d{4}$/, "$1-$2-$3");
   const openRequested = validDay(requestedDay) && requestedDay <= jstToday() &&
     validRaceId(requestedRace, requestedDay.replaceAll("-", ""), new Set());
-  dayInput.value = openRequested ? requestedDay : jstToday();
-  dayInput.addEventListener("change", load);
-  byId("keirin-public-refresh").addEventListener("click", load);
+  let followToday = !openRequested;
+  dayInput.value = followToday ? jstToday() : requestedDay;
+  dayInput.addEventListener("change", () => {
+    followToday = false;
+    load();
+  });
+  byId("keirin-public-refresh").addEventListener("click", () => {
+    if (followToday) dayInput.value = jstToday();
+    load(followToday);
+  });
   window.setInterval(refreshResults, 60_000);
-  load().then(() => {
+  load(followToday).then(() => {
     if (!openRequested || dayInput.value !== requestedDay) return;
     const row = activeDay?.ordered.find(item => item.race_id === requestedRace) || { race_id: requestedRace, cutoff_at: null };
     openPublicDossier(row, requestedDay, races.querySelector('[data-keirin-dossier="' + requestedRace + '"]'));
@@ -4389,6 +4413,7 @@ if (!globalThis.document?.body?.classList.contains("keirin-public-page")) {
     official: 'RACE_AI_KEIRIN_PUBLIC_DOSSIER_CONTEXT_V1',
     secondary: 'RACE_AI_KEIRIN_PUBLIC_DOSSIER_SECONDARY_V1',
     conditions: 'RACE_AI_KEIRIN_PUBLIC_DOSSIER_CONDITIONS_V1',
+    archive: 'RACE_AI_KEIRIN_PUBLIC_RIDER_HISTORY_ARCHIVE_V1',
     rank: 'RACE_AI_KEIRIN_PUBLIC_RANK_DISTRIBUTION_V1',
     details: 'RACE_AI_KEIRIN_PUBLIC_FORECAST_DETAILS_V1',
   };
@@ -4587,6 +4612,78 @@ if (!globalThis.document?.body?.classList.contains("keirin-public-page")) {
     return [...exactDays.values()].sort((a,b) => b.day.localeCompare(a.day)).slice(0, 7);
   }
 
+  function recentForm(rows, day) {
+    const start = new Date(Date.parse(day) - 30 * 86400000).toISOString().slice(0, 10);
+    const sample = rows.filter(row => row.day >= start);
+    if (!sample.length) return null;
+    const denominator = sum(sample.map(row => row.rank ? 1 : sum(row.counts)));
+    const numerator = sum(sample.map(row => row.rank ? Number(row.rank <= 3) : sum(row.counts.slice(0, 3))));
+    return {numerator, denominator, startDay:sample.at(-1).day, endDay:sample[0].day};
+  }
+
+  function archiveForDay(packet, day) {
+    if (packet?.schema !== schemas.archive || !validDay(packet.start_day) || !validDay(packet.end_day) ||
+        packet.start_day > packet.end_day || packet.end_day >= day || !Array.isArray(packet.source_sha256s) ||
+        packet.source_sha256s.length < 1 || packet.source_sha256s.length > 100 || !packet.source_sha256s.every(sha256) ||
+        !Number.isSafeInteger(packet.numeric_finishes) || packet.numeric_finishes < 1 ||
+        !Array.isArray(packet.riders) || packet.riders.length > 5000) return null;
+    const venueStartDay = packet.venue_start_day ?? packet.start_day;
+    const venueEndDay = packet.venue_end_day ?? packet.end_day;
+    if (!validDay(venueStartDay) || !validDay(venueEndDay) || venueStartDay < packet.start_day ||
+        venueStartDay > venueEndDay || venueEndDay > packet.end_day) return null;
+    const first = packet.observations_start_day, last = packet.observations_end_day;
+    const observations = validDay(first) && validDay(last) && packet.start_day <= first &&
+      first <= last && last <= packet.end_day ? {startDay:first, endDay:last} : null;
+    const riders = new Map();
+    let finishes = 0;
+    for (const rider of packet.riders) {
+      if (!registration(rider?.registration) || riders.has(rider.registration) || !Array.isArray(rider.counts) ||
+          rider.counts.length !== 9 || rider.counts.some(n => !Number.isSafeInteger(n) || n < 0) ||
+          !rider.venues || typeof rider.venues !== 'object' || Array.isArray(rider.venues)) return null;
+      const total = sum(rider.counts);
+      if (total < 1 || total > packet.numeric_finishes) return null;
+      let venueStarts = 0;
+      for (const [code, row] of Object.entries(rider.venues)) {
+        if (!/^[1-9]\d$/.test(code) || !Array.isArray(row) || row.length !== 2 ||
+            !row.every(Number.isSafeInteger) || row[0] < 0 || row[1] < 1 || row[0] > row[1]) return null;
+        venueStarts += row[1];
+      }
+      if (venueStarts > total) return null;
+      finishes += total;
+      riders.set(rider.registration, rider);
+    }
+    if (finishes !== packet.numeric_finishes) return null;
+    return {riders, startDay:packet.start_day, endDay:packet.end_day, venueStartDay, venueEndDay, observations};
+  }
+
+  function collectedHistory(archive, days, registrationId, venueCode) {
+    const rider = archive?.riders.get(registrationId);
+    const counts = rider ? rider.counts.slice() : Array(9).fill(0);
+    let startDay = rider ? archive.startDay : null, endDay = rider ? archive.endDay : null;
+    for (const [date, registers] of days) {
+      if (archive && date <= archive.endDay) continue;
+      const observed = registers?.get(registrationId);
+      if (!observed) continue;
+      observed.forEach((n, i) => { counts[i] += n; });
+      if (startDay === null || date < startDay) startDay = date;
+      if (endDay === null || date > endDay) endDay = date;
+    }
+    const venue = rider?.venues[venueCode];
+    const [runs, peers, score] = Array.isArray(rider?.agari) ? rider.agari : [];
+    const observed = archive?.observations;
+    const agari = observed && [runs, peers, score].every(Number.isSafeInteger) &&
+      0 < runs && runs <= sum(rider.counts) && runs <= peers && peers <= 8 * runs && 0 <= score && score <= 2 * peers ?
+      {...observed, runs, peers, percentile:1 - score / (2 * peers)} : null;
+    const methods = rider?.techniques;
+    const techniques = observed && methods && typeof methods === 'object' && !Array.isArray(methods) &&
+      Object.entries(methods).every(([key, value]) => ['escape','makuri','difference','mark'].includes(key) &&
+        Number.isSafeInteger(value) && value >= 0) && sum(Object.values(methods)) > 0 &&
+      sum(Object.values(methods)) <= rider.counts[0] + rider.counts[1] ? {...observed, counts:methods} : null;
+    return {history:startDay ? {counts, startDay, endDay} : null, venue:venue ?
+      {numerator:venue[0], denominator:venue[1], startDay:archive.venueStartDay, endDay:archive.venueEndDay} : null,
+      agari, techniques};
+  }
+
   function semiFinals(packet, context, registrationId, day) {
     const history = packet?.history;
     if (!context || !sha256(packet.calendar_sha256) || !sha256(context.list_sha256) || clock(context.source_at) === null ||
@@ -4651,21 +4748,24 @@ if (!globalThis.document?.body?.classList.contains("keirin-public-page")) {
     const details = find('details'), conditions = find('conditions');
     const tactics = savedTactics(packets.details, details, publishedForecast, deadline, roster);
     const history = historyDays(packets.recentDays, day);
+    const archiveHistory = archiveForDay(packets.archive, day);
     const riders = field.slice().sort((a,b) => a.number - b.number).map(rider => {
       const {number, name, registration, style} = rider;
       const prediction = matchingRank?.get(number);
       const old = matchingArchive?.get(number), performance = secondary?.performance;
       const publishedStyle = style ?? old?.style;
       const measured = performance?.riders.get(number);
-      const savedRecent = riderRecent(official?.riders.get(number), day, history, registration);
+      const currentRecent = riderRecent(official?.riders.get(number), day, history, registration);
+      const recent = currentRecent.length ? currentRecent : recentResults(old, day);
+      const collected = collectedHistory(archiveHistory, history, registration, raceId.slice(8, 10));
       return {number, name, registration, style:['逃','追','両'].includes(publishedStyle) ? publishedStyle : null,
         stats:statistics(official, number) ?? statistics(secondary, number) ?? statistics(archivedContext, number),
         comment:comment(official, number) ?? comment(secondary, number) ??
           (safeText(old?.comment, 240) ? {summary:old.comment, at:archive.at, url:archive.comments} : null),
-        recent:savedRecent.length ? savedRecent : recentResults(old, day),
+        recent, form:recentForm(recent, day), history:collected.history, agari:collected.agari, techniques:collected.techniques,
         semi:publishedRate(measured?.semi, performance, deadline) ?? publishedRate(old?.semifinal_counts, archive, deadline) ??
           semiFinals(packets.conditions, conditions, registration, day),
-        venue:publishedRate(measured?.venue, performance, deadline) ?? publishedRate(old?.venue_counts, archive, deadline),
+        venue:publishedRate(measured?.venue, performance, deadline) ?? publishedRate(old?.venue_counts, archive, deadline) ?? collected.venue,
         rank:prediction ? {probabilities:prediction.probabilities.slice(), frozenAt:rank.frozen_at,
           witnessedAt:rank.witnessed_at, sourceAsOf:rank.source_as_of, cutoffAt:rank.cutoff_at, modelSha:rank.model_sha256} : null,
         tactics:tactics ? {savedAt:tactics.savedAt, reasons:tactics.reasons.slice(), positions:tactics.scenarios.map(scenario =>
@@ -4713,7 +4813,7 @@ if (!globalThis.document?.body?.classList.contains("keirin-public-page")) {
     }))) / 5) * 5);
   }
 
-  function radar(stats, scale) {
+  function radar(stats, scale, form, agari) {
     const section = node("section", "kd-section");
     section.append(node("h3", "", "能力分析"));
     const chart = svg("svg", { viewBox: "0 0 360 264", role: "img", "aria-label": axes.join("、") + "のレーダー" });
@@ -4728,9 +4828,14 @@ if (!globalThis.document?.body?.classList.contains("keirin-public-page")) {
       text.textContent = label;
       chart.append(text);
       const count = fields[i] ? stats?.[fields[i]] : null;
-      const value = numeric(count) ? observations[i] + " " + count + "回" : "観測資料待ち";
-      if (numeric(count)) {
-        const [cx, cy] = at(i, 88 * count / scale);
+      const recent = i === 5 && form, sprint = i === 2 && agari;
+      const fraction = recent ? recent.numerator / recent.denominator :
+        sprint ? sprint.percentile : numeric(count) ? count / scale : null;
+      const value = recent ? "直近の3着以内 " + percent(fraction) + "（" + recent.numerator + "/" + recent.denominator + "走）" :
+        sprint ? "上がりの同走者比較 " + percent(fraction) + "（" + sprint.runs + "走）" :
+          numeric(count) ? observations[i] + " " + count + "回" : "観測資料待ち";
+      if (fraction !== null) {
+        const [cx, cy] = at(i, 88 * fraction);
         const dot = svg("circle", { cx, cy, r: 4.5, class: "kd-radar-point", "data-evidence-point": "" });
         const title = svg("title", {});
         title.textContent = value;
@@ -4742,6 +4847,10 @@ if (!globalThis.document?.body?.classList.contains("keirin-public-page")) {
       facts.append(item);
     });
     section.append(chart, node("p", "kd-note", "出走表の掲載回数を参照。外枠はこのレースで共通の " + scale + "回です。"), facts);
+    if (agari) section.append(node("p", "kd-note", "瞬発力の参考は同じレースで上がりが速かった割合。同タイムは半分、外枠が100%。" +
+      "対象 " + agari.startDay + "〜" + agari.endDay + "、" + agari.runs + "走・" + agari.peers + "比較。"));
+    if (form) section.append(node("p", "kd-note", "調子の目安は直近30日以内に確認できた着順。外枠が100%。" +
+      "対象 " + form.startDay + "〜" + form.endDay + "、" + form.denominator + "走。"));
     return section;
   }
 
@@ -4773,13 +4882,33 @@ if (!globalThis.document?.body?.classList.contains("keirin-public-page")) {
       semi && semi.numerator + "/" + semi.denominator + "走" +
         (semi.startDay ? " · " + semi.startDay + "〜" + semi.endDay : "")));
     const venueRate = rider.venue;
-    metrics.append(metric(venue + "5年間3連対率", venueRate ? percent(venueRate.numerator / venueRate.denominator) : "資料待ち",
-      venueRate && venueRate.numerator + "/" + venueRate.denominator + "走"));
+    metrics.append(metric(venue + (venueRate?.startDay ? "3連対率（収録分）" : "5年間3連対率"),
+      venueRate ? percent(venueRate.numerator / venueRate.denominator) : "資料待ち",
+      venueRate && venueRate.numerator + "/" + venueRate.denominator + "走" +
+        (venueRate.startDay ? " · " + venueRate.startDay + "〜" + venueRate.endDay : "")));
     section.append(metrics);
     const sources = new Map([semi, venueRate].filter(rate => rate?.sourceUrl).map(rate => [rate.sourceUrl, rate]));
     for (const [url, rate] of sources) {
       const label = rate.afterCutoff ? "Kドリームスの締切後確認資料" : "Kドリームスの出走表成績";
       section.append(sourceLink(label, url, rate.sourceAt));
+    }
+    if (rider.history) {
+      const {counts, startDay, endDay} = rider.history;
+      const n = counts.reduce((total, value) => total + value, 0), top3 = counts[0] + counts[1] + counts[2];
+      const earliest = new Date(day + "T00:00:00Z");
+      earliest.setUTCFullYear(earliest.getUTCFullYear() - 3);
+      const title = startDay >= earliest.toISOString().slice(0, 10) ? "過去3年の収録成績" : "固定期間の収録成績";
+      section.append(node("h3", "", title),
+        node("p", "kd-note", startDay + "〜" + endDay + " · 確認 " + n + "走"),
+        node("p", "", "1着 " + counts[0] + "走 · 3着以内 " + top3 + "走（" + percent(top3 / n) + "）"));
+    }
+    if (rider.techniques) {
+      const {counts, startDay, endDay} = rider.techniques;
+      const labels = {escape:"逃げ", makuri:"捲り", difference:"差し", mark:"マーク"};
+      const methods = Object.entries(labels).filter(([key]) => counts[key]).map(([key, label]) => label + counts[key] + "回");
+      section.append(node("h3", "", "1・2着の決まり手"),
+        node("p", "", methods.join(" · ")),
+        node("p", "kd-note", "掲載のある記録 " + startDay + "〜" + endDay));
     }
     section.append(node("h3", "", "直近着順（新しい順）"));
     const recent = node("ul", "kd-recents");
@@ -4856,7 +4985,7 @@ if (!globalThis.document?.body?.classList.contains("keirin-public-page")) {
       heading.append(badge(rider), identity);
       const stats = rider.stats;
       if (stats?.competition_points != null) heading.append(node("p", "kd-note", "競走得点 " + stats.competition_points));
-      detail.replaceChildren(heading, history(rider, day, venue), radar(stats, scale), ranks(rider.rank), analysis(rider, riders));
+      detail.replaceChildren(heading, history(rider, day, venue), radar(stats, scale, rider.form, rider.agari), ranks(rider.rank), analysis(rider, riders));
       if (stats?.sourceAt) {
         const provider = stats.source === "official" ? "KEIRIN.JP" : "Kドリームス";
         const timing = stats.source === "archive" ? " 出走表の締切後確認 " : " 出走表の確認 ";
