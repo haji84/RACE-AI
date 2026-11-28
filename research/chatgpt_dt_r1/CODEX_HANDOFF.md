@@ -4,6 +4,12 @@
 
 ## 11月29日の締切前検証の再開地点
 
+08:40 JST、登録54枠のうちDT-R1・Codex独自の共通締切前原本を46枠にした。両モデルで旧41枠のGit参照が一致し、追加5枠は同じ公式資料を使って生成し、別ランナー読戻しとT−15認証を通過した。両モデルの固定索引は `f5903b766ef50796914323efcfeadaac9e870278`。最初の共通対象は08:47 JST締切の1枠。認証可能な公式着順を暗号保存した後に `codex-settle` で照合する。[共通46枠と実行証跡](evidence/20261128-engine-history-followup/nov29-46-same-source-first-originals.json) · [固定索引](https://github.com/haji84/RACE-AI/commit/f5903b766ef50796914323efcfeadaac9e870278)
+
+08:26 JSTの再確認は46枠の公式資料を保持し、新規0件。残り8枠の保留は並び表記5、競りまたは多段1、組数不一致1、出走表と選手資料の不一致1。公式出走表で「先行一車」3件と「コマ切れ」2件の一列配置を読み、[PR #474](https://github.com/haji84/RACE-AI/pull/474) を main `90bf1a5d1a3b05ebd8d97ca41bde038abf363106` に統合した。単独の複数選手グループを含む配置と4組の配置を資料・車番・位置の認証付きで扱う。次の既存監視による承認済み取得で、実カードからの追加保存と別ランナー読戻しを確認する。[公式資料の再確認](evidence/20261128-engine-history-followup/nov29-official-source-recheck-46-readback.json) · [公式競輪ガイド](https://keirin.jp/pc/static/beginner/basics/lines.html)
+
+映像の独立工程は08:26 JSTにMacの起動114回、最終終了コード0を確認。08:23 JSTの集計は連続映像1レース、適格観測3、新規録画0。追加取得は承認済み範囲の確認で保留している。[映像工程 #409](https://github.com/haji84/RACE-AI/pull/409)
+
 08:12 JST、DT-R1・Codex独自の共通先行原本を36→41枠へ追加した。両モデルで旧36枠のGit参照の一致を確認し、追加5枠は同じ公式資料・締切で生成、別ランナー読戻し、T−15認証を完了した。両モデルの固定索引は `1ad8d3b780aa4841147e8093268a9b1ccd5f1f21`。公式事前資料はさらに5枠を独立読戻し済みで46/54。追加5枠の最早の原本期限は12:00 JST。残り8枠の資料は取得上限待ち5、ライン数・表記・選手資料の照合保留が各1。最初の共通公式締切08:47 JSTの1枠から、結果を暗号保全して照合する。[共通41枠の固定証跡](evidence/20261128-engine-history-followup/nov29-41-same-source-first-originals.json) · [公式資料46枠の読戻し](evidence/20261128-engine-history-followup/nov29-official-source-46-readback.json) · [Codex独自の保全](https://github.com/haji84/RACE-AI/actions/runs/46200237000)
 
 07:43 JST、11月28日の追補採点が完了。登録78枠、公式通常着順51件、DT-R1の採点31件、DT-R1とCodex独自の共通採点8件。三連単1点はDT-R1 1/8・Codex独自2/8、二車単1点は両方3/8。三連単1点差の探索的95%区間は−52.1〜+36.7ポイントだった。[共通対戦の再認証](https://github.com/haji84/RACE-AI/actions/runs/46197091400) · [共通8枠の固定集計](evidence/20261128-engine-history-followup/nov28-eight-pair-official-settlement.json)

@@ -1,0 +1,23 @@
+{
+  "baseline_hold_reasons": {
+    "OFFICIAL_EXTENSION_CONTESTED_OR_MULTILEVEL_LINE_UNSUPPORTED": 1,
+    "OFFICIAL_EXTENSION_LINE_LABEL_GROUP_COUNT_MISMATCH": 1,
+    "OFFICIAL_EXTENSION_LINE_LABEL_UNRECOGNIZED": 5,
+    "OFFICIAL_EXTENSION_PROFILE_CARD_DISAGREEMENT": 1
+  },
+  "budget_pending": 0,
+  "capture_receipt_artifact_id": 15285976136,
+  "capture_receipt_sha256": "91475c0c5203865d3a8a397cf66bfa8c440683ea247d27792a0309d16f5f3088",
+  "capture_zip_sha256": "8540b7729f2810b205d4bb1e10fd0e57a88a971444141ed3e490e7528dcbf087",
+  "code_commit": "0b32425837437deaf7c467a1ffbaf0391c025325",
+  "day_jst": "2026-11-29",
+  "new_originals": 0,
+  "prior_source_archive_commit": "3cce57f8cc3e2333fe33ea4f3c38d5fff4a7395e",
+  "provider_denied": false,
+  "registered_races": 54,
+  "schema": "DT_R1_OFFICIAL_SOURCE_RECHECK_EVIDENCE_V1",
+  "source_reference_readback_archive_commit": "b6dafe95060efae28041ef5251ffa552ab455683",
+  "source_requests": 31,
+  "source_run_id": 46201343519,
+  "unchanged_official_source_references": 46
+}
