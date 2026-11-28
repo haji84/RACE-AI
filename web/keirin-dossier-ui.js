@@ -54,7 +54,7 @@
         sprint ? sprint.percentile : numeric(count) ? count / scale : null;
       const value = recent ? "直近の3着以内 " + percent(fraction) + "（" + recent.numerator + "/" + recent.denominator + "走）" :
         sprint ? "上がりの同走者比較 " + percent(fraction) + "（" + sprint.runs + "走）" :
-          numeric(count) ? observations[i] + " " + count + "回" : "観測資料待ち";
+          numeric(count) ? observations[i] + " " + count + "回" : "0件";
       if (fraction !== null) {
         const [cx, cy] = at(i, 88 * fraction);
         const dot = svg("circle", { cx, cy, r: 4.5, class: "kd-radar-point", "data-evidence-point": "" });
@@ -90,7 +90,7 @@
     return text;
   }
 
-  function history(rider, day, venue) {
+  function recordedRates(rider, day, venue) {
     const section = node("section", "kd-section");
     const metrics = node("div", "kd-metrics");
     const semi = rider.semi;
@@ -99,24 +99,30 @@
     start.setUTCFullYear(start.getUTCFullYear() - 1);
     const annual = semi?.sourceUrl || (semi && start.toISOString().slice(0, 10) === semi.startDay && previousDay === semi.endDay);
     metrics.append(metric(semi && !annual ? "準決勝3連対率（収録分）" : "年間準決勝3連対率",
-      semi ? percent(semi.numerator / semi.denominator) : "資料待ち",
-      semi && semi.numerator + "/" + semi.denominator + "走" +
-        (semi.startDay ? " · " + semi.startDay + "〜" + semi.endDay : "")));
+      semi ? percent(semi.numerator / semi.denominator) : percent(0),
+      semi ? semi.numerator + "/" + semi.denominator + "走" +
+        (semi.startDay ? " · " + semi.startDay + "〜" + semi.endDay : "") : "0走"));
     const venueRate = rider.venue;
     metrics.append(metric(venue + (venueRate?.startDay ? "3連対率（収録分）" : "5年間3連対率"),
-      venueRate ? percent(venueRate.numerator / venueRate.denominator) : "資料待ち",
-      venueRate && venueRate.numerator + "/" + venueRate.denominator + "走" +
-        (venueRate.startDay ? " · " + venueRate.startDay + "〜" + venueRate.endDay : "")));
+      venueRate ? percent(venueRate.numerator / venueRate.denominator) : percent(0),
+      venueRate ? venueRate.numerator + "/" + venueRate.denominator + "走" +
+        (venueRate.startDay ? " · " + venueRate.startDay + "〜" + venueRate.endDay : "") : "0走"));
     section.append(metrics);
     const sources = new Map([semi, venueRate].filter(rate => rate?.sourceUrl).map(rate => [rate.sourceUrl, rate]));
     for (const [url, rate] of sources) {
       const label = rate.afterCutoff ? "Kドリームスの締切後確認資料" : "Kドリームスの出走表成績";
       section.append(sourceLink(label, url, rate.sourceAt));
     }
+    return section;
+  }
+
+  function recordedFinishes(rider, day, actual) {
+    const section = node("section", "kd-section");
+    if (actual) section.append(metric("このレースの確定着順", actual + "着"));
     if (rider.history) {
       const {counts, startDay, endDay} = rider.history;
       const n = counts.reduce((total, value) => total + value, 0), top3 = counts[0] + counts[1] + counts[2];
-      const earliest = new Date(day + "T00:00:00Z");
+      const earliest = new Date((endDay > day ? endDay : day) + "T00:00:00Z");
       earliest.setUTCFullYear(earliest.getUTCFullYear() - 3);
       const title = startDay >= earliest.toISOString().slice(0, 10) ? "過去3年の収録成績" : "固定期間の収録成績";
       section.append(node("h3", "", title),
@@ -131,13 +137,13 @@
         node("p", "", methods.join(" · ")),
         node("p", "kd-note", "掲載のある記録 " + startDay + "〜" + endDay));
     }
-    section.append(node("h3", "", "直近着順（新しい順）"));
+    section.append(node("h3", "", "直近着順（収録分・新しい順）"));
     const recent = node("ul", "kd-recents");
     for (const row of (rider.recent || []).slice(0, 10)) {
       const label = row.rank ? row.rank + "着" : row.counts.map((n, i) => n ? (i + 1) + "着" + n + "回" : "").filter(Boolean).join("・") + "（同日）";
       recent.append(node("li", "", row.day.slice(5).replace("-", "/") + " " + label));
     }
-    section.append(recent.childElementCount ? recent : node("p", "kd-note", "確認済みの直近着順は資料待ちです。"));
+    section.append(recent.childElementCount ? recent : node("p", "kd-note", "0走"));
     return section;
   }
 
@@ -145,7 +151,7 @@
     const section = node("section", "kd-section");
     section.append(node("h3", "", "今回のレースでの着順予測"));
     if (!rank) {
-      section.append(node("p", "kd-note", "このレースの着順別確率は公開資料待ちです。"));
+      section.append(node("p", "kd-note", "未算出"));
       return section;
     }
     const p = rank.probabilities, grouped = node("div", "kd-metrics kd-metrics-three"), rows = node("ol", "kd-ranks");
@@ -167,13 +173,15 @@
 
   function analysis(rider, riders) {
     const section = node("section", "kd-section"), comment = rider.comment, tactics = rider.tactics;
-    section.append(node("h3", "", "本人コメントの要旨"));
-    const follow = comment?.targetCar && riders.find(p => p.number === comment.targetCar);
-    section.append(node("p", "", comment ? comment.summary + (follow ? " 対象 " + follow.number + "番 " + follow.name : "") : "確認できた要旨は資料待ちです。"));
-    if (comment?.url) section.append(sourceLink("本人コメントの出典", comment.url, comment.at));
-    else if (comment?.at) section.append(node("p", "kd-note", "コメント確認 " + stamp(comment.at)));
-    section.append(node("h3", "", "今回の戦術分析"));
+    if (comment) {
+      const follow = comment.targetCar && riders.find(p => p.number === comment.targetCar);
+      section.append(node("h3", "", "本人コメントの要旨"),
+        node("p", "", comment.summary + (follow ? " 対象 " + follow.number + "番 " + follow.name : "")));
+      if (comment.url) section.append(sourceLink("本人コメントの出典", comment.url, comment.at));
+      else if (comment.at) section.append(node("p", "kd-note", "コメント確認 " + stamp(comment.at)));
+    }
     if (tactics) {
+      section.append(node("h3", "", "今回の戦術分析"));
       const phases = ["初周", "打鐘", "最終ホーム", "最終バック", "最終4コーナー", "ゴール"];
       tactics.positions.forEach((course, index) => {
         const steps = phases.flatMap((phase, i) => Number.isInteger(course?.[i]) ? [phase + " " + course[i] + "番手"] : []);
@@ -181,14 +189,14 @@
       });
       for (const reason of tactics.reasons) section.append(node("p", "kd-note", reason));
       section.append(node("p", "kd-note", "戦術の保存 " + stamp(tactics.savedAt)));
-    } else section.append(node("p", "kd-note", "対象選手に結び付く保存済みの展開資料を確認中です。"));
+    }
     const p = rider.rank?.probabilities;
-    section.append(node("h3", "", "予想着順評価"));
     if (p) {
       const peak = Math.max(...p), modes = p.flatMap((x, n) => Math.abs(x - peak) < 1e-12 ? [n + 1] : []);
       const expected = p.reduce((sum, value, i) => sum + value * (i + 1), 0);
-      section.append(node("p", "", "最頻 " + modes.join("・") + "着 · 期待着順 " + expected.toFixed(2) + "着"));
-    } else section.append(node("p", "kd-note", "着順別の予想資料待ちです。"));
+      section.append(node("h3", "", "予想着順評価"),
+        node("p", "", "最頻 " + modes.join("・") + "着 · 期待着順 " + expected.toFixed(2) + "着"));
+    }
     return section;
   }
 
@@ -198,17 +206,29 @@
     detail.id = "keirin-dossier-selected";
     const riders = data.riders, buttons = [];
     const scale = radarScale(riders.map(rider => rider.stats));
+    let selected = 0, results = new Map(), newest = new Map();
+    const current = node("div");
+    current.setAttribute("aria-live", "polite");
+    function showFinishes() {
+      const rider = riders[selected], update = newest.get(rider.number);
+      current.replaceChildren(recordedFinishes({...rider, ...update}, day, results.get(rider.number)));
+    }
     function select(index) {
+      selected = index;
       buttons.forEach((button, i) => button.setAttribute("aria-pressed", String(i === index)));
       const rider = riders[index], heading = node("header", "kd-selected");
       const identity = node("div");
-      identity.append(node("h2", "", rider.name), node("p", "kd-note", styles[rider.style] || "脚質確認待ち"));
+      identity.append(node("h2", "", rider.name));
+      if (rider.style) identity.append(node("p", "kd-note", styles[rider.style]));
       if (rider.registration) identity.append(node("p", "kd-note", "登録番号 " + rider.registration +
         (rider.registrationBasis ? " · " + rider.registrationBasis : "")));
       heading.append(badge(rider), identity);
       const stats = rider.stats;
       if (stats?.competition_points != null) heading.append(node("p", "kd-note", "競走得点 " + stats.competition_points));
-      detail.replaceChildren(heading, history(rider, day, venue), radar(stats, scale, rider.form, rider.agari), ranks(rider.rank), analysis(rider, riders));
+      const tactics = analysis(rider, riders);
+      detail.replaceChildren(heading, recordedRates(rider, day, venue), current, radar(stats, scale, rider.form, rider.agari), ranks(rider.rank));
+      if (tactics.childElementCount) detail.append(tactics);
+      showFinishes();
       if (stats?.sourceAt) {
         const provider = stats.source === "official" ? "KEIRIN.JP" : "Kドリームス";
         const timing = stats.source === "archive" || (data.cutoffAt && Date.parse(stats.sourceAt) >= Date.parse(data.cutoffAt)) ?
@@ -220,7 +240,7 @@
       const row = node("li"), button = node("button", "kd-rider-button");
       button.type = "button";
       button.setAttribute("aria-controls", detail.id);
-      button.append(badge(rider), node("strong", "", rider.name), node("span", "kd-style", styles[rider.style] || "脚質確認待ち"));
+      button.append(badge(rider), node("strong", "", rider.name), node("span", "kd-style", styles[rider.style] || ""));
       button.addEventListener("click", () => select(i));
       buttons.push(button);
       row.append(button); list.append(row);
@@ -228,9 +248,14 @@
     const attribution = data.rosterSource ? [sourceLink("Kドリームスの公開出走表", data.rosterSource.url, data.rosterSource.at)] : [];
     container.replaceChildren(...attribution, list, detail);
     select(0);
+    return ({history, finishes}) => {
+      if (history) newest = history;
+      if (finishes) results = finishes;
+      if (history || finishes) showFinishes();
+    };
   }
 
-  async function open({ raceId, title, day, venue, opener, load }) {
+  async function open({ raceId, title, day, venue, opener, load, refresh }) {
     if (document.getElementById("keirin-dossier-dialog")) return;
     const dialog = node("dialog", "kd-dialog");
     dialog.id = "keirin-dossier-dialog";
@@ -246,8 +271,9 @@
     dialog.append(header, body);
     const request = new AbortController();
     const timeout = setTimeout(() => request.abort(), 15000);
+    let interval, updateRequest;
     dialog.addEventListener("close", () => {
-      request.abort(); clearTimeout(timeout); dialog.remove();
+      request.abort(); clearTimeout(timeout); clearInterval(interval); updateRequest?.abort(); dialog.remove();
       const target = opener?.isConnected ? opener : document.querySelector('[data-keirin-dossier="' + raceId + '"]');
       (target || document.getElementById("keirin-public-title"))?.focus({preventScroll: true});
     }, { once: true });
@@ -256,8 +282,28 @@
     try {
       const data = await load(request);
       if (!dialog.open) return;
-      if (data?.riders.length) showRiders(body, data, day, venue);
-      else body.replaceChildren(node("p", "kd-note", "対象の出走者を確認できる公開資料を待っています。"));
+      if (data?.riders.length) {
+        const apply = showRiders(body, data, day, venue);
+        if (refresh) {
+          const check = async () => {
+            if (!dialog.open || document.hidden || updateRequest) return;
+            const source = updateRequest = new AbortController();
+            const timeout = setTimeout(() => source.abort(), 15000);
+            try {
+              await refresh(data, source, update => {
+                if (dialog.open && !source.signal.aborted) apply(update);
+              });
+            } catch {
+              // Keep the last confirmed result visible when GitHub is temporarily unavailable.
+            } finally {
+              clearTimeout(timeout);
+              updateRequest = null;
+            }
+          };
+          interval = setInterval(check, 60_000);
+          void check();
+        }
+      } else body.replaceChildren(node("p", "kd-note", "出走者未掲載"));
     } catch {
       if (dialog.open) body.replaceChildren(node("p", "kd-note", "選手の公開資料を取得できませんでした。"));
     } finally {

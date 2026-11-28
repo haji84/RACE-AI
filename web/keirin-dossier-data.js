@@ -199,27 +199,87 @@
     return out;
   }
 
+  function finishCounts(counts, maximum) {
+    return Array.isArray(counts) && counts.length === 9 &&
+      counts.every(n => Number.isSafeInteger(n) && n >= 0 && n <= maximum) &&
+      sum(counts) > 0 && sum(counts) <= maximum;
+  }
+
+  function historyDay(packet, day) {
+    if (!exact(packet, ['schema','day','source_sha256','archive_races','verified_races','riders']) ||
+        packet.schema !== 'RACE_AI_KEIRIN_PUBLIC_RIDER_HISTORY_DAY_V1' || packet.day !== day || !validDay(day) ||
+        !sha256(packet.source_sha256) || !Number.isInteger(packet.archive_races) ||
+        !Number.isInteger(packet.verified_races) || !(0 < packet.verified_races &&
+        packet.verified_races <= packet.archive_races && packet.archive_races <= 600)) return null;
+    const field = packet.riders, verified = packet.verified_races;
+    if (!Array.isArray(field) || field.length < 1 || field.length > 9 * verified || !field.every(rider =>
+        exact(rider, ['registration','finish_counts']) && registration(rider.registration) &&
+        finishCounts(rider.finish_counts, verified)) || !unique(field.map(rider => rider.registration))) return null;
+    const finishTotal = sum(field.map(rider => sum(rider.finish_counts)));
+    return finishTotal >= verified && finishTotal <= 9 * verified ?
+      new Map(field.map(rider => [rider.registration, rider.finish_counts])) : null;
+  }
+
   function historyDays(packets, day) {
     const days = new Map();
     if (!Array.isArray(packets) || packets.length > 7) return days;
     for (const packet of packets) {
-      if (!exact(packet, ['schema','day','source_sha256','archive_races','verified_races','riders']) ||
-          packet.schema !== 'RACE_AI_KEIRIN_PUBLIC_RIDER_HISTORY_DAY_V1' || !validDay(packet.day) ||
-          packet.day >= day || !sha256(packet.source_sha256) || !Number.isInteger(packet.archive_races) ||
-          !Number.isInteger(packet.verified_races) || !(0 < packet.verified_races &&
-          packet.verified_races <= packet.archive_races && packet.archive_races <= 600)) continue;
-      const field = packet.riders, verified = packet.verified_races;
-      if (!Array.isArray(field) || field.length < 1 || field.length > 9 * verified || !field.every(rider =>
-          exact(rider, ['registration','finish_counts']) && registration(rider.registration) &&
-          Array.isArray(rider.finish_counts) && rider.finish_counts.length === 9 &&
-          rider.finish_counts.every(n => Number.isInteger(n) && n >= 0 && n <= verified) &&
-          sum(rider.finish_counts) > 0 && sum(rider.finish_counts) <= verified) ||
-          !unique(field.map(rider => rider.registration))) continue;
-      const finishTotal = sum(field.map(rider => sum(rider.finish_counts)));
-      if (finishTotal < verified || finishTotal > 9 * verified) continue;
-      days.set(packet.day, days.has(packet.day) ? null : new Map(field.map(rider => [rider.registration, rider.finish_counts])));
+      if (!validDay(packet?.day) || packet.day >= day) continue;
+      const results = historyDay(packet, packet.day);
+      if (results) days.set(packet.day, days.has(packet.day) ? null : results);
     }
     return days;
+  }
+
+  function recentFinish(day, counts) {
+    return sum(counts) === 1 ? {day, rank:counts.indexOf(1) + 1} : {day, counts:counts.slice()};
+  }
+
+  function historyManifest(packet, today) {
+    const published = clock(packet?.published_at);
+    if (packet?.schema !== 'RACE_AI_KEIRIN_PUBLIC_RIDER_HISTORY_V1' || published === null ||
+        jstDay(packet.published_at) > today || !validDay(packet.base_history_end_day) || !sha256(packet.base_sha256) ||
+        !Array.isArray(packet.days) || packet.days.length < 1 || packet.days.length > 400 ||
+        !Array.isArray(packet.riders) || packet.riders.length > 5000) return null;
+    const days = new Map(), riders = new Map(), posted = jstDay(packet.published_at);
+    let previous = packet.base_history_end_day, finishes = 0, races = 0;
+    for (const row of packet.days) {
+      if (!validDay(row?.day) || row.day <= previous || row.day > posted || !sha256(row.sha256) ||
+          !Number.isSafeInteger(row.verified_races) || row.verified_races < 1 || row.verified_races > 600 ||
+          !Number.isSafeInteger(row.observed_count) || row.observed_count < row.verified_races ||
+          row.observed_count > 9 * row.verified_races) return null;
+      days.set(row.day, row.sha256);
+      previous = row.day;
+      races += row.verified_races;
+      finishes += row.observed_count;
+    }
+    let total = 0;
+    for (const result of packet.riders) {
+      if (!registration(result?.registration) || riders.has(result.registration) || !finishCounts(result.finish_counts, races) ||
+          !days.has(result.first_observed_day) || !days.has(result.latest_observed_day) ||
+          result.first_observed_day > result.latest_observed_day) return null;
+      riders.set(result.registration, result);
+      total += sum(result.finish_counts);
+    }
+    return total === finishes ? {published, baseEndDay:packet.base_history_end_day, days, riders} : null;
+  }
+
+  function confirmedHistory(data, manifest, daily) {
+    const updates = new Map();
+    if (data.archiveEndDay && data.archiveEndDay !== manifest.baseEndDay) return updates;
+    for (const rider of data.riders) {
+      const result = manifest.riders.get(rider.registration);
+      const endDay = result?.latest_observed_day;
+      const counts = daily.get(endDay)?.get(rider.registration);
+      if (!counts || counts.some((n, i) => n > result.finish_counts[i]) || endDay < rider.history?.endDay) continue;
+      const base = rider.historyBase;
+      const history = {counts:result.finish_counts.map((n, i) => n + (base?.counts[i] ?? 0)),
+        startDay:base?.startDay ?? result.first_observed_day, endDay};
+      const recent = [recentFinish(endDay, counts), ...rider.recent.filter(row => row.day !== endDay)]
+        .sort((a,b) => b.day.localeCompare(a.day)).slice(0, 7);
+      updates.set(rider.number, {history, recent});
+    }
+    return updates;
   }
 
   function riderRecent(rider, day, days, registrationId) {
@@ -228,7 +288,7 @@
     for (const [date, byRegistration] of days) {
       const counts = byRegistration?.get(registrationId);
       if (!counts || exactDays.has(date)) continue;
-      exactDays.set(date, sum(counts) === 1 ? {day:date, rank:counts.indexOf(1) + 1} : {day:date, counts:counts.slice()});
+      exactDays.set(date, recentFinish(date, counts));
     }
     return [...exactDays.values()].sort((a,b) => b.day.localeCompare(a.day)).slice(0, 7);
   }
@@ -388,7 +448,10 @@
         stats:statistics(official, number) ?? statistics(secondary, number) ?? statistics(archivedContext, number),
         comment:comment(official, number) ?? comment(secondary, number) ??
           (safeText(old?.comment, 240) ? {summary:old.comment, at:archive.at, url:archive.comments} : null),
-        recent, form:recentForm(recent, day), history:collected.history, agari:collected.agari, techniques:collected.techniques,
+        recent, form:recentForm(recent, day), history:collected.history,
+        historyBase:archiveHistory?.riders.has(registration) ?
+          {counts:archiveHistory.riders.get(registration).counts, startDay:archiveHistory.startDay} : null,
+        agari:collected.agari, techniques:collected.techniques,
         semi:publishedRate(measured?.semi, performance, deadline) ?? publishedRate(old?.semifinal_counts, archive, deadline) ??
           semiFinals(packets.conditions, conditions, registration, day),
         venue:publishedRate(measured?.venue, performance, deadline) ?? publishedRate(old?.venue_counts, archive, deadline) ?? collected.venue,
@@ -398,9 +461,9 @@
           scenario.orders.map(order => order ? order.indexOf(number) + 1 : null))} : null};
     });
     const rosterSource = !withStarters && reference ? {url:reference.source_url, at:reference.source_at} : null;
-    return {riders, cutoffAt:deadline, rosterSource,
+    return {riders, cutoffAt:deadline, rosterSource, archiveEndDay:archiveHistory?.endDay,
       sourceAt:withStarters ? starter.source_at : rosterSource?.at ?? rank?.source_as_of ?? archive.at};
   }
 
-  return {prepare, referenceRows};
+  return {prepare, referenceRows, historyManifest, historyDay, confirmedHistory, namedField, identityMatch};
 });

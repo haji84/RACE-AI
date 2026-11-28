@@ -115,6 +115,39 @@ class PublicDailyRosterTests(unittest.TestCase):
         self.assertEqual([(event['roster_state'], event['race_count'], event['missing_count']) for event in events],
                          [('partial', 1, 1), ('registered', 2, 0)])
 
+    def test_refresh_fills_missing_result_roster_from_one_scoped_reference_meeting_read(self):
+        from research.chatgpt_dt_r1 import public_shortlists as dt
+
+        url = 'https://keirin.kdreams.jp/hiroshima/racecard/62202611220200/'
+        riders = [dict(number=n, registration=f'{n:06}', name=f'選手{n}',
+                       region='広島', style='追', cohort=100) for n in range(1, 8)]
+        reference = dict(schema='RACE_AI_KEIRIN_PUBLIC_REFERENCE_STARTERS_V1', day=DATE,
+                         published_at=NOW.isoformat(), races=[dict(race_id=rid, source_url=url,
+                         source_at=NOW.isoformat(), source_sha256='a'*64, riders=riders) for rid in IDS[:2]])
+        meeting = '<ul class="racecard_list">' + ''.join(
+            f'<li><p class="race"><a href="{race(i)["source_url"]}">詳細</a></p>'
+            '<div class="header"><dl><dt>締切</dt><dd>09:00</dd></dl></div></li>' for i in range(2)) + '</ul>'
+        store = Mock()
+        store.head.return_value = 'a'*40
+        partial_dt = dt.project_day(DATE, model_sha256=dt.MODEL_SHA, input_commit='b'*40,
+            published_at='2026-11-23T10:03:00+09:00', races=[
+                dict(race_id=IDS[0], cutoff_at='2026-11-23T09:00:00+09:00',
+                     selected_at='2026-11-23T08:30:00+09:00', source_at='2026-11-23T08:00:00+09:00',
+                     starter_cars=list(range(1,8)), tickets=[[1,2,3]], reason='COVERAGE_REACHED')])
+        store.read_previous.side_effect = lambda _, path: {
+            f'forecasts/{DATE}.json': self.forecasts(cutoff=None),
+            f'reference-starters/{DATE}.json': json.dumps(reference),
+            f'dt-r1/{DATE}.json': json.dumps(partial_dt),
+        }.get(path)
+        fetch = Mock(return_value=meeting.encode())
+        with (TemporaryDirectory() as folder, redirect_stdout(io.StringIO()),
+              patch('race_ai.keirin_public_meeting_roster.parse_meeting', return_value=reference['races'])):
+            state = Path(folder)
+            self.assertTrue(publisher.refresh_public_rosters(state, store, fetch, now=NOW))
+            self.assertEqual(json.loads((state / 'rosters' / f'{DATE}.json').read_text())['races'], [race(0), race(1)])
+            self.assertTrue(publisher.refresh_public_rosters(state, store, fetch, now=NOW))
+        fetch.assert_called_once_with(url)
+
     def test_dt_r1_pre_race_cards_fill_roster_gaps_with_the_same_result_link_checks(self):
         from research.chatgpt_dt_r1 import public_shortlists as dt
         rows = [dict(race_id=rid, cutoff_at='2026-11-23T09:00:00+09:00',
@@ -207,6 +240,77 @@ class PublicDailyRosterTests(unittest.TestCase):
 
 
 class PublicResultRefreshTests(unittest.TestCase):
+    def test_publish_rider_finishes_from_the_existing_pair_of_result_pages(self):
+        order = [1, 2, 4, 5, 3, 7, 6]
+        kd = '''<title>広島競輪 2026年11月23日 1R 結果</title><div>払戻</div>
+            <table class="refund_table"><tr><th>2枠連</th><th>2車連</th><th>3連勝</th><th>ワイド</th></tr>
+            <tr><td>単</td><td></td><td>単</td><td>1-2 780円</td><td>単</td><td>1-2-4 2,110円</td></tr></table>
+            <table class="result_table"><tr><th>予想</th><th>着順</th><th>車番</th><th>選手名</th></tr>'''
+        net = '''<title>広島競輪 2026年11月23日 1R 結果</title><div>払戻</div>
+            <table class="Payout_Detail_Table"><tr><th>2車単</th><td class="Result">1&gt;2</td><td class="Payout">780円</td></tr>
+            <tr><th>3連単</th><td class="Result">1&gt;2&gt;4</td><td class="Payout">2,110円</td></tr></table>
+            <table id="All_Result_Table"><tr><th>着</th><th>枠番</th><th>車番</th><th>選手名</th></tr>'''
+        for place, number in enumerate(order, 1):
+            kd += f'<tr><td></td><td>{place}</td><td class="num">{number}</td><td class="rider">選手 {number}</td></tr>'
+            profile = f'https://keirin.netkeiba.com/db/profile/?id={14000 + number}'
+            net += (f'<tr><td>{place}着</td><td>1</td><td>{number}</td><td><a href="{profile}">'
+                    f'<dl><dt class="PlayerName">選手{number}</dt><dd>広島 23歳</dd></dl></a></td></tr>')
+        kd = (kd + '</table>').encode()
+        net = (net + '</table>').encode()
+        with TemporaryDirectory() as directory:
+            state = Path(directory)
+            (state / 'rosters').mkdir()
+            (state / 'rosters' / f'{DATE}.json').write_text(json.dumps(roster([race(0)])))
+            with (patch('sys.argv', ['publisher', '--state-directory', directory]),
+                  patch.object(publisher, 'datetime', wraps=datetime) as clock,
+                  patch.object(capture, 'fetch_once', side_effect=[kd, net]) as fetch,
+                  redirect_stdout(io.StringIO())):
+                clock.now.return_value = NOW
+                self.assertEqual(publisher.main(), 0)
+                self.assertEqual(publisher.main(), 0)
+            self.assertEqual(fetch.call_count, 2)
+            results = json.loads((state / 'results' / f'{DATE}.json').read_text())
+            self.assertEqual(results['races'][0]['state'], 'matched')
+            sidecar = json.loads((state / 'results' / 'rider-finishes' / f'{DATE}.json').read_text())
+            self.assertEqual(sidecar['schema'], 'RACE_AI_KEIRIN_PUBLIC_REFERENCE_FINISHES_V1')
+            self.assertEqual(sidecar['day'], DATE)
+            row, = sidecar['races']
+            self.assertEqual(row['race_id'], IDS[0])
+            self.assertEqual(row['riders'][2],
+                             dict(number=3, name='選手3', registration='014003', place=5))
+            self.assertEqual([source['source_id'] for source in row['sources']], ['kdreams', 'netkeirin'])
+
+            # Disagreeing lower ranks do not change the saved payout.
+            result_path = state / 'results' / f'{DATE}.json'
+            saved_payout = result_path.read_bytes()
+            sidecar_path = state / 'results' / 'rider-finishes' / f'{DATE}.json'
+            sidecar_path.unlink()
+            wrong_rank = net.replace(b'>5\xe7\x9d\x80<', b'>4\xe7\x9d\x80<', 1)
+            with (patch('sys.argv', ['publisher', '--state-directory', directory]),
+                  patch.object(publisher, 'datetime', wraps=datetime) as clock,
+                  patch.object(capture, 'fetch_once', side_effect=[kd, wrong_rank]) as fetch,
+                  redirect_stdout(io.StringIO())):
+                clock.now.return_value = NOW
+                self.assertEqual(publisher.main(), 0)
+            self.assertEqual(fetch.call_count, 2)
+            self.assertFalse(sidecar_path.exists())
+            self.assertEqual(result_path.read_bytes(), saved_payout)
+            attempts = state / 'results' / 'rider-finish-repair.json'
+            self.assertEqual(json.loads(attempts.read_bytes()), {DATE:{IDS[0]:1}})
+
+            # The next scheduled run can recover the completed field.
+            with (patch('sys.argv', ['publisher', '--state-directory', directory]),
+                  patch.object(publisher, 'datetime', wraps=datetime) as clock,
+                  patch.object(capture, 'fetch_once', side_effect=[kd, net]) as fetch,
+                  redirect_stdout(io.StringIO())):
+                clock.now.return_value = NOW
+                self.assertEqual(publisher.main(), 0)
+                self.assertEqual(publisher.main(), 0)
+            self.assertEqual(fetch.call_count, 2)
+            self.assertEqual(json.loads(attempts.read_bytes()), {DATE:{IDS[0]:2}})
+            self.assertEqual(json.loads(sidecar_path.read_bytes()), sidecar)
+            self.assertEqual(result_path.read_bytes(), saved_payout)
+
     def test_new_cutoff_does_not_remove_a_match_or_special_result(self):
         match = {'race_id': IDS[0], 'state': 'matched', 'comparison': {'race_id': IDS[0]}}
         special = {'race_id': IDS[1], 'state': 'held', 'reason': 'special_result'}

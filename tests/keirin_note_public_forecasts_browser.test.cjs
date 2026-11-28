@@ -132,7 +132,8 @@ describe('KEIRIN anonymous forecast page', { skip: !chromium }, () => {
       assert.equal(headers.authorization, undefined);
       assert.equal(headers.cookie, undefined);
       assert.equal(headers.referer, undefined);
-      const [lane, day] = url.slice(source.length, -5).split('/');
+      const path = url.slice(source.length, -5);
+      const lane = path.slice(0, path.lastIndexOf('/')), day = path.slice(path.lastIndexOf('/') + 1);
       const result = lane === 'forecasts' ? await serve(day, route) : await serve.supplement?.(lane, day) ?? null;
       if (result !== undefined) await route.fulfill({
         status: result === null ? 404 : 200, json: result,
@@ -191,6 +192,8 @@ describe('KEIRIN anonymous forecast page', { skip: !chromium }, () => {
     assert.equal(await page.locator('.kd-rider-button').count(), 5);
     assert.match(await page.locator('#keirin-public-status').innerText(), /出走表.*1/);
     assert.equal(await page.locator('.kd-ranks meter').count(), 0);
+    assert.match(await page.getByRole('dialog').innerText(), /今回のレースでの着順予測\s*未算出/);
+    assert.doesNotMatch(await page.getByRole('dialog').innerText(), /資料待ち/);
   });
 
   test('the entry works on the existing shell and past dates distinguish saved, missing and invalid data', async t => {
@@ -510,13 +513,25 @@ describe('KEIRIN anonymous forecast page', { skip: !chromium }, () => {
     assert.equal(calls.filter(url => url.startsWith(BASE + 'forecasts/')).length, 2);
   });
 
-  test('opens the rider dossier with the six requested axes and all ranks, then switches riders', async t => {
+  test('refreshes a selected rider with confirmed finishes while preserving the pre-race ranks', async t => {
     const race = raceId(TODAY, '2601');
     const riders = Array.from({ length: 7 }, (_, index) => ({ number: index + 1, name: '架空選手' + (index + 1),
       registration: String(123400 + index), style: index === 0 ? '両' : '追' }));
     const rate = [.13, .14, .17, .17, .15, .13, .11];
     const clock = value => stamp(TODAY, value);
     const serve = day => snapshot(day);
+    const previousCounts = [0, 1, 0, 0, 0, 0, 0, 0, 0];
+    const todayCounts = [0, 0, 1, 0, 0, 0, 0, 0, 0];
+    const resultDay = (day, finish_counts) => ({
+      schema: 'RACE_AI_KEIRIN_PUBLIC_RIDER_HISTORY_DAY_V1', day, source_sha256: '3'.repeat(64),
+      archive_races: 1, verified_races: 1, riders: [{ registration: riders[1].registration, finish_counts }],
+    });
+    const priorDay = resultDay(PAST, previousCounts), todayDay = resultDay(TODAY, todayCounts);
+    const receipt = packet => ({
+      day: packet.day, archive_index: 'c'.repeat(40), sha256: createHash('sha256').update(JSON.stringify(packet)).digest('hex'),
+      archive_races: 1, verified_races: 1, observed_count: 1,
+    });
+    let finished = false, checkedField = false;
     serve.supplement = (lane, day) => {
       const packet = { day, published_at: clock('13:00') };
       if (lane === 'starters') return { ...packet, schema: 'RACE_AI_KEIRIN_PUBLIC_STARTERS_V1',
@@ -527,21 +542,57 @@ describe('KEIRIN anonymous forecast page', { skip: !chromium }, () => {
           model_sha256: '2'.repeat(64), scope: 'PROSPECTIVE_RESEARCH', premise: 'ALL_FINISH_NO_TIES',
           calibration_status: 'UNVALIDATED', riders: riders.map(({ style, ...rider }, index) => ({ ...rider,
             probabilities: rate.slice(index).concat(rate.slice(0, index)) })) }] };
+      if (lane === 'rider-history' && day === PAST) return priorDay;
+      if (lane === 'rider-history' && day === TODAY) return finished ? todayDay : null;
+      if (lane === 'rider-history' && day === 'latest') return {
+        schema: 'RACE_AI_KEIRIN_PUBLIC_RIDER_HISTORY_V1', base_history_end_day: '2026-11-22',
+        base_sha256: 'b'.repeat(64), published_at: finished ? clock('13:00') : stamp(PAST, '13:00'),
+        days: [receipt(priorDay), ...(finished ? [receipt(todayDay)] : [])],
+        riders: [{ registration: riders[1].registration, finish_counts: finished ? [0, 1, 1, 0, 0, 0, 0, 0, 0] : previousCounts,
+          first_observed_day: PAST, latest_observed_day: finished ? TODAY : PAST }],
+      };
+      if (lane === 'results/rider-finishes' && finished) return {
+        schema: 'RACE_AI_KEIRIN_PUBLIC_REFERENCE_FINISHES_V1', day, published_at: clock('13:03'),
+        races: [{ race_id: race, observed_at: clock('13:01'),
+          sources: matched(day, '2601', [1,3,2]).comparison.sources.map(source =>
+            ({...source, source_sha256:'a'.repeat(64)})),
+          riders: riders.map(({style, ...rider}, index) => ({...rider, place: [1,3,2,4,5,6,7][index],
+            registration: !checkedField && index === 1 ? '999999' : rider.registration})),
+        }],
+      };
       return null;
     };
-    const { page, calls } = await open(t, '#keirin-public', serve);
+    const { page, calls } = await open(t, '#keirin-public', serve, true);
     const card = page.locator('.keirin-public-race').filter({ hasText: '西武園 1R' });
     const opener = card.getByRole('button', { name: '選手カルテ' });
     await opener.click();
     const dialog = page.getByRole('dialog', { name: '西武園 1R 選手カルテ' });
     await dialog.getByRole('heading', { name: '架空選手1', exact: true }).waitFor();
+    assert.doesNotMatch(await dialog.innerText(), /資料待ち|脚質確認待ち/);
+    assert.match(await dialog.innerText(), /年間準決勝3連対率\s+0\.0%\s+0走/);
     assert.deepEqual(await dialog.locator('svg text').allTextContents(), ['先行力', '捲り', '瞬発力', '差し', '戦術対応力', '現在の調子']);
     assert.equal(await dialog.locator('meter').count(), 7);
     assert.match(await dialog.innerText(), /1着確率\s+13\.0%[\s\S]*2着以内\s+27\.0%[\s\S]*3着以内\s+44\.0%/);
     await dialog.getByRole('button', { name: /架空選手2/ }).click();
     await dialog.getByRole('heading', { name: '架空選手2', exact: true }).waitFor();
     assert.match(await dialog.innerText(), /1着確率\s+14\.0%/);
-    assert.equal(await dialog.locator('svg [data-evidence-point]').count(), 0);
+    assert.equal(await dialog.locator('svg [data-evidence-point]').count(), 1);
+    await dialog.getByText('11/25 2着', {exact:true}).waitFor();
+    assert.equal(await dialog.getByText('11/26 3着', {exact:true}).count(), 0);
+    finished = true;
+    await page.clock.fastForward(61_000);
+    await dialog.getByText('11/26 3着', {exact:true}).waitFor();
+    assert.match(await dialog.innerText(), /確認 2走[\s\S]*1着 0走 · 3着以内 2走/);
+    assert.equal(await dialog.getByRole('button', { name: /架空選手2/ }).getAttribute('aria-pressed'), 'true');
+    assert.match(await dialog.innerText(), /1着確率\s+14\.0%/);
+    assert.equal(await dialog.getByText('このレースの確定着順').count(), 0);
+    checkedField = true;
+    // A stalled archive read cannot hide an independently confirmed finish.
+    await page.route(BASE + 'rider-history/latest.json', () => {});
+    await page.clock.fastForward(61_000);
+    await dialog.getByText('このレースの確定着順').waitFor();
+    assert.match(await dialog.innerText(), /このレースの確定着順\s*3着/);
+    assert.match(await dialog.innerText(), /1着確率\s+14\.0%/);
     assert.ok(await dialog.evaluate(node => node.scrollWidth <= node.clientWidth + 1));
     await page.keyboard.press('Escape');
     await dialog.waitFor({ state: 'hidden' });
