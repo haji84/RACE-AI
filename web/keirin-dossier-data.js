@@ -128,7 +128,7 @@
         jstDay(packet.checked_at) < day || !Array.isArray(packet.races)) return null;
     const rows = packet.races.filter(row => row?.race_id === raceId);
     const row = rows[0];
-    if (rows.length !== 1 || !performanceUrl(row.stats_url, raceId, day) ||
+    if (rows.length !== 1 || !performanceUrl(row.stats_url, raceId, day) || !sha256(row.stats_sha256) ||
         row.comments_url !== 'https://keirin.netkeiba.com/race/player_comment/?race_id=' + raceId ||
         !namedField(row.riders, 5, true)) return null;
     return { at:packet.checked_at, url:row.stats_url, comments:row.comments_url, riders:row.riders, afterCutoff:true };
@@ -269,6 +269,7 @@
       new Map(rank.riders.map(rider => [rider.number, rider])) : null;
     const matchingArchive = archive?.riders.length === roster.size && archive.riders.every(rider => identityMatch(rider, roster.get(rider.number))) ?
       new Map(archive.riders.map(rider => [rider.number, rider])) : null;
+    const archivedContext = matchingArchive && {riders:matchingArchive, source:'archive', sourceAt:archive.at};
     const deadline = observedCutoff ?? (matchingRank ? rank.cutoff_at : null);
     const details = find('details'), conditions = find('conditions');
     const tactics = savedTactics(packets.details, details, publishedForecast, deadline, roster);
@@ -277,10 +278,11 @@
       const {number, name, registration, style} = rider;
       const prediction = matchingRank?.get(number);
       const old = matchingArchive?.get(number), performance = secondary?.performance;
+      const publishedStyle = style ?? old?.style;
       const measured = performance?.riders.get(number);
       const savedRecent = riderRecent(official?.riders.get(number), day, history, registration);
-      return {number, name, registration, style:['逃','追','両'].includes(style) ? style : null,
-        stats:statistics(official, number) ?? statistics(secondary, number),
+      return {number, name, registration, style:['逃','追','両'].includes(publishedStyle) ? publishedStyle : null,
+        stats:statistics(official, number) ?? statistics(secondary, number) ?? statistics(archivedContext, number),
         comment:comment(official, number) ?? comment(secondary, number) ??
           (safeText(old?.comment, 240) ? {summary:old.comment, at:archive.at, url:archive.comments} : null),
         recent:savedRecent.length ? savedRecent : recentResults(old, day),

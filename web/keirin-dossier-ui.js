@@ -178,7 +178,11 @@
       const stats = rider.stats;
       if (stats?.competition_points != null) heading.append(node("p", "kd-note", "競走得点 " + stats.competition_points));
       detail.replaceChildren(heading, history(rider, day, venue), radar(stats, scale), ranks(rider.rank), analysis(rider, riders));
-      if (stats?.sourceAt) detail.append(node("p", "kd-note", (stats.source === "official" ? "KEIRIN.JP" : "Kドリームス") + " 出走表の確認 " + stamp(stats.sourceAt)));
+      if (stats?.sourceAt) {
+        const provider = stats.source === "official" ? "KEIRIN.JP" : "Kドリームス";
+        const timing = stats.source === "archive" ? " 出走表の締切後確認 " : " 出走表の確認 ";
+        detail.append(node("p", "kd-note", provider + timing + stamp(stats.sourceAt)));
+      }
     }
     riders.forEach((rider, i) => {
       const row = node("li"), button = node("button", "kd-rider-button");
