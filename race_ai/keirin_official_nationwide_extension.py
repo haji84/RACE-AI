@@ -106,6 +106,9 @@ _LINE_VIEW_FRAGMENTS = (
     'obj["shaban"]="";',
     'jsondata["narabiyoso"]["kyoHyoji"]=="true"',
 )
+_LINE_GROUP_LABELS = {
+    count: numeral + '分戦' for count, numeral in enumerate('二三四五六七八九', start=2)
+}
 
 
 def parse_published_lines(detail_raw, *, detail_sha256, starters, competition,
@@ -149,9 +152,11 @@ def parse_published_lines(detail_raw, *, detail_sha256, starters, competition,
             if previous is None or position != previous+1:
                 groups.append([])
             groups[-1].append(car); previous = position
-        numeral = {2:'二', 3:'三', 4:'四', 5:'五', 6:'六', 7:'七', 8:'八', 9:'九'}
-        _need(len(groups) in numeral and line.get('lineKeitai') == numeral[len(groups)]+'分戦',
-              'LINE_GROUP_COUNT_OR_LABEL_UNKNOWN')
+        expected_label = _LINE_GROUP_LABELS.get(len(groups))
+        label = line.get('lineKeitai')
+        _need(expected_label is not None, 'LINE_LAYOUT_GROUP_COUNT_UNSUPPORTED')
+        _need(label in _LINE_GROUP_LABELS.values(), 'LINE_LABEL_UNRECOGNIZED')
+        _need(label == expected_label, 'LINE_LABEL_GROUP_COUNT_MISMATCH')
         kind = 'PUBLISHED_UNCONTESTED_LINES'
     return dict(kind=kind, groups=groups, provider_raw=line.get('teikyo', ''),
                 source_sha256=detail_sha256, view_source_sha256=view_sha,
