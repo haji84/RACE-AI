@@ -1,0 +1,122 @@
+{
+  "contract": {
+    "adjacent_phase_order_measured": false,
+    "back_definition": "lead at final back-stretch marker, half lap remains",
+    "bootstrap": {
+      "samples": 2000,
+      "seed": 462,
+      "unit": "paired JST day"
+    },
+    "conditional_terms": [
+      "same_rider",
+      "other_rider_on_same_known_line"
+    ],
+    "cutoff_clocks_authenticated": false,
+    "development_days": [
+      "2026-07-01",
+      "2026-07-31"
+    ],
+    "direct_model": "back_phase_study.fit_leader",
+    "feature_builder": "back_phase_study.prepare",
+    "identity_scope": "UNRESOLVED_SOURCE_COMPOSITE",
+    "independent_validation": false,
+    "older_archived_days_warm_history_only": true,
+    "physical_state_measured": false,
+    "prediction_uses_actual_s_or_b": false,
+    "production_promoted": false,
+    "ridge": 0.01,
+    "same_pair_labeled_cohort": true,
+    "schema": "DT_R1_ARCHIVED_S_TO_B_CONTRACT_V1",
+    "source_definition": "https://keirin.jp/pc/static/beginner/basics/racecard.html",
+    "start_definition": "attach behind pacer immediately after start",
+    "start_model": "same categorical fit with distinct S labels",
+    "strict_prior_jst_days_for_features": true,
+    "temperature_selection": false,
+    "training_days": [
+      "2026-01-01",
+      "2026-06-30"
+    ]
+  },
+  "contract_sha256": "20e24e193fa5a21adc7f75c2db7282f82d757b4f2b9806510f74130bbf197bee",
+  "feature_and_leader_code_sha256": "7eeb1b74de675f592d2c5713cbfbc50a153088d93108d15ae8809569c6446e42",
+  "feature_count": 148,
+  "july": {
+    "cards": 2416,
+    "common_labeled": 2277,
+    "counts": {
+      "NO_EXPLICIT_B": 2,
+      "NO_EXPLICIT_S": 137,
+      "UNIQUE_S_AND_B": 2277
+    },
+    "days": 31,
+    "metrics": {
+      "direct_back": {
+        "log_loss": 0.8983020478139145,
+        "n": 2277,
+        "top1_hits": 1387,
+        "top1_rate": 0.6091348265261308
+      },
+      "start": {
+        "log_loss": 1.4469384306831399,
+        "n": 2277,
+        "top1_hits": 1011,
+        "top1_rate": 0.4440052700922266
+      },
+      "transition_back": {
+        "log_loss": 0.8977796896024706,
+        "n": 2277,
+        "top1_hits": 1379,
+        "top1_rate": 0.6056214317083882
+      }
+    },
+    "transition_minus_direct_back": {
+      "log_loss": {
+        "ci95": [
+          -0.0026807769395080037,
+          0.0016307436254525535
+        ],
+        "delta": -0.0005223582114440363
+      },
+      "top1": {
+        "ci95": [
+          -0.008113332187390854,
+          0.0008892940160039495
+        ],
+        "delta": -0.003513394817742644
+      }
+    }
+  },
+  "model_pins": {
+    "direct_back_sha256": "d8b6ca73132bfb1518c17a3d426fed788910bf3d3cd2d47e6f0ca377aad7a3e4",
+    "start_sha256": "3ad4c412b33f405804016abec8737b84856dbf4e72b5a357dbe8a6092474e0f5",
+    "transition_sha256": "6753446b854fd8490d447f81d74f2c34dd0e494e702be49f6662b704596b72e3"
+  },
+  "optimizers_converged": {
+    "direct_back": true,
+    "start": true,
+    "transition": true
+  },
+  "production_promoted": false,
+  "runtime_seconds": 99.842,
+  "schema": "DT_R1_ARCHIVED_S_TO_B_STUDY_V1",
+  "source": {
+    "commit": "2a1260fb0940ad11160b56a36f9c24cc4fb2f6d2",
+    "dataset_sha256": "9bc3fbda8339b32ba178f5c9c39d6623216ad5c2d5519774870ac5491ba0a847",
+    "files": {
+      "keirin.db": "1bdad22b9744c9c5563f7bb1af31875170a3e6b7f4b0dd73fba8f98d645d8fc4",
+      "keirin_2026q4.db": "d915560877493816b90df8bcd5e7bdef45557f57100b4cd40a3d017cd959334d"
+    }
+  },
+  "started_at": "2026-11-28T09:34:44.519321+00:00",
+  "study_sha256": "d73d44716392d27a0da12e39439f34e6f59cc0347802ac39514b9208c6891ee2",
+  "training": {
+    "cards": 13664,
+    "common_labeled": 12833,
+    "counts": {
+      "NO_EXPLICIT_B": 27,
+      "NO_EXPLICIT_S": 777,
+      "RESULT_ROSTER_INCOMPLETE": 27,
+      "UNIQUE_S_AND_B": 12833
+    }
+  }
+}

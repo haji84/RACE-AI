@@ -18,7 +18,7 @@ def _progress(stage, day, outcome):
     print(json.dumps(dict(stage=stage, day=day, outcome=outcome)), file=sys.stderr, flush=True)
 
 
-def run(*, repo, private_root, owner_public_pem, owner_private_pem, day=None,
+def run(*, repo, private_root, owner_public_pem, owner_private_pem, day=None, earlier_batch=False,
         now=continuation.now_utc):
     repo, root, _, _, commit = continuation._runtime(repo=repo, private_root=private_root,
         owner_public_pem=owner_public_pem, owner_private_pem=owner_private_pem,
@@ -32,7 +32,8 @@ def run(*, repo, private_root, owner_public_pem, owner_private_pem, day=None,
         archive._cmd(work, 'config', '--local', 'remote.origin.partialclonefilter', 'blob:none')
         records.fetch_partial_head(work, with_ancestry=True)
         report = official_holdout_study.run_holdout(work, owner_private_pem=owner_private_pem,
-            trained=trained, client=GitHubEvidenceClient(), now=now, day=day, progress=_progress)
+            trained=trained, client=GitHubEvidenceClient(), now=now, day=day, earlier_batch=earlier_batch,
+            progress=_progress)
     return dict(report, reader_code_commit=commit, reader_run_id=os.environ['GITHUB_RUN_ID'])
 
 
@@ -41,7 +42,9 @@ def main(argv=None):
     parser.add_argument('--repo', type=Path, required=True)
     parser.add_argument('--private-root', type=Path, required=True)
     parser.add_argument('--owner-public-pem', type=Path, required=True)
-    parser.add_argument('--day')
+    cohort = parser.add_mutually_exclusive_group()
+    cohort.add_argument('--day')
+    cohort.add_argument('--earlier-batch', action='store_true', help='Run the fixed November 23–26 batch.')
     args = parser.parse_args(argv)
     private = os.environ.pop('RACE_AI_KEIRIN_PRIVATE_RSA_PEM', '').encode()
     try:
