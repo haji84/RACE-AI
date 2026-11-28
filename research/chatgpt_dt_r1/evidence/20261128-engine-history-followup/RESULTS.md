@@ -251,3 +251,5 @@ GitHubの保護実行でも、同じ固定索引 `96648795017fe9f25f0b48cfed143c
 01:25 JSTまでに公式事前資料が共通する後続4件を両モデルが予想し、別runの読戻しとT−15の時刻条件を経て初回原本として保存した。既保存の7件の参照バイトを両モデルで確認し、4件の追加後に同じ11枠を固定した。追加4件の所有者鍵による予想・着順の照合は、公式結果が保存された後の保護採点で確認する。[DT-R1の後続予想と保全](nov29-second-dt-r1-prospective-retention.json) · [Codex独自の後続予想と保全](nov29-second-codex-prospective-retention.json) · [共通11枠の固定索引](https://github.com/haji84/RACE-AI/commit/881260332be810a697ec27aa9f22926fd2dba525)
 
 01:58 JSTまでに別の7枠を同じ公式資料から予想し、両モデルで独立読戻しとT−15を検証した。対象枠のハッシュは両モデルで一致し、既存11参照を保ったまま各18枠を暗号保全した。登録54件、公式事前資料21件、公式結果0件。新たに保存された資料3件は後続の予想中。18枠の予想精度は、公式着順の保存後に同じ固定点数で評価する。[DT-R1保全](nov29-third-dt-r1-prospective-retention.json) · [Codex保全](nov29-third-codex-prospective-retention.json) · [固定索引](https://github.com/haji84/RACE-AI/commit/703970ddfc54b422cfd6000818bffdaa1f9cd807)
+
+02:25 JSTに後続3枠を独立読戻しとT−15認証後に追加し、先の18枠を維持した計21枠を両モデルで固定した。公式事前資料は28件、公式結果は0件。追加3予想でDT-R1が参照した公式履歴は延べ12レース。11月29日の少点数の精度は、締切前原本を復元して公式着順と照合した後に判定する。[DT-R1保全](nov29-fourth-dt-r1-prospective-retention.json) · [Codex保全](nov29-fourth-codex-prospective-retention.json) · [共通21枠の固定索引](https://github.com/haji84/RACE-AI/commit/f1d4ae84769d263c7b05f9c9e24d8f6ee067117a)
