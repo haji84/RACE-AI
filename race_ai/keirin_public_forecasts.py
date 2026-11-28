@@ -19,9 +19,9 @@ RESEARCH_SCHEMA = 'RACE_AI_KEIRIN_PUBLIC_RESULT_UNREAD_AB_V1'
 REF = 'state/keirin-public-forecasts'
 RIDER_ARCHIVE_PATH = 'rider-history/archive.json'
 RIDER_ARCHIVE_MAX = 4 * 1024 * 1024
-PATH = re.compile(r'(?:(?:forecasts|references|research|updates|details|odds|operations|starters|rider-history|rider-context|rider-context-secondary|rank-distributions|rider-conditions|rider-condition-results|rider-condition-archive|measurements|dt-r1)/'
+PATH = re.compile(r'(?:(?:forecasts|references|research|updates|details|odds|operations|starters|reference-starters|rider-history|rider-context|rider-context-secondary|rank-distributions|rider-conditions|rider-condition-results|rider-condition-archive|measurements|dt-r1)/'
                   r'20[0-9]{2}-[0-9]{2}-[0-9]{2}\.json|(?:rider-history|measurements)/latest\.json|rider-history/archive\.json|'
-                  r'measurements/(?:confidence|replay-confidence)-20[0-9]{2}-[0-9]{2}-[0-9]{2}\.json)')
+                  r'reference-starters/identity-directory\.json|measurements/(?:confidence|replay-confidence)-20[0-9]{2}-[0-9]{2}-[0-9]{2}\.json)')
 LIMIT = 8
 MAX_BYTES = 512 * 1024
 

@@ -434,8 +434,8 @@
     const card = element("article", "keirin-public-race");
     const head = element("div", "keirin-public-race-head");
     const labels = { saved: "掲載済み", reference: "締切前の参考", research: "出走表の参考",
-      "late-research": "締切後の参考", pending: "未掲載", "dt-only": "DT-R1掲載" };
-    const hasAB = row.status !== "pending" && row.status !== "dt-only";
+      "late-research": "締切後の参考", pending: "未掲載", "dt-only": "DT-R1掲載", "roster-only": "出走表掲載" };
+    const hasAB = Array.isArray(row.a) && Array.isArray(row.b) && row.status !== "pending";
     head.append(element("h2", "", name),
       element("span", "keirin-public-badge " + (row.status === "saved" ? "is-saved" : ""), labels[row.status]));
     const clocks = element("p", "keirin-public-clocks");
@@ -551,7 +551,7 @@
     scoreboard.hidden = false;
   }
 
-  async function render(day, snapshot, referencePacket, researchPacket, confidencePacket, resultPackets, dtRows, request) {
+  async function render(day, snapshot, referencePacket, researchPacket, confidencePacket, resultPackets, dtRows, meeting, request) {
     const references = publicCandidates(referencePacket, day, false);
     const research = publicCandidates(researchPacket, day, true);
     const ratings = confidenceRows(confidencePacket, day);
@@ -578,20 +578,26 @@
     if (!ordered.length) status.textContent = "この日の公開データにレースはありません。";
     if (!snapshot) status.textContent = "A/B未掲載";
     if (dtRows.size) status.append(" ・ DT-R1 " + dtRows.size + " レース");
+    if (meeting.rows.size) status.append(" ・ 公開出走表 " + meeting.rows.size + " レース");
     const notices = [...ordered, ...dtRows.values()];
     const latest = notices.reduce((time, row) =>
       Date.parse(row.published_at) > Date.parse(time) ? row.published_at : time,
-      snapshot?.published_at ?? notices[0].published_at);
+      snapshot?.published_at ?? notices[0]?.published_at ?? meeting.packet.published_at);
     updated.replaceChildren("公開データ更新 ", clock(latest), " JST");
     updated.hidden = false;
-    const registered = new Set(ordered.map(row => row.race_id));
-    const visible = [...ordered, ...[...dtRows.values()].filter(row => !registered.has(row.race_id))
-      .map(row => ({ race_id: row.race_id, cutoff_at: row.cutoff_at, status: "dt-only" }))];
+    const cardRows = new Map(ordered.map(row => [row.race_id, row]));
+    for (const row of dtRows.values()) if (!cardRows.has(row.race_id)) {
+      cardRows.set(row.race_id, { race_id: row.race_id, cutoff_at: row.cutoff_at, status: "dt-only" });
+    }
+    for (const raceId of meeting.rows.keys()) if (!cardRows.has(raceId)) {
+      cardRows.set(raceId, { race_id: raceId, cutoff_at: null, status: "roster-only" });
+    }
+    const visible = [...cardRows.values()];
     const sortClock = row => Date.parse(row.cutoff_at ?? dtRows.get(row.race_id)?.cutoff_at) || Infinity;
     visible.sort((a, b) => sortClock(a) - sortClock(b) || a.race_id.localeCompare(b.race_id));
     const receipt = resultReceipt(day, roster, resultPacket, results);
     races.replaceChildren(...visible.map(row => raceCard(row, day, ratings, replay, dtRows.get(row.race_id), results, receipt)));
-    activeDay = { day, ordered: visible, dtRows, checkedAt: receipt?.checkedAt };
+    activeDay = { day, ordered: visible, dtRows, checkedAt: receipt?.checkedAt, referenceStarters: meeting.packet };
     renderResults(activeDay, receipt);
   }
 
@@ -616,6 +622,7 @@
     if (!packets) {
       packets = Object.fromEntries(await Promise.all(Object.entries(sources).map(async ([key, source]) =>
         [key, await read(...source)])));
+      packets.referenceStarters = activeDay?.day === day ? activeDay.referenceStarters : await read("reference-starters");
       if (!request.signal.aborted) dossierCache = { day, at: Date.now(), packets };
     }
     const checked = globalThis.RaceKeirinDossierData.prepare;
@@ -640,13 +647,14 @@
   }
 
   async function loadDay(day, request, resultPackets) {
-    const [forecast, dtPacket] = await Promise.allSettled([
-      fetchDay("forecasts", day, request), fetchDay("dt-r1", day, request)
+    const [forecast, dtPacket, starterPacket] = await Promise.allSettled([
+      fetchDay("forecasts", day, request), fetchDay("dt-r1", day, request), fetchDay("reference-starters", day, request)
     ]);
     if (request.signal.aborted) return;
     const snapshot = forecast.status === "fulfilled" && validSnapshot(forecast.value, day) ? forecast.value : null;
     const dtRows = dtShortlists(dtPacket.value, day);
-    if (!snapshot && !dtRows.size) {
+    const meeting = { packet:starterPacket.value, rows:globalThis.RaceKeirinDossierData.referenceRows(starterPacket.value, day) };
+    if (!snapshot && !dtRows.size && !meeting.rows.size) {
       return forecast.status === "rejected" ? "公開予想を取得できませんでした。再読み込みで確認できます。" :
         forecast.value === undefined ? unpublished : "公開データの形式を確認できません。";
     }
@@ -657,7 +665,7 @@
       snapshot ? fetchDay("measurements", "confidence-" + day, request).catch(() => null) : null,
       resultPackets ?? fetchResults(day, request)
     ]);
-    await render(day, snapshot, ...packets, dtRows, request);
+    await render(day, snapshot, ...packets, dtRows, meeting, request);
   }
 
   async function refreshResults() {

@@ -14,7 +14,11 @@ on:
       - 'scripts/keirin_publish_public_site_results.sh'
       - 'scripts/keirin_capture_public_two_sources.py'
       - 'scripts/keirin_public_site_results.py'
+      - 'race_ai/keirin_public_meeting_roster.py'
+      - 'scripts/keirin_publish_meeting_rosters.py'
       - 'tests/test_keirin_public_site_results.py'
+      - 'tests/test_keirin_public_meeting_roster.py'
+      - 'tests/test_keirin_publish_meeting_rosters.py'
 
 permissions:
   contents: read
@@ -35,7 +39,8 @@ jobs:
         shell: bash
         run: |
           python -m pip install --disable-pip-version-check 'beautifulsoup4>=4.12,<5' 'cryptography>=44,<48'
-          python -m unittest tests.test_keirin_public_site_results tests.test_keirin_capture_public_two_sources
+          python -m unittest tests.test_keirin_public_site_results tests.test_keirin_capture_public_two_sources \
+            tests.test_keirin_public_meeting_roster tests.test_keirin_publish_meeting_rosters
           bash -n scripts/keirin_publish_public_site_results.sh
 
   publish-public-site-results:
@@ -65,3 +70,8 @@ jobs:
           python -m pip install --disable-pip-version-check 'beautifulsoup4>=4.12,<5' 'cryptography>=44,<48'
           python -m unittest tests.test_keirin_public_site_results
           bash scripts/keirin_publish_public_site_results.sh 0 --refresh-rosters
+      - name: Publish today's display rosters from the linked public meeting pages
+        if: ${{ !cancelled() }}
+        shell: bash
+        run: |
+          python -m scripts.keirin_publish_meeting_rosters --repo "$GITHUB_WORKSPACE" --today

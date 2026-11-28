@@ -9,6 +9,7 @@
 
   const schemas = {
     starters: 'RACE_AI_KEIRIN_PUBLIC_STARTERS_V1',
+    referenceStarters: 'RACE_AI_KEIRIN_PUBLIC_REFERENCE_STARTERS_V1',
     official: 'RACE_AI_KEIRIN_PUBLIC_DOSSIER_CONTEXT_V1',
     secondary: 'RACE_AI_KEIRIN_PUBLIC_DOSSIER_SECONDARY_V1',
     conditions: 'RACE_AI_KEIRIN_PUBLIC_DOSSIER_CONDITIONS_V1',
@@ -55,6 +56,27 @@
       car(rider?.number) && safeText(rider.name, 100) && nameKey(rider.name) &&
       (registration(rider.registration) || (nullableRegistration && rider.registration === null))) &&
       unique(riders.map(rider => rider.number)) && unique(riders.map(rider => rider.registration).filter(Boolean));
+  }
+
+  function referenceRows(packet, day) {
+    const published = clock(packet?.published_at), rows = new Map();
+    if (packet?.schema !== schemas.referenceStarters || packet.day !== day || published === null ||
+        !Array.isArray(packet.races) || packet.races.length > 300) return rows;
+    for (const row of packet.races) {
+      if (typeof row?.race_id !== 'string' || !/^20\d{8}(?:0[1-9]|1[0-2])$/.test(row.race_id) ||
+          dayFromId(row.race_id) !== day || rows.has(row.race_id) || !sha256(row.source_sha256) ||
+          !namedField(row.riders, 1, true)) return new Map();
+      const observed = clock(row.source_at);
+      const url = typeof row.source_url === 'string' &&
+        /^https:\/\/keirin\.kdreams\.jp\/[a-z0-9-]+\/racecard\/(\d{2})(20\d{6})(0[1-7])00\/$/.exec(row.source_url);
+      if (observed === null || observed > published || !url || url[1] !== row.race_id.slice(8,10)) return new Map();
+      const first = dayFromId(url[2]);
+      if (!validDay(first) || new Date(Date.parse(first) + (Number(url[3]) - 1) * 86400000).toISOString().slice(0,10) !== day) {
+        return new Map();
+      }
+      rows.set(row.race_id, row);
+    }
+    return rows;
   }
 
   function rankedField(packet, row, day, cutoffAt) {
@@ -222,7 +244,7 @@
 
   function archiveForDay(packet, day) {
     if (packet?.schema !== schemas.archive || !validDay(packet.start_day) || !validDay(packet.end_day) ||
-        packet.start_day > packet.end_day || packet.end_day >= day || !Array.isArray(packet.source_sha256s) ||
+        packet.start_day > packet.end_day || !Array.isArray(packet.source_sha256s) ||
         packet.source_sha256s.length < 1 || packet.source_sha256s.length > 100 || !packet.source_sha256s.every(sha256) ||
         !Number.isSafeInteger(packet.numeric_finishes) || packet.numeric_finishes < 1 ||
         !Array.isArray(packet.riders) || packet.riders.length > 5000) return null;
@@ -232,7 +254,7 @@
         venueStartDay > venueEndDay || venueEndDay > packet.end_day) return null;
     const first = packet.observations_start_day, last = packet.observations_end_day;
     const observations = validDay(first) && validDay(last) && packet.start_day <= first &&
-      first <= last && last <= packet.end_day ? {startDay:first, endDay:last} : null;
+      first <= last && last <= packet.end_day && last < day ? {startDay:first, endDay:last} : null;
     const riders = new Map();
     let finishes = 0;
     for (const rider of packet.riders) {
@@ -252,22 +274,24 @@
       riders.set(rider.registration, rider);
     }
     if (finishes !== packet.numeric_finishes) return null;
-    return {riders, startDay:packet.start_day, endDay:packet.end_day, venueStartDay, venueEndDay, observations};
+    return {riders, startDay:packet.start_day, endDay:packet.end_day, venueStartDay, venueEndDay, observations,
+      totalAvailable:packet.end_day < day, venueAvailable:venueEndDay < day};
   }
 
   function collectedHistory(archive, days, registrationId, venueCode) {
     const rider = archive?.riders.get(registrationId);
-    const counts = rider ? rider.counts.slice() : Array(9).fill(0);
-    let startDay = rider ? archive.startDay : null, endDay = rider ? archive.endDay : null;
+    const hasTotal = rider && archive.totalAvailable;
+    const counts = hasTotal ? rider.counts.slice() : Array(9).fill(0);
+    let startDay = hasTotal ? archive.startDay : null, endDay = hasTotal ? archive.endDay : null;
     for (const [date, registers] of days) {
-      if (archive && date <= archive.endDay) continue;
+      if (hasTotal && date <= archive.endDay) continue;
       const observed = registers?.get(registrationId);
       if (!observed) continue;
       observed.forEach((n, i) => { counts[i] += n; });
       if (startDay === null || date < startDay) startDay = date;
       if (endDay === null || date > endDay) endDay = date;
     }
-    const venue = rider?.venues[venueCode];
+    const venue = archive?.venueAvailable ? rider?.venues[venueCode] : null;
     const [runs, peers, score] = Array.isArray(rider?.agari) ? rider.agari : [];
     const observed = archive?.observations;
     const agari = observed && [runs, peers, score].every(Number.isSafeInteger) &&
@@ -327,11 +351,12 @@
     const day = dayFromId(raceId);
     const find = kind => requestedRow(packets[kind], kind, day, raceId);
     const starter = find('starters');
+    const reference = referenceRows(packets.referenceStarters, day).get(raceId);
     const rank = rankedField(packets.rank, find('rank'), day, cutoffAt);
     const archive = archivedField(archived, raceId, day);
     const withStarters = namedField(starter?.riders, 3, false) && clock(starter.source_at) !== null &&
       clock(starter.source_at) <= clock(packets.starters.published_at);
-    const field = withStarters ? starter.riders : rank?.riders ?? archive?.riders;
+    const field = withStarters ? starter.riders : reference?.riders ?? rank?.riders ?? archive?.riders;
     if (!field) return empty;
     const roster = new Map(field.map(rider => [rider.number, rider]));
     const official = contextField(packets.official, find('official'), 'official', day, cutoffAt, roster);
@@ -358,6 +383,8 @@
       const recent = currentRecent.length ? currentRecent : recentResults(old, day);
       const collected = collectedHistory(archiveHistory, history, registration, raceId.slice(8, 10));
       return {number, name, registration, style:['逃','追','両'].includes(publishedStyle) ? publishedStyle : null,
+        registrationBasis:rider.registration_basis === 'VERIFIED_DIRECTORY_NAME_PREFECTURE' ?
+          '公開登録名簿で氏名・府県を照合' : null,
         stats:statistics(official, number) ?? statistics(secondary, number) ?? statistics(archivedContext, number),
         comment:comment(official, number) ?? comment(secondary, number) ??
           (safeText(old?.comment, 240) ? {summary:old.comment, at:archive.at, url:archive.comments} : null),
@@ -370,8 +397,10 @@
         tactics:tactics ? {savedAt:tactics.savedAt, reasons:tactics.reasons.slice(), positions:tactics.scenarios.map(scenario =>
           scenario.orders.map(order => order ? order.indexOf(number) + 1 : null))} : null};
     });
-    return {riders, cutoffAt:deadline, sourceAt:withStarters ? starter.source_at : rank?.source_as_of ?? archive.at};
+    const rosterSource = !withStarters && reference ? {url:reference.source_url, at:reference.source_at} : null;
+    return {riders, cutoffAt:deadline, rosterSource,
+      sourceAt:withStarters ? starter.source_at : rosterSource?.at ?? rank?.source_as_of ?? archive.at};
   }
 
-  return {prepare};
+  return {prepare, referenceRows};
 });
