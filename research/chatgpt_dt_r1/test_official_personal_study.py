@@ -3,6 +3,7 @@ from datetime import date
 import unittest
 from types import SimpleNamespace
 from unittest.mock import patch
+import numpy as np
 
 from research.chatgpt_dt_r1.features import FeatureBuilder
 from research.chatgpt_dt_r1.model import RankModel
@@ -20,7 +21,7 @@ class PersonalFinishFeaturesTests(unittest.TestCase):
         builder = FeatureBuilder()
         study.add_to_builder(builder, [event])
         saved, = builder.history[rider]
-        self.assertEqual((saved['date'], saved['venue_code'], saved['race_class']), (date(2026, 11, 11), '24', 'UNKNOWN'))
+        self.assertEqual((saved['date'], saved['venue_code'], saved['race_class']), (date(2026, 11, 11), '24', None))
         self.assertEqual((saved['rank'], saved['form'], saved['started']), (3, .75, True))
         self.assertTrue(all(saved[k] is None for k in ('half_lap_seconds', 'final_lap_seconds', 'sb_mark')))
         with self.assertRaisesRegex(ValueError, 'DUPLICATE_PERSONAL_HISTORY_FINISH'):
@@ -34,11 +35,17 @@ class PersonalFinishFeaturesTests(unittest.TestCase):
         support = dict(history_races=1)
         row = dict(target, source_attestation_sha256='a' * 64, source_verified_at=AT,
             source_available_at_verified=True, source_admission_status='ADMITTED',
-            pre_cutoff_authenticated=True, source_proof={}, history_evidence={'official_support': support})
+            pre_cutoff_authenticated=True, source_proof={}, history_evidence={'official_support': support},
+            features=np.ones((len(target['riders']), len(NAMES))))
         prior = SimpleNamespace(arguments=lambda *_: dict(history_records=[], history_verifier=None))
         with (patch.object(study.official_inputs, 'verification_payload', return_value={'normalized_input': target}),
-              patch.object(study.official_inputs, '_history', return_value=([], support))):
+              patch.object(study.official_inputs, '_history', return_value=([], support)),
+              patch.object(trained, 'distribution', wraps=trained.distribution) as distribution):
             comparison.add(payload={}, original=original, baseline=row, prior=prior, prediction_at=AT)
+        distribution.assert_called_once()
+        extended = distribution.call_args.args[0]
+        np.testing.assert_equal(extended['features'][:, study.BASELINE_ONLY], row['features'][:, study.BASELINE_ONLY])
+        self.assertEqual(extended['history_evidence']['rider_evidence']['1']['numeric_finishes'], 2)
         result = dict(race_id=RID, input_sha256=target['input_sha256'], result_status='VERIFIED_NORMAL',
                       top3=[1, 2, 3])
         # Use an identical complete law to test scoring independently from the frozen weights.

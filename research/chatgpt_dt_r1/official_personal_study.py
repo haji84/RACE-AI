@@ -8,12 +8,16 @@ from . import official_inputs
 from .abilities import augment_abilities
 from .agari import augment_agari
 from .context import augment_features
-from .features import FeatureBuilder, _bind_feature_input
+from .features import FEATURE_INDEX, FeatureBuilder, _bind_feature_input
 from .pipeline import summarize_predictions
 from .policy import checked_day, clock, digest
 
 
 SCOPE = 'AFTER_THE_FACT_PROFILE_REPLAY'
+BASELINE_ONLY = [FEATURE_INDEX[name] for name in (
+    'history_starts_log', 'history_numeric_fraction', 'history_rest_days_log', 'history_rest_missing',
+    'history_starts_7d', 'history_starts_30d', 'history_incident_rate', 'history_incident_missing',
+    'history_same_class_form', 'history_same_class_log', 'history_same_class_missing')]
 
 
 def add_to_builder(builder, events):
@@ -27,7 +31,7 @@ def add_to_builder(builder, events):
             raise ValueError('DUPLICATE_PERSONAL_HISTORY_FINISH')
         observed.add(key)
         stamp = checked_day(f'{rid[:4]}-{rid[4:6]}-{rid[6:8]}')
-        row = dict(day=stamp.isoformat(), race_id=rid, venue_code=rid[8:10], race_class='UNKNOWN',
+        row = dict(day=stamp.isoformat(), race_id=rid, venue_code=rid[8:10], race_class=None,
             rank=item['rank'], form=_finish_index(dict(place=item['rank'], field_size=item['field_size'])),
             started=True, incident=False, half_lap_seconds=None, final_lap_seconds=None, sb_mark=None,
             source_sha256=item['source_sha256'], published_at=item['published_at'])
@@ -77,6 +81,8 @@ class OfficialPersonalStudy:
                 builder.update_day(items)
             add_to_builder(builder, selected['events'])
             row = builder.transform(target)
+            # This source has only normal finishes. Preserve full-start, incident and class measures.
+            row['features'][:, BASELINE_ONLY] = baseline['features'][:, BASELINE_ONLY]
             row['history_evidence'].update(identities_are_unresolved=False,
                 identity_namespace=official_inputs.IDENTITY_NAMESPACE, official_support=support,
                 personal_profile_policy=selected['policy'], personal_profile_proof_sha256=selected['proof_sha256'])

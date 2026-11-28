@@ -69,7 +69,7 @@ def _same(a, b):
 
 def _forecast_from_original(entry, raw, manifest, source, rid, private, trained, venues, client, cache,
                             *, history_sources=None, history_controls=None, back_trial=None, back_pairs=None,
-                            back_holds=None, feature_rows=None, personal_study=None):
+                            back_holds=None, feature_rows=None, personal_add=None):
     meta = source.index['originals'][rid]
     need(sha256(raw).hexdigest() == entry['cipher']['sha256'], 'FORECAST_CIPHER_CHANGED')
     with _stage('FORECAST_DECRYPT_UNVERIFIED'):
@@ -145,9 +145,8 @@ def _forecast_from_original(entry, raw, manifest, source, rid, private, trained,
     checked = validate_forecast(saved['forecast'])
     need(checked['starters'] == sorted(r['car'] for r in original['snapshot']['riders']),
          'FORECAST_ROSTER_CHANGED')
-    if personal_study is not None:
-        personal_study.add(payload=payload, original=original, baseline=row, prior=prior,
-                           prediction_at=replay_at)
+    if personal_add is not None:
+        personal_add(payload=payload, original=original, baseline=row, prior=prior, prediction_at=replay_at)
     if feature_rows is not None:
         feature_rows[rid] = (row, original)
     if control is not None and history_controls is not None:
@@ -261,7 +260,7 @@ def _score_back_pairs(admitted, outcomes, back_pairs, back_holds):
 
 
 def _score_registered(race_ids, day, entries, eligible, reader_holds, forecast_loader, result_loader,
-                      *, history_controls=None, back_pairs=None, back_holds=None, personal_study=None):
+                      *, history_controls=None, back_pairs=None, back_holds=None, personal_report=None):
     """Reverify all admitted forecast originals before opening any outcome."""
     need(len(race_ids) == len(set(race_ids)), 'DUPLICATE_REGISTRY')
     slots = {shadow.slot(day, rid): rid for rid in race_ids}
@@ -319,10 +318,10 @@ def _score_registered(race_ids, day, entries, eligible, reader_holds, forecast_l
     paired_back = _score_back_pairs(admitted, outcomes, back_pairs or {}, back_holds or {})
     if paired_back is not None:
         metrics['paired_back'] = paired_back
-    if personal_study is not None:
+    if personal_report is not None:
         try:
-            metrics['personal_history_study'] = personal_study.report(admitted, outcomes)
-        except (ValueError, KeyError, TypeError, OverflowError):
+            metrics['personal_history_study'] = personal_report(admitted, outcomes)
+        except Exception:
             metrics['personal_history_study'] = dict(state='HOLD_PROFILE_STUDY_SCORING_UNVERIFIED',
                                                       prospectively_sealed=False)
     return dict(registered_races=len(race_ids), independently_timed_candidates=len(eligible),
@@ -391,6 +390,7 @@ def _score_archived_day(work, current, private, trained, venues, client, now, le
     entries, pinned_originals = [], {}
     cache, history_sources, history_controls, back_pairs, back_holds = {}, {}, {}, {}, {}
     feature_rows = {} if feature_audit is not None else None
+    personal_failed = False
     for slot, rid in slots.items():
         if slot in selected:
             candidate = selected[slot]
@@ -401,6 +401,18 @@ def _score_archived_day(work, current, private, trained, venues, client, now, le
         reason = ('SAVED_ORIGINAL_MISSING' if rid not in current.index['originals'] else
                   legacy_late.get(slot, 'NO_RETAINED_FIRST_T15_ORIGINAL'))
         entries.append(dict(slot_sha256=slot, state='HOLD', reason=reason))
+
+    def add_personal(**inputs):
+        nonlocal personal_failed
+        if not personal_failed:
+            try:
+                personal_study.add(**inputs)
+            except Exception:
+                personal_failed = True
+
+    def report_personal(admitted, outcomes):
+        need(not personal_failed, 'PERSONAL_HISTORY_RESEARCH_FAILED')
+        return personal_study.report(admitted, outcomes)
 
     def forecast_loader(entry, rid):
         candidate = selected[entry['slot_sha256']]
@@ -415,11 +427,13 @@ def _score_archived_day(work, current, private, trained, venues, client, now, le
         return _forecast_from_original(entry, raw, manifest, source, rid, private, trained, venues, client, cache,
                                        history_sources=history_sources, history_controls=history_controls,
                                        back_trial=back_trial, back_pairs=back_pairs, back_holds=back_holds,
-                                       feature_rows=feature_rows, personal_study=personal_study)
+                                       feature_rows=feature_rows,
+                                       personal_add=add_personal if personal_study is not None else None)
 
     result = _score_registered(races, day, entries, [slot for slot in slots if slot in selected], {},
         forecast_loader, lambda rid: _result_row(current, rid, private, pinned_originals.get(rid), now()),
-        history_controls=history_controls, back_pairs=back_pairs, back_holds=back_holds, personal_study=personal_study)
+        history_controls=history_controls, back_pairs=back_pairs, back_holds=back_holds,
+        personal_report=report_personal if personal_study is not None else None)
     if feature_audit is not None:
         for row, original in feature_rows.values():
             try:
