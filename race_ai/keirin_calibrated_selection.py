@@ -157,6 +157,7 @@ class CalibrationObservation:
     result_available_at: str
     probability: float
     hit: bool
+    cutoff_at: str | None = None
 
 
 @dataclass(frozen=True)
@@ -179,8 +180,11 @@ def calibration_evidence(observations, *, series, trained_through):
         if not isinstance(row, CalibrationObservation):
             raise ValueError('Expected an individual calibration observation.')
         _probability(row.probability)
-        forecast = _race_clock(row.race_id, row.forecast_at)
-        if row.race_id in seen or type(row.hit) is not bool or not fitted < forecast < when(row.result_available_at):
+        forecast = when(row.forecast_at)
+        cutoff = _race_clock(row.race_id, row.cutoff_at or row.forecast_at)
+        result = when(row.result_available_at)
+        if (row.race_id in seen or type(row.hit) is not bool or not fitted < forecast < result or
+                (row.cutoff_at is not None and not forecast < cutoff < result)):
             raise ValueError('Calibration requires distinct out-of-time races and later result observations.')
         seen.add(row.race_id)
     return CalibrationEvidence(series, fitted, rows)
