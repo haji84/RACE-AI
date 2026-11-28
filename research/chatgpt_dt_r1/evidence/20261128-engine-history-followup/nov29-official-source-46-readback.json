@@ -1,0 +1,27 @@
+{
+  "baseline_hold_reasons": {
+    "OFFICIAL_EXTENSION_LINE_LABEL_GROUP_COUNT_MISMATCH": 1,
+    "OFFICIAL_EXTENSION_LINE_LABEL_UNRECOGNIZED": 1,
+    "OFFICIAL_EXTENSION_PROFILE_CARD_DISAGREEMENT": 1
+  },
+  "baseline_source_unverified": 3,
+  "capture_budget_pending": 5,
+  "capture_receipt_artifact_id": 15284602498,
+  "capture_receipt_sha256": "3f5db97a4b6b98b6cc71131c7cf9f5d1a733081d6a139895c5955f18d7cde1dd",
+  "capture_zip_sha256": "efd08b220fbc2e73baa257b3c453cfbcfdb7eedfc523251524af4d48358e204d",
+  "code_commit": "2ce2d8dcd82c427713dbfc1f2940e98fe290df27",
+  "day_jst": "2026-11-29",
+  "earliest_new_original_deadline_jst": "2026-11-29T12:00:00+09:00",
+  "independent_readback_artifact_id": 15285222294,
+  "independent_readback_scope": "CIPHERTEXT_AND_EXISTING_GIT_INDEX",
+  "independent_readback_sha256": "296221e984f0009647773526d3245eecce7018b141e242009d5b6db56f95d272",
+  "independent_readback_zip_sha256": "59d3ff45b9b0b54cb946ab80c498c573576ba50700f8cd2857950cf79da88d36",
+  "new_independently_read_back_sources": 5,
+  "prior_saved_official_sources": 41,
+  "registered_races": 54,
+  "saved_official_sources": 46,
+  "schema": "DT_R1_OFFICIAL_SOURCE_ADDITION_READBACK_EVIDENCE_V1",
+  "source_archive_commit": "3cce57f8cc3e2333fe33ea4f3c38d5fff4a7395e",
+  "source_requests": 255,
+  "source_run_id": 46198902746
+}
