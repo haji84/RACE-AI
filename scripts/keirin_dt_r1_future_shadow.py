@@ -24,7 +24,7 @@ from race_ai import keirin_nationwide_cipher_history as archive
 from race_ai import keirin_official_nationwide_records as records
 from race_ai import keirin_official_run_history as codec
 from race_ai.keirin_github_evidence_client import GitHubEvidenceClient, GitHubEvidenceError
-from race_ai.keirin_github_origin_evidence import OriginEvidenceError
+from race_ai.keirin_github_origin_evidence import MAX_ARCHIVE_BYTES, OriginEvidenceError
 from research.chatgpt_dt_r1 import official_inputs
 from research.chatgpt_dt_r1.abilities import augment_abilities
 from research.chatgpt_dt_r1.agari import augment_agari
@@ -48,10 +48,16 @@ VENUE_SHA = 'a7d832a2661c6f05167e7a412a55e51183c21e746447f91dac44e14eeb4dfe19'
 INFERENCE_SOURCES = ('abilities.py', 'agari.py', 'context.py', 'data.py', 'features.py',
                      'model.py', 'observations.py', 'pipeline.py', 'policy.py', 'runtime.py', 'venues.py')
 READY = 'SEALED_PENDING_INDEPENDENT_READBACK'
+UPLOAD_BUDGET_HOLD = 'UPLOAD_BYTE_BUDGET_EXHAUSTED'
+MAX_MANIFEST_BYTES = 2_000_000  # Manifest member limit in the independent reader.
+# GitHub uploads this directory with ZIP compression level 0. Reserve space
+# for container metadata and each member header, name and central directory.
+ZIP_CONTAINER_RESERVE_BYTES = 1024
+ZIP_MEMBER_RESERVE_BYTES = 1024
 HOLD_REASONS = frozenset(('SAVED_ORIGINAL_MISSING', 'PRE_PREDICTION_T15_MARGIN',
     'SOURCE_ADMISSION_UNVERIFIED', 'INPUT_PROJECTION_UNVERIFIED', 'FROZEN_MODEL_OR_CONTEXT_UNVERIFIED',
     'PREDICTION_UNVERIFIED', 'POST_GENERATION_T15_MARGIN', 'POST_SAVE_T15_MARGIN',
-    'ACTUAL_JST_DAY_CHANGED', 'CLOCK_REGRESSION'))
+    'ACTUAL_JST_DAY_CHANGED', 'CLOCK_REGRESSION', UPLOAD_BUDGET_HOLD))
 ENTRY_FIELDS = frozenset(('slot_sha256', 'state', 'reason', 'source_admitted',
                          'context_geometry_present', 'cipher', 'clocks', 'bindings'))
 CLOCK_FIELDS = ('input_at', 'prediction_started_at', 'prediction_at', 'seal_started_at', 'local_readback_at')
@@ -164,7 +170,7 @@ def _candidate(*, store, payload, original, trained, venues, private, client, ca
 
 
 def _save_forecast(*, output, entry, row, forecast, payload, original, store, public, private,
-                   code_commit, input_at, prediction_started_at, proof, clock):
+                   code_commit, input_at, prediction_started_at, proof, clock, remaining_cipher_bytes):
     seal_at = _observe(clock)
     cutoff = row['cutoff_at']
     if not _same_day(seal_at, store.day):
@@ -189,6 +195,8 @@ def _save_forecast(*, output, entry, row, forecast, payload, original, store, pu
         safe_report=dict(day_jst=store.day, scope='DT_ONLY_FUTURE_SHADOW', new_forecasts=1,
                          confidence='HOLD', independently_admitted_new_forecasts=0))
     raw = codec.seal_evidence(records.wire(private_payload), public, store.day, seal_at.isoformat())
+    if len(raw) > remaining_cipher_bytes:
+        return dict(entry, reason=UPLOAD_BUDGET_HOLD)
     filename = entry['slot_sha256'] + '.sealed.json'
     capture_files._save_once(output / filename, raw)
     restored = (output / filename).read_bytes()
@@ -227,8 +235,8 @@ def _source_failure(stage, error):
 
 
 def produce_day(*, store, repo, output, owner_public_pem, owner_private_pem, code_commit,
-                origin_client, clock=continuation.now_utc, source_diagnostics=None):
-    """Internal owner-job worker; the CLI's unchanged runtime guard precedes it."""
+                origin_client, clock=continuation.now_utc, source_diagnostics=None, _ciphertext_byte_cap=None):
+    """Internal protected owner-job worker. A private cap can lower the default budget."""
     started = _observe(clock)
     need(_same_day(started, store.day), 'ACTUAL_JST_DAY_REQUIRED')
     need(not Path(output).exists() and not Path(output).is_symlink(), 'OUTPUT_ALREADY_EXISTS')
@@ -237,22 +245,31 @@ def produce_day(*, store, repo, output, owner_public_pem, owner_private_pem, cod
     need(parse_clock(registry_payload['observed_at']) <= started, 'REGISTRY_FROM_FUTURE')
     registry = records.replay_registry(registry_payload)
     race_ids = registry['registered_race_ids']
+    originals = store.index['originals']
     need(registry['event_day'] == store.day and type(race_ids) is list and
          len(race_ids) == len(set(race_ids)) and 0 < len(race_ids) <= records.MAX_RACES and
          all(type(rid) is str and re.fullmatch('20[0-9]{10}', rid) and
              rid.startswith(store.day.replace('-', '')) for rid in race_ids) and
-         set(store.index['originals']) <= set(race_ids), 'SAVED_REGISTRY_UNVERIFIED')
+         set(originals) <= set(race_ids), 'SAVED_REGISTRY_UNVERIFIED')
+    zip_reserve = ZIP_CONTAINER_RESERVE_BYTES + ZIP_MEMBER_RESERVE_BYTES * (len(race_ids) + 1)
+    remaining_cipher_bytes = MAX_ARCHIVE_BYTES - MAX_MANIFEST_BYTES - zip_reserve
+    if _ciphertext_byte_cap is not None:
+        need(type(_ciphertext_byte_cap) is int and 0 <= _ciphertext_byte_cap <= remaining_cipher_bytes,
+             'INVALID_UPLOAD_BYTE_BUDGET')
+        remaining_cipher_bytes = _ciphertext_byte_cap
     output = capture_files._private_directory(output)
     try:
         trained, venues = load_frozen(repo)
     except Exception:
         trained, venues = None, None
     entries, cache = [], {}
-    # Index metadata is already bounded/checked by RecordStore. No result
-    # envelope is read, even when a results index happens to be present.
-    for rid in sorted(race_ids):
+    # RecordStore validates each published cutoff. Compare actual instants
+    # before any source replay, so even failed attempts follow deadline order.
+    # A missing original has no trusted cutoff; retain its registered slot.
+    known = sorted(originals, key=lambda rid: (parse_clock(originals[rid]['cutoff_at']), rid))
+    for rid in known + sorted(set(race_ids) - originals.keys()):
         entry = _entry(store.day, rid, 'SAVED_ORIGINAL_MISSING')
-        meta = store.index['originals'].get(rid)
+        meta = originals.get(rid)
         if meta is None:
             entries.append(entry); continue
         now = _observe(clock)
@@ -305,10 +322,14 @@ def produce_day(*, store, repo, output, owner_public_pem, owner_private_pem, cod
             entries.append(dict(entry, reason='PREDICTION_UNVERIFIED')); continue
         # I/O/codec failure aborts the bundle: a partially saved file must never
         # disappear behind a successful per-race HOLD or an incomplete manifest.
-        entries.append(_save_forecast(output=output, entry=entry, row=row, forecast=forecast,
+        saved = _save_forecast(output=output, entry=entry, row=row, forecast=forecast,
             payload=payload, original=original, store=store, public=owner_public_pem,
             private=owner_private_pem, code_commit=code_commit, input_at=input_at,
-            prediction_started_at=prediction_started.isoformat(), proof=proof, clock=clock))
+            prediction_started_at=prediction_started.isoformat(), proof=proof, clock=clock,
+            remaining_cipher_bytes=remaining_cipher_bytes)
+        if saved['cipher'] is not None:
+            remaining_cipher_bytes -= saved['cipher']['bytes']
+        entries.append(saved)
     eligible = sum(r['state'] == READY for r in entries)
     report = dict(schema=SUMMARY_SCHEMA, scope='DT_ONLY_FUTURE_SHADOW', day_jst=store.day,
         state='DT_SHADOW_SAVED_PENDING_INDEPENDENT_READBACK' if eligible else 'HOLD_DT_SHADOW_NO_TIMELY_LOCAL_ORIGINAL',
@@ -325,6 +346,7 @@ def produce_day(*, store, repo, output, owner_public_pem, owner_private_pem, cod
     manifest = dict(schema=SCHEMA, model=_model_identity(), summary=report,
         registry={key: store.index['registry'][key] for key in ('evidence_sha256', 'cipher_sha256')}, entries=entries)
     manifest_raw = codec._canonical(manifest)
+    need(0 < len(manifest_raw) <= MAX_MANIFEST_BYTES, 'MANIFEST_BYTE_LIMIT')
     capture_files._save_once(output / 'manifest.json', manifest_raw)
     manifest_sha = sha256(manifest_raw).hexdigest()
     verify_output(output, expected_manifest_sha256=manifest_sha)
@@ -339,7 +361,7 @@ def verify_output(directory, *, expected_manifest_sha256=None):
     path = directory / 'manifest.json'
     need(not directory.is_symlink() and path.is_file() and not path.is_symlink(), 'MANIFEST_PATH')
     raw = path.read_bytes()
-    need(0 < len(raw) <= 2_000_000 and (expected_manifest_sha256 is None or
+    need(0 < len(raw) <= MAX_MANIFEST_BYTES and (expected_manifest_sha256 is None or
          _sha(expected_manifest_sha256) and sha256(raw).hexdigest() == expected_manifest_sha256), 'MANIFEST_SHA')
     manifest = codec._json(raw)
     need(type(manifest) is dict and set(manifest) == {'schema', 'model', 'summary', 'registry', 'entries'} and
@@ -370,6 +392,9 @@ def verify_output(directory, *, expected_manifest_sha256=None):
         seen.add(entry['slot_sha256'])
         need(entry['state'] in (READY, 'HOLD') and (entry['reason'] is None if entry['state'] == READY else
              entry['reason'] in HOLD_REASONS), 'ENTRY_STATE')
+        if entry['reason'] == UPLOAD_BUDGET_HOLD:
+            need(entry['cipher'] is None and entry['source_admitted'] and
+                 type(entry['context_geometry_present']) is bool, 'UPLOAD_BYTE_BUDGET_ENTRY')
         if entry['cipher'] is None:
             need(entry['state'] == 'HOLD' and entry['clocks'] is None and entry['bindings'] is None, 'UNSAVED_ENTRY')
             continue
