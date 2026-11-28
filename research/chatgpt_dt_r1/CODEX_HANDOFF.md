@@ -4,6 +4,8 @@
 
 ## 11月29日の締切前検証の再開地点
 
+07:04 JST、単騎の扱いを反映した公式取得で事前資料5件を新たに保存し、全件の暗号文と固定索引を別ランナーで照合した。登録54枠中、公式事前資料は31→36件。取得上限の待機15、ライン確認の保留3は競り・多段表示1、グループ数の不一致1、表記未確認1。既存のDT-R1・Codex独自の締切前原本は共通31枠で、新しい5枠は同じ公式資料から予想・独立読戻し・先行保存へ進める。固定公式索引は `14107b2babfff624c93c08ac50f60839f252e0c8`。[公式取得と独立読戻し](https://github.com/haji84/RACE-AI/actions/runs/46194030111) · [固定集計](evidence/20261128-engine-history-followup/nov29-official-line-source-readback.json)
+
 11月28日の認証済み公式通常着順51件を再現し、全件で公式最終バック先頭を示すB印を一意に確認した。公式上がりは51件・延べ354選手。保存済みの同日のDT-R1原本は着順を31件採点できた。最終バック先頭を締切前に保全した対照は11月29日の31組で、結果が保存された枠から採点する。[公式実測の保護実行](https://github.com/haji84/RACE-AI/actions/runs/46193569251) · [固定集計](evidence/20261128-engine-history-followup/nov28-official-native-phase-observations.json)
 
 11月21〜22日の未使用公式期間で1着補正候補を照合した。登録125件、公式通常着順22件、認証済み事前資料との共通21件、過去履歴を使えた5件。三連単1点は凍結版・補正版とも0/21、二車単1点はともに3/21。この候補の採用を見送り、同じ期間での追加調整を打ち切った。最終バックと直接着順の当日比較は、新しい公式結果の保存後に実行する。[保護採点](https://github.com/haji84/RACE-AI/actions/runs/46193048925) · [公式集計](evidence/20261128-engine-history-followup/nov21-22-winner-residual-official-holdout.json)

@@ -1,0 +1,26 @@
+{
+  "baseline_hold_reasons": {
+    "OFFICIAL_EXTENSION_CONTESTED_OR_MULTILEVEL_LINE_UNSUPPORTED": 1,
+    "OFFICIAL_EXTENSION_LINE_LABEL_GROUP_COUNT_MISMATCH": 1,
+    "OFFICIAL_EXTENSION_LINE_LABEL_UNRECOGNIZED": 1
+  },
+  "baseline_source_unverified": 3,
+  "capture_budget_pending": 15,
+  "capture_receipt_artifact_id": 15282962646,
+  "capture_receipt_sha256": "041b461240df9e626b555e3ed4850c99068c31b0df167b511ac2cd278727c53f",
+  "capture_zip_sha256": "3374a4813c31190f1b5b1c769984e8c9d47fc3c91b83cf5a9dc37708b36f728e",
+  "code_commit": "533ac6d3fd622bd52a42bc21c120b6a7f16b45ff",
+  "day_jst": "2026-11-29",
+  "independent_readback_artifact_id": 15283072482,
+  "independent_readback_scope": "CIPHERTEXT_AND_EXISTING_GIT_INDEX",
+  "independent_readback_sha256": "39ac06afd1639c981b5f59e5c78c7efccb29740957f36534e9e3f055ad47d838",
+  "independent_readback_zip_sha256": "992710f0288ac19bcbf23febfd051f9bedecede8aaeb75eab5c23c262bb3092e",
+  "new_independently_read_back_sources": 5,
+  "prior_saved_official_sources": 31,
+  "registered_races": 54,
+  "saved_official_sources": 36,
+  "schema": "DT_R1_OFFICIAL_SOURCE_ADDITION_READBACK_EVIDENCE_V1",
+  "source_archive_commit": "14107b2babfff624c93c08ac50f60839f252e0c8",
+  "source_requests": 226,
+  "source_run_id": 46194030111
+}
