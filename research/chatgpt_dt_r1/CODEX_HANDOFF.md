@@ -4,6 +4,10 @@
 
 ## 11月29日の締切前検証の再開地点
 
+01:25 JSTまでに後続4枠をDT-R1とCodex独自で同じ公式資料から予想し、別ランナーの読戻しとT−15認証を経て保全した。両モデルそれぞれで初回7枠の参照バイトを維持し、同じ4枠が追加されたことをGit索引で確認した。各モデルで同じ11枠を独立保全済み。締切前の所有者鍵による完全再現は初回7組で確認済み。[DT-R1保全](evidence/20261128-engine-history-followup/nov29-second-dt-r1-prospective-retention.json) · [Codex保全](evidence/20261128-engine-history-followup/nov29-second-codex-prospective-retention.json) · [両モデルの固定索引](https://github.com/haji84/RACE-AI/commit/881260332be810a697ec27aa9f22926fd2dba525)
+
+同じ索引では別の公式資料取得で旧11件を維持して7件を追加し、全18件のうち追加7件の暗号文を別ランナーで確認した。追加の条件付き原本は3件。登録54件、未取得は上限35件、ライン表記確認1件、公式結果0件。追加7件の最早締切は10:10 JSTで、DT-R1の次の保護予想を起動した。次は新規暗号原本の読戻し、保全、同資料のCodex独自予想を確認する。初回枠の08:47 JST締切後に公式結果の保存を確認して固定点数採点へ進む。01:23 JST時点では11月29日分の定期取得・定期結果監視は未確認で、必要時は既存の対象限定観測を使う。[追加公式取得と読戻し](https://github.com/haji84/RACE-AI/actions/runs/46164160999) · [追加7件のDT-R1保護予想](https://github.com/haji84/RACE-AI/actions/runs/46165414359)
+
 11月29日00:05 JSTに、公式台帳と08:47締切の事前原本1件を認証対象の暗号索引で確認した。00:09 JSTには公式台帳54件、暗号化した条件付き事前原本4件、公式結果0件を確認。4件は別ランナーの読戻しを完了した。公式7日履歴・長期個人履歴・最終バック候補を締切前に封印するため、両候補を指定したDT-R1保護予想を起動した。[11月29日の公式取得と独立読戻し](https://github.com/haji84/RACE-AI/actions/runs/46157669832) · [事前原本4件の固定索引](https://github.com/haji84/RACE-AI/commit/3df259d066e1f4cb540bf269a33175a04d945d9f) · [11月29日のDT-R1保護予想](https://github.com/haji84/RACE-AI/actions/runs/46158390698)
 
 00:23 JSTに、別の公式取得で4件を追加した。最初の4件の参照を維持し、追加分も別ランナーで暗号文を確認した。登録54件、条件付き事前原本8件、公式結果0件。残る46枠は取得上限で42枠、公式ライン表記の確認で4枠が保留だった。[追加取得と独立読戻し](https://github.com/haji84/RACE-AI/actions/runs/46158826290) · [事前原本8件の固定索引](https://github.com/haji84/RACE-AI/commit/4a40d3d85161fa7ccaba352d504aefc9a7c1278f)
