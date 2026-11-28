@@ -3,6 +3,7 @@ from copy import deepcopy
 from hashlib import sha256
 import base64
 import json
+from math import fsum
 from pathlib import Path
 from tempfile import TemporaryDirectory
 import unittest
@@ -16,6 +17,7 @@ from cryptography.hazmat.primitives.ciphers.aead import AESGCM
 from race_ai import keirin_nationwide_auto_generator as model
 from race_ai import keirin_nationwide_auto_storage as storage
 from race_ai import keirin_nationwide_auto_settlement as settlement
+from race_ai.keirin_legacy_evening_replay import _python311_sum
 from tests.test_keirin_nationwide_auto_generator import fixture, AT
 from tests.test_keirin_nationwide_auto_storage import make_key
 
@@ -48,9 +50,10 @@ class ConfidenceStorageTests(unittest.TestCase):
             public_key_pem=self.public,path=path,sealed_at=SEALED,**kwargs)
         return path.read_bytes(),receipt
 
-    def read(self,raw):
+    def read(self,raw, *, replay_python311=False):
         return settlement.decrypt_original_with_assessment(raw_cipher=raw,
-            expected_cipher_sha256=sha256(raw).hexdigest(),owner_private_pem=self.private)
+            expected_cipher_sha256=sha256(raw).hexdigest(),owner_private_pem=self.private,
+            replay_python311=replay_python311)
 
     def rewrite_arm(self,raw,role,change):
         """Mutate authenticated plaintext to exercise semantic tamper checks."""
@@ -91,6 +94,28 @@ class ConfidenceStorageTests(unittest.TestCase):
         for private in (b'confidence_assessment',b'evaluations',b'ranked_tickets',
                         assessment['source_prediction_sha256'].encode()):
             self.assertNotIn(private,raw)
+
+    def test_official_replay_is_exact_when_python_float_sum_changes(self):
+        def compensated_sum(values, start=0):
+            return sum(values, start) if isinstance(start, list) else fsum(values)
+
+        with patch.object(model, 'sum', _python311_sum, create=True):
+            self.baseline = model.generate_A_B(self.snapshot, generated_at=AT)
+            assessment = self.assessment()
+            raw, _ = self.seal(confidence_assessment=assessment)
+
+        with patch.object(model, 'sum', compensated_sum, create=True):
+            native = model.generate_A_B(self.snapshot, generated_at=AT)
+            self.assertNotEqual(native['prediction_sha256'], self.baseline['prediction_sha256'])
+            with self.assertRaisesRegex(ValueError, 'A_B_DECRYPTED_PREDICTION_NOT_REPRODUCIBLE'):
+                self.read(raw)
+            _, replay, _, saved = self.read(raw, replay_python311=True)
+            self.assertEqual(self.baseline, replay)
+            self.assertEqual(assessment, saved)
+            self.assertIs(model.sum, compensated_sum)
+            altered = self.rewrite_arm(raw, 'B', lambda d: d['prediction']['ranked_tickets'].reverse())
+            with self.assertRaisesRegex(ValueError, 'A_B_DECRYPTED_PREDICTION_NOT_REPRODUCIBLE'):
+                self.read(altered, replay_python311=True)
 
     def test_invalid_binding_time_or_shape_is_rejected_before_writing(self):
         original=self.assessment()

@@ -13,6 +13,7 @@ everything stays HOLD, never a fabricated formal hit.
 from __future__ import annotations
 
 from hashlib import sha256
+from types import FunctionType
 from urllib.parse import urlsplit
 import base64
 import json
@@ -71,7 +72,7 @@ def _b64(encoded):
 
 
 def decrypt_original_pair(*, raw_cipher, expected_cipher_sha256,
-                          owner_private_pem, _include_assessment=False):
+                          owner_private_pem, _include_assessment=False, _replay_python311=False):
     """RSA/AES authentication + independent model replay, no plaintext I/O."""
     # Keep replay in this function: the historic Python 3.11 verifier binds
     # its SHA-locked generator through an isolated copy of these globals.
@@ -155,14 +156,22 @@ def decrypt_original_pair(*, raw_cipher, expected_cipher_sha256,
          type(a_original.get("ranked_tickets")) is list and
          1 <= len(a_original["ranked_tickets"]) <= 12,
          "ORIGINAL_TICKET_LIMIT_INVALID")
-    replay = model.generate_A_B(
-        snap, generated_at=manifest["generated_at"],
-        max_tickets=len(a_original["ranked_tickets"]))
-    for role in ("A", "B"):
-        need(originals[role]["prediction_sha256"] ==
-                 replay["prediction_sha256"] and
-             originals[role]["prediction"] == replay[role],
-             "A_B_DECRYPTED_PREDICTION_NOT_REPRODUCIBLE")
+    def matches_original(candidate):
+        return all(originals[role]["prediction_sha256"] == candidate["prediction_sha256"] and
+                   originals[role]["prediction"] == candidate[role] for role in ("A", "B"))
+
+    max_tickets = len(a_original["ranked_tickets"])
+    replay = model.generate_A_B(snap, generated_at=manifest["generated_at"], max_tickets=max_tickets)
+    if _replay_python311 and not matches_original(replay):
+        # Official SP samples were sealed under Python 3.11. Python 3.12
+        # changed float summation. Isolate the old arithmetic to this read.
+        from .keirin_legacy_evening_replay import _python311_sum
+
+        generate = model.generate_A_B
+        replay_generate = FunctionType(generate.__code__, dict(generate.__globals__, sum=_python311_sum),
+                                       generate.__name__, generate.__defaults__, generate.__closure__)
+        replay = replay_generate(snap, generated_at=manifest["generated_at"], max_tickets=max_tickets)
+    need(matches_original(replay), "A_B_DECRYPTED_PREDICTION_NOT_REPRODUCIBLE")
     has_assessment = "confidence_assessment" in originals["A"]
     need(has_assessment == ("confidence_assessment" in originals["B"]),
          "A_B_CONFIDENCE_PRESENCE_MISMATCH")
@@ -178,11 +187,11 @@ def decrypt_original_pair(*, raw_cipher, expected_cipher_sha256,
 
 
 def decrypt_original_with_assessment(*, raw_cipher, expected_cipher_sha256,
-                                     owner_private_pem):
+                                     owner_private_pem, replay_python311=False):
     """Return the authenticated saved sidecar without generating a new one."""
     return decrypt_original_pair(raw_cipher=raw_cipher,
         expected_cipher_sha256=expected_cipher_sha256,
-        owner_private_pem=owner_private_pem, _include_assessment=True)
+        owner_private_pem=owner_private_pem, _include_assessment=True, _replay_python311=replay_python311)
 
 
 def _verified(verifier, *args):
