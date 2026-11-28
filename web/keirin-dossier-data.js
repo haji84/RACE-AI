@@ -108,8 +108,8 @@
   }
 
   function performanceUrl(url, raceId, day) {
-    const match = typeof url === 'string' && /^(.*)\?pageType=(?:yoso|showResult)$/.exec(url);
-    return Boolean(match && secondaryRaceUrl(match[1], raceId, day));
+    return typeof url === 'string' &&
+      secondaryRaceUrl(url.replace(/\?pageType=(?:yoso|showResult)$/, ''), raceId, day);
   }
 
   function performanceEvidence(evidence, raceId, day, published, roster) {
@@ -131,13 +131,14 @@
     if (rows.length !== 1 || !performanceUrl(row.stats_url, raceId, day) ||
         row.comments_url !== 'https://keirin.netkeiba.com/race/player_comment/?race_id=' + raceId ||
         !namedField(row.riders, 5, true)) return null;
-    return { at:packet.checked_at, url:row.stats_url, comments:row.comments_url, riders:row.riders };
+    return { at:packet.checked_at, url:row.stats_url, comments:row.comments_url, riders:row.riders, afterCutoff:true };
   }
 
-  function publishedRate(counts, evidence) {
+  function publishedRate(counts, evidence, deadline) {
     if (!evidence || !Array.isArray(counts) || counts.length !== 4 ||
         !counts.every(value => Number.isInteger(value) && value >= 0 && value <= 600) || sum(counts) === 0) return null;
-    return {numerator:sum(counts.slice(0,3)), denominator:sum(counts), sourceAt:evidence.at, sourceUrl:evidence.url};
+    return {numerator:sum(counts.slice(0,3)), denominator:sum(counts), sourceAt:evidence.at, sourceUrl:evidence.url,
+      afterCutoff:evidence.afterCutoff || (deadline !== null && clock(evidence.at) >= clock(deadline))};
   }
 
   function statistics(context, number) {
@@ -283,9 +284,9 @@
         comment:comment(official, number) ?? comment(secondary, number) ??
           (safeText(old?.comment, 240) ? {summary:old.comment, at:archive.at, url:archive.comments} : null),
         recent:savedRecent.length ? savedRecent : recentResults(old, day),
-        semi:publishedRate(measured?.semi, performance) ?? publishedRate(old?.semifinal_counts, archive) ??
+        semi:publishedRate(measured?.semi, performance, deadline) ?? publishedRate(old?.semifinal_counts, archive, deadline) ??
           semiFinals(packets.conditions, conditions, registration, day),
-        venue:publishedRate(measured?.venue, performance) ?? publishedRate(old?.venue_counts, archive),
+        venue:publishedRate(measured?.venue, performance, deadline) ?? publishedRate(old?.venue_counts, archive, deadline),
         rank:prediction ? {probabilities:prediction.probabilities.slice(), frozenAt:rank.frozen_at,
           witnessedAt:rank.witnessed_at, sourceAsOf:rank.source_as_of, cutoffAt:rank.cutoff_at, modelSha:rank.model_sha256} : null,
         tactics:tactics ? {savedAt:tactics.savedAt, reasons:tactics.reasons.slice(), positions:tactics.scenarios.map(scenario =>

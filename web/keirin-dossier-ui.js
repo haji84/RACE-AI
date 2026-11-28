@@ -97,9 +97,10 @@
     metrics.append(metric(venue + "5年間3連対率", venueRate ? percent(venueRate.numerator / venueRate.denominator) : "資料待ち",
       venueRate && venueRate.numerator + "/" + venueRate.denominator + "走"));
     section.append(metrics);
-    const sources = new Map([semi, venueRate].filter(rate => rate?.sourceUrl).map(rate => [rate.sourceUrl, rate.sourceAt]));
-    for (const [url, at] of sources) {
-      section.append(sourceLink(at.slice(0, 10) > day ? "Kドリームスのレース後確認資料" : "Kドリームスの出走表成績", url, at));
+    const sources = new Map([semi, venueRate].filter(rate => rate?.sourceUrl).map(rate => [rate.sourceUrl, rate]));
+    for (const [url, rate] of sources) {
+      const label = rate.afterCutoff ? "Kドリームスの締切後確認資料" : "Kドリームスの出走表成績";
+      section.append(sourceLink(label, url, rate.sourceAt));
     }
     section.append(node("h3", "", "直近着順（新しい順）"));
     const recent = node("ul", "kd-recents");

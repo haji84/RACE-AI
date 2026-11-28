@@ -86,7 +86,7 @@ class SecondaryDossierTest(unittest.TestCase):
         self.assertEqual(performance['source_sha256'],proof['bytes_sha256'])
         row = {**project(),'performance':performance}
         self.assertEqual(packet([row])['races'][0]['performance'],performance)
-        for field,value in [('source_at',DAY+'T16:06:00+09:00'),('source_url',KDREAMS_URL)]:
+        for field,value in [('source_at',DAY+'T16:06:00+09:00'),('source_url',KDREAMS_URL+'?pageType=odds')]:
             with self.subTest(field=field), self.assertRaises(ValueError):
                 packet([{**row,'performance':{**performance,field:value}}])
         mismatched = deepcopy(row)
@@ -94,13 +94,14 @@ class SecondaryDossierTest(unittest.TestCase):
         with self.assertRaisesRegex(ValueError,'PERFORMANCE_ROSTER'):
             packet([mismatched])
 
-    def test_performance_requires_tab_and_exact_table_meanings(self):
+    def test_performance_accepts_published_race_urls_and_requires_exact_table_meanings(self):
         raw = performance_card()
         def capture(body, url):
             return secondary.project_performance(body,{**receipt(body),'url':url},roster(),now=PUBLISHED)
 
         tab = KDREAMS_URL+'?pageType=showResult'
         self.assertEqual(capture(raw,tab)['riders'][0]['venue'],[5,2,2,4])
+        self.assertEqual(capture(raw,KDREAMS_URL)['riders'][0]['venue'],[5,2,2,4])
         with self.assertRaisesRegex(ValueError,'PERFORMANCE_URL'):
             capture(raw,tab+'&pageType=yoso')
         with self.assertRaisesRegex(ValueError,'PERFORMANCE_HEADINGS'):

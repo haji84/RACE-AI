@@ -49,8 +49,7 @@ def _performance_url(value, race_id):
     _url_role(value, 'k', race_id)
     parsed = urlsplit(value)
     ordinary = 'https://keirin.kdreams.jp' + parsed.path
-    _need(parsed.query in ('pageType=yoso','pageType=showResult') and
-          value == ordinary + '?' + parsed.query, 'PERFORMANCE_URL')
+    _need(value in (ordinary, ordinary + '?pageType=yoso', ordinary + '?pageType=showResult'), 'PERFORMANCE_URL')
     return ordinary
 
 
