@@ -132,23 +132,26 @@ def _tree_entries(repo, commit, paths):
     return entries
 
 
-def _pointer_introductions(repo, head, paths):
-    # Walk first-parent state updates exactly once for the requested roster.
+def _pointer_introductions(repo, head, paths, *, namespace=None):
+    # A full registry check also sees a retired slot or a deleted pointer.
     # Name-only output avoids hydrating blobs for absent slots.
+    pathspec = [namespace] if namespace else sorted(paths)
     result = archive._cmd(repo, '--no-replace-objects', 'log', '--first-parent', '--full-history',
         '--diff-merges=first-parent', '--no-renames', '--no-show-signature',
-        '--format=%x00%H', '--name-only', f'--max-count={len(paths) + 1}', head, '--', *sorted(paths))[1]
+        '--format=%x00%H', '--name-only', f'--max-count={len(paths) + 1}', head, '--', *pathspec)[1]
     intro = {}
     pieces = result.split('\0')
     _need(pieces[0] == '', 'ARCHIVE_POINTER_HISTORY_FORMAT')
-    _need(len(pieces) <= len(paths) + 1, 'ARCHIVE_POINTER_CHANGED')
     for piece in pieces[1:]:
         commit, *changed = piece.split()
         _need(archive.COMMIT.fullmatch(commit), 'ARCHIVE_POINTER_HISTORY_FORMAT')
         for path in changed:
-            _need(path in paths and path not in intro, 'ARCHIVE_POINTER_CHANGED')
+            _need(path in paths, 'POINTER_OUTSIDE_REGISTRY')
+            _need(path not in intro, 'ARCHIVE_POINTER_CHANGED')
             intro[path] = commit
-    _need(intro.keys() == _tree_entries(repo, head, paths).keys(), 'ARCHIVE_POINTER_MISSING_OR_UNPINNED')
+    _need(len(pieces) <= len(paths) + 1, 'ARCHIVE_POINTER_CHANGED')
+    if paths:
+        _need(intro.keys() == _tree_entries(repo, head, paths).keys(), 'ARCHIVE_POINTER_MISSING_OR_UNPINNED')
     return intro
 
 
@@ -179,16 +182,18 @@ def _batch_metadata(repo, head, stem, day, model_sha256, pointer):
     return manifest_sha, origin_sha, entries, eligible, manifest, origin
 
 
-def retained_slots(repo, head, day, model_sha256, slots, *, authenticate_batch=None):
-    """Replay first-parent introductions and optionally reauthenticate each batch."""
+def read_retained_forecasts(repo, head, day, model_sha256, slots, *,
+                            authenticate_batch=None, verify_registry=False):
+    """Check first-parent introductions and return the pinned ciphertext references."""
     _need(type(head) is str and archive.COMMIT.fullmatch(head), 'ARCHIVE_HEAD_PIN')
     _need(authenticate_batch is None or callable(authenticate_batch), 'ARCHIVE_AUTHENTICATOR')
     prefix = _prefix(day, model_sha256)
-    paths = {f'{prefix}/first-slots/{slot}.json': slot for slot in sorted(_slots(slots))}
-    if not paths:
-        return set()
+    namespace = f'{prefix}/first-slots'
+    paths = {f'{namespace}/{slot}.json': slot for slot in sorted(_slots(slots))}
+    if not paths and not verify_registry:
+        return {}
     _require_complete_history(repo, head)
-    introductions = _pointer_introductions(repo, head, paths)
+    introductions = _pointer_introductions(repo, head, paths, namespace=namespace if verify_registry else None)
     pointers, introduced_files = {}, {}
     for path, commit in introductions.items():
         slot = paths[path]
@@ -208,23 +213,29 @@ def retained_slots(repo, head, day, model_sha256, slots, *, authenticate_batch=N
     for commit, files in introduced_files.items():
         _check_introduction(repo, head, commit, files)
 
-    batches = {}
+    batches, forecasts = {}, {}
     for slot, pointer in pointers.items():
         run = pointer['producer_run_id']
         stem = f'{prefix}/batches/{run}'
         if run not in batches:
             batches[run] = _batch_metadata(repo, head, stem, day, model_sha256, pointer)
-        manifest_sha, origin_sha, entries, eligible, _, _ = batches[run]
+        manifest_sha, origin_sha, entries, eligible, manifest, _ = batches[run]
         _need(pointer['manifest_sha256'] == manifest_sha and pointer['readback_sha256'] == origin_sha and
               slot in eligible and pointer['cipher_sha256'] == entries[slot]['cipher']['sha256'],
               'POINTER_BATCH_BINDING')
-        cipher = archive.read_blob_bytes(repo, head, f'{stem}/{slot}.sealed.json',
-                                         max_bytes=MAX_ARCHIVE_BYTES + 1)
+        cipher_path = f'{stem}/{slot}.sealed.json'
+        cipher = archive.read_blob_bytes(repo, head, cipher_path, max_bytes=MAX_ARCHIVE_BYTES + 1)
         _check_cipher(cipher, entries[slot], day)
+        forecasts[slot] = dict(entry=entries[slot], manifest=manifest, cipher_path=cipher_path)
     if authenticate_batch is not None:
         for manifest_sha, _, _, _, manifest, origin in batches.values():
             authenticate_batch(manifest, origin, manifest_sha)
-    return set(pointers)
+    return forecasts
+
+
+def retained_slots(repo, head, day, model_sha256, slots, *, authenticate_batch=None):
+    return set(read_retained_forecasts(repo, head, day, model_sha256, slots,
+                                       authenticate_batch=authenticate_batch))
 
 
 def append_verified_batch(repo, verified, origin, *, legacy_accepted_slots=(), synthetic_local=False,

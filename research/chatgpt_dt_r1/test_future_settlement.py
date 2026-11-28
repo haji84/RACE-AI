@@ -1,5 +1,7 @@
 """Synthetic checks only, never actual-race evidence."""
 from itertools import permutations
+from pathlib import Path
+from tempfile import TemporaryDirectory
 from types import SimpleNamespace
 import unittest
 from unittest.mock import patch
@@ -134,6 +136,66 @@ class FutureSettlementTests(unittest.TestCase):
             settle._score_registered(RACES,DAY,self.entries(),[],self.late_slots(),
                 lambda e,r:self.fail('unexpected forecast'),
                 lambda r:dict(race_id='different',day=DAY,result_status='MISSING_SAVED_RESULT'))
+
+    def test_archived_day_combines_first_slots_and_keeps_latest_registered_denominator(self):
+        legacy_rid, later_rid, hold_rid = RACES
+        added_rid = '202611282404'
+        legacy_slot, later_slot, hold_slot = [shadow.slot(DAY, rid) for rid in RACES]
+        registry_meta = dict(cipher_sha256='a'*64, evidence_sha256='b'*64)
+        def store(head, race_ids, original_ids, *, complete=True):
+            return SimpleNamespace(day=DAY, head=head,
+                index=dict(registry=registry_meta, originals={rid: {'source': rid} for rid in original_ids}),
+                read=lambda *_: dict(event_day=DAY, registered_race_ids=race_ids,
+                                     day_inventory_complete=complete, missing_venues=[] if complete else ['98']))
+        old = store(settle.PARENT, RACES, RACES[:1])
+        later = store('c'*40, RACES, RACES[:2])
+        current = store('d'*40, [*RACES, added_rid], RACES, complete=False)
+        def batch(source, ready):
+            entries = [dict(entry, state=shadow.READY if entry['slot_sha256'] in ready else 'HOLD')
+                       for entry in self.entries()]
+            return dict(summary=dict(source_archive_commit=source.head, day_jst=DAY, reader_run_id=source.head),
+                        registry=registry_meta, entries=entries)
+        old_manifest = batch(old, [legacy_slot])
+        old_manifest['entries'][0]['cipher'] = {'file': 'first.sealed.json'}
+        later_manifest = batch(later, [later_slot])
+        additional = {later_slot: dict(entry=later_manifest['entries'][1], manifest=later_manifest,
+                                       cipher_path='verified/later.sealed.json')}
+        events = []
+        def forecast_replay(entry, raw, manifest, source, rid, *args):
+            events.append(('forecast', rid, source.head))
+            self.assertEqual(raw, b'first' if rid == legacy_rid else b'later')
+            return forecast(rid)
+        def result_replay(source, rid, key, original_meta, now):
+            events.append(('result', rid, source.head))
+            self.assertEqual(original_meta, current.index['originals'].get(rid) if rid in RACES[:2] else None)
+            return dict(race_id=rid, day=DAY, result_status='VERIFIED_NORMAL', top3=[1,2,3])
+        with TemporaryDirectory() as tmp:
+            directory = Path(tmp)
+            (directory / 'first.sealed.json').write_bytes(b'first')
+            legacy = (dict(manifest=old_manifest, directory=directory),
+                      dict(eligible_slots=[legacy_slot], held_slots={hold_slot: 'SERVER_READBACK_AFTER_T15'}))
+            with (
+                patch.object(settle.batch_retention, 'read_retained_forecasts', return_value=additional),
+                patch.object(settle.records, 'replay_registry', side_effect=lambda payload: payload),
+                patch.object(settle.records, 'RecordStore', side_effect=lambda _, __, *, index_commit:
+                             {old.head: old, later.head: later}[index_commit]),
+                patch.object(settle.archive, 'read_blob_bytes', return_value=b'later'),
+                patch.object(settle, '_forecast_from_original', side_effect=forecast_replay),
+                patch.object(settle, '_result_row', side_effect=result_replay),
+            ):
+                report = settle._score_archived_day(None, current, b'', None, None, None, lambda: None, legacy)
+                additional[legacy_slot] = additional[later_slot]
+                with self.assertRaisesRegex(ValueError, 'DUPLICATE_FIRST_SLOT'):
+                    settle._score_archived_day(None, current, b'', None, None, None, lambda: None, legacy)
+        self.assertEqual(events[:2], [('forecast', legacy_rid, old.head), ('forecast', later_rid, later.head)])
+        self.assertEqual(events[2:], [('result', rid, current.head) for rid in [*RACES, added_rid]])
+        self.assertEqual(report['registered_races'], 4)
+        self.assertEqual(report['owner_originals_replayed'], 2)
+        self.assertEqual(report['metrics']['predicted_evaluable'], 2)
+        self.assertFalse(report['day_inventory_complete'])
+        self.assertEqual(report['missing_venues'], 1)
+        self.assertEqual(report['timed_originals'], {'legacy': 1, 'additional': 1})
+        self.assertEqual(report['forecast_holds'], {'SERVER_READBACK_AFTER_T15': 1, 'SAVED_ORIGINAL_MISSING': 1})
 
 
 if __name__ == '__main__':

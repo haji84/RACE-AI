@@ -1,12 +1,13 @@
-"""Read-only settlement of the first real DT future cohort.
+"""Read-only settlement of the first DT-R1 cohort or a registered JST day.
 
-Re-authenticate the retained first pin and independent GitHub artifacts, then
+Re-authenticate the retained first originals and independent GitHub artifacts, then
 reproduce original inputs and forecasts at their recorded clocks BEFORE any
 result is opened. Use the existing official result replayer. No provider GET,
 video, training, wager, new authority, original replacement or state write.
 """
 from collections import Counter
 from contextlib import ExitStack, contextmanager
+from functools import partial
 from hashlib import sha256
 import argparse
 import json
@@ -20,7 +21,7 @@ from race_ai import keirin_official_nationwide_records as records
 from race_ai import keirin_official_run_history as codec
 from race_ai.keirin_github_evidence_client import GitHubEvidenceClient
 from race_ai.keirin_official_paired_measurement import REPLAY_CODES
-from research.chatgpt_dt_r1 import official_inputs
+from research.chatgpt_dt_r1 import future_batch_retention as batch_retention, official_inputs
 from research.chatgpt_dt_r1.future_retention_gate import (
     FIRST_DAY as DAY, FIRST_PRODUCER as PRODUCER, FIRST_READER as READER,
     FIRST_SOURCE_PARENT as PARENT, read_legacy_first_retention)
@@ -31,6 +32,9 @@ from scripts import keirin_dt_r1_future_readback as reader
 from scripts import keirin_official_nationwide_continuation as continuation
 
 SCHEMA = 'DT_R1_FIRST_FUTURE_SETTLEMENT_V1'
+DAY_SCHEMA = 'DT_R1_ARCHIVED_DAY_SETTLEMENT_V1'
+FIRST_SCOPE = 'FIRST_PINNED_DT_ONLY_COHORT'
+DAY_SCOPE = 'REGISTERED_DAY_FIRST_T15_ORIGINALS'
 PDCA_TRIFECTA_POINTS = 4
 
 
@@ -59,17 +63,16 @@ def _same(a, b):
     return digest(records.wire(a)) == digest(records.wire(b))
 
 
-def _forecast_from_original(entry, verified, source, rid, private, trained, venues, client, cache):
+def _forecast_from_original(entry, raw, manifest, source, rid, private, trained, venues, client, cache):
     meta = source.index['originals'][rid]
-    raw = (Path(verified['directory']) / entry['cipher']['file']).read_bytes()
     need(sha256(raw).hexdigest() == entry['cipher']['sha256'], 'FORECAST_CIPHER_CHANGED')
     with _stage('FORECAST_DECRYPT_UNVERIFIED'):
         saved = codec.decrypt_evidence(raw, private)
     clocks = entry['clocks']
-    summary = verified['manifest']['summary']
+    summary = manifest['summary']
     need(saved['schema'] == shadow.PRIVATE_SCHEMA and saved['day_jst'] == source.day and
          saved['race_id'] == rid and saved['observed_at'] == clocks['seal_started_at'] and
-         saved['reader_run_id'] == PRODUCER == summary['reader_run_id'] and
+         saved['reader_run_id'] == summary['reader_run_id'] and
          saved['reader_code_commit'] == summary['reader_code_commit'] and
          saved['source_archive_commit'] == source.head and
          saved['source_registry_reference'] == source.index['registry'] and
@@ -234,17 +237,114 @@ def _score_registered(race_ids, day, entries, eligible, reader_holds, forecast_l
                 metrics=metrics)
 
 
+def _load_registry(store, private, manifest=None):
+    meta = store.index['registry']
+    need(meta is not None, 'SAVED_REGISTRY_MISSING')
+    registry = records.replay_registry(store.read(meta, private))
+    need(registry['event_day'] == store.day, 'REGISTRY_DAY')
+    if manifest is not None:
+        need({k: meta[k] for k in ('cipher_sha256', 'evidence_sha256')} == manifest['registry'],
+             'REGISTRY_PIN')
+        slots = {shadow.slot(store.day, rid) for rid in registry['registered_race_ids']}
+        entries = manifest['entries']
+        need(len(slots) == len(entries) and slots == {entry['slot_sha256'] for entry in entries},
+             'REGISTRY_SLOT_MISMATCH')
+    return registry
+
+
+def _score_archived_day(work, current, private, trained, venues, client, now, legacy):
+    day = current.day
+    with _stage('REGISTRY_REPLAY_UNVERIFIED'):
+        registry = _load_registry(current, private)
+        races = registry['registered_race_ids']
+        slots = {shadow.slot(day, rid): rid for rid in races}
+        race_set = set(races)
+    with _stage('RETENTION_AUTHENTICATION_FAILED'):
+        additional = batch_retention.read_retained_forecasts(work, current.head, day, shadow.MODEL_SHA, slots,
+            authenticate_batch=partial(reader.verify_saved_batch, client=client), verify_registry=True)
+    selected, legacy_late = {}, {}
+    if legacy:
+        verified, origin = legacy
+        manifest = verified['manifest']
+        eligible = set(origin['eligible_slots'])
+        need(not eligible.intersection(additional), 'DUPLICATE_FIRST_SLOT')
+        need(eligible <= slots.keys(), 'REGISTRY_LINEAGE')
+        selected = {entry['slot_sha256']: dict(entry=entry, manifest=manifest, cipher_path=None)
+                    for entry in manifest['entries'] if entry['slot_sha256'] in eligible}
+        legacy_late = origin['held_slots']
+    legacy_count = len(selected)
+    selected.update(additional)
+    sources, loaded = {}, {}
+    with _stage('REGISTRY_REPLAY_UNVERIFIED'):
+        for candidate in selected.values():
+            manifest = candidate['manifest']
+            summary = manifest['summary']
+            run, commit = summary['reader_run_id'], summary['source_archive_commit']
+            if run not in sources:
+                if commit not in loaded:
+                    loaded[commit] = records.RecordStore(work, day, index_commit=commit)
+                source = loaded[commit]
+                original_registry = _load_registry(source, private, manifest)
+                need(set(original_registry['registered_race_ids']) <= race_set, 'REGISTRY_LINEAGE')
+                sources[run] = source
+    entries, pinned_originals = [], {}
+    cache = {}
+    for slot, rid in slots.items():
+        if slot in selected:
+            candidate = selected[slot]
+            entries.append(candidate['entry'])
+            run = candidate['manifest']['summary']['reader_run_id']
+            pinned_originals[rid] = sources[run].index['originals'][rid]
+            continue
+        reason = ('SAVED_ORIGINAL_MISSING' if rid not in current.index['originals'] else
+                  legacy_late.get(slot, 'NO_RETAINED_FIRST_T15_ORIGINAL'))
+        entries.append(dict(slot_sha256=slot, state='HOLD', reason=reason))
+
+    def forecast_loader(entry, rid):
+        candidate = selected[entry['slot_sha256']]
+        manifest = candidate['manifest']
+        path = candidate['cipher_path']
+        if path is None:
+            raw = (Path(legacy[0]['directory']) / entry['cipher']['file']).read_bytes()
+        else:
+            raw = archive.read_blob_bytes(work, current.head, path,
+                                         max_bytes=batch_retention.MAX_ARCHIVE_BYTES + 1)
+        source = sources[manifest['summary']['reader_run_id']]
+        return _forecast_from_original(entry, raw, manifest, source, rid, private, trained, venues, client, cache)
+
+    result = _score_registered(races, day, entries, [slot for slot in slots if slot in selected], {},
+        forecast_loader, lambda rid: _result_row(current, rid, private, pinned_originals.get(rid), now()))
+    return dict(result, day_inventory_complete=registry['day_inventory_complete'],
+                missing_venues=len(registry['missing_venues']),
+                timed_originals=dict(legacy=legacy_count, additional=len(additional)),
+                authenticated_batch_count=len(sources))
+
+
+def _legacy_batch(work, tip, client, contexts):
+    with _stage('PRODUCER_AUTHENTICATION_FAILED'):
+        verified = contexts.enter_context(reader.verified_producer(PRODUCER, client=client))
+    with _stage('RETENTION_AUTHENTICATION_FAILED'):
+        retention = read_legacy_first_retention(work, tip, verified, model_sha256=shadow.MODEL_SHA)
+    with _stage('READBACK_AUTHENTICATION_FAILED'):
+        origin = reader.verify_readback(verified, READER, client=client)
+    manifest = verified['manifest']
+    need(manifest['summary']['source_archive_commit'] == PARENT and
+         manifest['summary']['day_jst'] == DAY and
+         origin['manifest_sha256'] == retention['manifest_sha256'], 'BATCH_PIN')
+    return verified, origin, retention
+
+
 def run_settlement(*, repo, private_root, owner_public_pem, owner_private_pem, day=DAY,
-                   now=continuation.now_utc):
+                   archived_day=False, now=continuation.now_utc):
     with _stage('PROTECTED_RUNTIME_UNVERIFIED'):
         repo, root, day, _, commit = continuation._runtime(repo=repo, private_root=private_root,
             owner_public_pem=owner_public_pem, owner_private_pem=owner_private_pem, day=day,
             clock=now, mode='study')
-    need(day == DAY, 'FIRST_BATCH_ONLY')
+    need(archived_day or day == DAY, 'FIRST_BATCH_ONLY')
     with _stage('FROZEN_MODEL_UNVERIFIED'):
         trained, venues = shadow.load_frozen(repo)
     client = GitHubEvidenceClient()
-    with TemporaryDirectory(prefix='dt-first-settle-', dir=root) as tmp, ExitStack() as contexts:
+    with TemporaryDirectory(prefix='dt-settle-', dir=root) as tmp, ExitStack() as contexts:
         work = Path(tmp)
         with _stage('ARCHIVE_FETCH_UNVERIFIED'):
             archive._cmd(work, 'init', '--quiet', '--template=')
@@ -252,43 +352,36 @@ def run_settlement(*, repo, private_root, owner_public_pem, owner_private_pem, d
             archive._cmd(work, 'config', '--local', 'remote.origin.promisor', 'true')
             archive._cmd(work, 'config', '--local', 'remote.origin.partialclonefilter', 'blob:none')
             tip = records.fetch_partial_head(work, with_ancestry=True)
-        with _stage('PRODUCER_AUTHENTICATION_FAILED'):
-            verified = contexts.enter_context(reader.verified_producer(PRODUCER, client=client))
-        with _stage('RETENTION_AUTHENTICATION_FAILED'):
-            retention = read_legacy_first_retention(work, tip, verified, model_sha256=shadow.MODEL_SHA)
-        with _stage('READBACK_AUTHENTICATION_FAILED'):
-            origin = reader.verify_readback(verified, READER, client=client)
-        manifest = verified['manifest']
-        need(manifest['summary']['source_archive_commit'] == PARENT and
-             manifest['summary']['day_jst'] == day and
-             origin['manifest_sha256'] == retention['manifest_sha256'], 'BATCH_PIN')
+        legacy = _legacy_batch(work, tip, client, contexts) if day == DAY else None
         with _stage('REGISTRY_REPLAY_UNVERIFIED'):
-            source = records.RecordStore(work, day, index_commit=PARENT)
             current = records.RecordStore(work, day, index_commit=tip)
-            need({k: source.index['registry'][k] for k in ('cipher_sha256', 'evidence_sha256')}
-                 == manifest['registry'], 'REGISTRY_PIN')
-            registry = records.replay_registry(source.read(source.index['registry'], owner_private_pem))
-            latest = records.replay_registry(current.read(current.index['registry'], owner_private_pem))
-            races = registry['registered_race_ids']
-            need(registry['event_day'] == latest['event_day'] == day and
-                 set(races) <= set(latest['registered_race_ids']), 'REGISTRY_LINEAGE')
-        cache = {}
-        result = _score_registered(races, day, manifest['entries'], origin['eligible_slots'],
-            origin['held_slots'],
-            lambda e, rid: _forecast_from_original(e, verified, source, rid, owner_private_pem,
-                                                    trained, venues, client, cache),
-            lambda rid: _result_row(current, rid, owner_private_pem,
-                                     source.index['originals'].get(rid), now()))
-        return dict(schema=SCHEMA, day_jst=day, scope='FIRST_PINNED_DT_ONLY_COHORT',
+        if archived_day:
+            result = _score_archived_day(work, current, owner_private_pem, trained, venues,
+                                         client, now, legacy[:2] if legacy else None)
+            scope_fields = dict(schema=DAY_SCHEMA, scope=DAY_SCOPE)
+        else:
+            verified, origin, retention = legacy
+            manifest = verified['manifest']
+            with _stage('REGISTRY_REPLAY_UNVERIFIED'):
+                source = records.RecordStore(work, day, index_commit=PARENT)
+                races = _load_registry(source, owner_private_pem, manifest)['registered_race_ids']
+                latest = _load_registry(current, owner_private_pem)['registered_race_ids']
+                need(set(races) <= set(latest), 'REGISTRY_LINEAGE')
+            cache = {}
+            result = _score_registered(races, day, manifest['entries'], origin['eligible_slots'],
+                origin['held_slots'], lambda e, rid: _forecast_from_original(e,
+                    (Path(verified['directory']) / e['cipher']['file']).read_bytes(),
+                    manifest, source, rid, owner_private_pem, trained, venues, client, cache),
+                lambda rid: _result_row(current, rid, owner_private_pem, source.index['originals'].get(rid), now()))
+            scope_fields = dict(schema=SCHEMA, scope=FIRST_SCOPE, retention=retention, producer_run_id=PRODUCER,
+                independent_readback_run_id=READER, independent_server_evidence_at=origin['latest_server_evidence_at'],
+                minimum_margin_seconds=origin['minimum_margin_seconds'], latest_registry_races=len(latest),
+                added_after_frozen_registry=len(set(latest) - set(races)))
+        return dict(**scope_fields, day_jst=day,
             state='DT_OFFICIAL_RESULTS_SCORED' if result['metrics']['predicted_evaluable']
                   else 'HOLD_NO_VERIFIED_PREDICTED_RESULT',
-            **result, retention=retention, result_archive_commit=tip,
+            **result, result_archive_commit=tip,
             reader_code_commit=commit, reader_run_id=os.environ['GITHUB_RUN_ID'],
-            producer_run_id=PRODUCER, independent_readback_run_id=READER,
-            independent_server_evidence_at=origin['latest_server_evidence_at'],
-            minimum_margin_seconds=origin['minimum_margin_seconds'],
-            latest_registry_races=len(latest['registered_race_ids']),
-            added_after_frozen_registry=len(set(latest['registered_race_ids']) - set(races)),
             video_required=False, provider_source_requests=0, state_writes=0,
             training_runs=0, new_forecasts=0, formal_three_way_races=0,
             confidence='HOLD', payout_evaluation='NOT_RUN', production_promoted=False)
@@ -299,16 +392,18 @@ def main(argv=None):
     parser.add_argument('--repo', type=Path, required=True)
     parser.add_argument('--private-root', type=Path, required=True)
     parser.add_argument('--owner-public-pem', type=Path, required=True)
-    parser.add_argument('--day', default=DAY)
+    parser.add_argument('--day', help='Explicit JST day to settle all registered slots')
     args = parser.parse_args(argv)
     private = os.environ.pop('RACE_AI_KEIRIN_PRIVATE_RSA_PEM', '').encode()
     try:
         report = run_settlement(repo=args.repo, private_root=args.private_root,
-            owner_public_pem=args.owner_public_pem, owner_private_pem=private, day=args.day)
+            owner_public_pem=args.owner_public_pem, owner_private_pem=private,
+            day=args.day if args.day is not None else DAY, archived_day=args.day is not None)
     except Exception as error:
         reason = (error.reason if isinstance(error, SettlementError)
                   else 'RUNTIME_OR_ORIGINAL_AUTHENTICATION_FAILED')
-        report = dict(schema=SCHEMA, scope='FIRST_PINNED_DT_ONLY_COHORT',
+        report = dict(schema=DAY_SCHEMA if args.day is not None else SCHEMA,
+            scope=DAY_SCOPE if args.day is not None else FIRST_SCOPE,
             state='HOLD_SETTLEMENT_RUNTIME_OR_ORIGIN_UNVERIFIED', registered_races=None,
             reason=reason, production_promoted=False,
             formal_three_way_races=0, provider_source_requests=0, state_writes=0)
