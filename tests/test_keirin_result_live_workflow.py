@@ -74,7 +74,7 @@ class LiveWorkflowTests(unittest.TestCase):
         safe = '${{ runner.temp }}/keirin-result-live-${{ github.run_id }}/safe/'
         self.assertEqual(paths, [safe + 'summary.json', safe + 'combined-study-*.sealed.json',
                                  safe + 'official-learned-replay-forecasts.sealed.json',
-                                 safe + 'dt-future-cipher/'])
+                                 safe + 'dt-future-cipher/', safe + 'codex-future-cipher/'])
         self.assertIn('if: always()',job)
         self.assertIn('rm -rf -- "$root"',job)
         self.assertNotIn('RACE_AI_STATE_KEY',job)
