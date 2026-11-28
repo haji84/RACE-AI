@@ -135,7 +135,7 @@ def _read_days(store, parent, prior):
         paths.add(LATEST)
     found = set(store.run(['ls-tree', '-r', '--name-only', parent, '--', 'rider-history/'])
                 .decode().splitlines())
-    unlisted = found - paths
+    unlisted = found - paths - {public.RIDER_ARCHIVE_PATH}
     need(paths <= found and (prior is not None or not unlisted), 'PREVIOUS_PATHS')
     if unlisted:
         first = _window_start(public.when(prior['published_at']))

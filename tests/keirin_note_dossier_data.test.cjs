@@ -54,6 +54,7 @@ test('binds all six packets to the established roster and separates each kind of
   const [first] = card.riders;
   assert.deepEqual(first.rank.probabilities, [.2,.2,.2,.2,.2]);
   assert.deepEqual(first.recent,[{day:'2026-11-20',counts:[0,1,0,1,0,0,0,0,0]}, {day:'2026-11-19',rank:3}]);
+  assert.deepEqual(first.form,{numerator:2,denominator:3,startDay:'2026-11-19',endDay:'2026-11-20'});
   assert.deepEqual(first.semi,{numerator:3,denominator:5,startDay:'2025-10-01',endDay:'2026-11-27'});
   assert.equal(first.stats.source,'official');
   assert.equal(first.comment.summary,'自分で仕掛ける方針。');
@@ -87,6 +88,27 @@ test('only combines an independently dated performance receipt with an exact sec
   };
   assert.deepEqual([prepare(input).riders[0].venue.numerator, prepare(input).riders[0].venue.denominator], [9,13]);
   row.performance.riders[1].registration = '099999';
+  assert.equal(prepare(input).riders[0].venue, null);
+});
+
+test('shows sparse archived finishes and only appends separately verified earlier race days', () => {
+  const input = fixtures();
+  input.packets.archive = {
+    schema:'RACE_AI_KEIRIN_PUBLIC_RIDER_HISTORY_ARCHIVE_V1', start_day:'2023-11-29', end_day:'2026-11-22',
+    source_sha256s:[sha], numeric_finishes:1,
+    riders:[{registration:'014811', counts:[0,0,1,0,0,0,0,0,0], venues:{31:[1,1]}}],
+  };
+  const dayPacket = (day, id) => ({
+    schema:'RACE_AI_KEIRIN_PUBLIC_RIDER_HISTORY_DAY_V1', day, source_sha256:sha,
+    archive_races:1, verified_races:1, riders:[{registration:id, finish_counts:[0,1,0,0,0,0,0,0,0]}],
+  });
+  input.packets.recentDays = [dayPacket('2026-11-22','014811'), dayPacket('2026-11-27','014812'),
+    dayPacket(day,'014811')];
+  const [first, second] = prepare(input).riders;
+  assert.deepEqual(first.history, {counts:[0,0,1,0,0,0,0,0,0], startDay:'2023-11-29', endDay:'2026-11-22'});
+  assert.deepEqual(first.venue, {numerator:1,denominator:1,startDay:'2023-11-29',endDay:'2026-11-22'});
+  assert.deepEqual(second.history, {counts:[0,1,0,0,0,0,0,0,0], startDay:'2026-11-27', endDay:'2026-11-27'});
+  input.packets.archive.end_day = day;
   assert.equal(prepare(input).riders[0].venue, null);
 });
 

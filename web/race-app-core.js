@@ -27,6 +27,7 @@
   const races = byId("keirin-public-races");
   const base = "https://raw.githubusercontent.com/haji84/RACE-AI/state/keirin-public-forecasts/";
   const resultsBase = "https://raw.githubusercontent.com/haji84/RACE-AI/state/keirin-public-results/";
+  const unpublished = "この日の公開予想は掲載されていません。";
   const scoreboard = element("section", "keirin-public-summary");
   scoreboard.id = "keirin-public-scoreboard";
   scoreboard.setAttribute("aria-label", "結果照合とモデル別的中率");
@@ -609,18 +610,20 @@
 
   async function loadDossier(row, day, request) {
     const read = (lane, date = day) => fetchDay(lane, date, request).catch(() => null);
-    const sources = { starters: "starters", official: "rider-context", secondary: "rider-context-secondary",
-      conditions: "rider-conditions", rank: "rank-distributions", details: "details" };
+    const sources = { starters: ["starters"], official: ["rider-context"], secondary: ["rider-context-secondary"],
+      conditions: ["rider-conditions"], rank: ["rank-distributions"], details: ["details"], archive: ["rider-history", "archive"] };
     let packets = dossierCache?.day === day && Date.now() - dossierCache.at < 60000 ? dossierCache.packets : null;
     if (!packets) {
-      packets = Object.fromEntries(await Promise.all(Object.entries(sources).map(async ([key, lane]) => [key, await read(lane)])));
+      packets = Object.fromEntries(await Promise.all(Object.entries(sources).map(async ([key, source]) =>
+        [key, await read(...source)])));
       if (!request.signal.aborted) dossierCache = { day, at: Date.now(), packets };
     }
     const checked = globalThis.RaceKeirinDossierData.prepare;
     const input = { raceId: row.race_id, cutoffAt: row.cutoff_at,
       publishedForecast: row.status === "saved" ? { savedAt: row.saved_at, b: row.b } : null, packets };
     const initial = checked(input);
-    if (initial?.riders.some(rider => !rider.recent.length) && !packets.recentDays && !request.signal.aborted) {
+    const needsDaily = initial.riders.some(rider => rider.history || !rider.recent.length);
+    if (needsDaily && !packets.recentDays && !request.signal.aborted) {
       const midnight = Date.parse(day + "T00:00:00Z");
       packets.recentDays = await Promise.all(Array.from({ length: 7 }, (_, i) =>
         read("rider-history", new Date(midnight - (i + 1) * 86400000).toISOString().slice(0, 10))));
@@ -645,7 +648,7 @@
     const dtRows = dtShortlists(dtPacket.value, day);
     if (!snapshot && !dtRows.size) {
       return forecast.status === "rejected" ? "公開予想を取得できませんでした。再読み込みで確認できます。" :
-        forecast.value === undefined ? "この日の公開予想は掲載されていません。" : "公開データの形式を確認できません。";
+        forecast.value === undefined ? unpublished : "公開データの形式を確認できません。";
     }
     const supplements = snapshot?.races.some(row => row.status === "pending")
       ? ["references", "research"].map(lane => fetchDay(lane, day, request).catch(() => null))
@@ -679,7 +682,7 @@
     }
   }
 
-  async function load() {
+  async function load(showRecent = false) {
     currentRequest?.abort();
     currentRequest = null;
     resultRequest?.abort();
@@ -704,6 +707,20 @@
     const timeout = setTimeout(() => request.abort(), 15000);
     try {
       const message = await loadDay(day, request);
+      if (showRecent && message === unpublished && currentRequest === request && !request.signal.aborted) {
+        const midnight = Date.parse(day + "T00:00:00Z");
+        for (let offset = 1; offset <= 7; offset++) {
+          const previous = new Date(midnight - offset * 86400000).toISOString().slice(0, 10);
+          const previousMessage = await loadDay(previous, request);
+          if (currentRequest !== request || request.signal.aborted) return;
+          if (activeDay?.day === previous && activeDay.ordered.length) {
+            dayInput.value = previous;
+            status.prepend(day + "分は掲載待ちです。" + previous + "分を表示しています。 ");
+            return;
+          }
+          if (previousMessage && previousMessage !== unpublished) break;
+        }
+      }
       if (message && currentRequest === request) status.textContent = message;
     } catch {
       if (currentRequest === request) status.textContent = "公開予想を取得できませんでした。再読み込みで確認できます。";
@@ -720,11 +737,18 @@
   const requestedDay = requestedRace.replace(/^(\d{4})(\d{2})(\d{2})\d{4}$/, "$1-$2-$3");
   const openRequested = validDay(requestedDay) && requestedDay <= jstToday() &&
     validRaceId(requestedRace, requestedDay.replaceAll("-", ""), new Set());
-  dayInput.value = openRequested ? requestedDay : jstToday();
-  dayInput.addEventListener("change", load);
-  byId("keirin-public-refresh").addEventListener("click", load);
+  let followToday = !openRequested;
+  dayInput.value = followToday ? jstToday() : requestedDay;
+  dayInput.addEventListener("change", () => {
+    followToday = false;
+    load();
+  });
+  byId("keirin-public-refresh").addEventListener("click", () => {
+    if (followToday) dayInput.value = jstToday();
+    load(followToday);
+  });
   window.setInterval(refreshResults, 60_000);
-  load().then(() => {
+  load(followToday).then(() => {
     if (!openRequested || dayInput.value !== requestedDay) return;
     const row = activeDay?.ordered.find(item => item.race_id === requestedRace) || { race_id: requestedRace, cutoff_at: null };
     openPublicDossier(row, requestedDay, races.querySelector('[data-keirin-dossier="' + requestedRace + '"]'));

@@ -17,8 +17,10 @@ SCHEMA = 'RACE_AI_KEIRIN_PUBLIC_FORECASTS_V1'
 REFERENCE_SCHEMA = 'RACE_AI_KEIRIN_PUBLIC_REFERENCE_FORECASTS_V1'
 RESEARCH_SCHEMA = 'RACE_AI_KEIRIN_PUBLIC_RESULT_UNREAD_AB_V1'
 REF = 'state/keirin-public-forecasts'
+RIDER_ARCHIVE_PATH = 'rider-history/archive.json'
+RIDER_ARCHIVE_MAX = 4 * 1024 * 1024
 PATH = re.compile(r'(?:(?:forecasts|references|research|updates|details|odds|operations|starters|rider-history|rider-context|rider-context-secondary|rank-distributions|rider-conditions|rider-condition-results|rider-condition-archive|measurements|dt-r1)/'
-                  r'20[0-9]{2}-[0-9]{2}-[0-9]{2}\.json|(?:rider-history|measurements)/latest\.json|'
+                  r'20[0-9]{2}-[0-9]{2}-[0-9]{2}\.json|(?:rider-history|measurements)/latest\.json|rider-history/archive\.json|'
                   r'measurements/(?:confidence|replay-confidence)-20[0-9]{2}-[0-9]{2}-[0-9]{2}\.json)')
 LIMIT = 8
 MAX_BYTES = 512 * 1024
@@ -225,6 +227,8 @@ class PublicForecastGit(feed.NoteFeedGit):
         need(entry == b'100644\n', 'BLOB_MODE')
         size = int(self.run(['cat-file','-s',head+':'+path]))
         limit = 8 * 1024 * 1024 if path.startswith(('rider-conditions/', 'rider-condition-archive/')) else MAX_BYTES
+        if path == RIDER_ARCHIVE_PATH:
+            limit = RIDER_ARCHIVE_MAX
         need(0 < size <= limit, 'BLOB_SIZE')
         raw = self.run(['show',head+':'+path])
         need(len(raw) == size, 'BLOB_READ')

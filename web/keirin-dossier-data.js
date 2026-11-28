@@ -12,6 +12,7 @@
     official: 'RACE_AI_KEIRIN_PUBLIC_DOSSIER_CONTEXT_V1',
     secondary: 'RACE_AI_KEIRIN_PUBLIC_DOSSIER_SECONDARY_V1',
     conditions: 'RACE_AI_KEIRIN_PUBLIC_DOSSIER_CONDITIONS_V1',
+    archive: 'RACE_AI_KEIRIN_PUBLIC_RIDER_HISTORY_ARCHIVE_V1',
     rank: 'RACE_AI_KEIRIN_PUBLIC_RANK_DISTRIBUTION_V1',
     details: 'RACE_AI_KEIRIN_PUBLIC_FORECAST_DETAILS_V1',
   };
@@ -210,6 +211,78 @@
     return [...exactDays.values()].sort((a,b) => b.day.localeCompare(a.day)).slice(0, 7);
   }
 
+  function recentForm(rows, day) {
+    const start = new Date(Date.parse(day) - 30 * 86400000).toISOString().slice(0, 10);
+    const sample = rows.filter(row => row.day >= start);
+    if (!sample.length) return null;
+    const denominator = sum(sample.map(row => row.rank ? 1 : sum(row.counts)));
+    const numerator = sum(sample.map(row => row.rank ? Number(row.rank <= 3) : sum(row.counts.slice(0, 3))));
+    return {numerator, denominator, startDay:sample.at(-1).day, endDay:sample[0].day};
+  }
+
+  function archiveForDay(packet, day) {
+    if (packet?.schema !== schemas.archive || !validDay(packet.start_day) || !validDay(packet.end_day) ||
+        packet.start_day > packet.end_day || packet.end_day >= day || !Array.isArray(packet.source_sha256s) ||
+        packet.source_sha256s.length < 1 || packet.source_sha256s.length > 100 || !packet.source_sha256s.every(sha256) ||
+        !Number.isSafeInteger(packet.numeric_finishes) || packet.numeric_finishes < 1 ||
+        !Array.isArray(packet.riders) || packet.riders.length > 5000) return null;
+    const venueStartDay = packet.venue_start_day ?? packet.start_day;
+    const venueEndDay = packet.venue_end_day ?? packet.end_day;
+    if (!validDay(venueStartDay) || !validDay(venueEndDay) || venueStartDay < packet.start_day ||
+        venueStartDay > venueEndDay || venueEndDay > packet.end_day) return null;
+    const first = packet.observations_start_day, last = packet.observations_end_day;
+    const observations = validDay(first) && validDay(last) && packet.start_day <= first &&
+      first <= last && last <= packet.end_day ? {startDay:first, endDay:last} : null;
+    const riders = new Map();
+    let finishes = 0;
+    for (const rider of packet.riders) {
+      if (!registration(rider?.registration) || riders.has(rider.registration) || !Array.isArray(rider.counts) ||
+          rider.counts.length !== 9 || rider.counts.some(n => !Number.isSafeInteger(n) || n < 0) ||
+          !rider.venues || typeof rider.venues !== 'object' || Array.isArray(rider.venues)) return null;
+      const total = sum(rider.counts);
+      if (total < 1 || total > packet.numeric_finishes) return null;
+      let venueStarts = 0;
+      for (const [code, row] of Object.entries(rider.venues)) {
+        if (!/^[1-9]\d$/.test(code) || !Array.isArray(row) || row.length !== 2 ||
+            !row.every(Number.isSafeInteger) || row[0] < 0 || row[1] < 1 || row[0] > row[1]) return null;
+        venueStarts += row[1];
+      }
+      if (venueStarts > total) return null;
+      finishes += total;
+      riders.set(rider.registration, rider);
+    }
+    if (finishes !== packet.numeric_finishes) return null;
+    return {riders, startDay:packet.start_day, endDay:packet.end_day, venueStartDay, venueEndDay, observations};
+  }
+
+  function collectedHistory(archive, days, registrationId, venueCode) {
+    const rider = archive?.riders.get(registrationId);
+    const counts = rider ? rider.counts.slice() : Array(9).fill(0);
+    let startDay = rider ? archive.startDay : null, endDay = rider ? archive.endDay : null;
+    for (const [date, registers] of days) {
+      if (archive && date <= archive.endDay) continue;
+      const observed = registers?.get(registrationId);
+      if (!observed) continue;
+      observed.forEach((n, i) => { counts[i] += n; });
+      if (startDay === null || date < startDay) startDay = date;
+      if (endDay === null || date > endDay) endDay = date;
+    }
+    const venue = rider?.venues[venueCode];
+    const [runs, peers, score] = Array.isArray(rider?.agari) ? rider.agari : [];
+    const observed = archive?.observations;
+    const agari = observed && [runs, peers, score].every(Number.isSafeInteger) &&
+      0 < runs && runs <= sum(rider.counts) && runs <= peers && peers <= 8 * runs && 0 <= score && score <= 2 * peers ?
+      {...observed, runs, peers, percentile:1 - score / (2 * peers)} : null;
+    const methods = rider?.techniques;
+    const techniques = observed && methods && typeof methods === 'object' && !Array.isArray(methods) &&
+      Object.entries(methods).every(([key, value]) => ['escape','makuri','difference','mark'].includes(key) &&
+        Number.isSafeInteger(value) && value >= 0) && sum(Object.values(methods)) > 0 &&
+      sum(Object.values(methods)) <= rider.counts[0] + rider.counts[1] ? {...observed, counts:methods} : null;
+    return {history:startDay ? {counts, startDay, endDay} : null, venue:venue ?
+      {numerator:venue[0], denominator:venue[1], startDay:archive.venueStartDay, endDay:archive.venueEndDay} : null,
+      agari, techniques};
+  }
+
   function semiFinals(packet, context, registrationId, day) {
     const history = packet?.history;
     if (!context || !sha256(packet.calendar_sha256) || !sha256(context.list_sha256) || clock(context.source_at) === null ||
@@ -274,21 +347,24 @@
     const details = find('details'), conditions = find('conditions');
     const tactics = savedTactics(packets.details, details, publishedForecast, deadline, roster);
     const history = historyDays(packets.recentDays, day);
+    const archiveHistory = archiveForDay(packets.archive, day);
     const riders = field.slice().sort((a,b) => a.number - b.number).map(rider => {
       const {number, name, registration, style} = rider;
       const prediction = matchingRank?.get(number);
       const old = matchingArchive?.get(number), performance = secondary?.performance;
       const publishedStyle = style ?? old?.style;
       const measured = performance?.riders.get(number);
-      const savedRecent = riderRecent(official?.riders.get(number), day, history, registration);
+      const currentRecent = riderRecent(official?.riders.get(number), day, history, registration);
+      const recent = currentRecent.length ? currentRecent : recentResults(old, day);
+      const collected = collectedHistory(archiveHistory, history, registration, raceId.slice(8, 10));
       return {number, name, registration, style:['逃','追','両'].includes(publishedStyle) ? publishedStyle : null,
         stats:statistics(official, number) ?? statistics(secondary, number) ?? statistics(archivedContext, number),
         comment:comment(official, number) ?? comment(secondary, number) ??
           (safeText(old?.comment, 240) ? {summary:old.comment, at:archive.at, url:archive.comments} : null),
-        recent:savedRecent.length ? savedRecent : recentResults(old, day),
+        recent, form:recentForm(recent, day), history:collected.history, agari:collected.agari, techniques:collected.techniques,
         semi:publishedRate(measured?.semi, performance, deadline) ?? publishedRate(old?.semifinal_counts, archive, deadline) ??
           semiFinals(packets.conditions, conditions, registration, day),
-        venue:publishedRate(measured?.venue, performance, deadline) ?? publishedRate(old?.venue_counts, archive, deadline),
+        venue:publishedRate(measured?.venue, performance, deadline) ?? publishedRate(old?.venue_counts, archive, deadline) ?? collected.venue,
         rank:prediction ? {probabilities:prediction.probabilities.slice(), frozenAt:rank.frozen_at,
           witnessedAt:rank.witnessed_at, sourceAsOf:rank.source_as_of, cutoffAt:rank.cutoff_at, modelSha:rank.model_sha256} : null,
         tactics:tactics ? {savedAt:tactics.savedAt, reasons:tactics.reasons.slice(), positions:tactics.scenarios.map(scenario =>

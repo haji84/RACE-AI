@@ -74,6 +74,22 @@ class DailyHistoryPublicationTests(unittest.TestCase):
     def latest(self):
         return json.loads(self.store.read_previous(self.store.head(), dossier.LATEST))
 
+    def test_historical_archive_keeps_one_run_and_does_not_interrupt_daily_updates(self):
+        from scripts import keirin_publish_dossier_history as publication
+        from race_ai import keirin_public_forecasts as public
+
+        data = dict(schema=publication.SCHEMA, start_day='2023-11-29', end_day='2026-11-22',
+                    source_sha256s=['a' * 64], numeric_finishes=1, riders=[
+                        dict(registration=RIDER, counts=[1] + [0] * 8, venues={'26':[1,1]})])
+        raw = public.canonical(data) + b'\n'
+        with self.assertRaises(ValueError):
+            publication.publish(self.store, raw, 'b' * 64)
+        baseline = publication.publish(self.store, raw, sha256(raw).hexdigest())
+        self.assertEqual(self.store.changed[baseline], {public.RIDER_ARCHIVE_PATH})
+        self.publish({'a' * 40: receipt(FIRST, 2)})
+        self.assertEqual(self.latest()['riders'][0]['finish_counts'][1], 1)
+        self.assertEqual(self.store.read_previous(self.store.head(), public.RIDER_ARCHIVE_PATH), raw)
+
     def test_daily_results_accumulate_and_a_correction_replaces_that_day(self):
         self.publish({'a' * 40: receipt(FIRST, 1), 'b' * 40: receipt(NEXT, 3)})
         self.assertEqual(self.latest()['riders'], [dict(registration=RIDER,
