@@ -161,9 +161,10 @@ class FutureSettlementTests(unittest.TestCase):
         additional = {later_slot: dict(entry=later_manifest['entries'][1], manifest=later_manifest,
                                        cipher_path='verified/later.sealed.json')}
         events = []
-        def forecast_replay(entry, raw, manifest, source, rid, *args):
+        def forecast_replay(entry, raw, manifest, source, rid, *args, history_sources):
             events.append(('forecast', rid, source.head))
             self.assertEqual(raw, b'first' if rid == legacy_rid else b'later')
+            self.assertEqual(history_sources, {})
             return forecast(rid)
         def result_replay(source, rid, key, original_meta, now):
             events.append(('result', rid, source.head))

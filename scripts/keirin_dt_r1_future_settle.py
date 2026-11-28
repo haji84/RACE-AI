@@ -21,10 +21,11 @@ from race_ai import keirin_official_nationwide_records as records
 from race_ai import keirin_official_run_history as codec
 from race_ai.keirin_github_evidence_client import GitHubEvidenceClient
 from race_ai.keirin_official_paired_measurement import REPLAY_CODES
-from research.chatgpt_dt_r1 import future_batch_retention as batch_retention, official_inputs
+from research.chatgpt_dt_r1 import future_batch_retention as batch_retention
 from research.chatgpt_dt_r1.future_retention_gate import (
     FIRST_DAY as DAY, FIRST_PRODUCER as PRODUCER, FIRST_READER as READER,
     FIRST_SOURCE_PARENT as PARENT, read_legacy_first_retention)
+from research.chatgpt_dt_r1.official_history import OfficialHistory, POLICY as HISTORY_POLICY
 from research.chatgpt_dt_r1.pipeline import forecast_row, summarize_predictions
 from research.chatgpt_dt_r1.policy import clock, digest, validate_forecast
 from scripts import keirin_dt_r1_future_shadow as shadow
@@ -63,7 +64,8 @@ def _same(a, b):
     return digest(records.wire(a)) == digest(records.wire(b))
 
 
-def _forecast_from_original(entry, raw, manifest, source, rid, private, trained, venues, client, cache):
+def _forecast_from_original(entry, raw, manifest, source, rid, private, trained, venues, client, cache,
+                            *, history_sources=None):
     meta = source.index['originals'][rid]
     need(sha256(raw).hexdigest() == entry['cipher']['sha256'], 'FORECAST_CIPHER_CHANGED')
     with _stage('FORECAST_DECRYPT_UNVERIFIED'):
@@ -84,26 +86,32 @@ def _forecast_from_original(entry, raw, manifest, source, rid, private, trained,
                                              packet_cache=cache)
     need(original['race_id'] == rid and original['day_jst'] == source.day and
          original['snapshot']['published_cutoff_at'] == clocks['cutoff_at'], 'SOURCE_REPLAY_CHANGED')
+    shared = saved['shared_material']
+    need(type(shared) is dict and digest(shared) == entry['bindings']['shared_material_sha256'],
+         'FEATURE_OR_SOURCE_REPLAY_CHANGED')
     # The old input clock is used ONLY to reproduce already sealed bytes.
     with _stage('FEATURE_REPLAY_UNVERIFIED'):
+        prior = None
+        if shared['schema'] == shadow.HISTORY_MATERIAL_SCHEMA:
+            need(shared.get('history_policy') == HISTORY_POLICY, 'HISTORY_POLICY_CHANGED')
+            history_sources = {} if history_sources is None else history_sources
+            if source.head not in history_sources:
+                history_sources[source.head] = OfficialHistory(source, private)
+            prior = history_sources[source.head]
+        else:
+            need(shared['schema'] == shadow.LEGACY_MATERIAL_SCHEMA, 'FEATURE_MATERIAL_SCHEMA')
         row, replay_at, proof = shadow._candidate(
             store=source, payload=payload, original=original, trained=trained,
             venues=venues, private=private, client=client, cache=cache,
-            clock=lambda: clock(clocks['input_at']))
+            clock=lambda: clock(clocks['input_at']), official_history=prior)
     feature_row = dict(row, features=row['features'].tolist(),
                        feature_names=list(row['feature_names']))
-    shared = saved['shared_material']
     need(clock(replay_at) == clock(clocks['input_at']) and
          _same(feature_row, saved['feature_row']) and
          row['input_sha256'] == entry['bindings']['input_sha256'] and
          row['feature_input_sha256'] == entry['bindings']['feature_input_sha256'] and
          row['source_attestation_sha256'] == entry['bindings']['source_receipt_sha256'] and
-         digest(shared) == entry['bindings']['shared_material_sha256'] and
-         shared['source_projection_schema'] == official_inputs.SCHEMA and
-         shared['source_projection_sha256'] == digest(official_inputs.source_projection(payload, original)) and
-         shared['source_archive_commit'] == source.head and shared['source_original_reference'] == meta and
-         shared['input_sha256'] == row['input_sha256'] and _same(shared['source_verification'], proof) and
-         shared['history_races'] == 0 and shared['history_status'] == 'MISSING_HISTORY',
+         _same(shared, shadow._shared_material(row, payload, original, source, proof)),
          'FEATURE_OR_SOURCE_REPLAY_CHANGED')
     replay = forecast_row(trained, row, prediction_at=clocks['prediction_started_at'], full=True)
     replay.update(prediction_at=clocks['prediction_at'],
@@ -288,7 +296,7 @@ def _score_archived_day(work, current, private, trained, venues, client, now, le
                 need(set(original_registry['registered_race_ids']) <= race_set, 'REGISTRY_LINEAGE')
                 sources[run] = source
     entries, pinned_originals = [], {}
-    cache = {}
+    cache, history_sources = {}, {}
     for slot, rid in slots.items():
         if slot in selected:
             candidate = selected[slot]
@@ -310,7 +318,8 @@ def _score_archived_day(work, current, private, trained, venues, client, now, le
             raw = archive.read_blob_bytes(work, current.head, path,
                                          max_bytes=batch_retention.MAX_ARCHIVE_BYTES + 1)
         source = sources[manifest['summary']['reader_run_id']]
-        return _forecast_from_original(entry, raw, manifest, source, rid, private, trained, venues, client, cache)
+        return _forecast_from_original(entry, raw, manifest, source, rid, private, trained, venues, client, cache,
+                                       history_sources=history_sources)
 
     result = _score_registered(races, day, entries, [slot for slot in slots if slot in selected], {},
         forecast_loader, lambda rid: _result_row(current, rid, private, pinned_originals.get(rid), now()))
