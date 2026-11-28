@@ -155,11 +155,18 @@ def parse_published_lines(detail_raw, *, detail_sha256, starters, competition,
         expected_label = _LINE_GROUP_LABELS.get(len(groups))
         label = line.get('lineKeitai')
         _need(expected_label is not None, 'LINE_LAYOUT_GROUP_COUNT_UNSUPPORTED')
-        _need(label in _LINE_GROUP_LABELS.values(), 'LINE_LABEL_UNRECOGNIZED')
         # The official guide defines a solo rider as having no line. The
         # published diagram still gives that rider a distinct position group.
-        paired_line_label = _LINE_GROUP_LABELS.get(sum(len(group) > 1 for group in groups))
-        _need(label in (expected_label, paired_line_label), 'LINE_LABEL_GROUP_COUNT_MISMATCH')
+        multi_rider_groups = sum(len(group) > 1 for group in groups)
+        if label == '先行一車':
+            # The observed one-row layouts have one multi-rider group and solo riders.
+            consistent = multi_rider_groups == 1
+        elif label == 'コマ切れ':
+            consistent = len(groups) == 4 and multi_rider_groups > 0
+        else:
+            _need(label in _LINE_GROUP_LABELS.values(), 'LINE_LABEL_UNRECOGNIZED')
+            consistent = label in (expected_label, _LINE_GROUP_LABELS.get(multi_rider_groups))
+        _need(consistent, 'LINE_LABEL_GROUP_COUNT_MISMATCH')
         kind = 'PUBLISHED_UNCONTESTED_LINES'
     return dict(kind=kind, groups=groups, provider_raw=line.get('teikyo', ''),
                 source_sha256=detail_sha256, view_source_sha256=view_sha,
