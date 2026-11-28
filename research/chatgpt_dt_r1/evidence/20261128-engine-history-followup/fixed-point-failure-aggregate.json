@@ -1,0 +1,100 @@
+{
+  "archive": {
+    "commit": "2a1260fb0940ad11160b56a36f9c24cc4fb2f6d2",
+    "dataset_sha256": "9bc3fbda8339b32ba178f5c9c39d6623216ad5c2d5519774870ac5491ba0a847",
+    "files": {
+      "keirin.db": "1bdad22b9744c9c5563f7bb1af31875170a3e6b7f4b0dd73fba8f98d645d8fc4",
+      "keirin_2026q4.db": "d915560877493816b90df8bcd5e7bdef45557f57100b4cd40a3d017cd959334d"
+    }
+  },
+  "base_commit": "3331ab329c6a80b6f1701a8a812c7fc29db6a059",
+  "by_starter_count": {
+    "5": {
+      "exacta_one_point": 3,
+      "joint_trifecta_first_correct_second_wrong": 6,
+      "joint_trifecta_first_two_correct_third_wrong": 1,
+      "joint_trifecta_unordered_set_correct_but_wrong_order": 5,
+      "joint_trifecta_wrong_first": 6,
+      "marginal_winner_correct": 8,
+      "races": 14,
+      "second_correct_given_official_winner": 5,
+      "third_correct_given_official_first_two": 8,
+      "trifecta_one_point": 1
+    },
+    "6": {
+      "exacta_one_point": 23,
+      "joint_trifecta_first_correct_second_wrong": 24,
+      "joint_trifecta_first_two_correct_third_wrong": 13,
+      "joint_trifecta_unordered_set_correct_but_wrong_order": 16,
+      "joint_trifecta_wrong_first": 55,
+      "marginal_winner_correct": 48,
+      "races": 100,
+      "second_correct_given_official_winner": 48,
+      "third_correct_given_official_first_two": 46,
+      "trifecta_one_point": 8
+    },
+    "7": {
+      "exacta_one_point": 465,
+      "joint_trifecta_first_correct_second_wrong": 417,
+      "joint_trifecta_first_two_correct_third_wrong": 242,
+      "joint_trifecta_unordered_set_correct_but_wrong_order": 266,
+      "joint_trifecta_wrong_first": 1214,
+      "marginal_winner_correct": 914,
+      "races": 2105,
+      "second_correct_given_official_winner": 1048,
+      "third_correct_given_official_first_two": 883,
+      "trifecta_one_point": 232
+    },
+    "8": {
+      "exacta_one_point": 1,
+      "joint_trifecta_first_correct_second_wrong": 3,
+      "joint_trifecta_first_two_correct_third_wrong": 0,
+      "joint_trifecta_unordered_set_correct_but_wrong_order": 0,
+      "joint_trifecta_wrong_first": 6,
+      "marginal_winner_correct": 4,
+      "races": 10,
+      "second_correct_given_official_winner": 4,
+      "third_correct_given_official_first_two": 6,
+      "trifecta_one_point": 1
+    },
+    "9": {
+      "exacta_one_point": 30,
+      "joint_trifecta_first_correct_second_wrong": 22,
+      "joint_trifecta_first_two_correct_third_wrong": 18,
+      "joint_trifecta_unordered_set_correct_but_wrong_order": 15,
+      "joint_trifecta_wrong_first": 114,
+      "marginal_winner_correct": 51,
+      "races": 164,
+      "second_correct_given_official_winner": 76,
+      "third_correct_given_official_first_two": 55,
+      "trifecta_one_point": 10
+    }
+  },
+  "counts": {
+    "exacta_one_point": 522,
+    "joint_trifecta_first_correct_second_wrong": 472,
+    "joint_trifecta_first_two_correct_third_wrong": 274,
+    "joint_trifecta_unordered_set_correct_but_wrong_order": 302,
+    "joint_trifecta_wrong_first": 1395,
+    "marginal_winner_correct": 1025,
+    "races": 2393,
+    "second_correct_given_official_winner": 1181,
+    "third_correct_given_official_first_two": 998,
+    "trifecta_one_point": 252
+  },
+  "elapsed_seconds": 21.566,
+  "excluded_nonunique_top3": 23,
+  "known_prefix_scope": "OFFICIAL_PLACINGS_USED_ONLY_FOR_DIAGNOSIS",
+  "model_file_sha256": "dab8c7f014c41ac18e4fed1ae28ac9b36e994611d1fcf5992f8b06e31a4c618b",
+  "model_sha256": "5e022092a35c0258954090c6f3d0f8fa14f03f22511b28d6aa9183f5a38c381c",
+  "period": [
+    "2026-07-01",
+    "2026-07-31"
+  ],
+  "prior_days": 7,
+  "recorded_at": "2026-11-28T21:21:02.599429+00:00",
+  "registered_races": 2416,
+  "schema": "DT_R1_FIXED_POINT_FAILURE_STUDY_V1",
+  "scope": "RETROSPECTIVE_DEVELOPMENTAL_NO_CANDIDATE_SELECTION",
+  "study_source_sha256": "2ee4fde33b2a202832ed3d3f2693c4ef922e5b6be79e011781ee1de49b0feaf3"
+}

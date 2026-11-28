@@ -18,12 +18,13 @@ def _progress(stage, day, outcome):
     print(json.dumps(dict(stage=stage, day=day, outcome=outcome)), file=sys.stderr, flush=True)
 
 
-def run(*, repo, private_root, owner_public_pem, owner_private_pem, day=None, earlier_batch=False,
+def run(*, repo, private_root, owner_public_pem, owner_private_pem, day=None, earlier_batch=False, winner_residual=False,
         now=continuation.now_utc):
     repo, root, _, _, commit = continuation._runtime(repo=repo, private_root=private_root,
         owner_public_pem=owner_public_pem, owner_private_pem=owner_private_pem,
         day=None, clock=now, mode='study')
     trained, _ = shadow.load_frozen(repo)
+    residual = official_holdout_study.load_residual_candidate(repo, trained) if winner_residual else None
     with TemporaryDirectory(prefix='dt-r1-official-holdout-', dir=root) as folder:
         work = Path(folder)
         archive._cmd(work, 'init', '--quiet', '--template=')
@@ -33,7 +34,7 @@ def run(*, repo, private_root, owner_public_pem, owner_private_pem, day=None, ea
         records.fetch_partial_head(work, with_ancestry=True)
         report = official_holdout_study.run_holdout(work, owner_private_pem=owner_private_pem,
             trained=trained, client=GitHubEvidenceClient(), now=now, day=day, earlier_batch=earlier_batch,
-            progress=_progress)
+            progress=_progress, residual_context=residual)
     return dict(report, reader_code_commit=commit, reader_run_id=os.environ['GITHUB_RUN_ID'])
 
 
@@ -45,6 +46,7 @@ def main(argv=None):
     cohort = parser.add_mutually_exclusive_group()
     cohort.add_argument('--day')
     cohort.add_argument('--earlier-batch', action='store_true', help='Run the fixed November 23–26 batch.')
+    cohort.add_argument('--winner-residual', action='store_true', help='Run the fixed November 21–22 winner comparison.')
     args = parser.parse_args(argv)
     private = os.environ.pop('RACE_AI_KEIRIN_PRIVATE_RSA_PEM', '').encode()
     try:

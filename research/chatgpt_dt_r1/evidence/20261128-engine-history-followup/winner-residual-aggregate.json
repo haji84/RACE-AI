@@ -1,0 +1,316 @@
+{
+  "archive": {
+    "commit": "2a1260fb0940ad11160b56a36f9c24cc4fb2f6d2",
+    "dataset_sha256": "9bc3fbda8339b32ba178f5c9c39d6623216ad5c2d5519774870ac5491ba0a847",
+    "files": {
+      "keirin.db": "1bdad22b9744c9c5563f7bb1af31875170a3e6b7f4b0dd73fba8f98d645d8fc4",
+      "keirin_2026q4.db": "d915560877493816b90df8bcd5e7bdef45557f57100b4cd40a3d017cd959334d"
+    }
+  },
+  "base_commit": "e9e00e84b71d205d99c278913fef099ee25190a7",
+  "code_sha256": "0c331617b1a5ff52a8dc847d1e22b26a132d1595fc32ae04b6a456d7d9e398f1",
+  "elapsed_seconds": 67.291,
+  "feature_candidates": 443,
+  "july": {
+    "differences": {
+      "ex1": {
+        "ci95": [
+          -0.0030035954611426306,
+          0.008525878458647189
+        ],
+        "delta": 0.0025073129962390303
+      },
+      "ex2": {
+        "ci95": [
+          -0.0012621482634624804,
+          0.009975477625669379
+        ],
+        "delta": 0.004178854993731718
+      },
+      "ex_brier": {
+        "ci95": [
+          -0.0028107137646918986,
+          -0.0009115712796155446
+        ],
+        "delta": -0.0018692678703642882
+      },
+      "ex_log_loss": {
+        "ci95": [
+          -0.016457735889543714,
+          -0.009278493247669975
+        ],
+        "delta": -0.013056315937315937
+      },
+      "tri1": {
+        "ci95": [
+          -0.003355704697986577,
+          0.0025546337847058187
+        ],
+        "delta": -0.0004178854993731718
+      },
+      "tri2": {
+        "ci95": [
+          -0.00456062529675275,
+          0.003788319238900632
+        ],
+        "delta": -0.0004178854993731718
+      },
+      "tri4": {
+        "ci95": [
+          -0.0028299734756745097,
+          0.005458231655169993
+        ],
+        "delta": 0.0012536564981195152
+      },
+      "tri_brier": {
+        "ci95": [
+          -0.000773628475133197,
+          -6.185442349928387e-05
+        ],
+        "delta": -0.000431833592231706
+      },
+      "tri_log_loss": {
+        "ci95": [
+          -0.01645773588954371,
+          -0.009278493247669559
+        ],
+        "delta": -0.013056315937315831
+      }
+    },
+    "metrics": {
+      "frozen": {
+        "hits": {
+          "ex1": 522,
+          "ex2": 882,
+          "tri1": 252,
+          "tri2": 433,
+          "tri4": 641
+        },
+        "n": 2393,
+        "proper": {
+          "ex_brier": 0.8883491329825836,
+          "ex_log_loss": 2.8314435017859543,
+          "tri_brier": 0.9625740973101401,
+          "tri_log_loss": 4.247434136238131
+        }
+      },
+      "winner_residual": {
+        "hits": {
+          "ex1": 528,
+          "ex2": 892,
+          "tri1": 251,
+          "tri2": 432,
+          "tri4": 644
+        },
+        "n": 2393,
+        "proper": {
+          "ex_brier": 0.8864798651122194,
+          "ex_log_loss": 2.8183871858486387,
+          "tri_brier": 0.9621422637179081,
+          "tri_log_loss": 4.234377820300813
+        }
+      }
+    }
+  },
+  "june": {
+    "differences": {
+      "ex1": {
+        "ci95": [
+          -0.005213770520214079,
+          0.006148847036791438
+        ],
+        "delta": 0.000445632798573975
+      },
+      "ex2": {
+        "ci95": [
+          -0.008137708470280629,
+          0.0041752450079305635
+        ],
+        "delta": -0.0017825311942959
+      },
+      "ex_brier": {
+        "ci95": [
+          -0.002569491134212789,
+          -0.0007641643943329533
+        ],
+        "delta": -0.001641841393082721
+      },
+      "ex_log_loss": {
+        "ci95": [
+          -0.01928196669714486,
+          -0.009815592689204176
+        ],
+        "delta": -0.01480365434948479
+      },
+      "tri1": {
+        "ci95": [
+          -0.004099112648518574,
+          0.005560665608259099
+        ],
+        "delta": 0.000445632798573975
+      },
+      "tri2": {
+        "ci95": [
+          -0.005765287016506529,
+          0.0004496453444531824
+        ],
+        "delta": -0.00267379679144385
+      },
+      "tri4": {
+        "ci95": [
+          0.0,
+          0.01101473311072779
+        ],
+        "delta": 0.0053475935828877
+      },
+      "tri_brier": {
+        "ci95": [
+          -0.0006654961495603101,
+          -2.822831429779485e-05
+        ],
+        "delta": -0.000330524857655679
+      },
+      "tri_log_loss": {
+        "ci95": [
+          -0.019281966697145273,
+          -0.009815592689204256
+        ],
+        "delta": -0.014803654349485119
+      }
+    },
+    "metrics": {
+      "frozen": {
+        "hits": {
+          "ex1": 516,
+          "ex2": 826,
+          "tri1": 223,
+          "tri2": 375,
+          "tri4": 589
+        },
+        "n": 2244,
+        "proper": {
+          "ex_brier": 0.8907338225043493,
+          "ex_log_loss": 2.853536820435129,
+          "tri_brier": 0.9651640374360857,
+          "tri_log_loss": 4.285006331398085
+        }
+      },
+      "winner_residual": {
+        "hits": {
+          "ex1": 517,
+          "ex2": 822,
+          "tri1": 224,
+          "tri2": 369,
+          "tri4": 601
+        },
+        "n": 2244,
+        "proper": {
+          "ex_brier": 0.8890919811112664,
+          "ex_log_loss": 2.838733166085644,
+          "tri_brier": 0.9648335125784303,
+          "tri_log_loss": 4.270202677048601
+        }
+      }
+    }
+  },
+  "learned_weights_sha256": "54495230a773ab51046a0785f50f39e8b4b2ef4e97769967bf2e00a071aafc48",
+  "model_file_sha256": "dab8c7f014c41ac18e4fed1ae28ac9b36e994611d1fcf5992f8b06e31a4c618b",
+  "model_sha256": "5e022092a35c0258954090c6f3d0f8fa14f03f22511b28d6aa9183f5a38c381c",
+  "schema": "DT_R1_WINNER_RESIDUAL_STUDY_V1",
+  "scope": "RETROSPECTIVE_DEVELOPMENTAL",
+  "selected_for_independent_validation": true,
+  "specification": {
+    "candidate_budget": 1,
+    "correction_strength": 1.0,
+    "history_days": 7,
+    "july_scope": "fixed developmental comparison; no fitting or selection",
+    "june_gate": "more trifecta one-point hits, no fewer exacta one-point hits, no proper-score degradation",
+    "lightgbm_version": "4.6.0",
+    "periods": {
+      "fit": [
+        "2026-03-01",
+        "2026-05-31"
+      ],
+      "july": [
+        "2026-07-01",
+        "2026-07-31"
+      ],
+      "june": [
+        "2026-06-01",
+        "2026-06-30"
+      ]
+    },
+    "rounds": 40,
+    "support": "identical frozen joint and fixed second and third conditionals",
+    "tree": {
+      "deterministic": true,
+      "force_col_wise": true,
+      "lambda_l2": 12.0,
+      "learning_rate": 0.04,
+      "max_depth": 3,
+      "min_data_in_leaf": 200,
+      "num_leaves": 7,
+      "num_threads": 2,
+      "objective": "grouped winner log loss with frozen logit offset and diagonal Hessian",
+      "seed": 462,
+      "verbosity": -1
+    }
+  },
+  "specification_sha256": "43fbafa488765b772348836944d908be0dcb278fb6984dca100c45123936772a",
+  "split_features": {
+    "age": 7,
+    "age_relative": 8,
+    "context_cant_x_attack": 1,
+    "context_straight_x_leader": 5,
+    "context_straight_x_second": 1,
+    "history_agari_context_venue_relative_x_bank_home_width_m": 2,
+    "history_agari_overall_relative": 3,
+    "history_agari_overall_relative_x_role_solo": 16,
+    "history_agari_venue_relative_x_role_solo": 16,
+    "history_agari_venue_relative_x_style_ryo": 1,
+    "history_b_rate": 5,
+    "history_dt_discovery_01": 1,
+    "history_dt_discovery_07": 4,
+    "history_dt_discovery_10": 1,
+    "history_dt_discovery_11": 2,
+    "history_dt_discovery_17": 1,
+    "history_dt_discovery_18": 1,
+    "history_dt_discovery_21": 3,
+    "history_dt_discovery_24": 7,
+    "history_dt_discovery_26": 1,
+    "history_dt_discovery_29": 6,
+    "history_dt_discovery_31": 6,
+    "history_dt_discovery_42": 6,
+    "history_dt_discovery_44": 3,
+    "history_dt_discovery_45": 5,
+    "history_dt_discovery_47": 4,
+    "history_dt_discovery_52": 4,
+    "history_dt_discovery_55": 1,
+    "history_dt_discovery_56": 2,
+    "history_dt_discovery_62": 7,
+    "history_dt_rival_strength_gap": 2,
+    "history_form_last5": 3,
+    "history_form_relative": 5,
+    "history_half_lap_mean": 3,
+    "history_same_venue_form": 5,
+    "history_top2_last5": 1,
+    "history_win_last5": 13,
+    "line_count_fraction": 5,
+    "line_role_attack": 1,
+    "line_size_fraction": 6,
+    "line_tail": 1,
+    "points": 14,
+    "points_gap_to_best": 3,
+    "points_relative": 7,
+    "top2_rate": 18,
+    "top2_rate_relative": 2,
+    "top3_rate": 9,
+    "win_rate": 1,
+    "win_rate_relative": 10
+  },
+  "started_at": "2026-11-28T21:27:24.682485+00:00",
+  "training": {
+    "races": 6857,
+    "rider_rows": 48765
+  }
+}
