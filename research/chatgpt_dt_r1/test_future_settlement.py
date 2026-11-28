@@ -410,6 +410,12 @@ class FutureSettlementTests(unittest.TestCase):
         old = store(settle.PARENT, RACES, RACES[:1])
         later = store('c'*40, RACES, RACES[:2])
         current = store('d'*40, [*RACES, added_rid], RACES, complete=False)
+        current.repo = Path('/reader')
+        current.index['results'] = {
+            legacy_rid: [{'evidence_sha256': 'a'*64}, {'evidence_sha256': 'b'*64}],
+            later_rid: [{'evidence_sha256': 'c'*64}],
+            hold_rid: [],
+        }
         def batch(source, ready):
             entries = [dict(entry, state=shadow.READY if entry['slot_sha256'] in ready else 'HOLD')
                        for entry in self.entries()]
@@ -438,6 +444,13 @@ class FutureSettlementTests(unittest.TestCase):
             events.append(('result', rid, source.head))
             self.assertEqual(original_meta, current.index['originals'].get(rid) if rid in RACES[:2] else None)
             return dict(race_id=rid, day=DAY, result_status='VERIFIED_NORMAL', top3=[1,2,3])
+
+        def prefetch_results(repo, head, paths, prefixes):
+            folder = f'{settle.records.ROOT}/{DAY}'
+            self.assertEqual((repo, head, prefixes), (current.repo, current.head, (folder,)))
+            self.assertEqual(paths, {f"{folder}/{'b'*64}.sealed.json", f"{folder}/{'c'*64}.sealed.json"})
+            events.append(('prefetch', current.head))
+            raise settle.archive.GitCipherArchiveError('PREFETCH_FIXTURE_FAILURE')
         with TemporaryDirectory() as tmp:
             directory = Path(tmp)
             (directory / 'first.sealed.json').write_bytes(b'first')
@@ -449,6 +462,7 @@ class FutureSettlementTests(unittest.TestCase):
                 patch.object(settle.records, 'RecordStore', side_effect=lambda _, __, *, index_commit:
                              {old.head: old, later.head: later}[index_commit]),
                 patch.object(settle.archive, 'read_blob_bytes', return_value=b'later'),
+                patch.object(settle.archive, 'prefetch_pinned_blobs', side_effect=prefetch_results),
                 patch.object(settle, '_forecast_from_original', side_effect=forecast_replay),
                 patch.object(settle, '_result_row', side_effect=result_replay),
             ):
@@ -468,7 +482,8 @@ class FutureSettlementTests(unittest.TestCase):
                 with self.assertRaisesRegex(ValueError, 'DUPLICATE_FIRST_SLOT'):
                     settle._score_archived_day(None, current, b'', None, None, None, lambda: None, legacy)
         self.assertEqual(events[:2], [('forecast', legacy_rid, old.head), ('forecast', later_rid, later.head)])
-        self.assertEqual(events[2:], [('result', rid, current.head) for rid in [*RACES, added_rid]])
+        self.assertEqual(events[2:], [('prefetch', current.head),
+                                     *(('result', rid, current.head) for rid in [*RACES, added_rid])])
         self.assertEqual(set(seen), {legacy_rid, later_rid})
         self.assertEqual(report['feature_audit'], {'audited_races': 2, 'unaudited_replayed_races': 0})
         self.assertEqual(report['registered_races'], 4)
