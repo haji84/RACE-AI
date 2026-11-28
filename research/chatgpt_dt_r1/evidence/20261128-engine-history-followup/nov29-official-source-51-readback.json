@@ -1,0 +1,29 @@
+{
+  "baseline_hold_reasons": {
+    "OFFICIAL_EXTENSION_CONTESTED_OR_MULTILEVEL_LINE_UNSUPPORTED": 1,
+    "OFFICIAL_EXTENSION_LINE_LABEL_GROUP_COUNT_MISMATCH": 1,
+    "OFFICIAL_EXTENSION_PROFILE_CARD_DISAGREEMENT": 1
+  },
+  "baseline_source_unverified": 3,
+  "capture_budget_pending": 0,
+  "capture_receipt_artifact_id": 15286382904,
+  "capture_receipt_sha256": "e8ed4aaf2a71c739db0518f6ca5ec7be7d019dd3a176a34ca94a38d43c24edab",
+  "capture_zip_sha256": "0bff5b0d5444592aacefd4db1545554a9b462a1b734bdc0cf21f89463bdabc3e",
+  "code_commit": "c4aebfa11648fa99ab176b77e7265cd809c52b09",
+  "day_jst": "2026-11-29",
+  "earliest_new_original_deadline_jst": "2026-11-29T10:59:00+09:00",
+  "independent_readback_artifact_id": 15286702278,
+  "independent_readback_scope": "CIPHERTEXT_AND_EXISTING_GIT_INDEX",
+  "independent_readback_sha256": "480e8500f4cd509e611913f736ef187ca157c5825c982054bc9ec5c37615244c",
+  "independent_readback_zip_sha256": "935a5b128af771111c221f3973e14ffe748fac708fb8a8226a445c431ef7d3e4",
+  "new_independently_read_back_sources": 5,
+  "observed_fragmented_sources": 2,
+  "observed_single_leader_sources": 3,
+  "prior_saved_official_sources": 46,
+  "registered_races": 54,
+  "saved_official_sources": 51,
+  "schema": "DT_R1_OFFICIAL_SOURCE_ADDITION_READBACK_EVIDENCE_V1",
+  "source_archive_commit": "ab68fc51486ed245f72a6769335e998039d4dd11",
+  "source_requests": 238,
+  "source_run_id": 46203442631
+}

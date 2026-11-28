@@ -4,6 +4,8 @@
 
 ## 11月29日の締切前検証の再開地点
 
+08:57 JST、#474を含む定期取得の別ランナー読戻しで、公式事前資料を51/54枠に更新した。「先行一車」3件と「コマ切れ」2件を追加し、旧46件のGit参照を保持。公式資料の固定索引は `ab68fc51486ed245f72a6769335e998039d4dd11`。残りは競りまたは多段、組数不一致、選手資料不一致の各1件。追加5枠の最早T−15は10:59 JST。初回共通枠の公式結果の保護取得を08:54 JSTに開始した。保全済み共通46枠の結果照合と、新規5枠の両モデル原本の生成・独立読戻しを進める。[公式資料51枠の固定証跡](evidence/20261128-engine-history-followup/nov29-official-source-51-readback.json) · [定期取得](https://github.com/haji84/RACE-AI/actions/runs/46203442631) · [初回対象の結果取得](https://github.com/haji84/RACE-AI/actions/runs/46203825537)
+
 08:40 JST、登録54枠のうちDT-R1・Codex独自の共通締切前原本を46枠にした。両モデルで旧41枠のGit参照が一致し、追加5枠は同じ公式資料を使って生成し、別ランナー読戻しとT−15認証を通過した。両モデルの固定索引は `f5903b766ef50796914323efcfeadaac9e870278`。最初の共通対象は08:47 JST締切の1枠。認証可能な公式着順を暗号保存した後に `codex-settle` で照合する。[共通46枠と実行証跡](evidence/20261128-engine-history-followup/nov29-46-same-source-first-originals.json) · [固定索引](https://github.com/haji84/RACE-AI/commit/f5903b766ef50796914323efcfeadaac9e870278)
 
 08:26 JSTの再確認は46枠の公式資料を保持し、新規0件。残り8枠の保留は並び表記5、競りまたは多段1、組数不一致1、出走表と選手資料の不一致1。公式出走表で「先行一車」3件と「コマ切れ」2件の一列配置を読み、[PR #474](https://github.com/haji84/RACE-AI/pull/474) を main `90bf1a5d1a3b05ebd8d97ca41bde038abf363106` に統合した。単独の複数選手グループを含む配置と4組の配置を資料・車番・位置の認証付きで扱う。次の既存監視による承認済み取得で、実カードからの追加保存と別ランナー読戻しを確認する。[公式資料の再確認](evidence/20261128-engine-history-followup/nov29-official-source-recheck-46-readback.json) · [公式競輪ガイド](https://keirin.jp/pc/static/beginner/basics/lines.html)
