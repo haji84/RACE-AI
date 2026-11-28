@@ -1,4 +1,4 @@
-"""Owner-run retrospective study of independently admitted personal profile finishes."""
+"""Private research comparison of independently admitted personal profile finishes."""
 from collections import Counter
 from itertools import groupby
 
@@ -44,6 +44,58 @@ def _paired_score(forecasts, outcomes):
     return score
 
 
+def personal_trial(*, trained, venues, payload, original, baseline, prior, prediction_at):
+    """Compute one private comparison from a matched, independently replayable baseline.
+
+    The input clock limits evidence. The caller separately proves actual generation
+    time and sealing when this computation is used for a prospective trial.
+    """
+    from .official_personal_history import profile_finishes
+
+    support = baseline['history_evidence'].get('official_support', {})
+    if prior is None or not support.get('history_races'):
+        return None, 'NO_REPLAYED_SEVEN_DAY_HISTORY'
+    try:
+        target = official_inputs.verification_payload(payload, original,
+            prediction_at=prediction_at)['normalized_input']
+        if (target['input_sha256'] != baseline['input_sha256'] or
+                clock(target['context_as_of']) != clock(baseline['context_as_of'])):
+            raise ValueError('PROFILE_TARGET_INPUT_CHANGED')
+        selected = profile_finishes(original, target, prediction_at=prediction_at)
+        if selected['status'] != 'READY':
+            return None, selected['status']
+        args = prior.arguments(payload, original, prediction_at)
+        history, replay = official_inputs._history(args['history_records'], target, prediction_at,
+                                                  args['history_verifier'])
+        if replay != support:
+            raise ValueError('PROFILE_BASELINE_HISTORY_CHANGED')
+        for field in ('source_attestation_sha256', 'source_verified_at', 'source_available_at_verified',
+                      'source_admission_status', 'pre_cutoff_authenticated', 'source_proof'):
+            target[field] = baseline[field]
+        builder = FeatureBuilder()
+        for _, items in groupby(history, key=lambda row: row['day']):
+            builder.update_day(items)
+        add_to_builder(builder, selected['events'])
+        row = builder.transform(target)
+        # This source has only normal finishes. Preserve full-start, incident and class measures.
+        row['features'][:, BASELINE_ONLY] = baseline['features'][:, BASELINE_ONLY]
+        row['history_evidence'].update(identities_are_unresolved=False,
+            identity_namespace=official_inputs.IDENTITY_NAMESPACE, official_support=support,
+            personal_profile_policy=selected['policy'], personal_profile_proof_sha256=selected['proof_sha256'])
+        for item in row['history_evidence']['rider_evidence'].values():
+            item['official_identity_verified'] = True
+        featured = augment_abilities(augment_agari(augment_features([_bind_feature_input(row)],
+            venue_store=venues, as_of=prediction_at, allow_current_geometry_assumption=False)))[0]
+        if featured['feature_status'] != 'READY' or featured['feature_names'] != trained.feature_names:
+            raise ValueError('PROFILE_FEATURE_SCHEMA_CHANGED')
+        law = trained.distribution(featured, full=True)
+        forecast = dict(race_id=target['race_id'], input_sha256=target['input_sha256'], status='READY',
+                        trifectas=law['trifectas'], exactas=law['exactas'])
+        return dict(row=featured, forecast=forecast, used_finishes=len(selected['events'])), None
+    except (ValueError, KeyError, TypeError, OverflowError):
+        return None, 'PROFILE_EVIDENCE_OR_FEATURE_REPLAY_UNVERIFIED'
+
+
 class OfficialPersonalStudy:
     def __init__(self, trained, venues):
         self._trained, self._venues = trained, venues
@@ -52,53 +104,14 @@ class OfficialPersonalStudy:
 
     def add(self, *, payload, original, baseline, prior, prediction_at):
         """Compare only after the normal settlement replays the frozen baseline."""
-        from .official_personal_history import profile_finishes
-
-        support = baseline['history_evidence'].get('official_support', {})
-        if prior is None or not support.get('history_races'):
-            self._holds['NO_REPLAYED_SEVEN_DAY_HISTORY'] += 1
+        computed, hold = personal_trial(trained=self._trained, venues=self._venues,
+            payload=payload, original=original, baseline=baseline, prior=prior, prediction_at=prediction_at)
+        if hold is not None:
+            self._holds[hold] += 1
             return
-        try:
-            target = official_inputs.verification_payload(payload, original,
-                prediction_at=prediction_at)['normalized_input']
-            if (target['input_sha256'] != baseline['input_sha256'] or
-                    clock(target['context_as_of']) != clock(baseline['context_as_of'])):
-                raise ValueError('PROFILE_TARGET_INPUT_CHANGED')
-            selected = profile_finishes(original, target, prediction_at=prediction_at)
-            if selected['status'] != 'READY':
-                self._holds[selected['status']] += 1
-                return
-            args = prior.arguments(payload, original, prediction_at)
-            history, replay = official_inputs._history(args['history_records'], target, prediction_at,
-                                                      args['history_verifier'])
-            if replay != support:
-                raise ValueError('PROFILE_BASELINE_HISTORY_CHANGED')
-            for field in ('source_attestation_sha256', 'source_verified_at', 'source_available_at_verified',
-                          'source_admission_status', 'pre_cutoff_authenticated', 'source_proof'):
-                target[field] = baseline[field]
-            builder = FeatureBuilder()
-            for _, items in groupby(history, key=lambda row: row['day']):
-                builder.update_day(items)
-            add_to_builder(builder, selected['events'])
-            row = builder.transform(target)
-            # This source has only normal finishes. Preserve full-start, incident and class measures.
-            row['features'][:, BASELINE_ONLY] = baseline['features'][:, BASELINE_ONLY]
-            row['history_evidence'].update(identities_are_unresolved=False,
-                identity_namespace=official_inputs.IDENTITY_NAMESPACE, official_support=support,
-                personal_profile_policy=selected['policy'], personal_profile_proof_sha256=selected['proof_sha256'])
-            for item in row['history_evidence']['rider_evidence'].values():
-                item['official_identity_verified'] = True
-            featured = augment_abilities(augment_agari(augment_features([_bind_feature_input(row)],
-                venue_store=self._venues, as_of=prediction_at, allow_current_geometry_assumption=False)))[0]
-            if featured['feature_status'] != 'READY' or featured['feature_names'] != self._trained.feature_names:
-                raise ValueError('PROFILE_FEATURE_SCHEMA_CHANGED')
-            law = self._trained.distribution(featured, full=True)
-            rid = target['race_id']
-            self._candidates[rid] = dict(race_id=rid, input_sha256=target['input_sha256'], status='READY',
-                                         trifectas=law['trifectas'], exactas=law['exactas'])
-            self._used_events += len(selected['events'])
-        except (ValueError, KeyError, TypeError, OverflowError):
-            self._holds['PROFILE_EVIDENCE_OR_FEATURE_REPLAY_UNVERIFIED'] += 1
+        forecast = computed['forecast']
+        self._candidates[forecast['race_id']] = forecast
+        self._used_events += computed['used_finishes']
 
     def report(self, admitted, outcomes):
         pairs = admitted.keys() & self._candidates.keys()

@@ -34,8 +34,10 @@ from research.chatgpt_dt_r1.agari import augment_agari
 from research.chatgpt_dt_r1.context import augment_features
 from research.chatgpt_dt_r1.model import RankModel
 from research.chatgpt_dt_r1.official_history import OfficialHistory, POLICY as HISTORY_POLICY
+from research.chatgpt_dt_r1.official_personal_history import POLICY as PERSONAL_HISTORY_POLICY
+from research.chatgpt_dt_r1.official_personal_study import personal_trial
 from research.chatgpt_dt_r1.pipeline import forecast_row, validate_prediction_inputs
-from research.chatgpt_dt_r1.policy import clock as parse_clock, digest
+from research.chatgpt_dt_r1.policy import checked_sha, clock as parse_clock, digest
 from research.chatgpt_dt_r1.venues import VenueStore
 from scripts import keirin_capture_official_form_history as capture_files
 from scripts import keirin_official_nationwide_continuation as continuation
@@ -48,7 +50,13 @@ LEGACY_MATERIAL_SCHEMA = 'DT_R1_SHARED_FUTURE_MATERIAL_V1'
 HISTORY_MATERIAL_SCHEMA = 'DT_R1_SHARED_FUTURE_MATERIAL_V2'
 PAIRED_HISTORY_MATERIAL_SCHEMA = 'DT_R1_SHARED_FUTURE_MATERIAL_V3'
 BACK_STUDY_MATERIAL_SCHEMA = 'DT_R1_SHARED_FUTURE_MATERIAL_V4'
+PERSONAL_STUDY_MATERIAL_SCHEMA = 'DT_R1_SHARED_FUTURE_MATERIAL_V5'
 HISTORY_CONTROL_POLICY = 'DT_R1_FROZEN_SAME_SOURCE_NO_PRIOR_HISTORY_V1'
+# Skip optional extra inference shortly before the mandatory production seal boundary.
+PERSONAL_TRIAL_SEAL_RESERVE = timedelta(seconds=30)
+PERSONAL_TRIAL_SOURCE_HOLDS = frozenset(('NO_REPLAYED_SEVEN_DAY_HISTORY', 'NO_AUTHENTICATED_PROFILE',
+    'PROFILE_NOT_AVAILABLE_AT_PREDICTION', 'NO_ELIGIBLE_FINISHES', 'PROFILE_EVIDENCE_OR_FEATURE_REPLAY_UNVERIFIED',
+    'PERSONAL_STUDY_DEADLINE_RESERVE', 'PERSONAL_STUDY_COMPUTE_UNVERIFIED', 'PERSONAL_STUDY_BINDING_UNVERIFIED'))
 MODEL_FILE = 'research/chatgpt_dt_r1/evidence/20261128-resume/frozen_model.json'
 MODEL_FILE_SHA = 'dab8c7f014c41ac18e4fed1ae28ac9b36e994611d1fcf5992f8b06e31a4c618b'
 MODEL_SHA = '5e022092a35c0258954090c6f3d0f8fa14f03f22511b28d6aa9183f5a38c381c'
@@ -196,6 +204,25 @@ def _back_study_pair(back_trial, *, store, payload, original, private, client, c
         source_verifier=_source_verifier(store, payload, private, client, cache, {}), **history)
 
 
+def _personal_study_material(trial, baseline, trained, prediction_at):
+    row, forecast = trial['row'], trial['forecast']
+    history = row['history_evidence']
+    validate_prediction_inputs(row, prediction_at=prediction_at, model_meta=trained.fit_meta)
+    fields = ('race_id', 'day', 'cutoff_at', 'context_as_of', 'input_sha256', 'source_attestation_sha256')
+    need(all(row[key] == baseline[key] for key in fields) and row['result_rows'] == [] and
+         history['official_support'] == baseline['history_evidence']['official_support'] and
+         history['personal_profile_policy'] == PERSONAL_HISTORY_POLICY and
+         type(trial['used_finishes']) is int and trial['used_finishes'] > 0 and
+         forecast['status'] == 'READY' and all(forecast[key] == row[key] for key in ('race_id', 'input_sha256')),
+         'PERSONAL_STUDY_INPUT')
+    return dict(policy=PERSONAL_HISTORY_POLICY, used_finishes=trial['used_finishes'],
+        profile_proof_sha256=checked_sha(history['personal_profile_proof_sha256']),
+        feature_input_sha256=checked_sha(row['feature_input_sha256']),
+        markets_sha256=digest({market: forecast[market] for market in ('trifectas', 'exactas')}),
+        trifecta_top12=[ticket['cars'] for ticket in forecast['trifectas'][:12]],
+        exacta_top2=[ticket['cars'] for ticket in forecast['exactas'][:2]])
+
+
 def _shared_material(row, payload, original, store, proof, *, control=None, back_study=None):
     support = row['history_evidence']['official_support']
     shared = dict(schema=LEGACY_MATERIAL_SCHEMA,
@@ -245,7 +272,7 @@ def _shared_material(row, payload, original, store, proof, *, control=None, back
 
 def _save_forecast(*, output, entry, row, forecast, payload, original, store, public, private,
                    code_commit, input_at, prediction_started_at, proof, clock, remaining_cipher_bytes,
-                   control=None, back_study=None):
+                   control=None, back_study=None, personal_study=None, source_diagnostics=None):
     seal_at = _observe(clock)
     cutoff = row['cutoff_at']
     if not _same_day(seal_at, store.day):
@@ -255,7 +282,9 @@ def _save_forecast(*, output, entry, row, forecast, payload, original, store, pu
     if not _timely(seal_at, cutoff):
         return dict(entry, reason='POST_GENERATION_T15_MARGIN')
     feature_row = dict(row, features=row['features'].tolist(), feature_names=list(row['feature_names']))
-    shared = _shared_material(row, payload, original, store, proof, control=control, back_study=back_study)
+    frozen = _shared_material(row, payload, original, store, proof, control=control, back_study=back_study)
+    shared = frozen if personal_study is None else dict(schema=PERSONAL_STUDY_MATERIAL_SCHEMA,
+        frozen_material=frozen, personal_history_trial=personal_study)
     private_payload = dict(schema=PRIVATE_SCHEMA, day_jst=store.day, race_id=row['race_id'],
         observed_at=seal_at.isoformat(), reader_code_commit=code_commit, reader_run_id=os.environ['GITHUB_RUN_ID'],
         source_archive_commit=store.head, source_registry_reference=store.index['registry'],
@@ -263,7 +292,14 @@ def _save_forecast(*, output, entry, row, forecast, payload, original, store, pu
         forecast=forecast, feature_row=feature_row, shared_material=shared,
         safe_report=dict(day_jst=store.day, scope='DT_ONLY_FUTURE_SHADOW', new_forecasts=1,
                          confidence='HOLD', independently_admitted_new_forecasts=0))
-    raw = codec.seal_evidence(records.wire(private_payload), public, store.day, seal_at.isoformat())
+    plaintext = records.wire(private_payload)
+    raw = codec.seal_evidence(plaintext, public, store.day, seal_at.isoformat())
+    if len(raw) > remaining_cipher_bytes and personal_study is not None:
+        if source_diagnostics is not None:
+            source_diagnostics['PERSONAL_STUDY_UPLOAD_BYTE_RESERVE'] += 1
+        shared = private_payload['shared_material'] = frozen
+        plaintext = records.wire(private_payload)
+        raw = codec.seal_evidence(plaintext, public, store.day, seal_at.isoformat())
     if len(raw) > remaining_cipher_bytes:
         return dict(entry, reason=UPLOAD_BUDGET_HOLD)
     filename = entry['slot_sha256'] + '.sealed.json'
@@ -271,7 +307,7 @@ def _save_forecast(*, output, entry, row, forecast, payload, original, store, pu
     restored = (output / filename).read_bytes()
     need(restored == raw, 'CIPHERTEXT_READBACK_MISMATCH')
     # Authenticate the just-written ciphertext in memory; never emit plaintext.
-    need(codec.decrypt_evidence(restored, private) == records.wire(private_payload), 'PLAINTEXT_READBACK_MISMATCH')
+    need(codec.decrypt_evidence(restored, private) == plaintext, 'PLAINTEXT_READBACK_MISMATCH')
     readback_at = _observe(clock)
     envelope = codec._checked_cipher(restored)
     clocks = dict(input_at=input_at, prediction_started_at=prediction_started_at,
@@ -318,7 +354,8 @@ def _source_failure(stage, error):
 
 def produce_day(*, store, repo, output, owner_public_pem, owner_private_pem, code_commit,
                 origin_client, clock=continuation.now_utc, source_diagnostics=None,
-                _ciphertext_byte_cap=None, accepted_slots=(), official_history=None, back_trial=None):
+                _ciphertext_byte_cap=None, accepted_slots=(), official_history=None, back_trial=None,
+                compare_personal_history=False):
     """Internal protected owner-job worker. A private cap can lower the default budget."""
     started = _observe(clock)
     need(_same_day(started, store.day), 'ACTUAL_JST_DAY_REQUIRED')
@@ -413,6 +450,18 @@ def produce_day(*, store, repo, output, owner_public_pem, owner_private_pem, cod
                 back_study = _back_study_pair(back_trial, store=store, payload=payload, original=original,
                     private=owner_private_pem, client=origin_client, cache=cache, input_at=input_at,
                     official_history=official_history)
+            personal, personal_hold = None, None
+            if compare_personal_history:
+                try:
+                    if control is None:
+                        personal_hold = 'NO_REPLAYED_SEVEN_DAY_HISTORY'
+                    elif not _timely(_observe(clock) + PERSONAL_TRIAL_SEAL_RESERVE, row['cutoff_at']):
+                        personal_hold = 'PERSONAL_STUDY_DEADLINE_RESERVE'
+                    else:
+                        personal, personal_hold = personal_trial(trained=trained, venues=venues, payload=payload,
+                            original=original, baseline=row, prior=official_history, prediction_at=input_at)
+                except Exception:
+                    personal_hold = 'PERSONAL_STUDY_COMPUTE_UNVERIFIED'
             generated = _observe(clock)
             need(prediction_started <= generated, 'CLOCK_REGRESSION')
             if not _same_day(generated, store.day):
@@ -420,6 +469,15 @@ def produce_day(*, store, repo, output, owner_public_pem, owner_private_pem, cod
             if not _timely(generated, row['cutoff_at']):
                 entries.append(dict(entry, reason='POST_GENERATION_T15_MARGIN')); continue
             validate_prediction_inputs(row, prediction_at=generated.isoformat(), model_meta=trained.fit_meta)
+            personal_study = None
+            if personal is not None:
+                try:
+                    personal_study = _personal_study_material(personal, row, trained, generated.isoformat())
+                except Exception:
+                    personal_hold = 'PERSONAL_STUDY_BINDING_UNVERIFIED'
+            if personal_hold is not None and source_diagnostics is not None:
+                safe = personal_hold if personal_hold in PERSONAL_TRIAL_SOURCE_HOLDS else 'PERSONAL_STUDY_COMPUTE_UNVERIFIED'
+                source_diagnostics[safe] += 1
             forecast.update(prediction_at=generated.isoformat(),
                 scope='DT_ONLY_FUTURE_SHADOW_PENDING_INDEPENDENT_READBACK',
                 forecast_original_independently_read_back=False, production_promoted=False)
@@ -431,7 +489,8 @@ def produce_day(*, store, repo, output, owner_public_pem, owner_private_pem, cod
             payload=payload, original=original, store=store, public=owner_public_pem,
             private=owner_private_pem, code_commit=code_commit, input_at=input_at,
             prediction_started_at=prediction_started.isoformat(), proof=proof, clock=clock,
-            remaining_cipher_bytes=remaining_cipher_bytes, control=control, back_study=back_study)
+            remaining_cipher_bytes=remaining_cipher_bytes, control=control, back_study=back_study,
+            personal_study=personal_study, source_diagnostics=source_diagnostics)
         if saved['cipher'] is not None:
             remaining_cipher_bytes -= saved['cipher']['bytes']
             history_uses += row['history_evidence']['official_support']['history_races']
@@ -551,7 +610,8 @@ def verify_output(directory, *, expected_manifest_sha256=None):
 
 
 def run_future_shadow(*, repo, private_root, output, owner_public_pem, owner_private_pem,
-                      day=None, clock=continuation.now_utc, source_diagnostics=None, compare_back=False):
+                      day=None, clock=continuation.now_utc, source_diagnostics=None, compare_back=False,
+                      compare_personal_history=False):
     repo, root, day, public, commit = continuation._runtime(repo=repo, private_root=private_root,
         owner_public_pem=owner_public_pem, owner_private_pem=owner_private_pem, day=day, clock=clock, mode='study')
     need(_same_day(_observe(clock), day), 'ACTUAL_JST_DAY_REQUIRED')
@@ -581,7 +641,8 @@ def run_future_shadow(*, repo, private_root, output, owner_public_pem, owner_pri
             owner_private_pem=owner_private_pem, code_commit=commit, origin_client=client,
             clock=clock, source_diagnostics=source_diagnostics,
             accepted_slots=accepted | (legacy & provisioned),
-            official_history=OfficialHistory(store, owner_private_pem), back_trial=back_trial)
+            official_history=OfficialHistory(store, owner_private_pem), back_trial=back_trial,
+            compare_personal_history=compare_personal_history)
 
 
 def main(argv=None):
@@ -592,13 +653,15 @@ def main(argv=None):
     parser.add_argument('--owner-public-pem', type=Path, required=True)
     parser.add_argument('--day')
     parser.add_argument('--compare-back', action='store_true')
+    parser.add_argument('--compare-personal-history', action='store_true')
     args = parser.parse_args(argv)
     private = os.environ.pop('RACE_AI_KEIRIN_PRIVATE_RSA_PEM', '').encode()
     source_diagnostics = Counter()
     try:
         report = run_future_shadow(repo=args.repo, private_root=args.private_root, output=args.output,
             owner_public_pem=args.owner_public_pem, owner_private_pem=private, day=args.day,
-            source_diagnostics=source_diagnostics, compare_back=args.compare_back)
+            source_diagnostics=source_diagnostics, compare_back=args.compare_back,
+            compare_personal_history=args.compare_personal_history)
     except Exception as error:
         report = dict(schema=SUMMARY_SCHEMA, scope='DT_ONLY_FUTURE_SHADOW',
             state='HOLD_DT_SHADOW_RUNTIME_OR_BUNDLE_UNVERIFIED', registered_races=None,
