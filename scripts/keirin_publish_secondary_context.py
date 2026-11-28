@@ -11,6 +11,7 @@ import re
 import subprocess
 import tarfile
 from unicodedata import normalize
+from urllib.parse import urlsplit
 
 from race_ai import keirin_dossier_secondary as secondary
 from race_ai.keirin_dossier_race_context import MAX_RACES
@@ -109,10 +110,13 @@ def _publish_cards(store, parent, day, cards, *, published_at, published_only):
             fields.setdefault(race_id, dict(race_id=race_id, riders=[
                 dict(number=rider['number'], registration=rider['registration']) for rider in row['riders']]))
     identities, holds = None, Counter()
-    additions = {}
+    additions, performance_cards = {}, []
     for race_id, raw, receipt, expected_cutoff in cards:
         try:
             public.need(registry is None or race_id in cutoffs, 'SECONDARY_DOSSIER_UNREGISTERED_RACE')
+            if urlsplit(receipt['url']).query:
+                performance_cards.append((race_id, raw, receipt))
+                continue
             card = secondary.source_card(raw, receipt, race_id, now=published_at)
             cutoff = cutoffs.get(race_id) or card['source_cutoff_at']
             if expected_cutoff is not None:
@@ -132,8 +136,20 @@ def _publish_cards(store, parent, day, cards, *, published_at, published_only):
             previous = additions.get(race_id) or retained.get(race_id)
             if previous is None or public.when(row['source_at']) > public.when(previous['source_at']):
                 fields[race_id] = official
+                if previous and 'performance' in previous:
+                    row = dict(row, performance=previous['performance'])
                 additions[race_id] = row
         except (ValueError, KeyError, IndexError, TypeError, OSError, subprocess.SubprocessError) as error:
+            holds[_safe_reason(error)] += 1
+    for race_id, raw, receipt in performance_cards:
+        try:
+            row = additions.get(race_id) or retained.get(race_id)
+            public.need(row is not None and fields.get(race_id), 'SECONDARY_DOSSIER_PERFORMANCE_ROSTER')
+            proof = secondary.project_performance(raw, receipt, fields[race_id], now=published_at)
+            previous = row.get('performance')
+            if previous is None or public.when(proof['source_at']) > public.when(previous['source_at']):
+                additions[race_id] = dict(row, performance=proof)
+        except (ValueError, KeyError, IndexError, TypeError, OSError) as error:
             holds[_safe_reason(error)] += 1
     if not additions and not retained:
         return _status('NO_QUALIFYING_ROWS', day, holds=holds)
@@ -267,9 +283,10 @@ def replay_saved_captures(repo, day, folders, *, published_at):
         public.need(type(captured) is list and len(captured) <= MAX_RACES, 'SECONDARY_DOSSIER_CAPTURE')
         for item in captured:
             rid = item['race_id']
-            public.need(rid not in seen and rid[:8] == day.replace('-', ''), 'SECONDARY_DOSSIER_DUPLICATE')
-            seen.add(rid)
             receipt = item['kdreams_receipt']
+            identity = rid, bool(urlsplit(receipt['url']).query)
+            public.need(identity not in seen and rid[:8] == day.replace('-', ''), 'SECONDARY_DOSSIER_DUPLICATE')
+            seen.add(identity)
             raw, _ = _source(root, receipt, generated_at=published_at)
             cards.append((rid, raw, receipt, None))
     return publish_cards(repo, day, cards, published_at=published_at, published_only=True)

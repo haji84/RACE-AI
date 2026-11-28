@@ -479,4 +479,43 @@ describe('KEIRIN anonymous forecast page', { skip: !chromium }, () => {
     assert.match(await page.locator('#keirin-public-scoreboard').innerText(), /DT-R1 当日照合[^\n]*0\.0%（0 \/ 1）/);
     assert.equal(calls.filter(url => url.startsWith(BASE + 'forecasts/')).length, 2);
   });
+
+  test('opens the rider dossier with the six requested axes and all ranks, then switches riders', async t => {
+    const race = raceId(TODAY, '2601');
+    const riders = Array.from({ length: 7 }, (_, index) => ({ number: index + 1, name: '架空選手' + (index + 1),
+      registration: String(123400 + index), style: index === 0 ? '両' : '追' }));
+    const rate = [.13, .14, .17, .17, .15, .13, .11];
+    const clock = value => stamp(TODAY, value);
+    const serve = day => snapshot(day);
+    serve.supplement = (lane, day) => {
+      const packet = { day, published_at: clock('13:00') };
+      if (lane === 'starters') return { ...packet, schema: 'RACE_AI_KEIRIN_PUBLIC_STARTERS_V1',
+        races: [{ race_id: race, source_at: clock('11:50'), riders }] };
+      if (lane === 'rank-distributions') return { ...packet, schema: 'RACE_AI_KEIRIN_PUBLIC_RANK_DISTRIBUTION_V1',
+        races: [{ race_id: race, cutoff_at: clock('12:30'), source_as_of: clock('11:50'), generated_at: clock('12:00'),
+          frozen_at: clock('12:05'), witnessed_at: clock('12:06'), source_joint_sha256: '1'.repeat(64),
+          model_sha256: '2'.repeat(64), scope: 'PROSPECTIVE_RESEARCH', premise: 'ALL_FINISH_NO_TIES',
+          calibration_status: 'UNVALIDATED', riders: riders.map(({ style, ...rider }, index) => ({ ...rider,
+            probabilities: rate.slice(index).concat(rate.slice(0, index)) })) }] };
+      return null;
+    };
+    const { page, calls } = await open(t, '#keirin-public', serve);
+    const card = page.locator('.keirin-public-race').filter({ hasText: '西武園 1R' });
+    const opener = card.getByRole('button', { name: '選手カルテ' });
+    await opener.click();
+    const dialog = page.getByRole('dialog', { name: '西武園 1R 選手カルテ' });
+    await dialog.getByRole('heading', { name: '架空選手1', exact: true }).waitFor();
+    assert.deepEqual(await dialog.locator('svg text').allTextContents(), ['先行力', '捲り', '瞬発力', '差し', '戦術対応力', '現在の調子']);
+    assert.equal(await dialog.locator('meter').count(), 7);
+    assert.match(await dialog.innerText(), /1着確率\s+13\.0%[\s\S]*2着以内\s+27\.0%[\s\S]*3着以内\s+44\.0%/);
+    await dialog.getByRole('button', { name: /架空選手2/ }).click();
+    await dialog.getByRole('heading', { name: '架空選手2', exact: true }).waitFor();
+    assert.match(await dialog.innerText(), /1着確率\s+14\.0%/);
+    assert.equal(await dialog.locator('svg [data-evidence-point]').count(), 0);
+    assert.ok(await dialog.evaluate(node => node.scrollWidth <= node.clientWidth + 1));
+    await page.keyboard.press('Escape');
+    await dialog.waitFor({ state: 'hidden' });
+    assert.equal(await opener.evaluate(node => document.activeElement === node), true);
+    assert.equal(calls.filter(url => url.endsWith('/rank-distributions/' + TODAY + '.json')).length, 1);
+  });
 });

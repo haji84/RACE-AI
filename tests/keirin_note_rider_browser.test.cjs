@@ -55,7 +55,7 @@ describe('rider cards in the GitHub note view', { skip: !chromium }, () => {
   async function open(t, options = {}) {
     const components = ['keirin-note-source/staking.js', 'keirin-note-source/staking_flexible.js',
       'keirin-note-source/rollover.js', 'confidence.js', 'keirin-joint-forecast.js', 'keirin-rider-history.js',
-      'keirin-note-model.js', 'keirin-note-feed.js'];
+      'keirin-note-model.js', 'keirin-note-feed.js', 'keirin-dossier-ui.js'];
     const script = 'window.RaceNoteInitialFragment=location.hash;\n' + components.map(name =>
       fs.readFileSync(path.join(ROOT, 'web', name), 'utf8')).join('\n') +
       '\nObject.assign(window.RaceKeirinNoteFeed,window.__noteFeedOverride);\n' +
@@ -144,6 +144,8 @@ describe('rider cards in the GitHub note view', { skip: !chromium }, () => {
     const modal = page.locator('#kn-rider-details');
     await modal.waitFor({ state: 'visible' });
     assert.equal(await modal.locator('meter').count(), 3);
+    assert.deepEqual(await modal.locator('svg text').allTextContents(), ['先行力', '捲り', '瞬発力', '差し', '戦術対応力', '現在の調子']);
+    assert.match(await modal.locator('.kd-metrics-three').innerText(), /1着確率\s+33\.3%[\s\S]*2着以内\s+66\.7%[\s\S]*3着以内\s+100\.0%/);
     assert.match(await modal.innerText(), /66\.7%/);
     assert.match(await modal.innerText(), /比較B.*旧買い目|保存済みの旧買い目/);
     assert.match(await modal.innerText(), /番手|先頭/);

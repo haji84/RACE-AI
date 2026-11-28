@@ -47,7 +47,7 @@
     71: "高松", 73: "小松島", 74: "高知", 75: "松山", 81: "小倉", 83: "久留米",
     84: "武雄", 85: "佐世保", 86: "別府", 87: "熊本"
   };
-  let currentRequest, resultRequest, activeDay;
+  let currentRequest, resultRequest, activeDay, dossierCache;
 
   function validDay(day) {
     if (!/^\d{4}-\d{2}-\d{2}$/.test(day)) return false;
@@ -446,6 +446,12 @@
     }
     card.append(head);
     if (row.status !== "dt-only") card.append(clocks);
+    const dossier = element("button", "kd-open", "選手カルテ");
+    dossier.type = "button";
+    dossier.dataset.keirinDossier = row.race_id;
+    dossier.setAttribute("aria-haspopup", "dialog");
+    dossier.addEventListener("click", () => openPublicDossier(row, day, dossier));
+    card.append(dossier);
     card.append(element("p", "keirin-public-clocks keirin-public-result"));
     if (hasAB) {
       const arms = element("div", "keirin-public-arms");
@@ -601,6 +607,35 @@
     return Promise.all(["rosters", "results"].map(lane => fetchDay(lane, day, request, resultsBase).catch(() => null)));
   }
 
+  async function loadDossier(row, day, request) {
+    const read = (lane, date = day) => fetchDay(lane, date, request).catch(() => null);
+    const sources = { starters: "starters", official: "rider-context", secondary: "rider-context-secondary",
+      conditions: "rider-conditions", rank: "rank-distributions", details: "details" };
+    let packets = dossierCache?.day === day && Date.now() - dossierCache.at < 60000 ? dossierCache.packets : null;
+    if (!packets) {
+      packets = Object.fromEntries(await Promise.all(Object.entries(sources).map(async ([key, lane]) => [key, await read(lane)])));
+      if (!request.signal.aborted) dossierCache = { day, at: Date.now(), packets };
+    }
+    const checked = globalThis.RaceKeirinDossierData.prepare;
+    const input = { raceId: row.race_id, cutoffAt: row.cutoff_at,
+      publishedForecast: row.status === "saved" ? { savedAt: row.saved_at, b: row.b } : null, packets };
+    const initial = checked(input);
+    if (initial?.riders.some(rider => !rider.recent.length) && !packets.recentDays && !request.signal.aborted) {
+      const midnight = Date.parse(day + "T00:00:00Z");
+      packets.recentDays = await Promise.all(Array.from({ length: 7 }, (_, i) =>
+        read("rider-history", new Date(midnight - (i + 1) * 86400000).toISOString().slice(0, 10))));
+      return checked(input);
+    }
+    return initial;
+  }
+
+  function openPublicDossier(row, day, opener) {
+    const venueCode = row.race_id.slice(8, 10), venue = venues[venueCode] || "開催コード " + venueCode;
+    const title = venue + " " + Number(row.race_id.slice(-2)) + "R 選手カルテ";
+    globalThis.RaceKeirinDossier.open({ raceId: row.race_id, title, venue, day, opener,
+      load: request => loadDossier(row, day, request) });
+  }
+
   async function loadDay(day, request, resultPackets) {
     const [forecast, dtPacket] = await Promise.allSettled([
       fetchDay("forecasts", day, request), fetchDay("dt-r1", day, request)
@@ -681,11 +716,19 @@
     }
   }
 
-  dayInput.value = jstToday();
+  const requestedRace = new URL(location.href).searchParams.get("race") || "";
+  const requestedDay = requestedRace.replace(/^(\d{4})(\d{2})(\d{2})\d{4}$/, "$1-$2-$3");
+  const openRequested = validDay(requestedDay) && requestedDay <= jstToday() &&
+    validRaceId(requestedRace, requestedDay.replaceAll("-", ""), new Set());
+  dayInput.value = openRequested ? requestedDay : jstToday();
   dayInput.addEventListener("change", load);
   byId("keirin-public-refresh").addEventListener("click", load);
   window.setInterval(refreshResults, 60_000);
-  load();
+  load().then(() => {
+    if (!openRequested || dayInput.value !== requestedDay) return;
+    const row = activeDay?.ordered.find(item => item.race_id === requestedRace) || { race_id: requestedRace, cutoff_at: null };
+    openPublicDossier(row, requestedDay, races.querySelector('[data-keirin-dossier="' + requestedRace + '"]'));
+  });
 })();
 
 if (!globalThis.document?.body?.classList.contains("keirin-public-page")) {

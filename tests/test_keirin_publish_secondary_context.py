@@ -14,7 +14,7 @@ from scripts import keirin_capture_public_two_sources as capture
 from scripts.keirin_note_feed_cycle import source_archive
 from scripts import keirin_publish_secondary_context as publisher
 from tests.test_keirin_dossier_secondary import (
-    CAPTURED, DAY, OFFICIAL_CUTOFF, PUBLISHED, RACE_ID, SOURCE_CUTOFF, receipt, roster, saved_card,
+    CAPTURED, DAY, OFFICIAL_CUTOFF, PUBLISHED, RACE_ID, SOURCE_CUTOFF, performance_card, receipt, roster, saved_card,
 )
 from tests.test_keirin_result_unread_racecard import KDREAMS_URL, NETKEIRIN_URL
 
@@ -93,6 +93,18 @@ class PublishSecondaryContextTest(unittest.TestCase):
         decoded = secondary.checked_day(json.loads(files[path]))
         self.assertEqual(public.when(decoded['races'][0]['cutoff_at']), public.when(OFFICIAL_CUTOFF))
         self.assertNotIn('私的記述'.encode(), files[path])
+
+    def test_performance_tab_supplements_the_bound_card_regardless_of_input_order(self):
+        store, path = self.store()
+        raw, tab = saved_card(), performance_card()
+        performance = dict(receipt(tab), url=KDREAMS_URL + '?pageType=yoso')
+        report = publisher.publish_cards(None, DAY, [
+            (RACE_ID, tab, performance, None), (RACE_ID, raw, receipt(raw), None)],
+            published_at=PUBLICATION, published_only=True, store=store)
+        self.assertEqual(report['coverage']['verified_races'], 1)
+        row = secondary.checked_day(json.loads(store.commit.call_args.args[0][path]))['races'][0]
+        self.assertEqual(row['source_sha256'], receipt(raw)['bytes_sha256'])
+        self.assertEqual(row['performance']['source_sha256'], performance['bytes_sha256'])
 
     def test_early_capture_requires_unique_verified_directory_identities(self):
         store, path = self.store(published=False)
