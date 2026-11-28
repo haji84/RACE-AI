@@ -3,7 +3,7 @@
 更新: 2026-11-28 JST。所有者の最新指示: ChatGPTで作成してきたDT-R1を名称変更せずCodexに引き継いで開発を続ける。映像は常時追加する独立工程なので、映像待ちでその他の工程を止めない。
 
 
-## 予想能力抜本強化の再開地点（2026-11-28 21:25 JST）
+## 予想能力抜本強化の再開地点（2026-11-28 21:42 JST）
 
 所有者の追加GOALは、DT-R1の予想エンジン改善を最優先にする。[新しい要求、固定基準と開始時の工数幅](requests/20261128-prediction-strength.md)。この下の復元・保存・公開・当日照合の実績を保持し、最新HEADと既存 #67 の作業に接続する。
 
@@ -11,9 +11,13 @@
 
 [#439](https://github.com/haji84/RACE-AI/pull/439) と [#440](https://github.com/haji84/RACE-AI/pull/440) を統合した。Codexの保護予想は21:18 JSTに完了。DT-R1後続13件の同じ公式資料から8件を独立モデルで計算し、対象結果の読込みなしで暗号化した。登録78件の保留70件はT−15不足5、対照になるDT-R1事前原本不足39、元の公式事前原本不足26。別ランナーは21:21:58 JSTに8件を照合。最短でも締切25分02秒前。21:25 JSTの保全runで8件すべての初回原本を、既存暗号化履歴のCodexモデル用の場所に追加し、DT-R1の原本とは分けて保全した。最初の共通枠締切は21:47 JST、最後は23:27 JST。次は両モデルの原本を所有者環境で復元し、公式結果が揃うごとに同じ点数で採点する。[生成](https://github.com/haji84/RACE-AI/actions/runs/46143663895) · [独立読戻し](https://github.com/haji84/RACE-AI/actions/runs/46144051204) · [保全commit](https://github.com/haji84/RACE-AI/commit/c72ef90c122ec630dd4856372a8370f45666e954) · [生成レシート](evidence/20261128-engine-history-followup/codex-same-source-producer-20261128.json) · [保全レシート](evidence/20261128-engine-history-followup/codex-same-source-retention-20261128.json)
 
+21:42 JST、`codex-settle` の保護実行でCodex独立原本8件とDT-R1原本32件を再現した。8件すべてで、独立保全された両原本の資料・入力・締切の一致を確認した。固定した結果索引では8件とも結果未保存で、両モデルの共通採点は0件。DT-R1の日全体の共通採点は18件。所有者環境での採点ジョブは14分21秒。次の保護採点は21:47 JST締切以降の共通枠の公式結果を保存したうえで、登録全体と共通枠の分母を出す。8〜30日前の長期履歴対照は、新規適格日で別に締切前実行する。既存統合A/B各50%の真正な元分布と正式三者対戦は未達。[所有者復元と採点run](https://github.com/haji84/RACE-AI/actions/runs/46144606080) · [復元・採点レシート](evidence/20261128-engine-history-followup/codex-same-source-settlement-20261128.json)
+
 20:58 JSTの暗号化索引で公式結果が37→39件になり、DT-R1の後続保全13件との重なりが3→4件に増えた。未再生の追加分を、公式結果の保護採点にかける。Codex独立モデルの最初の対象は、後続13件を生成した本番保護runと同じ資料を使う。各レースの実締切から15分前までに別ランナーの読戻しを終えたものを保全する。[最新結果索引](https://github.com/haji84/RACE-AI/commit/c64c6b455a28a38b2ec0f0d800dcc4d67d2e10e8) · [DT-R1事前資料の保護run](https://github.com/haji84/RACE-AI/actions/runs/46123924131)
 
 21:11 JSTの保護採点では、登録78件、保全済み原本32件、認証済み通常着順38件、共通採点18件。三連単1・2・4・9・12点は0・2・3・7・8件、二車単1・2点は2・6件。事前に封印した公式7日履歴あり・なしは11組中2組を採点し、両方式の三連単・二車単の1点は0/2。個人着順の事後再現9組は引き続き結果待ち。新たに保存された2件はどちらも通常着順で、前回の上位3着が一意に定まらなかった1件は別計上を維持した。[追加の保護採点](https://github.com/haji84/RACE-AI/actions/runs/46142424603) · [採点レシート](evidence/20261128-engine-history-followup/official-history-settlement-2111-20261128.json)
+
+21:39 JSTには公式取得runが別経路で追加結果2件を暗号保存し、索引39→41件、DT-R1後続13件との重なり4→5件を確認した。追加2件の採点は次の保護実行で行う。[公式取得run](https://github.com/haji84/RACE-AI/actions/runs/46144219604) · [最新結果索引](https://github.com/haji84/RACE-AI/commit/c2aa832e68b564da39c202df173b212ba4484d5e)
 
 映像は別工程として21:18 JSTにMac実機を照合した。既存の15分間隔ジョブは起動70回で最終終了コード0。21:10 JSTの集計は、既存の連続映像が1レース、適格観測3、新規記録0。6局面を採点できる新規観測は確認できていない。[映像工程 #409](https://github.com/haji84/RACE-AI/pull/409)
 
