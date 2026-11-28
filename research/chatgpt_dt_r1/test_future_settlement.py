@@ -442,7 +442,7 @@ class FutureSettlementTests(unittest.TestCase):
         additional = {later_slot: dict(entry=later_manifest['entries'][1], manifest=later_manifest,
                                        cipher_path='verified/later.sealed.json')}
         events = []
-        def forecast_replay(entry, raw, manifest, source, rid, *args, history_sources, history_controls,
+        def forecast_replay(entry, raw, manifest, source, rid, *args, history_sources, history_controls, history_replay_cache,
                             back_trial, back_pairs, back_holds, feature_rows, personal_add,
                             personal_pairs, personal_holds):
             events.append(('forecast', rid, source.head))

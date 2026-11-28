@@ -2,6 +2,8 @@
 from collections import Counter
 from copy import deepcopy
 from datetime import date, timedelta
+from hashlib import sha256
+import json
 import re
 
 from race_ai import keirin_official_nationwide_records as records
@@ -83,21 +85,85 @@ def _project(store, meta, revision, private_pem):
     return row, updated, observed
 
 
+class ArchiveHistoryCache:
+    """Share verified projections between identical archive trees in one replay job."""
+
+    def __init__(self, repo, private_pem):
+        self._repo = repo
+        self._key_fingerprint = sha256(private_pem).digest()
+        self._scopes = {}
+        self._form_parents = {}
+        self._ancestors = {}
+        self._projections = {}
+
+    def for_store(self, store, private_pem):
+        if store.repo != self._repo or sha256(private_pem).digest() != self._key_fingerprint:
+            return None
+        scope = store.head, store.day
+        if scope not in self._scopes:
+            try:
+                self._scopes[scope] = self._matching_projections(store)
+            except (ValueError, TypeError, KeyError):
+                # An unproven cache identity leaves verification at the original pin.
+                self._scopes[scope] = None
+        return self._scopes[scope]
+
+    def _matching_projections(self, store):
+        baseline = f'{archive.ROOT}/{store.day}'
+        folders = (f'{records.ROOT}/{store.day}', baseline)
+        _, listing = archive._cmd(self._repo, '--no-replace-objects', 'ls-tree', '--full-tree',
+                                  store.head, '--', *folders)
+        trees = {}
+        for entry in listing.splitlines():
+            header, tab, path = entry.partition('\t')
+            mode, kind, tree = header.split()
+            _need(tab and path in folders and path not in trees and mode == '040000' and
+                  kind == 'tree' and archive.COMMIT.fullmatch(tree))
+            trees[path] = tree
+        if set(trees) != set(folders):
+            return None
+        identity = tuple(trees[folder] for folder in folders)
+        if identity not in self._form_parents:
+            self._form_parents[identity] = self._conditioned_parents(store, baseline)
+        for parent in self._form_parents[identity]:
+            ancestry = (parent, store.head)
+            if ancestry not in self._ancestors:
+                status, _ = archive._cmd(self._repo, '--no-replace-objects', 'merge-base',
+                                          '--is-ancestor', parent, store.head, okay=True)
+                self._ancestors[ancestry] = status == 0
+            if not self._ancestors[ancestry]:
+                return None
+        return self._projections.setdefault(identity, {})
+
+    def _conditioned_parents(self, store, baseline):
+        _, paths = archive._cmd(self._repo, '--no-replace-objects', 'ls-tree', '-r', '--name-only',
+                                store.head, '--', baseline)
+        receipts = {archive._form_refs(rid)[1] for rid in store.index['results']}
+        parents = set()
+        for path in sorted(receipts.intersection(paths.splitlines())):
+            receipt = json.loads(archive.read_blob_bytes(self._repo, store.head, path))
+            parent = receipt['previous_archive_commit']
+            _need(type(parent) is str and archive.COMMIT.fullmatch(parent))
+            parents.add(parent)
+        return parents
+
+
 class OfficialHistory:
     """Select only replayed results in the exact archive already read for this job."""
 
-    def __init__(self, store, private_pem):
+    def __init__(self, store, private_pem, *, shared_replays=None):
         _need(isinstance(store.head, str) and re.fullmatch('[0-9a-f]{40}', store.head) is not None)
         self._repo, self._head, self._day = store.repo, store.head, date.fromisoformat(store.day)
         self._private_pem = private_pem
         self._days = {}
         self._verified = {}
         self._prefetch_attempted = False
+        self._shared_replays = shared_replays
 
     def for_day(self, store):
         """Share immutable archive replays across targets without sharing their clocks."""
         _need(store.repo == self._repo and store.head == self._head)
-        selected = OfficialHistory(store, self._private_pem)
+        selected = OfficialHistory(store, self._private_pem, shared_replays=self._shared_replays)
         selected._days = self._days
         selected._verified = self._verified
         return selected
@@ -121,13 +187,22 @@ class OfficialHistory:
             previous_clock = sealed
             key = (store.day, original['evidence_sha256'], revision['evidence_sha256'])
             if key not in self._verified:
-                try:
-                    self._verified[key] = _project(store, original, revision, self._private_pem)
-                except GitCipherArchiveError:
-                    # A failed archive read must not produce a smaller forecast history.
-                    raise
-                except (ValueError, KeyError, TypeError, OverflowError):
-                    self._verified[key] = None
+                shared = (self._shared_replays.for_store(store, self._private_pem)
+                          if self._shared_replays is not None else None)
+                shared_key = digest(dict(original=original, revision=revision)) if shared is not None else None
+                if shared is not None and shared_key in shared:
+                    self._verified[key] = shared[shared_key]
+                else:
+                    try:
+                        self._verified[key] = _project(store, original, revision, self._private_pem)
+                    except GitCipherArchiveError:
+                        # A failed archive read must not produce a smaller forecast history.
+                        raise
+                    except (ValueError, KeyError, TypeError, OverflowError):
+                        self._verified[key] = None
+                    else:
+                        if shared is not None:
+                            shared[shared_key] = self._verified[key]
             _need(self._verified[key] is not None)
             row, updated, observed = self._verified[key]
             _need(clock(row['result_at']) == sealed and clock(row['source_verified_at']) <= at)
