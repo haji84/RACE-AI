@@ -118,14 +118,13 @@ saved forecast or independence from its producer. Successful entries remain
 `SEALED_PENDING_INDEPENDENT_READBACK`, and
 `independently_admitted_new_forecasts` remains zero.
 
-Create-once applies to **this output bundle**. A caller can create another bundle
-in a different directory/run. The durable integration must pin the first
-accepted `(day, race slot, model)` original, preserve that ciphertext and reject
-replacement or duplicate performance counting across runs. This module does not
-invent a second canonical state/PDCA authority. A fixed manifest and independent
-GitHub producer/readback evidence must be retained before any later scoring can
-admit a future original. An expiring Actions artifact alone is not indefinite
-retention.
+### 保護runner間の原本保存と同日の再開
+
+既存の `keirin-result-live.yml` をmainから実行する。`dt-r1-shadow` で公式締切の近い順に暗号原本を出力し、別runの `dt-r1-readback` にproducerの `dt_r1_producer_run` を渡す。readerが完了した後、`dt-r1-retain` にproducerと `dt_r1_readback_run` を渡す。
+
+保存runはActionsの実artifactと両runの時計を再認証し、producerの資料commitが公式アーカイブの現在の系譜にあることを確認する。T−15を満たした新規枠のmanifest、読戻しレシート、暗号文と初回参照を、既存の `state/keirin-encrypted-history` へ一度だけ追加する。保全する原本の復号鍵は不要。更新競合時は同じ原本を再読戻しし、先に採用された枠のバイトを維持する。
+
+同日の次のproducerは初回参照と保存した暗号文を照合し、採用済み枠を `PREVIOUS_T15_ORIGINAL_PRESERVED` として登録分母に保持する。11月28日の既存初回原本も従来のpinと独立runから確認する。上限で保留した枠は、締切までの時間と公式資料がある場合に後続batchで扱う。未認証・時刻超過の枠を採用せず、通常のGit fast-forward以外の保存は行わない。日をまたぐ自動起動、一般化した公式結果照合と全国の稼働実績は別途検証する。
 
 ## Existing-job call
 

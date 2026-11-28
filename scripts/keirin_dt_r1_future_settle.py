@@ -21,21 +21,15 @@ from race_ai import keirin_official_run_history as codec
 from race_ai.keirin_github_evidence_client import GitHubEvidenceClient
 from race_ai.keirin_official_paired_measurement import REPLAY_CODES
 from research.chatgpt_dt_r1 import official_inputs
-from research.chatgpt_dt_r1.future_retention_gate import check_first_retention
+from research.chatgpt_dt_r1.future_retention_gate import (
+    FIRST_DAY as DAY, FIRST_PRODUCER as PRODUCER, FIRST_READER as READER,
+    FIRST_SOURCE_PARENT as PARENT, read_legacy_first_retention)
 from research.chatgpt_dt_r1.pipeline import forecast_row, summarize_predictions
 from research.chatgpt_dt_r1.policy import clock, digest, validate_forecast
 from scripts import keirin_dt_r1_future_shadow as shadow
 from scripts import keirin_dt_r1_future_readback as reader
 from scripts import keirin_official_nationwide_continuation as continuation
 
-DAY = '2026-11-28'
-PRODUCER = '46082459814'
-READER = '46083220254'
-FIRST_INSERTION = 'a0ea5db4eec5938c2716c5d7950a43df98723f35'
-ARCHIVE_COMMIT = 'ad17c6edccaa2dc05497fc99c7c653a08fd37cf2'
-PIN_SHA = '093c8d02779a33b46f516d475e3d5549654eadb18c3b62f208c4a865b8cc3c4a'
-PARENT = '15dd32600fbf5865df3eca340e41377e6f9caa19'
-STEM = 'research/chatgpt-dt-r1/future/20261128/' + shadow.MODEL_SHA + '/'
 SCHEMA = 'DT_R1_FIRST_FUTURE_SETTLEMENT_V1'
 PDCA_TRIFECTA_POINTS = 4
 
@@ -63,33 +57,6 @@ def _stage(reason):
 
 def _same(a, b):
     return digest(records.wire(a)) == digest(records.wire(b))
-
-
-def _read_retention(work, tip, verified):
-    records._check_archive_commit(work, ARCHIVE_COMMIT)
-    records._check_archive_commit(work, PARENT)
-    parents = archive._cmd(work, '--no-replace-objects', 'rev-list',
-                           '--parents', '-n', '1', FIRST_INSERTION)[1].split()
-    need(parents == [FIRST_INSERTION, PARENT] and
-         archive._cmd(work, '--no-replace-objects', 'merge-base', '--is-ancestor',
-                      FIRST_INSERTION, ARCHIVE_COMMIT, okay=True)[0] == 0, 'RETENTION_LINEAGE')
-    pin_path = STEM + 'first-accepted.json'
-    need(archive.read_blob_bytes(work, PARENT, pin_path, max_bytes=200001) is None,
-         'FIRST_PIN_ALREADY_EXISTED')
-    def read_exact(name):
-        path = STEM + name
-        raw = archive.read_blob_bytes(work, ARCHIVE_COMMIT, path, max_bytes=8_000_000)
-        current = archive.read_blob_bytes(work, tip, path, max_bytes=8_000_000)
-        need(raw is not None and current == raw, 'RETAINED_BYTES_CHANGED')
-        return raw
-    pin_raw = read_exact('first-accepted.json')
-    need(archive.read_blob_bytes(work, FIRST_INSERTION, pin_path, max_bytes=200001) == pin_raw,
-         'FIRST_INSERTION_PIN_CHANGED')
-    pin = json.loads(pin_raw)
-    need(pin.get('retention_parent_commit') == PARENT and
-         pin.get('source_archive_commit') == PARENT, 'RETENTION_PARENT_MISMATCH')
-    return check_first_retention(verified, pin_raw=pin_raw, read_retained=read_exact,
-                                 expected_pin_sha256=PIN_SHA)
 
 
 def _forecast_from_original(entry, verified, source, rid, private, trained, venues, client, cache):
@@ -288,7 +255,7 @@ def run_settlement(*, repo, private_root, owner_public_pem, owner_private_pem, d
         with _stage('PRODUCER_AUTHENTICATION_FAILED'):
             verified = contexts.enter_context(reader.verified_producer(PRODUCER, client=client))
         with _stage('RETENTION_AUTHENTICATION_FAILED'):
-            retention = _read_retention(work, tip, verified)
+            retention = read_legacy_first_retention(work, tip, verified, model_sha256=shadow.MODEL_SHA)
         with _stage('READBACK_AUTHENTICATION_FAILED'):
             origin = reader.verify_readback(verified, READER, client=client)
         manifest = verified['manifest']

@@ -4,7 +4,7 @@ from types import SimpleNamespace as NS
 import unittest
 
 ROOT = Path(__file__).resolve().parents[1]
-MODES = ('dt-r1-shadow', 'dt-r1-readback', 'dt-r1-settle')
+MODES = ('dt-r1-shadow', 'dt-r1-readback', 'dt-r1-settle', 'dt-r1-retain')
 
 
 class FutureWorkflowTests(unittest.TestCase):
@@ -55,6 +55,16 @@ class FutureWorkflowTests(unittest.TestCase):
         self.assertIn('exit 0', branch)
         self.assertNotIn('scripts.keirin_result_watch', branch)
         self.assertNotIn('RACE_AI_KEIRIN_OFFICIAL_SOURCE_ENABLED', branch)
+
+    def test_retention_asks_for_an_independent_run_and_uses_no_private_key(self):
+        start = self.job.index('if [ "$RESULT_MODE" = dt-r1-retain ]; then')
+        end = self.job.index('if [[ "$RESULT_MODE" = dt-r1-shadow', start)
+        branch = self.job[start:end]
+        self.assertIn('dt_r1_readback_run', branch)
+        self.assertIn('env -u RACE_AI_KEIRIN_PRIVATE_RSA_PEM', branch)
+        self.assertIn('scripts.keirin_dt_r1_future_retain', branch)
+        self.assertNotIn('scripts.keirin_result_watch', branch)
+        self.assertIn('exit 0', branch)
 
     def test_only_encrypted_producer_bundle_is_added_to_public_uploads(self):
         artifact = self.job.split('name: keirin-dt-r1-future-cipher-${{ github.run_id }}', 1)[1]
