@@ -5,7 +5,7 @@ from types import SimpleNamespace
 import unittest
 from unittest.mock import patch
 
-from . import official_holdout_study as study
+from research.chatgpt_dt_r1 import official_holdout_study as study
 
 
 class OfficialHoldoutTests(unittest.TestCase):

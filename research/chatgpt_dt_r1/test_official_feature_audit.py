@@ -4,8 +4,8 @@ import unittest
 
 import numpy as np
 
-from . import official_feature_audit as audit
-from .model import RankModel
+from research.chatgpt_dt_r1 import official_feature_audit as audit
+from research.chatgpt_dt_r1.model import RankModel
 
 
 class OfficialFeatureAuditTests(unittest.TestCase):
