@@ -115,6 +115,40 @@ class PublicDailyRosterTests(unittest.TestCase):
         self.assertEqual([(event['roster_state'], event['race_count'], event['missing_count']) for event in events],
                          [('partial', 1, 1), ('registered', 2, 0)])
 
+    def test_dt_r1_pre_race_cards_fill_roster_gaps_with_the_same_result_link_checks(self):
+        from research.chatgpt_dt_r1 import public_shortlists as dt
+        rows = [dict(race_id=rid, cutoff_at='2026-11-23T09:00:00+09:00',
+                     selected_at='2026-11-23T10:00:00+09:00', source_at='2026-11-23T08:00:00+09:00',
+                     starter_cars=list(range(1,8)), tickets=[[1,2,3]], reason='COVERAGE_REACHED')
+                for rid in IDS[:2]]
+        supplemental = dt.project_day(DATE, model_sha256=dt.MODEL_SHA, input_commit='b'*40,
+                                      published_at='2026-11-23T10:03:00+09:00', races=rows)
+        with patch.object(publisher, 'discover_missing_links', return_value={IDS[1]:race(1)['source_url']}) as lookup:
+            result = publisher.build_public_roster(self.forecasts(cutoff=None), [self.source(0)], [],
+                                                   dt_shortlists=supplemental)
+        self.assertEqual(result['races'], [race(0),race(1)])
+        self.assertEqual(lookup.call_args.args[:2], (DATE,{IDS[1]}))
+        official_starters = [{'number': n} for n in range(1,7)]
+        official = [dict(race_id=IDS[1], riders=official_starters)]
+        with patch.object(publisher, 'discover_missing_links', return_value={IDS[1]:race(1)['source_url']}):
+            later = '2026-11-23T09:02:00+09:00'
+            result = publisher.build_public_roster(self.forecasts(cutoff=None), [self.source(0)], official,
+                                                   display_cutoffs={IDS[1]:later}, dt_shortlists=supplemental)
+            self.assertEqual(result['races'][1], dict(race(1, later), observed_riders=official_starters))
+            result = publisher.build_public_roster(self.forecasts(cutoff=None), [self.source(0)], official,
+                                                   dt_shortlists=supplemental)
+            self.assertEqual(result['races'][1], dict(race(1), observed_riders=official_starters))
+        with self.assertRaisesRegex(ValueError,'PUBLIC_ROSTER_INPUT_INCOMPLETE'):
+            publisher.build_public_roster(self.forecasts(cutoff='2026-11-23T08:00:00+09:00'),
+                                         [self.source(0)], [], dt_shortlists=supplemental)
+        earlier = '2026-11-23T08:00:00+09:00'
+        result = publisher.build_public_roster(self.forecasts(cutoff=earlier), [self.source(0)], [],
+                                               dt_shortlists=supplemental, allow_partial=True)
+        self.assertEqual(result['races'], [race(0, earlier)])
+        with self.assertRaisesRegex(ValueError, 'PUBLIC_ROSTER_DT_R1_PARTITION'):
+            publisher.build_public_roster(self.forecasts(cutoff=earlier), [self.source(0)], [], allow_partial=True,
+                                          dt_shortlists=dict(supplemental, races=supplemental['races'][:1]))
+
     def test_representation_refresh_leaves_the_time_bound_to_existing_results(self):
         previous = roster([race(0), race(1)])
         later = '2026-11-23T09:02:00+09:00'

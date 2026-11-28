@@ -155,7 +155,7 @@ def discover_missing_links(day, missing, fetch):
 
 
 def build_public_roster(forecast_bytes, source_rows, official_rows, *, display_cutoffs=None, archived_links=None,
-                        previous=None, results=None, fetch=None, allow_partial=False):
+                        previous=None, results=None, fetch=None, dt_shortlists=None, allow_partial=False):
     from race_ai import keirin_public_forecasts as public
     from race_ai import keirin_secondary_result_consensus as consensus
 
@@ -166,9 +166,16 @@ def build_public_roster(forecast_bytes, source_rows, official_rows, *, display_c
         validate_roster(previous, consensus)
         checked(previous['date'] == day, 'PUBLIC_ROSTER_INPUT_DAY_MISMATCH')
         old = {row['race_id']: row for row in previous['races']}
-    checked(old.keys() <= {row['race_id'] for row in forecast['races']}, 'PUBLIC_ROSTER_SHRANK')
+    registered = {row['race_id'] for row in forecast['races']}
+    checked(old.keys() <= registered, 'PUBLIC_ROSTER_SHRANK')
     sources = {row['race_id']: row for row in source_rows}
     official = {row['race_id']: row for row in official_rows}
+    dt_starters = {}
+    if dt_shortlists is not None:
+        from research.chatgpt_dt_r1 import public_shortlists as dt
+        packet = dt.checked(dt_shortlists)
+        dt_starters = {row['race_id']: row for row in packet['races']}
+        checked(packet['day'] == day and dt_starters.keys() == registered, 'PUBLIC_ROSTER_DT_R1_PARTITION')
     saved_results = {row['race_id']: row for row in (results or {}).get('races', [])}
     display_cutoffs = display_cutoffs or {}
     archived_links = archived_links or {}
@@ -193,10 +200,16 @@ def build_public_roster(forecast_bytes, source_rows, official_rows, *, display_c
         else:
             cutoff = cutoff or (source or {}).get('cutoff_at')
             field = source if source is not None else official.get(rid)
-            if (cutoff is None or field is None or
-                    (source is None and item['cutoff_at'] is None and not allow_partial)):
-                checked(allow_partial, 'PUBLIC_ROSTER_INPUT_INCOMPLETE')
-                continue
+            if field is None or cutoff is None:
+                # Fill missing pre-race facts separately. Result publication
+                # still requires the normal two distinct providers.
+                dt_row = dt_starters.get(rid)
+                if dt_row is None or public.when(dt_row['source_at']) >= public.when(cutoff or dt_row['cutoff_at']):
+                    checked(allow_partial, 'PUBLIC_ROSTER_INPUT_INCOMPLETE')
+                    continue
+                cutoff = cutoff or dt_row['cutoff_at']
+                if field is None:
+                    field = dict(riders=[{'number': number} for number in dt_row['starter_cars']])
             venue = rid[8:10]
             link = source['source_url'] if source else archived_links.get(rid)
             row = dict(race_id=rid, date=day, venue=VENUE_NAMES.get(venue, '開催コード ' + venue),
@@ -280,6 +293,7 @@ def refresh_public_rosters(state, store, fetch, *, now):
             display_cutoffs = published_display_cutoffs(store, head, snapshot) if any(
                 row['cutoff_at'] is None for row in snapshot['races']) else {}
             context_rows, starter_rows = [], []
+            dt_shortlists = None
             archived_links = {}
             if missing:
                 context = store.read_previous(head, f'rider-context-secondary/{day}.json')
@@ -299,9 +313,16 @@ def refresh_public_rosters(state, store, fetch, *, now):
                         packet = odds.checked(json.loads(existing_links))
                         checked(packet['day'] == day, 'PUBLIC_ROSTER_INPUT_DAY_MISMATCH')
                         archived_links = {row['race_id']: row['source_url'] for row in packet['races']}
+                    known_cutoffs = {row['race_id'] for row in snapshot['races'] if row['cutoff_at'] is not None}
+                    ready_starters = {row['race_id'] for row in starter_rows} & known_cutoffs
+                    if missing - {r['race_id'] for r in context_rows} - ready_starters:
+                        dt_raw = store.read_previous(head, f'dt-r1/{day}.json')
+                        if dt_raw is not None:
+                            dt_shortlists = public._json(dt_raw)
+                            checked(public.when(dt_shortlists['published_at']) <= now, 'PUBLIC_ROSTER_DT_R1_CLOCK')
             roster = build_public_roster(raw, context_rows, starter_rows, display_cutoffs=display_cutoffs,
                                          archived_links=archived_links, previous=previous, results=results,
-                                         fetch=fetch, allow_partial=True)
+                                         fetch=fetch, dt_shortlists=dt_shortlists, allow_partial=True)
         except (ValueError, TypeError, KeyError) as error:
             if str(error) in SOURCE_STOP_CODES:
                 raise

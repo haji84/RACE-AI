@@ -24,7 +24,7 @@ const PAST = '2026-11-25';
 const MISSING = '2026-11-24';
 const INVALID = '2026-11-23';
 const A = [[1, 2, 3], [1, 3, 2], [2, 1, 3], [2, 3, 1], [3, 1, 2], [3, 2, 1], [1, 4, 3], [1, 3, 4]];
-const dayCalls = day => ['forecasts', 'references', 'research'].map(lane => BASE + lane + '/' + day + '.json')
+const dayCalls = day => ['forecasts', 'references', 'research', 'dt-r1'].map(lane => BASE + lane + '/' + day + '.json')
   .concat(BASE + 'measurements/confidence-' + day + '.json', RESULTS + 'rosters/' + day + '.json', RESULTS + 'results/' + day + '.json');
 
 function snapshot(day) {
@@ -38,6 +38,43 @@ function snapshot(day) {
     ]
   };
 }
+
+const DT_TICKETS = [...A, [1, 4, 2], [2, 4, 1], [3, 4, 1], [4, 1, 2]];
+const stamp = (day, time) => day + 'T' + time + ':00+09:00';
+const raceId = (day, suffix) => day.replaceAll('-', '') + suffix;
+
+function dtPacket(day, specs) {
+  return {
+    schema: 'RACE_AI_KEIRIN_PUBLIC_DT_R1_V1', day, model_id: 'chatgpt-dt-r1',
+    model_sha256: '5e022092a35c0258954090c6f3d0f8fa14f03f22511b28d6aa9183f5a38c381c',
+    policy: 'dt-r1-public-ranked-mass-v1', input_commit: 'c'.repeat(40),
+    published_at: stamp(day, '12:35'),
+    races: specs.map(({ suffix, cutoff = '12:45', selected = '12:25', tickets = DT_TICKETS, cars = [1, 2, 3, 4, 5] }) => ({
+      race_id: raceId(day, suffix), cutoff_at: stamp(day, cutoff), selected_at: stamp(day, selected),
+      source_at: stamp(day, '12:00'), starter_cars: cars, tickets: tickets.map(ticket => ticket.slice()), reason: 'MAX_POINTS',
+    })),
+  };
+}
+
+function matched(day, suffix, triple) {
+  const id = raceId(day, suffix);
+  return {
+    race_id: id, state: 'matched', comparison: {
+      race_id: id, observed_at: stamp(day, '13:01'), authority: 'cross_source_reference',
+      comparison_scope: 'POST_CUTOFF_REFERENCE', winning_3t: triple, winning_2t: triple.slice(0, 2),
+      payouts_100yen: { '2t': 140, '3t': 650 },
+      sources: [
+        { source_id: 'kdreams', url: 'https://keirin.kdreams.jp/fixture/racedetail/' +
+          suffix.slice(0, 2) + day.replaceAll('-', '') + '0100' + suffix.slice(2) + '/?pageType=result', checked_at: stamp(day, '13:00') },
+        { source_id: 'netkeirin', url: 'https://keirin.netkeiba.com/race/result/?race_id=' + id, checked_at: stamp(day, '13:01') },
+      ],
+    },
+  };
+}
+
+const resultPacket = (day, rows) => ({
+  schema: 'KEIRIN_PUBLISHED_RESULTS_V1', date: day, checked_at: stamp(day, '13:05'), races: rows,
+});
 
 describe('KEIRIN anonymous forecast page', { skip: !chromium }, () => {
   let browser;
@@ -88,14 +125,14 @@ describe('KEIRIN anonymous forecast page', { skip: !chromium }, () => {
     await page.route('**/*', async route => {
       const request = route.request(), url = request.url();
       if (url.startsWith(origin + '/')) return route.continue();
-      const base = [BASE, RESULTS].find(prefix => url.startsWith(prefix));
-      if (!base) return route.abort();
+      const source = url.startsWith(BASE) ? BASE : url.startsWith(RESULTS) ? RESULTS : null;
+      if (!source) return route.abort();
       calls.push(url);
       const headers = await request.allHeaders();
       assert.equal(headers.authorization, undefined);
       assert.equal(headers.cookie, undefined);
       assert.equal(headers.referer, undefined);
-      const [lane, day] = url.slice(base.length, -5).split('/');
+      const [lane, day] = url.slice(source.length, -5).split('/');
       const result = lane === 'forecasts' ? await serve(day, route) : await serve.supplement?.(lane, day) ?? null;
       if (result !== undefined) await route.fulfill({
         status: result === null ? 404 : 200, json: result,
@@ -149,7 +186,7 @@ describe('KEIRIN anonymous forecast page', { skip: !chromium }, () => {
     await date.fill('2026-11-27');
     await page.getByText('選択できる範囲の日付を入力してください。', { exact: true }).waitFor();
     assert.deepEqual(calls.sort(), [...dayCalls(TODAY), ...dayCalls(PAST), ...[MISSING, INVALID]
-      .map(day => BASE + 'forecasts/' + day + '.json')].sort());
+      .flatMap(day => ['forecasts', 'dt-r1'].map(lane => BASE + lane + '/' + day + '.json'))].sort());
     await page.goBack();
     await page.getByRole('heading', { name: '今日のレースを、確かなデータで。' }).waitFor();
     assert.equal(new URL(page.url()).hash, '');
@@ -230,6 +267,106 @@ describe('KEIRIN anonymous forecast page', { skip: !chromium }, () => {
     }
   });
 
+  test('shows 12 DT-R1 tickets and distinguishes timely, late publication and retrospective result comparisons', async t => {
+    const serve = day => snapshot(day);
+    serve.supplement = (lane, day) => {
+      if (lane === 'dt-r1') return dtPacket(day, [
+        { suffix: '2601', cutoff: '12:30' }, { suffix: '1102' },
+        { suffix: '8303', cutoff: '12:20', selected: '12:30', tickets: [[1, 2, 3]] },
+      ]);
+      if (lane === 'results') return resultPacket(day,
+        [matched(day, '2601', [4, 1, 2]), matched(day, '1102', [5, 3, 2]), matched(day, '8303', [1, 2, 3])]);
+      return null;
+    };
+    const { page, calls } = await open(t, '#keirin-public', serve);
+    const dt = course => page.locator('article').filter({ hasText: course }).locator('.keirin-public-dt-r1');
+    const publishedLate = dt('西武園 1R'), timely = dt('函館 2R'), retrospective = dt('久留米 3R');
+    await publishedLate.getByText('一致', { exact: true }).waitFor();
+    assert.equal(await publishedLate.getByRole('listitem').count(), 12);
+    assert.match(await publishedLate.innerText(), /締切後掲載[\s\S]*12点[\s\S]*公開結果（2媒体一致）/);
+    assert.equal(await publishedLate.getByRole('listitem').last().innerText(), '4–1–2');
+    assert.match(await timely.innerText(), /締切前掲載[\s\S]*公開結果（2媒体一致）[\s\S]*不一致/);
+    assert.match(await retrospective.innerText(), /締切後の再計算[\s\S]*公開結果（2媒体一致）/);
+    assert.equal(await retrospective.getByText('一致', { exact: true }).count(), 1);
+    assert.equal(await page.locator('article').filter({ hasText: '西武園 1R' })
+      .getByRole('list', { name: 'Aの三連単（予想順）' }).getByRole('listitem').count(), 8);
+    assert.match(await page.locator('#keirin-public-status').innerText(), /^掲載済み 1 \/ 2 レース/);
+    assert.doesNotMatch(await page.locator('#keirin-public-races').innerText(), /的中|払戻/);
+    assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth));
+    assert.deepEqual(calls.sort(), dayCalls(TODAY).sort());
+  });
+
+  test('refresh replaces result revisions and keeps result exceptions distinct', async t => {
+    const serve = day => snapshot(day);
+    let revision = 0;
+    serve.supplement = (lane, day) => {
+      if (lane === 'dt-r1') return dtPacket(day, ['2601', '1102', '8303', '8304'].map(suffix => ({ suffix })));
+      if (lane !== 'results') return null;
+      const row = matched(day, '2601', revision === 0 ? [1, 2, 3] : [5, 3, 2]);
+      if (revision === 2) row.comparison.sources[1].url = row.comparison.sources[1].url.replace('2601', '2602');
+      return resultPacket(day, [
+        row,
+        { race_id: raceId(day, '1102'), state: 'held', reason: 'special_result' },
+        { race_id: raceId(day, '8303'), state: 'held', reason: 'source_disagreement' },
+        { race_id: raceId(day, '8304'), state: 'pending', reason: 'result_unpublished' },
+      ]);
+    };
+    const { page } = await open(t, '#keirin-public', serve);
+    const dt = course => page.locator('article').filter({ hasText: course }).locator('.keirin-public-dt-r1');
+    await dt('西武園 1R').getByText('一致', { exact: true }).waitFor();
+    assert.match(await dt('函館 2R').innerText(), /中止・返還・同着の確認待ち/);
+    assert.match(await dt('久留米 3R').innerText(), /出典間の相違を確認中/);
+    assert.match(await dt('久留米 4R').innerText(), /結果待ち/);
+    revision++;
+    await page.getByRole('button', { name: '再読み込み' }).click();
+    await dt('西武園 1R').getByText('不一致', { exact: true }).waitFor();
+    assert.equal(await dt('西武園 1R').getByText('一致', { exact: true }).count(), 0);
+    assert.match(await dt('西武園 1R').innerText(), /5–3–2/);
+    revision++;
+    await page.getByRole('button', { name: '再読み込み' }).click();
+    await dt('西武園 1R').getByText('公開結果を確認できません', { exact: true }).waitFor();
+    assert.equal(await dt('西武園 1R').getByText('不一致', { exact: true }).count(), 0);
+  });
+
+  test('strict DT payload failure preserves A/B, and a date with DT only replaces the current race list', async t => {
+    const serve = day => day === PAST ? null : snapshot(day);
+    let malformed = row => { row.tickets = [[1, 2, 9]]; };
+    serve.supplement = (lane, day) => {
+      if (lane !== 'dt-r1') return null;
+      if (day === PAST) {
+        return dtPacket(day, [{ suffix: '8304', tickets: [[2, 1, 3]], cars: [1, 2, 3] }]);
+      }
+      const packet = dtPacket(day, [{ suffix: '2601' }]);
+      malformed(packet.races[0], packet);
+      return packet;
+    };
+    const { page, calls } = await open(t, '#keirin-public', serve);
+    const races = page.locator('#keirin-public-races');
+    const official = races.getByText('西武園 1R', { exact: true });
+    const dtHeading = races.getByRole('heading', { name: 'DT-R1', exact: true });
+    await official.waitFor();
+    assert.equal(await dtHeading.count(), 0);
+    for (const change of [
+      row => { row.tickets.push([1, 2, 3]); },
+      row => { row.tickets = [[1, 2, 3], [1, 2, 3]]; },
+      row => { row.starter_cars = [1, 3, 2, 4, 5]; },
+      row => { row.source_at = stamp(TODAY, '12:26'); },
+      row => { row.cutoff_at = stamp(PAST, '12:45'); },
+      row => { row.tickets = [[1, 2, 3]]; row.unknown = 'extra'; },
+      (row, packet) => { packet.input_commit = 'untrusted'; },
+    ]) {
+      malformed = change;
+      await page.getByRole('button', { name: '再読み込み' }).click();
+      await official.waitFor();
+      assert.equal(await dtHeading.count(), 0);
+    }
+    assert.ok(calls.filter(url => url.startsWith(RESULTS)).every(url => url.endsWith('/' + TODAY + '.json')));
+    await page.getByLabel('対象日（JST）').fill(PAST);
+    await dtHeading.waitFor();
+    assert.equal(await official.count(), 0);
+    assert.match(await races.innerText(), /久留米 4R[\s\S]*1点[\s\S]*2–1–3[\s\S]*結果待ち/);
+  });
+
   test('shows replay estimates only for the exact pre-cutoff racecard A shortlist', async t => {
     const serve = day => {
       const official = snapshot(day);
@@ -280,11 +417,16 @@ describe('KEIRIN anonymous forecast page', { skip: !chromium }, () => {
     };
     let next = false;
     serve.supplement = (lane, day) => {
+      if (lane === 'dt-r1') return dtPacket(day, [
+        { suffix: '2601', cutoff: '12:30', cars: [1, 2, 3, 4, 5, 6, 7] },
+        { suffix: '1102', cutoff: '12:40', cars: [1, 2, 3, 4, 5, 6, 7] },
+      ]);
       if (lane === 'references') return { schema: 'RACE_AI_KEIRIN_PUBLIC_REFERENCE_FORECASTS_V1', day,
         published_at: before, races: [{ race_id: raceIds[1], saved_at: before, cutoff_at: cutoff, a: [[4, 3, 2]], b: [[1, 2, 9]] }] };
       if (lane === 'rosters') return { schema: 'KEIRIN_PUBLIC_RESULT_ROSTER_V1', date: day, generated_at: before,
         forecast_asset_sha256: 'c'.repeat(64), races: raceIds.map((race_id, index) => ({ race_id,
-          date: day, venue: index === 0 ? '西武園' : '函館', race_no: index + 1, published_cutoff_at: cutoff,
+          date: day, venue: index === 0 ? '西武園' : '函館', race_no: index + 1,
+          published_cutoff_at: index === 0 ? cutoff : stamp(day, '12:40'),
           source_url: urls[index], observed_riders: Array.from({ length: 7 }, (_, n) => ({ number: n + 1 })) })) };
       if (lane === 'results') return { schema: 'KEIRIN_PUBLISHED_RESULTS_V1', date: day,
         checked_at: next ? TODAY + 'T12:47:00+09:00' : settled,
@@ -313,6 +455,7 @@ describe('KEIRIN anonymous forecast page', { skip: !chromium }, () => {
     await second.getByText('的中', { exact: true }).waitFor();
     assert.equal(await second.getByText('出走車番の確認中', { exact: true }).count(), 1);
     assert.match(await page.locator('#keirin-public-scoreboard').innerText(), /締切前保存[\s\S]*A 100\.0%（2 \/ 2） · B 0\.0%（0 \/ 1）/);
+    assert.match(await page.locator('#keirin-public-scoreboard').innerText(), /DT-R1 締切前\s+0\.0%（0 \/ 1）/);
     assert.equal(calls.filter(url => url.startsWith(BASE + 'forecasts/')).length, 2);
   });
 });
