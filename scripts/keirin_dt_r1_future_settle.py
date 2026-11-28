@@ -194,6 +194,18 @@ def _forecast_from_original(entry, raw, manifest, source, rid, private, trained,
     return saved['forecast']
 
 
+def _prefetch_result_ciphers(store, race_ids):
+    folder = f'{records.ROOT}/{store.day}'
+    versions = (store.index['results'].get(rid) for rid in race_ids)
+    paths = {f"{folder}/{revisions[-1]['evidence_sha256']}.sealed.json"
+             for revisions in versions if revisions}
+    try:
+        archive.prefetch_pinned_blobs(store.repo, store.head, paths, (folder,))
+    except archive.GitCipherArchiveError:
+        # A cache warmup failure leaves each result to the existing verified reader.
+        pass
+
+
 def _result_row(result_store, rid, private, original_meta, now):
     row = dict(race_id=rid, day=result_store.day)
     current = result_store.index['originals'].get(rid)
@@ -322,7 +334,7 @@ def _score_codex_pair(admitted, outcomes, codex, same_source, retained, holds):
 
 def _score_registered(race_ids, day, entries, eligible, reader_holds, forecast_loader, result_loader,
                       *, history_controls=None, back_pairs=None, back_holds=None, personal_report=None,
-                      personal_pairs=None, personal_holds=None, codex_report=None):
+                      personal_pairs=None, personal_holds=None, codex_report=None, prefetch_results=None):
     """Reverify all admitted forecast originals before opening any outcome."""
     need(len(race_ids) == len(set(race_ids)), 'DUPLICATE_REGISTRY')
     slots = {shadow.slot(day, rid): rid for rid in race_ids}
@@ -352,6 +364,8 @@ def _score_registered(race_ids, day, entries, eligible, reader_holds, forecast_l
         except Exception:
             holds['FORECAST_REPLAY_UNVERIFIED'] += 1
     need(len(admitted) + sum(holds.values()) == len(race_ids), 'FORECAST_COUNT_PARTITION')
+    if prefetch_results is not None:
+        prefetch_results()
     outcomes, development = [], []
     for rid in race_ids:
         row = result_loader(rid)
@@ -572,7 +586,8 @@ def _score_archived_day(work, current, private, trained, venues, client, now, le
         forecast_loader, lambda rid: _result_row(current, rid, private, pinned_originals.get(rid), now()),
         history_controls=history_controls, back_pairs=back_pairs, back_holds=back_holds,
         personal_pairs=personal_pairs, personal_holds=personal_holds,
-        personal_report=report_personal if personal_study is not None else None, codex_report=codex_report)
+        personal_report=report_personal if personal_study is not None else None, codex_report=codex_report,
+        prefetch_results=partial(_prefetch_result_ciphers, current, races))
     if feature_audit is not None:
         for row, original in feature_rows.values():
             try:
