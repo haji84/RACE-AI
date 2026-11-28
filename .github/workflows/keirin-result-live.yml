@@ -168,6 +168,11 @@ on:
         description: Compare the retained DT-R1 final-back candidate in dt-r1-shadow
         default: false
         required: false
+      dt_r1_compare_personal:
+        type: boolean
+        description: Compare DT-R1's official profile history in retrospective day settlement
+        default: false
+        required: false
   schedule:
     # Start/recover the bounded observer during 08:00-23:59 JST.
     # GitHub may delay starts; this is not a push or wall-clock latency SLA.
@@ -314,6 +319,7 @@ jobs:
           RESULT_MODE: ${{ inputs.mode || 'observe' }}
           DOSSIER_DAY: ${{ inputs.dossier_day }}
           DT_R1_COMPARE_BACK: ${{ inputs.dt_r1_compare_back || false }}
+          DT_R1_COMPARE_PERSONAL: ${{ inputs.dt_r1_compare_personal || false }}
         run: |
           set -euo pipefail
           root="$RUNNER_TEMP/keirin-result-live-$GITHUB_RUN_ID"
@@ -338,6 +344,10 @@ jobs:
             if [[ -n "$DOSSIER_DAY" ]]; then
               [[ "$DOSSIER_DAY" =~ ^[0-9]{4}-[0-9]{2}-[0-9]{2}$ ]]
               day_arg=(--day "$DOSSIER_DAY")
+            fi
+            if [[ "$DT_R1_COMPARE_PERSONAL" == true ]]; then
+              [[ -n "$DOSSIER_DAY" ]]
+              day_arg+=(--compare-personal-history)
             fi
             python -m scripts.keirin_dt_r1_future_settle --repo "$GITHUB_WORKSPACE" \
               --private-root "$root/private" "${day_arg[@]}" \

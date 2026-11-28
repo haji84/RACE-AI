@@ -56,6 +56,16 @@ class FutureWorkflowTests(unittest.TestCase):
         self.assertNotIn('scripts.keirin_result_watch', branch)
         self.assertNotIn('RACE_AI_KEIRIN_OFFICIAL_SOURCE_ENABLED', branch)
 
+    def test_optional_personal_study_reuses_only_the_manual_settlement_job(self):
+        self.assertIn('dt_r1_compare_personal:', self.text.split('  schedule:', 1)[0])
+        start = self.job.index('if [ "$RESULT_MODE" = dt-r1-settle ]; then')
+        end = self.job.index('if [ "$RESULT_MODE" = dt-r1-official-holdout ]; then', start)
+        self.assertEqual(self.job.count('--compare-personal-history'), 1)
+        branch = self.job[start:end]
+        self.assertIn('if [[ "$DT_R1_COMPARE_PERSONAL" == true ]]; then', branch)
+        self.assertIn('[[ -n "$DOSSIER_DAY" ]]', branch)
+        self.assertIn('day_arg+=(--compare-personal-history)', branch)
+
     def test_retention_asks_for_an_independent_run_and_uses_no_private_key(self):
         start = self.job.index('if [ "$RESULT_MODE" = dt-r1-retain ]; then')
         end = self.job.index('if [[ "$RESULT_MODE" = dt-r1-shadow', start)

@@ -199,6 +199,18 @@ class FutureSettlementTests(unittest.TestCase):
                          (3, 0, 0))
         self.assertEqual(paired['replay_holds'], {'BACK_STUDY_RESTORE_UNVERIFIED': 1})
 
+    def test_profile_study_failure_preserves_the_authenticated_original_score(self):
+        rid = RACES[0]
+        profile = SimpleNamespace(report=lambda *_: int('fixture scoring error'))
+        report = settle._score_registered(RACES, DAY, self.entries(), [shadow.slot(DAY, rid)],
+            {shadow.slot(DAY, RACES[1]): 'SERVER_READBACK_AFTER_T15'},
+            lambda entry, race: forecast(race),
+            lambda race: dict(race_id=race, day=DAY, result_status='VERIFIED_NORMAL', top3=[1, 2, 3]),
+            personal_study=profile)
+        self.assertEqual(report['metrics']['trifecta']['1']['hits'], 1)
+        self.assertEqual(report['metrics']['personal_history_study'],
+            dict(state='HOLD_PROFILE_STUDY_SCORING_UNVERIFIED', prospectively_sealed=False))
+
     def test_actual_v4_cipher_replays_both_arms_with_or_without_official_history(self):
         from research.chatgpt_dt_r1 import test_back_official_shadow as back_fixtures
         from tests import test_keirin_dt_r1_future_shadow as shadow_fixtures
@@ -321,10 +333,11 @@ class FutureSettlementTests(unittest.TestCase):
                                        cipher_path='verified/later.sealed.json')}
         events = []
         def forecast_replay(entry, raw, manifest, source, rid, *args, history_sources, history_controls,
-                            back_trial, back_pairs, back_holds, feature_rows):
+                            back_trial, back_pairs, back_holds, feature_rows, personal_study):
             events.append(('forecast', rid, source.head))
             self.assertEqual(raw, b'first' if rid == legacy_rid else b'later')
             self.assertEqual(history_sources, {})
+            self.assertIsNone(personal_study)
             feature_rows[rid] = (rid, None)
             if rid == later_rid:
                 history_controls[rid] = forecast(rid)
