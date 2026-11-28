@@ -191,6 +191,7 @@ jobs:
           python -m unittest -v \
             tests.test_keirin_confidence \
             tests.test_keirin_public_confidence \
+            tests.test_keirin_racecard_replay_confidence \
             tests.test_keirin_calibrated_selection \
             tests.test_keirin_shortlist_publication \
             tests.test_keirin_confidence_storage \
