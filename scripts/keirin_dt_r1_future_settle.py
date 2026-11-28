@@ -26,6 +26,7 @@ from research.chatgpt_dt_r1.future_retention_gate import (
     FIRST_DAY as DAY, FIRST_PRODUCER as PRODUCER, FIRST_READER as READER,
     FIRST_SOURCE_PARENT as PARENT, read_legacy_first_retention)
 from research.chatgpt_dt_r1.official_history import OfficialHistory, POLICY as HISTORY_POLICY
+from research.chatgpt_dt_r1.official_feature_audit import OfficialFeatureAudit
 from research.chatgpt_dt_r1.pipeline import forecast_row, summarize_predictions
 from research.chatgpt_dt_r1.policy import clock, digest, validate_forecast
 from scripts import keirin_dt_r1_future_shadow as shadow
@@ -68,7 +69,7 @@ def _same(a, b):
 
 def _forecast_from_original(entry, raw, manifest, source, rid, private, trained, venues, client, cache,
                             *, history_sources=None, history_controls=None, back_trial=None, back_pairs=None,
-                            back_holds=None):
+                            back_holds=None, feature_rows=None):
     meta = source.index['originals'][rid]
     need(sha256(raw).hexdigest() == entry['cipher']['sha256'], 'FORECAST_CIPHER_CHANGED')
     with _stage('FORECAST_DECRYPT_UNVERIFIED'):
@@ -144,6 +145,8 @@ def _forecast_from_original(entry, raw, manifest, source, rid, private, trained,
     checked = validate_forecast(saved['forecast'])
     need(checked['starters'] == sorted(r['car'] for r in original['snapshot']['riders']),
          'FORECAST_ROSTER_CHANGED')
+    if feature_rows is not None:
+        feature_rows[rid] = (row, original)
     if control is not None and history_controls is not None:
         history_controls[rid] = dict(control, prediction_at=clocks['prediction_at'])
     if back_material:
@@ -340,7 +343,8 @@ def _load_registry(store, private, manifest=None):
     return registry
 
 
-def _score_archived_day(work, current, private, trained, venues, client, now, legacy, *, back_trial=None):
+def _score_archived_day(work, current, private, trained, venues, client, now, legacy, *, back_trial=None,
+                        feature_audit=None):
     day = current.day
     with _stage('REGISTRY_REPLAY_UNVERIFIED'):
         registry = _load_registry(current, private)
@@ -377,6 +381,7 @@ def _score_archived_day(work, current, private, trained, venues, client, now, le
                 sources[run] = source
     entries, pinned_originals = [], {}
     cache, history_sources, history_controls, back_pairs, back_holds = {}, {}, {}, {}, {}
+    feature_rows = {} if feature_audit is not None else None
     for slot, rid in slots.items():
         if slot in selected:
             candidate = selected[slot]
@@ -400,11 +405,22 @@ def _score_archived_day(work, current, private, trained, venues, client, now, le
         source = sources[manifest['summary']['reader_run_id']]
         return _forecast_from_original(entry, raw, manifest, source, rid, private, trained, venues, client, cache,
                                        history_sources=history_sources, history_controls=history_controls,
-                                       back_trial=back_trial, back_pairs=back_pairs, back_holds=back_holds)
+                                       back_trial=back_trial, back_pairs=back_pairs, back_holds=back_holds,
+                                       feature_rows=feature_rows)
 
     result = _score_registered(races, day, entries, [slot for slot in slots if slot in selected], {},
         forecast_loader, lambda rid: _result_row(current, rid, private, pinned_originals.get(rid), now()),
         history_controls=history_controls, back_pairs=back_pairs, back_holds=back_holds)
+    if feature_audit is not None:
+        for row, original in feature_rows.values():
+            try:
+                feature_audit.add(row, original)
+            except (KeyError, TypeError, ValueError):
+                # Keep an unclassified feature row out of the diagnostic only.
+                continue
+        audit = feature_audit.report()
+        result['feature_audit'] = dict(audit,
+            unaudited_replayed_races=result['owner_originals_replayed'] - audit['audited_races'])
     return dict(result, day_inventory_complete=registry['day_inventory_complete'],
                 missing_venues=len(registry['missing_venues']),
                 timed_originals=dict(legacy=legacy_count, additional=len(additional)),
@@ -465,7 +481,8 @@ def run_settlement(*, repo, private_root, owner_public_pem, owner_private_pem, d
         if archived_day:
             result = _score_archived_day(work, current, owner_private_pem, trained, venues,
                                          client, now, legacy[:2] if legacy else None,
-                                         back_trial=_lazy_back_trial(contexts, repo, root, owner_private_pem))
+                                         back_trial=_lazy_back_trial(contexts, repo, root, owner_private_pem),
+                                         feature_audit=OfficialFeatureAudit(trained))
             scope_fields = dict(schema=DAY_SCHEMA, scope=DAY_SCOPE)
         else:
             verified, origin, retention = legacy

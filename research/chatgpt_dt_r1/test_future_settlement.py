@@ -321,10 +321,11 @@ class FutureSettlementTests(unittest.TestCase):
                                        cipher_path='verified/later.sealed.json')}
         events = []
         def forecast_replay(entry, raw, manifest, source, rid, *args, history_sources, history_controls,
-                            back_trial, back_pairs, back_holds):
+                            back_trial, back_pairs, back_holds, feature_rows):
             events.append(('forecast', rid, source.head))
             self.assertEqual(raw, b'first' if rid == legacy_rid else b'later')
             self.assertEqual(history_sources, {})
+            feature_rows[rid] = (rid, None)
             if rid == later_rid:
                 history_controls[rid] = forecast(rid)
             return forecast(rid)
@@ -346,12 +347,18 @@ class FutureSettlementTests(unittest.TestCase):
                 patch.object(settle, '_forecast_from_original', side_effect=forecast_replay),
                 patch.object(settle, '_result_row', side_effect=result_replay),
             ):
-                report = settle._score_archived_day(None, current, b'', None, None, None, lambda: None, legacy)
+                seen = []
+                audit = SimpleNamespace(add=lambda row, _: seen.append(row),
+                                        report=lambda: {'audited_races': len(seen)})
+                report = settle._score_archived_day(None, current, b'', None, None, None, lambda: None, legacy,
+                                                   feature_audit=audit)
                 additional[legacy_slot] = additional[later_slot]
                 with self.assertRaisesRegex(ValueError, 'DUPLICATE_FIRST_SLOT'):
                     settle._score_archived_day(None, current, b'', None, None, None, lambda: None, legacy)
         self.assertEqual(events[:2], [('forecast', legacy_rid, old.head), ('forecast', later_rid, later.head)])
         self.assertEqual(events[2:], [('result', rid, current.head) for rid in [*RACES, added_rid]])
+        self.assertEqual(set(seen), {legacy_rid, later_rid})
+        self.assertEqual(report['feature_audit'], {'audited_races': 2, 'unaudited_replayed_races': 0})
         self.assertEqual(report['registered_races'], 4)
         self.assertEqual(report['owner_originals_replayed'], 2)
         self.assertEqual(report['metrics']['predicted_evaluable'], 2)
