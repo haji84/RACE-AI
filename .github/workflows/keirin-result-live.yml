@@ -142,7 +142,7 @@ on:
         type: choice
         required: true
         default: test
-        options: [test, saved-only, observe, rider-dossiers, dossier-context, measure-results, measure-confidence, combined-study, learned-replay, dt-r1-restore, dt-r1-shadow, dt-r1-readback, dt-r1-settle, dt-r1-retain, dt-r1-official-holdout, codex-shadow, codex-readback, codex-retain]
+        options: [test, saved-only, observe, rider-dossiers, dossier-context, measure-results, measure-confidence, combined-study, learned-replay, dt-r1-restore, dt-r1-shadow, dt-r1-readback, dt-r1-settle, dt-r1-retain, dt-r1-official-holdout, codex-shadow, codex-readback, codex-retain, codex-settle]
       dossier_day:
         type: string
         description: JST day for source-free dossier replay, measurement or DT-R1 day settlement
@@ -302,7 +302,8 @@ jobs:
          inputs.mode == 'combined-study' || inputs.mode == 'learned-replay' || inputs.mode == 'dt-r1-restore' ||
          inputs.mode == 'dt-r1-shadow' || inputs.mode == 'dt-r1-readback' || inputs.mode == 'dt-r1-settle' ||
          inputs.mode == 'dt-r1-retain' || inputs.mode == 'dt-r1-official-holdout' ||
-         inputs.mode == 'codex-shadow' || inputs.mode == 'codex-readback' || inputs.mode == 'codex-retain')))
+         inputs.mode == 'codex-shadow' || inputs.mode == 'codex-readback' || inputs.mode == 'codex-retain' ||
+         inputs.mode == 'codex-settle')))
     runs-on: ubuntu-24.04
     timeout-minutes: 15
     permissions:
@@ -347,11 +348,13 @@ jobs:
               | tee "$root/safe/summary.json" "$GITHUB_STEP_SUMMARY"
             exit 0
           fi
-          if [ "$RESULT_MODE" = dt-r1-settle ]; then
+          if [[ "$RESULT_MODE" = dt-r1-settle || "$RESULT_MODE" = codex-settle ]]; then
             umask 077
+            extra_deps=()
+            if [ "$RESULT_MODE" = codex-settle ]; then extra_deps+=('lightgbm==4.6.0'); fi
             env -u RACE_AI_KEIRIN_PRIVATE_RSA_PEM -u GITHUB_TOKEN \
               python -m pip install --disable-pip-version-check --only-binary=:all: \
-                -r research/chatgpt_dt_r1/requirements.txt 'beautifulsoup4>=4.12,<5'
+                -r research/chatgpt_dt_r1/requirements.txt 'beautifulsoup4>=4.12,<5' "${extra_deps[@]}"
             day_arg=()
             if [[ -n "$DOSSIER_DAY" ]]; then
               [[ "$DOSSIER_DAY" =~ ^[0-9]{4}-[0-9]{2}-[0-9]{2}$ ]]
@@ -360,6 +363,10 @@ jobs:
             if [[ "$DT_R1_COMPARE_PERSONAL" == true ]]; then
               [[ -n "$DOSSIER_DAY" ]]
               day_arg+=(--compare-personal-history)
+            fi
+            if [ "$RESULT_MODE" = codex-settle ]; then
+              [[ -n "$DOSSIER_DAY" ]]
+              day_arg+=(--compare-codex)
             fi
             python -m scripts.keirin_dt_r1_future_settle --repo "$GITHUB_WORKSPACE" \
               --private-root "$root/private" "${day_arg[@]}" \

@@ -302,9 +302,27 @@ def _score_personal_pairs(admitted, outcomes, personal_pairs, personal_holds):
         seven_and_personal_days_8_to_30=_fixed_point_hits([personal_pairs[rid] for rid in paired_races], scorable, error))
 
 
+def _score_codex_pair(admitted, outcomes, codex, same_source, retained, holds):
+    comparable = admitted.keys() & codex.keys() & same_source
+    registered = [dict(row, input_sha256=codex[row['race_id']]['input_sha256']) if row['race_id'] in codex else row
+                  for row in outcomes]
+    common = [row for row in outcomes if row['race_id'] in comparable]
+    scorable = [row for row in common if row['result_status'] == 'VERIFIED_NORMAL']
+    codex_total = summarize_predictions(list(codex.values()), registered)
+    del codex_total['proper_scores']
+    need(len(codex) + sum(holds.values()) == retained, 'CODEX_RETAINED_PARTITION')
+    return dict(registered_day=len(outcomes), codex_independently_timed=retained, codex_replayed=len(codex),
+        dt_r1_replayed=len(admitted), same_source_originals=len(comparable), official_scorable_pairs=len(scorable),
+        common_result_states=dict(Counter(row['result_status'] for row in common)), replay_holds=holds,
+        codex_all_targets=codex_total, formal_three_way_races=0,
+        common={name: _fixed_point_hits([forecasts[rid] for rid in sorted(comparable)], scorable,
+                                         'CODEX_COMMON_RESULT_DENOMINATOR')
+                for name, forecasts in (('dt_r1', admitted), ('codex', codex))})
+
+
 def _score_registered(race_ids, day, entries, eligible, reader_holds, forecast_loader, result_loader,
                       *, history_controls=None, back_pairs=None, back_holds=None, personal_report=None,
-                      personal_pairs=None, personal_holds=None):
+                      personal_pairs=None, personal_holds=None, codex_report=None):
     """Reverify all admitted forecast originals before opening any outcome."""
     need(len(race_ids) == len(set(race_ids)), 'DUPLICATE_REGISTRY')
     slots = {shadow.slot(day, rid): rid for rid in race_ids}
@@ -374,6 +392,11 @@ def _score_registered(race_ids, day, entries, eligible, reader_holds, forecast_l
         except Exception:
             metrics['personal_history_study'] = dict(state='HOLD_PROFILE_STUDY_SCORING_UNVERIFIED',
                                                       prospectively_sealed=False)
+    if codex_report is not None:
+        try:
+            metrics['paired_codex'] = codex_report(admitted, outcomes)
+        except Exception:
+            metrics['paired_codex'] = dict(state='HOLD_CODEX_PAIR_SCORING_UNVERIFIED', formal_three_way_races=0)
     return dict(registered_races=len(race_ids), independently_timed_candidates=len(eligible),
                 owner_originals_replayed=len(admitted), forecast_holds=dict(holds),
                 result_states=dict(Counter(row['result_status'] for row in outcomes)),
@@ -401,8 +424,61 @@ def _load_registry(store, private, manifest=None):
     return registry
 
 
+def _same_codex_peer(codex, dt):
+    manifest = dt['manifest']
+    peer = codex['manifest']['summary']
+    return (peer['dt_producer_run_id'] == manifest['summary']['reader_run_id'] and
+            peer['dt_manifest_sha256'] == sha256(codec._canonical(manifest)).hexdigest() and
+            codex['entry']['bindings']['input_sha256'] == dt['entry']['bindings']['input_sha256'] and
+            clock(codex['entry']['clocks']['cutoff_at']) == clock(dt['entry']['clocks']['cutoff_at']))
+
+
+def _prepare_codex_pair(*, work, current, private, repo, client, slots, dt_selected, loaded, packet_cache):
+    from research.chatgpt_dt_r1 import codex_future_candidate
+    from scripts.keirin_codex_future_pair_replay import CodexReplayError, replay_codex_original
+
+    model = codex_future_candidate.model_identity()
+    with _stage('CODEX_RETENTION_AUTHENTICATION_FAILED'):
+        retained = batch_retention.read_retained_forecasts(work, current.head, current.day, model['model_sha256'],
+            slots, authenticate_batch=partial(reader.verify_saved_batch, client=client, codex=True),
+            verify_registry=True)
+    trained = None
+    if retained:
+        with _stage('CODEX_FROZEN_MODEL_UNVERIFIED'):
+            trained = codex_future_candidate.load_frozen(repo, private, current.day)
+    forecasts, compatible, holds, checked = {}, set(), Counter(), set()
+    for slot, record in retained.items():
+        rid, manifest = slots[slot], record['manifest']
+        info = manifest['summary']
+        try:
+            commit, run = info['source_archive_commit'], info['reader_run_id']
+            if commit not in loaded:
+                loaded[commit] = records.RecordStore(work, current.day, index_commit=commit)
+            source = loaded[commit]
+            if run not in checked:
+                registry = _load_registry(source, private, manifest)
+                need(all(shadow.slot(source.day, item) in slots for item in registry['registered_race_ids']),
+                     'CODEX_REGISTRY_LINEAGE')
+                checked.add(run)
+            need(source.index['originals'][rid] == current.index['originals'].get(rid), 'CODEX_SOURCE_ORIGINAL_CHANGED')
+            raw = archive.read_blob_bytes(work, current.head, record['cipher_path'],
+                                         max_bytes=batch_retention.MAX_ARCHIVE_BYTES + 1)
+            forecast = replay_codex_original(record['entry'], raw, manifest, source, rid, private,
+                                             trained, client, packet_cache)
+            need(forecast['race_id'] == rid and forecast['day'] == current.day and forecast['status'] == 'READY' and
+                 all(forecast[key] == model[key] for key in ('model_id', 'model_sha256')), 'CODEX_FORECAST_IDENTITY')
+            if slot in dt_selected and _same_codex_peer(record, dt_selected[slot]):
+                compatible.add(rid)
+            forecasts[rid] = forecast
+        except (SettlementError, CodexReplayError) as error:
+            holds[error.reason] += 1
+        except Exception:
+            holds['CODEX_ORIGINAL_REPLAY_UNVERIFIED'] += 1
+    return partial(_score_codex_pair, codex=forecasts, same_source=compatible, retained=len(retained), holds=dict(holds))
+
+
 def _score_archived_day(work, current, private, trained, venues, client, now, legacy, *, back_trial=None,
-                        feature_audit=None, personal_study=None):
+                        feature_audit=None, personal_study=None, codex_repo=None):
     day = current.day
     with _stage('REGISTRY_REPLAY_UNVERIFIED'):
         registry = _load_registry(current, private)
@@ -440,6 +516,16 @@ def _score_archived_day(work, current, private, trained, venues, client, now, le
     entries, pinned_originals = [], {}
     cache, history_sources, history_controls, back_pairs, back_holds = {}, {}, {}, {}, {}
     personal_pairs, personal_holds = {}, {}
+    codex_report = None
+    if codex_repo is not None:
+        try:
+            codex_report = _prepare_codex_pair(work=work, current=current, private=private, repo=codex_repo,
+                client=client, slots=slots, dt_selected=selected, loaded=loaded, packet_cache=cache)
+        except SettlementError as error:
+            state = 'HOLD_' + error.reason
+            codex_report = lambda *_: dict(state=state, formal_three_way_races=0)
+        except Exception:
+            codex_report = lambda *_: dict(state='HOLD_CODEX_PAIR_REPLAY_UNVERIFIED', formal_three_way_races=0)
     feature_rows = {} if feature_audit is not None else None
     personal_failed = False
     for slot, rid in slots.items():
@@ -486,7 +572,7 @@ def _score_archived_day(work, current, private, trained, venues, client, now, le
         forecast_loader, lambda rid: _result_row(current, rid, private, pinned_originals.get(rid), now()),
         history_controls=history_controls, back_pairs=back_pairs, back_holds=back_holds,
         personal_pairs=personal_pairs, personal_holds=personal_holds,
-        personal_report=report_personal if personal_study is not None else None)
+        personal_report=report_personal if personal_study is not None else None, codex_report=codex_report)
     if feature_audit is not None:
         for row, original in feature_rows.values():
             try:
@@ -534,13 +620,14 @@ def _lazy_back_trial(contexts, repo, root, private):
 
 
 def run_settlement(*, repo, private_root, owner_public_pem, owner_private_pem, day=DAY,
-                   archived_day=False, compare_personal_history=False, now=continuation.now_utc):
+                   archived_day=False, compare_personal_history=False, compare_codex=False, now=continuation.now_utc):
     with _stage('PROTECTED_RUNTIME_UNVERIFIED'):
         repo, root, day, _, commit = continuation._runtime(repo=repo, private_root=private_root,
             owner_public_pem=owner_public_pem, owner_private_pem=owner_private_pem, day=day,
             clock=now, mode='study')
     need(archived_day or day == DAY, 'FIRST_BATCH_ONLY')
     need(not compare_personal_history or archived_day, 'PROFILE_STUDY_REQUIRES_EXPLICIT_DAY')
+    need(not compare_codex or archived_day, 'CODEX_PAIR_REQUIRES_EXPLICIT_DAY')
     with _stage('FROZEN_MODEL_UNVERIFIED'):
         trained, venues = shadow.load_frozen(repo)
     client = GitHubEvidenceClient()
@@ -563,7 +650,8 @@ def run_settlement(*, repo, private_root, owner_public_pem, owner_private_pem, d
             result = _score_archived_day(work, current, owner_private_pem, trained, venues,
                                          client, now, legacy[:2] if legacy else None,
                                          back_trial=_lazy_back_trial(contexts, repo, root, owner_private_pem),
-                                         feature_audit=OfficialFeatureAudit(trained), personal_study=personal)
+                                         feature_audit=OfficialFeatureAudit(trained), personal_study=personal,
+                                         codex_repo=repo if compare_codex else None)
             scope_fields = dict(schema=DAY_SCHEMA, scope=DAY_SCOPE)
         else:
             verified, origin, retention = legacy
@@ -601,13 +689,14 @@ def main(argv=None):
     parser.add_argument('--day', help='Explicit JST day to settle all registered slots')
     parser.add_argument('--compare-personal-history', action='store_true',
                         help='In-memory retrospective comparison on that explicit day')
+    parser.add_argument('--compare-codex', action='store_true', help='Score both independently retained first originals')
     args = parser.parse_args(argv)
     private = os.environ.pop('RACE_AI_KEIRIN_PRIVATE_RSA_PEM', '').encode()
     try:
         report = run_settlement(repo=args.repo, private_root=args.private_root,
             owner_public_pem=args.owner_public_pem, owner_private_pem=private,
             day=args.day if args.day is not None else DAY, archived_day=args.day is not None,
-            compare_personal_history=args.compare_personal_history)
+            compare_personal_history=args.compare_personal_history, compare_codex=args.compare_codex)
     except Exception as error:
         reason = (error.reason if isinstance(error, SettlementError)
                   else 'RUNTIME_OR_ORIGINAL_AUTHENTICATION_FAILED')
