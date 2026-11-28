@@ -4,6 +4,8 @@
 
 ## 11月29日の締切前検証の再開地点
 
+07:33 JST、次の公式取得で事前資料5件を追加し、別ランナーの暗号文読戻しを確認した。公式事前資料は36→41枠。残り13枠は取得上限待ち10・ライン表記確認3。41枠の固定公式索引は `9cc627f937f13999a91ce40c8ea11ac880c10c69`。新しい5枠の最早の原本期限は10:47 JST。11月28日の共通対戦で最後に保全できた結果1件を保護実行46197091400で再認証し、その後に新しい5枠の先行予想と独立保全を進める。[公式取得と独立読戻し](https://github.com/haji84/RACE-AI/actions/runs/46196569952) · [固定集計](evidence/20261128-engine-history-followup/nov29-official-source-41-readback.json) · [共通対戦の再認証](https://github.com/haji84/RACE-AI/actions/runs/46197091400)
+
 07:31 JST、登録54枠のうちDT-R1・Codex独自それぞれ36枠の締切前原本を共通資料で固定した。追加5枠の別ランナー読戻しとT−15の条件を確認し、両モデルで既存31原本のGit参照が同じバイトを指すことを照合した。公式事前資料の固定索引は `14107b2babfff624c93c08ac50f60839f252e0c8`、両モデルの固定索引は `4fd4541417e635e892d53958f6edee35132c5b32`。最早の原本期限は08:32 JST、締切は08:47 JST。公式結果を暗号保存した枠から採点する。[固定した共通36枠](evidence/20261128-engine-history-followup/nov29-36-same-source-first-originals.json) · [DT-R1保全](https://github.com/haji84/RACE-AI/actions/runs/46195960401) · [Codex独自保全](https://github.com/haji84/RACE-AI/actions/runs/46196822316)
 
 07:04 JST、単騎の扱いを反映した公式取得で事前資料5件を新たに保存し、全件の暗号文と固定索引を別ランナーで照合した。登録54枠中、公式事前資料は31→36件。取得上限の待機15、ライン確認の保留3は競り・多段表示1、グループ数の不一致1、表記未確認1。[公式取得と独立読戻し](https://github.com/haji84/RACE-AI/actions/runs/46194030111) · [固定集計](evidence/20261128-engine-history-followup/nov29-official-line-source-readback.json)
