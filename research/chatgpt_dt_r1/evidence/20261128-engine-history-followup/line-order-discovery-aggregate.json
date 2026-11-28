@@ -1,0 +1,396 @@
+{
+  "code_base": "8fd81260fc0dceeed68fa54875d789aee82aca57",
+  "contract": {
+    "bootstrap": {
+      "samples": 2000,
+      "seed": 462,
+      "unit": "paired JST day"
+    },
+    "config_grid": [
+      [
+        0,
+        0.0
+      ],
+      [
+        10,
+        0.5
+      ],
+      [
+        10,
+        1.0
+      ],
+      [
+        40,
+        0.5
+      ],
+      [
+        40,
+        1.0
+      ]
+    ],
+    "exacta": "exact prefix marginal of reweighted trifecta",
+    "fit_min_expected_count": 3.0,
+    "guard": "June joint trifecta and marginal exacta log loss no worse than frozen",
+    "joint_reweight": "frozen mass times exp(strength times mean ordered-pair lifts); renormalize once",
+    "lift": "log((observed + prior) / (expected_frozen + prior))",
+    "motif_fields": [
+      "ordered_positions",
+      "line_relation_and_direction",
+      "both_roles_and_line_sizes",
+      "both_relative_conditional_probability_buckets"
+    ],
+    "periods": {
+      "fit": [
+        "2026-03-01",
+        "2026-05-31"
+      ],
+      "july": [
+        "2026-07-01",
+        "2026-07-31"
+      ],
+      "select": [
+        "2026-06-01",
+        "2026-06-30"
+      ]
+    },
+    "position_pairs_zero_based": [
+      [
+        0,
+        1
+      ],
+      [
+        0,
+        2
+      ],
+      [
+        1,
+        2
+      ]
+    ],
+    "prior_jst_days": 7,
+    "probability_gap_ratios": [
+      0.85,
+      0.5
+    ],
+    "rank_gap": "selected probability divided by maximum at that position with same ordered prefix",
+    "schema": "DT_R1_LINE_ORDER_DISCOVERY_CONTRACT_V1",
+    "scopes": {
+      "august_onward_used": false,
+      "identity": "UNRESOLVED_SOURCE_COMPOSITE",
+      "independent_validation": false,
+      "original_frozen_temperature_overlaps_july": true,
+      "original_frozen_training_overlaps_selection": true,
+      "pre_cutoff_time_verified": false,
+      "promotion": false
+    },
+    "selection_order": [
+      "trifecta_top1",
+      "exacta_top1",
+      "smaller_strength",
+      "larger_prior"
+    ]
+  },
+  "contract_sha256": "e7cbf87985571cb6eec8f6ed4bb43edb6c79f3d30e6c4c7d31e7c603c1775023",
+  "feature_count": 462,
+  "fit": {
+    "coverage": {
+      "LINE_KNOWN": 6186,
+      "LINE_NOT_APPLICABLE": 568,
+      "LINE_UNKNOWN": 103,
+      "cards": 6927,
+      "scorable": 6857
+    },
+    "discovered_keys": 852,
+    "generated_keys": 1298
+  },
+  "fitted_weight_sha256": {
+    "10": "f7643ea9e9d1a6b05b61bfb8e2d8d20f21d49952d0c8f9711a0bbfea61c92295",
+    "40": "0ca529394e0624ef2a1e7f2458b0b51ffea0bdce4ceac8cbff435027a4441bfc"
+  },
+  "july": {
+    "common_cohort_sha256": "7a3b4d924f5a449ba0b576f21fe20322aef36dc259dd6723a52c24ec8caceb11",
+    "common_scorable": 2393,
+    "counts": {
+      "LINE_KNOWN": 2145,
+      "LINE_NOT_APPLICABLE": 214,
+      "LINE_UNKNOWN": 34,
+      "cards": 2416,
+      "scorable": 2393
+    },
+    "days": 31,
+    "metrics": {
+      "candidate": {
+        "hits": {
+          "ex1": 517,
+          "ex2": 878,
+          "tri1": 252,
+          "tri2": 431,
+          "tri4": 631
+        },
+        "n": 2393,
+        "proper": {
+          "ex_brier": 0.887934226040022,
+          "ex_log_loss": 2.8283678480007044,
+          "tri_brier": 0.9620986682925525,
+          "tri_log_loss": 4.241240082993548
+        },
+        "rates": {
+          "ex1": 0.2160468031759298,
+          "ex2": 0.3669034684496448,
+          "tri1": 0.10530714584203928,
+          "tri2": 0.18010865022983702,
+          "tri4": 0.2636857501044714
+        }
+      },
+      "frozen": {
+        "hits": {
+          "ex1": 522,
+          "ex2": 882,
+          "tri1": 252,
+          "tri2": 433,
+          "tri4": 641
+        },
+        "n": 2393,
+        "proper": {
+          "ex_brier": 0.8883491329825836,
+          "ex_log_loss": 2.8314435017859547,
+          "tri_brier": 0.96257409731014,
+          "tri_log_loss": 4.247434136238129
+        },
+        "rates": {
+          "ex1": 0.21813623067279567,
+          "ex2": 0.3685750104471375,
+          "tri1": 0.10530714584203928,
+          "tri2": 0.18094442122858337,
+          "tri4": 0.2678646050982031
+        }
+      }
+    },
+    "paired": {
+      "ex1": {
+        "ci95": [
+          -0.004353290023303874,
+          0.0004161855950738267
+        ],
+        "delta": -0.002089427496865859
+      },
+      "ex2": {
+        "ci95": [
+          -0.005441949893790377,
+          0.002455168108679139
+        ],
+        "delta": -0.001671541997492687
+      },
+      "ex_brier": {
+        "ci95": [
+          -0.0006843634136367963,
+          -0.0001296286416575686
+        ],
+        "delta": -0.0004149069425616984
+      },
+      "ex_log_loss": {
+        "ci95": [
+          -0.004185859283359213,
+          -0.0018566252548505512
+        ],
+        "delta": -0.0030756537852503468
+      },
+      "tri1": {
+        "ci95": [
+          -0.0025147744715711506,
+          0.002574140901741933
+        ],
+        "delta": 0.0
+      },
+      "tri2": {
+        "ci95": [
+          -0.003867765555438033,
+          0.002080840879676051
+        ],
+        "delta": -0.0008357709987463436
+      },
+      "tri4": {
+        "ci95": [
+          -0.008365755779211979,
+          0.0
+        ],
+        "delta": -0.004178854993731718
+      },
+      "tri_brier": {
+        "ci95": [
+          -0.0006676425187079822,
+          -0.0002634903256265433
+        ],
+        "delta": -0.0004754290175873592
+      },
+      "tri_log_loss": {
+        "ci95": [
+          -0.00782474150924059,
+          -0.004423662682998566
+        ],
+        "delta": -0.006194053244581114
+      }
+    }
+  },
+  "june": {
+    "counts": {
+      "LINE_KNOWN": 2021,
+      "LINE_NOT_APPLICABLE": 191,
+      "LINE_UNKNOWN": 32,
+      "cards": 2274,
+      "scorable": 2244
+    },
+    "days": 30,
+    "grid": [
+      {
+        "hits": {
+          "ex1": 516,
+          "ex2": 826,
+          "tri1": 223,
+          "tri2": 375,
+          "tri4": 589
+        },
+        "n": 2244,
+        "prior": 0,
+        "proper": {
+          "ex_brier": 0.8907338225043492,
+          "ex_log_loss": 2.8535368204351292,
+          "tri_brier": 0.9651640374360859,
+          "tri_log_loss": 4.285006331398086
+        },
+        "rates": {
+          "ex1": 0.22994652406417113,
+          "ex2": 0.3680926916221034,
+          "tri1": 0.09937611408199644,
+          "tri2": 0.16711229946524064,
+          "tri4": 0.2624777183600713
+        },
+        "strength": 0.0
+      },
+      {
+        "hits": {
+          "ex1": 520,
+          "ex2": 826,
+          "tri1": 223,
+          "tri2": 378,
+          "tri4": 599
+        },
+        "n": 2244,
+        "prior": 10,
+        "proper": {
+          "ex_brier": 0.8901483726612069,
+          "ex_log_loss": 2.8487473855097787,
+          "tri_brier": 0.9646590466872416,
+          "tri_log_loss": 4.27671641798711
+        },
+        "rates": {
+          "ex1": 0.23172905525846701,
+          "ex2": 0.3680926916221034,
+          "tri1": 0.09937611408199644,
+          "tri2": 0.16844919786096257,
+          "tri4": 0.266934046345811
+        },
+        "strength": 0.5
+      },
+      {
+        "hits": {
+          "ex1": 518,
+          "ex2": 819,
+          "tri1": 223,
+          "tri2": 388,
+          "tri4": 601
+        },
+        "n": 2244,
+        "prior": 10,
+        "proper": {
+          "ex_brier": 0.8898808192069103,
+          "ex_log_loss": 2.8460663425441033,
+          "tri_brier": 0.9643911059392368,
+          "tri_log_loss": 4.272187917691165
+        },
+        "rates": {
+          "ex1": 0.23083778966131907,
+          "ex2": 0.3649732620320856,
+          "tri1": 0.09937611408199644,
+          "tri2": 0.17290552584670232,
+          "tri4": 0.267825311942959
+        },
+        "strength": 1.0
+      },
+      {
+        "hits": {
+          "ex1": 521,
+          "ex2": 826,
+          "tri1": 226,
+          "tri2": 378,
+          "tri4": 595
+        },
+        "n": 2244,
+        "prior": 40,
+        "proper": {
+          "ex_brier": 0.8902680938721542,
+          "ex_log_loss": 2.850308659933143,
+          "tri_brier": 0.9647697725592314,
+          "tri_log_loss": 4.2794656481105715
+        },
+        "rates": {
+          "ex1": 0.232174688057041,
+          "ex2": 0.3680926916221034,
+          "tri1": 0.10071301247771836,
+          "tri2": 0.16844919786096257,
+          "tri4": 0.26515151515151514
+        },
+        "strength": 0.5
+      },
+      {
+        "hits": {
+          "ex1": 516,
+          "ex2": 826,
+          "tri1": 222,
+          "tri2": 385,
+          "tri4": 598
+        },
+        "n": 2244,
+        "prior": 40,
+        "proper": {
+          "ex_brier": 0.8899799424850191,
+          "ex_log_loss": 2.8480431504591484,
+          "tri_brier": 0.9645094342183355,
+          "tri_log_loss": 4.275559519481485
+        },
+        "rates": {
+          "ex1": 0.22994652406417113,
+          "ex2": 0.3680926916221034,
+          "tri1": 0.09893048128342247,
+          "tri2": 0.1715686274509804,
+          "tri4": 0.26648841354723707
+        },
+        "strength": 1.0
+      }
+    ]
+  },
+  "model": {
+    "file_sha256": "dab8c7f014c41ac18e4fed1ae28ac9b36e994611d1fcf5992f8b06e31a4c618b",
+    "historical_geometry_assumption_sha256": "a7d832a2661c6f05167e7a412a55e51183c21e746447f91dac44e14eeb4dfe19",
+    "id": "chatgpt-dt-r1",
+    "sha256": "5e022092a35c0258954090c6f3d0f8fa14f03f22511b28d6aa9183f5a38c381c"
+  },
+  "production_promoted": false,
+  "runtime_seconds": 74.348,
+  "schema": "DT_R1_LINE_ORDER_DISCOVERY_STUDY_V1",
+  "selected": {
+    "prior_count": 40,
+    "strength": 0.5,
+    "weight_sha256": "0ca529394e0624ef2a1e7f2458b0b51ffea0bdce4ceac8cbff435027a4441bfc"
+  },
+  "source": {
+    "commit": "2a1260fb0940ad11160b56a36f9c24cc4fb2f6d2",
+    "dataset_sha256": "9bc3fbda8339b32ba178f5c9c39d6623216ad5c2d5519774870ac5491ba0a847",
+    "files": {
+      "keirin.db": "1bdad22b9744c9c5563f7bb1af31875170a3e6b7f4b0dd73fba8f98d645d8fc4",
+      "keirin_2026q4.db": "d915560877493816b90df8bcd5e7bdef45557f57100b4cd40a3d017cd959334d"
+    }
+  },
+  "started_at": "2026-11-28T11:26:22.695258+00:00",
+  "study_sha256": "98d92fd2e1543a271ecdd3a867ae97cda4e1223bdf9887b85d782ea71a6c41bf"
+}

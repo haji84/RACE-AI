@@ -1,5 +1,5 @@
 """Synthetic checks only, never actual-race evidence."""
-from contextlib import ExitStack, contextmanager
+from contextlib import ExitStack, contextmanager, nullcontext
 from copy import deepcopy
 from hashlib import sha256
 from itertools import permutations
@@ -229,61 +229,79 @@ class FutureSettlementTests(unittest.TestCase):
         self.assertEqual(report['metrics']['paired_personal_history'],
                          {'state': 'HOLD_PERSONAL_STUDY_SCORING_UNVERIFIED'})
 
-    def test_actual_v4_cipher_replays_both_arms_with_or_without_official_history(self):
+    def test_encrypted_back_pair_replays_with_or_without_the_two_history_studies(self):
+        from research.chatgpt_dt_r1 import official_personal_history as profiles
         from research.chatgpt_dt_r1 import test_back_official_shadow as back_fixtures
         from tests import test_keirin_dt_r1_future_shadow as shadow_fixtures
+
+        def profile(_, target, *, prediction_at):
+            return dict(status='READY', policy=profiles.POLICY, proof_sha256='e' * 64, events=[dict(
+                identity_key=target['riders'][0]['identity_key'], race_id='203001059801', rank=1,
+                field_size=7, source_sha256='f' * 64, published_at='2030-01-05T04:00:00+00:00')])
 
         back_fixtures.BackOfficialShadowTests.setUpClass()
         back = back_fixtures.BackOfficialShadowTests()
         back.setUp()
         self.addCleanup(back.doCleanups)
         shadow_fixtures.FutureShadowTests.setUpClass()
-        for warm in (False, True):
-            with self.subTest(warm=warm):
+        for warm, personal in ((False, False), (True, False), (True, True)):
+            with self.subTest(warm=warm, personal=personal):
                 fixture = shadow_fixtures.FutureShadowTests()
                 fixture.setUp()
                 try:
                     prior = SimpleNamespace(arguments=lambda *_: dict(history_records=[back.history],
                                                               history_verifier=back.official.verifier))
+                    extra = patch.object(profiles, 'profile_finishes', side_effect=profile) if personal else nullcontext()
                     with (
                         patch.object(settle.codec.storage, 'PINNED_OWNER_SPKI_SHA256', back.candidate.owner_pin),
                         back.restored() as trial,
                         patch.object(settle.codec.storage, 'PINNED_OWNER_SPKI_SHA256', fixture.pin),
+                        extra,
                     ):
-                        fixture.produce(official_history=prior if warm else None, back_trial=trial)
+                        fixture.produce(official_history=prior if warm else None, back_trial=trial,
+                                        compare_personal_history=personal)
                         manifest = fixture.manifest()
                         entry = next(row for row in manifest['entries'] if row['state'] == shadow.READY)
                         sealed = (fixture.output / entry['cipher']['file']).read_bytes()
                         saved = settle.codec.decrypt_evidence(sealed, fixture.private)
-                        self.assertEqual(saved['shared_material']['schema'], shadow.BACK_STUDY_MATERIAL_SCHEMA)
-                        self.assertEqual('no_history_control' in saved['shared_material'], warm)
+                        material = saved['shared_material']
+                        if personal:
+                            self.assertEqual(material['schema'], shadow.PERSONAL_STUDY_MATERIAL_SCHEMA)
+                            material = material['frozen_material']
+                        self.assertEqual(material['schema'], shadow.BACK_STUDY_MATERIAL_SCHEMA)
+                        self.assertEqual('no_history_control' in material, warm)
                         trained, venues = shadow.load_frozen(shadow_fixtures.ROOT)
-                        pairs, controls = {}, {}
+                        pairs, controls, personal_pairs = {}, {}, {}
                         with patch.object(settle, 'OfficialHistory', return_value=prior) as source:
                             replayed = settle._forecast_from_original(entry, sealed, manifest,
                                 fixture.store, fixture.rid, fixture.private, trained, venues, object(), {},
-                                history_controls=controls, back_trial=lambda: trial, back_pairs=pairs)
+                                history_controls=controls, back_trial=lambda: trial, back_pairs=pairs,
+                                personal_pairs=personal_pairs)
                         self.assertEqual(replayed, saved['forecast'])
                         self.assertEqual(source.call_count, int(warm))
                         self.assertEqual(bool(controls), warm)
+                        self.assertEqual(bool(personal_pairs), personal)
                         self.assertEqual(set(pairs[fixture.rid]), {'back_mixture', 'direct'})
                         self.assertEqual(pairs[fixture.rid]['direct']['input_sha256'], replayed['input_sha256'])
                         tampered = deepcopy(entry)
-                        saved['shared_material']['back_study']['arms']['direct']['distribution_sha256'] = '0' * 64
+                        material['back_study']['arms']['direct']['distribution_sha256'] = '0' * 64
                         tampered['bindings']['shared_material_sha256'] = settle.digest(saved['shared_material'])
                         altered = settle.codec.seal_evidence(settle.records.wire(saved), fixture.public, fixture.day,
                                                              entry['clocks']['seal_started_at'])
                         tampered['cipher']['sha256'] = sha256(altered).hexdigest()
                         pairs.clear()
                         controls.clear()
+                        personal_pairs.clear()
                         study_holds = {}
                         with patch.object(settle, 'OfficialHistory', return_value=prior):
                             verified = settle._forecast_from_original(tampered, altered, manifest, fixture.store,
                                 fixture.rid, fixture.private, trained, venues, object(), {}, history_controls=controls,
-                                back_trial=lambda: trial, back_pairs=pairs, back_holds=study_holds)
+                                back_trial=lambda: trial, back_pairs=pairs, back_holds=study_holds,
+                                personal_pairs=personal_pairs)
                         self.assertEqual(verified, replayed)
                         self.assertFalse(pairs)
                         self.assertEqual(bool(controls), warm)
+                        self.assertEqual(bool(personal_pairs), personal)
                         self.assertEqual(study_holds, {fixture.rid: 'BACK_STUDY_MATERIAL_CHANGED'})
                         controls.clear()
                         study_holds.clear()
