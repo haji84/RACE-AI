@@ -181,11 +181,18 @@ if (typeof window === 'object' && typeof location === 'object') window.RaceNoteI
         "点。検証 " + validation.hits + " / " + validation.n + "件的中（" +
         rating.window.map(day => day.slice(5).replace("-", "/")).join("〜") + "）";
     }
-    const n = fit.n + validation.n, hits = fit.hits + validation.hits;
-    const history = n ? "過去の的中 " + hits + " / " + n + "件（" + percent(hits / n) + "）" : "過去の照合0件";
-    const reason = rating.state === "HOLD_CALIBRATION_MODEL_PROVENANCE" ? "。予想方式の版を照合中" :
-      "。検証 " + validation.n + "件・" + validation.days + "日で確認中";
-    return points + "点 · " + history + reason;
+    const actual = validation.n ? validation.hits + " / " + validation.n + "件（" +
+      percent(validation.hits / validation.n) + "）" : "0件";
+    const reasons = {
+      HOLD_CALIBRATION_ERROR: "検証期間での差が大きい",
+      HOLD_CALIBRATION_FIT_INSUFFICIENT: "校正用の件数が不足",
+      HOLD_CALIBRATION_INSUFFICIENT: "別期間の検証件数が不足",
+      HOLD_CALIBRATION_OUT_OF_TIME_MISSING: "別期間の照合記録が不足",
+      HOLD_CALIBRATION_MODEL_PROVENANCE: "予想方式の版を照合中",
+    };
+    const fitText = fit.n ? " · 校正用 " + fit.hits + " / " + fit.n + "件" : "";
+    return points + "点 · 検証実績 " + actual + fitText + "。" +
+      (reasons[rating.state] || "信頼度の認定基準に未達");
   }
 
   function ticketList(arm, tickets, rating) {
