@@ -1,6 +1,22 @@
 # DT-R1 / Codex 開発担当引継ぎ
 
-更新: 2026-11-28 JST。所有者の最新指示: ChatGPTで作成してきたDT-R1を名称変更せずCodexに引き継いで開発を続ける。映像は常時追加する独立工程なので、映像待ちでその他の工程を止めない。
+更新: 2026-11-29 JST。所有者の最新指示: ChatGPTで作成してきたDT-R1を名称変更せずCodexに引き継いで開発を続ける。映像は常時追加する独立工程なので、映像待ちでその他の工程を止めない。
+
+## 11月29日の締切前検証の再開地点
+
+11月29日00:05 JSTに、公式台帳と08:47締切の事前原本1件を認証対象の暗号索引で確認した。00:09 JSTには公式台帳54件、暗号化した条件付き事前原本4件、公式結果0件を確認。4件は別ランナーの読戻しを完了した。公式7日履歴・長期個人履歴・最終バック候補を締切前に封印するため、両候補を指定したDT-R1保護予想を起動した。[11月29日の公式取得と独立読戻し](https://github.com/haji84/RACE-AI/actions/runs/46157669832) · [事前原本4件の固定索引](https://github.com/haji84/RACE-AI/commit/3df259d066e1f4cb540bf269a33175a04d945d9f) · [11月29日のDT-R1保護予想](https://github.com/haji84/RACE-AI/actions/runs/46158390698)
+
+00:23 JSTに、別の公式取得で4件を追加した。最初の4件の参照を維持し、追加分も別ランナーで暗号文を確認した。登録54件、条件付き事前原本8件、公式結果0件。残る46枠は取得上限で42枠、公式ライン表記の確認で4枠が保留だった。[追加取得と独立読戻し](https://github.com/haji84/RACE-AI/actions/runs/46158826290) · [事前原本8件の固定索引](https://github.com/haji84/RACE-AI/commit/4a40d3d85161fa7ccaba352d504aefc9a7c1278f)
+
+00:27 JSTに、公式7日履歴を読み込んだDT-R1保護予想で、対象54件のうち資料を確認できた7件の締切前暗号原本を生成した。履歴参照は7予想全体で延べ29レース分。長期個人履歴と最終バック候補を指定した。00:32 JSTの別ランナーで7件の暗号文・T−15を確認し、00:35 JSTにGitHubの既存暗号保全先へ7件の初回原本参照を固定した。最早締切は08:47 JST。事前資料8件のうち後着の1枠は16:42締切で後続予想の対象に含む。Codex独自で同じ事前資料7件を参照する予想を起動した。長期個人履歴と最終バック候補の件数は所有者鍵で再現して確認する。[生成run](https://github.com/haji84/RACE-AI/actions/runs/46158390698) · [生成レシート](evidence/20261128-engine-history-followup/nov29-first-dt-r1-prospective-producer.json) · [独立読戻し](https://github.com/haji84/RACE-AI/actions/runs/46160061579) · [保全run](https://github.com/haji84/RACE-AI/actions/runs/46160441451) · [固定した暗号原本の参照](https://github.com/haji84/RACE-AI/commit/487f3f322f050f8a76158f46c2619d64e228ff9d) · [保全レシート](evidence/20261128-engine-history-followup/nov29-first-dt-r1-prospective-retention.json) · [Codex独自の同資料予想](https://github.com/haji84/RACE-AI/actions/runs/46160765411)
+
+11月28日の暗号索引は夜の50件から51件へ増加し、従来の50件の改訂を照合した。追加1件は22:47 JST締切のDT-R1保存原本に対応し、Codexとの共通8枠は公式結果7件のまま。11月29日00:18 JSTの保護採点で、11月28日登録78件、原本再現32件、通常の公式着順50件、共通採点30件。DT-R1の三連単1・2・4・9・12点は1・5・6・10・11件、二車単1・2点は4・9件だった。追加で照合した1件は両券種とも1点では不的中。着順PDCA30件、展開採点0件。[追加した公式取得](https://github.com/haji84/RACE-AI/actions/runs/46156145028) · [採点時点の固定索引](https://github.com/haji84/RACE-AI/commit/0f1eb5fc16937f09bc82b916480a38f5c6b9a980) · [追加分の保護採点](https://github.com/haji84/RACE-AI/actions/runs/46158070405) · [集計レシート](evidence/20261128-engine-history-followup/official-added-result-settlement-20261128.json)
+
+保存済み公式結果の型と一次資料の独立確認では、車番と登録番号を公式着順へ結べた。対象レースの最終バック先頭を示す公式フィールドは未確認で、出走表の先頭回数の集計は直接採点に使えない。現在の保護比較では最終バックを周辺化した候補と同じ学習集団の直接モデルを通常公式着順で評価する。実測の先頭は公式表示または独立確認済み映像の観測が整った時点で評価する。[公式結果の読取り](../../race_ai/keirin_official_form_history.py) · [最終バック候補の当日比較手順](FUTURE_SHADOW.md)
+
+固定点数の対戦に限っても、既存統合A/B各50%の順位を公式原本から作る既存規則と、同資料・締切前の統合原本は確認できなかった。公式AとBの個別順位、研究を含む配分、所有サイトの表示と金額配分は、それぞれ保存する。正式対戦には所有者が指定した既存統合モデルの原本と順位根拠を認証する必要がある。[公式A/Bの研究配分](../../race_ai/keirin_official_condition_trial.py) · [同条件対戦の契約](PROSPECTIVE_CONTEST_INTEGRATION.md)
+
+本命敗北の逆算は、定数補正と事前ライン情報を加える補正を実レースで学習した。3〜5月の学習6,857件、6月の共通選定2,244件。凍結7日版・定数補正・ライン補正の順に三連単1点223・221・222件、二車単1点516・514・514件。両補正の確率指標は改善したが、少点数の採用基準を通過しなかった。選定後に一度集計した7月の開発用2,393件でも、各1点成績差の日単位95%区間はゼロを含む。今回は凍結版を選定し、両補正の追加調整を打ち切った。[方法・比較結果](evidence/20261128-engine-history-followup/RESULTS.md#本命敗北の確率補正) · [集計レシート](evidence/20261128-engine-history-followup/favorite-failure-aggregate.json)
 
 
 ## 予想能力抜本強化の再開地点（2026-11-28 23:52 JST）
