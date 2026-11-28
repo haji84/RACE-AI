@@ -4,6 +4,10 @@
 
 ## 11月29日の締切前検証の再開地点
 
+01:58 JSTまでにDT-R1とCodex独自で同じ7枠を追加し、別ランナーで読戻しとT−15を認証した。最初の11枠のGit参照バイトをモデルごとに照合し、両モデルの同じ18枠が保全済みであることを確認。DT-R1は追加7予想全体で公式7日履歴を延べ30レース参照した。後続の再現と着順採点は公式結果を保存した後の保護runで行う。DT-R1生成中にmainの選手カルテ更新が入ったため、該当する予想・読戻し・保存経路のソース差分を確認し、保存済みの生成runから先を続行した。[DT-R1保全レシート](evidence/20261128-engine-history-followup/nov29-third-dt-r1-prospective-retention.json) · [Codex保全レシート](evidence/20261128-engine-history-followup/nov29-third-codex-prospective-retention.json) · [共通18枠の固定索引](https://github.com/haji84/RACE-AI/commit/703970ddfc54b422cfd6000818bffdaa1f9cd807)
+
+最新の公式事前資料は登録54件のうち21件。追加3件すべての暗号文と条件付き公式原本を別ランナーで確認し、最早10:52 JSTの後続3枠で予想を起動した。未取得33枠の内訳は取得上限28、公式ライン表記の確認5。公式結果はこの時点で0件。結果監視の定期設定は08:02〜23:57 JSTの5分ごと。最早08:47 JST締切枠の公式結果が暗号索引へ保存されたら、同じ締切前原本を `codex-settle` で比較する。定期監視で未保存の場合は、その公表を確認して既存の対象限定観測を使う。[追加公式資料の取得と読戻し](https://github.com/haji84/RACE-AI/actions/runs/46166904605) · [追加3枠のDT-R1予想](https://github.com/haji84/RACE-AI/actions/runs/46168218584)
+
 01:25 JSTまでに後続4枠をDT-R1とCodex独自で同じ公式資料から予想し、別ランナーの読戻しとT−15認証を経て保全した。両モデルそれぞれで初回7枠の参照バイトを維持し、同じ4枠が追加されたことをGit索引で確認した。各モデルで同じ11枠を独立保全済み。締切前の所有者鍵による完全再現は初回7組で確認済み。[DT-R1保全](evidence/20261128-engine-history-followup/nov29-second-dt-r1-prospective-retention.json) · [Codex保全](evidence/20261128-engine-history-followup/nov29-second-codex-prospective-retention.json) · [両モデルの固定索引](https://github.com/haji84/RACE-AI/commit/881260332be810a697ec27aa9f22926fd2dba525)
 
 同じ索引では別の公式資料取得で旧11件を維持して7件を追加し、全18件のうち追加7件の暗号文を別ランナーで確認した。追加の条件付き原本は3件。登録54件、未取得は上限35件、ライン表記確認1件、公式結果0件。追加7件の最早締切は10:10 JSTで、DT-R1の次の保護予想を起動した。次は新規暗号原本の読戻し、保全、同資料のCodex独自予想を確認する。初回枠の08:47 JST締切後に公式結果の保存を確認して固定点数採点へ進む。01:23 JST時点では11月29日分の定期取得・定期結果監視は未確認で、必要時は既存の対象限定観測を使う。[追加公式取得と読戻し](https://github.com/haji84/RACE-AI/actions/runs/46164160999) · [追加7件のDT-R1保護予想](https://github.com/haji84/RACE-AI/actions/runs/46165414359)
