@@ -1,0 +1,18 @@
+{
+  "archive_commit": "f37e0f904f75a13d786dbcd321c0e14f12dffa9b",
+  "day_jst": "2026-11-29",
+  "independent_owner_key_result_replayed": false,
+  "index_sha256": "751d6c871c7dbee2d58cd500af75942043695e59c7c6698ba431f7ff4947ff25",
+  "matched_official_result_ciphers": 1,
+  "preserved_forecast_pairs_at_observation": 46,
+  "producer_code_sha256": "115f69cf4a79d87ce0948ffb4787531699463eb0",
+  "producer_run_id": 46205140492,
+  "record_observed_at": "2026-11-29T00:20:14.252019+00:00",
+  "registered": 54,
+  "result_cipher_sha256": "9a5a9db1238efc201332abb9d2afcc75a813fe97f02d74e92ebcc78b4fe198f4",
+  "schema": "DT_R1_FIRST_OFFICIAL_RESULT_GIT_READBACK_V1",
+  "settlement_run_id": 46206025147,
+  "target_slots": 1,
+  "total_result_slots": 1,
+  "verified_source_originals": 51
+}

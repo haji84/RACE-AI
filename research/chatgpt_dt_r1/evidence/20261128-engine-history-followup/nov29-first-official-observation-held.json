@@ -1,0 +1,27 @@
+{
+  "causal_field_verified": false,
+  "code_commit": "c4aebfa11648fa99ab176b77e7265cd809c52b09",
+  "day_jst": "2026-11-29",
+  "forecast_batch_running_at_retry": 46204839211,
+  "holds": [
+    {
+      "code": "RESULT_STAGE_VALIDATION_OR_OPERATION_HELD",
+      "stage": "OFFICIAL_FINAL_RESULT"
+    }
+  ],
+  "official_response_accepted_count_in_bounded_diagnostics": 3,
+  "primary_run_id": 46203825537,
+  "protected_provider_denied": false,
+  "protected_window_state": "RESULT_OBSERVER_WINDOW_ENDED",
+  "public_digest_control_available_before_retry": true,
+  "public_result_clock_before_retry_jst": "2026-11-29T09:05:00+09:00",
+  "receipt_artifact_id": 15286992905,
+  "receipt_sha256": "a91dcfc734bdbbd2ed316dc7daf0da5614ef9c9afed855175ddfe53d56aecaf3",
+  "receipt_zip_sha256": "2ccdc8768013431771c11c366157fc28ffcb4170315a4d00b61f4a90f14c0a64",
+  "requests": 77,
+  "retry_code_commit": "115f69cf4a79d87ce0948ffb4787531699463eb0",
+  "retry_run_id": 46205140492,
+  "saved_results_after_run": 0,
+  "schema": "DT_R1_OFFICIAL_OBSERVATION_HOLD_EVIDENCE_V1",
+  "ticks": 7
+}
