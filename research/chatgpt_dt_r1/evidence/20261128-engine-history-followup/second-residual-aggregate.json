@@ -1,0 +1,348 @@
+{
+  "archive": {
+    "commit": "2a1260fb0940ad11160b56a36f9c24cc4fb2f6d2",
+    "dataset_sha256": "9bc3fbda8339b32ba178f5c9c39d6623216ad5c2d5519774870ac5491ba0a847",
+    "files": {
+      "keirin.db": "1bdad22b9744c9c5563f7bb1af31875170a3e6b7f4b0dd73fba8f98d645d8fc4",
+      "keirin_2026q4.db": "d915560877493816b90df8bcd5e7bdef45557f57100b4cd40a3d017cd959334d"
+    }
+  },
+  "base_commit": "3bb54d02da65ad2377f1178a38ae87a826572295",
+  "code_sha256": "d0956b2c54de39f05b8ae7a28ce2673cbade2c233ae78fea29f493e9fd4d7a02",
+  "elapsed_seconds": 74.009,
+  "feature_candidates": 450,
+  "july": {
+    "differences": {
+      "ex1": {
+        "ci95": [
+          -0.007509543505582395,
+          0.0055219505513320905
+        ],
+        "delta": -0.0008357709987463436
+      },
+      "ex2": {
+        "ci95": [
+          -0.004547710824492058,
+          0.008446571969046553
+        ],
+        "delta": 0.001671541997492687
+      },
+      "ex_brier": {
+        "ci95": [
+          -0.0017553348036091249,
+          -0.0007738764654254702
+        ],
+        "delta": -0.001273720110816689
+      },
+      "ex_log_loss": {
+        "ci95": [
+          -0.010977157245415365,
+          -0.005113184878495562
+        ],
+        "delta": -0.00803358524154218
+      },
+      "tri1": {
+        "ci95": [
+          -0.003442712695453998,
+          0.002882052606153486
+        ],
+        "delta": -0.0004178854993731718
+      },
+      "tri2": {
+        "ci95": [
+          -0.002979041643935261,
+          0.004437767522717567
+        ],
+        "delta": 0.0004178854993731718
+      },
+      "tri4": {
+        "ci95": [
+          -0.003441157224998956,
+          0.004321661423869232
+        ],
+        "delta": 0.0004178854993731718
+      },
+      "tri_brier": {
+        "ci95": [
+          -0.000681167975722147,
+          -0.00026380886824238546
+        ],
+        "delta": -0.000472088572299733
+      },
+      "tri_log_loss": {
+        "ci95": [
+          -0.010977157245416506,
+          -0.0051131848784956545
+        ],
+        "delta": -0.00803358524154281
+      }
+    },
+    "metrics": {
+      "frozen": {
+        "hits": {
+          "ex1": 522,
+          "ex2": 882,
+          "tri1": 252,
+          "tri2": 433,
+          "tri4": 641
+        },
+        "n": 2393,
+        "proper": {
+          "ex_brier": 0.8883491329825836,
+          "ex_log_loss": 2.8314435017859543,
+          "tri_brier": 0.9625740973101401,
+          "tri_log_loss": 4.247434136238131
+        }
+      },
+      "second_residual": {
+        "hits": {
+          "ex1": 520,
+          "ex2": 886,
+          "tri1": 251,
+          "tri2": 434,
+          "tri4": 642
+        },
+        "n": 2393,
+        "proper": {
+          "ex_brier": 0.8870754128717669,
+          "ex_log_loss": 2.8234099165444126,
+          "tri_brier": 0.9621020087378404,
+          "tri_log_loss": 4.239400550996589
+        }
+      }
+    }
+  },
+  "july_continuation_gate_passed": false,
+  "june": {
+    "differences": {
+      "ex1": {
+        "ci95": [
+          -0.004523045275332773,
+          0.005973682018872005
+        ],
+        "delta": 0.000445632798573975
+      },
+      "ex2": {
+        "ci95": [
+          -0.0027323338790338856,
+          0.007379599936317315
+        ],
+        "delta": 0.0022281639928698753
+      },
+      "ex_brier": {
+        "ci95": [
+          -0.002013073044426924,
+          -0.000375168828734893
+        ],
+        "delta": -0.001228197425579985
+      },
+      "ex_log_loss": {
+        "ci95": [
+          -0.014222336536888766,
+          -0.006389772534474481
+        ],
+        "delta": -0.010213182744978913
+      },
+      "tri1": {
+        "ci95": [
+          -0.005279424567643432,
+          0.001759014951627089
+        ],
+        "delta": -0.0017825311942959
+      },
+      "tri2": {
+        "ci95": [
+          -0.0017740731697431674,
+          0.007728154836031544
+        ],
+        "delta": 0.0031194295900178253
+      },
+      "tri4": {
+        "ci95": [
+          -0.0031546096890084853,
+          0.0083782501412863
+        ],
+        "delta": 0.0022281639928698753
+      },
+      "tri_brier": {
+        "ci95": [
+          -0.0006598052481841257,
+          -0.00010124945697823183
+        ],
+        "delta": -0.0003903123865559531
+      },
+      "tri_log_loss": {
+        "ci95": [
+          -0.014222336536889315,
+          -0.006389772534474941
+        ],
+        "delta": -0.01021318274497937
+      }
+    },
+    "metrics": {
+      "frozen": {
+        "hits": {
+          "ex1": 516,
+          "ex2": 826,
+          "tri1": 223,
+          "tri2": 375,
+          "tri4": 589
+        },
+        "n": 2244,
+        "proper": {
+          "ex_brier": 0.8907338225043493,
+          "ex_log_loss": 2.853536820435129,
+          "tri_brier": 0.9651640374360857,
+          "tri_log_loss": 4.285006331398085
+        }
+      },
+      "second_residual": {
+        "hits": {
+          "ex1": 517,
+          "ex2": 831,
+          "tri1": 219,
+          "tri2": 382,
+          "tri4": 594
+        },
+        "n": 2244,
+        "proper": {
+          "ex_brier": 0.8895056250787692,
+          "ex_log_loss": 2.84332363769015,
+          "tri_brier": 0.9647737250495297,
+          "tri_log_loss": 4.274793148653107
+        }
+      }
+    }
+  },
+  "june_gate_passed": false,
+  "learned_weights_sha256": "a2cfbe71f8605b216bd28dc34432d6b49286257b04593c37418c5323ad85b80e",
+  "model_file_sha256": "dab8c7f014c41ac18e4fed1ae28ac9b36e994611d1fcf5992f8b06e31a4c618b",
+  "model_sha256": "5e022092a35c0258954090c6f3d0f8fa14f03f22511b28d6aa9183f5a38c381c",
+  "schema": "DT_R1_SECOND_RESIDUAL_STUDY_V1",
+  "scope": "RETROSPECTIVE_DEVELOPMENTAL",
+  "selected_for_independent_validation": false,
+  "specification": {
+    "august_onward_used": false,
+    "candidate_budget": 1,
+    "correction_strength": 1.0,
+    "fixed_factors": [
+      "first",
+      "third_given_first_and_second"
+    ],
+    "history_days": 7,
+    "july_continuation_gate": "more trifecta one-point hits and no fewer exacta one-point hits",
+    "july_scope": "fixed developmental comparison with no fitting or tuning",
+    "june_gate": "more trifecta one-point hits, no fewer exacta one-point hits, no proper-score degradation",
+    "lightgbm_version": "4.6.0",
+    "official_registration_authentication": false,
+    "periods": {
+      "fit": [
+        "2026-03-01",
+        "2026-05-31"
+      ],
+      "july": [
+        "2026-07-01",
+        "2026-07-31"
+      ],
+      "june": [
+        "2026-06-01",
+        "2026-06-30"
+      ]
+    },
+    "pre_cutoff_time_verified": false,
+    "rounds": 40,
+    "second_features": [
+      "443 non-retired rider features",
+      "same_line",
+      "selected_predecessor",
+      "selected_successor",
+      "selected_line_head",
+      "same_line_score_gap",
+      "other_line_head_selected",
+      "frozen_first_probability"
+    ],
+    "tree": {
+      "deterministic": true,
+      "force_col_wise": true,
+      "lambda_l2": 12.0,
+      "learning_rate": 0.04,
+      "max_depth": 3,
+      "min_data_in_leaf": 200,
+      "num_leaves": 7,
+      "num_threads": 2,
+      "objective": "grouped second log loss with frozen conditional logit offset and diagonal Hessian",
+      "seed": 462,
+      "verbosity": -1
+    }
+  },
+  "specification_sha256": "3994d7c49a2d324ccc9933424c1060afafd87454091248d81a0a82dbbffc1648",
+  "split_features": {
+    "age": 2,
+    "context_straight_x_second": 1,
+    "context_venue_back_width_m": 1,
+    "context_venue_cant_deg": 1,
+    "frozen_first_probability": 3,
+    "history_agari_context_venue_relative_x_bank_straight_m": 1,
+    "history_agari_overall_relative": 1,
+    "history_agari_overall_relative_x_role_second": 3,
+    "history_agari_overall_relative_x_style_nige": 1,
+    "history_agari_overall_relative_x_style_oi": 14,
+    "history_agari_overall_relative_x_style_ryo": 5,
+    "history_agari_venue_relative_x_role_solo": 3,
+    "history_agari_venue_relative_x_style_ryo": 1,
+    "history_dt_agari_x_pressure": 2,
+    "history_dt_discovery_00": 3,
+    "history_dt_discovery_01": 3,
+    "history_dt_discovery_06": 1,
+    "history_dt_discovery_10": 3,
+    "history_dt_discovery_18": 2,
+    "history_dt_discovery_20": 3,
+    "history_dt_discovery_22": 1,
+    "history_dt_discovery_23": 22,
+    "history_dt_discovery_24": 1,
+    "history_dt_discovery_26": 5,
+    "history_dt_discovery_29": 21,
+    "history_dt_discovery_32": 1,
+    "history_dt_discovery_35": 2,
+    "history_dt_discovery_40": 4,
+    "history_dt_discovery_41": 9,
+    "history_dt_discovery_45": 2,
+    "history_dt_discovery_47": 2,
+    "history_dt_discovery_50": 1,
+    "history_dt_discovery_51": 3,
+    "history_dt_discovery_52": 4,
+    "history_dt_discovery_54": 2,
+    "history_dt_discovery_56": 4,
+    "history_dt_discovery_59": 1,
+    "history_dt_discovery_62": 1,
+    "history_dt_discovery_65": 4,
+    "history_dt_rival_strength_gap": 2,
+    "history_dt_third_line_opportunity": 3,
+    "history_form_last5": 11,
+    "history_form_relative": 1,
+    "history_rest_days_log": 1,
+    "history_venue_half_lap_mean": 1,
+    "history_win_last5": 1,
+    "line_size_fraction": 6,
+    "line_strength_gap": 6,
+    "line_successor_points_gap": 2,
+    "points_gap_to_best": 7,
+    "points_rank_fraction": 2,
+    "points_relative": 8,
+    "selected_first_pair_same_line": 1,
+    "selected_first_pair_same_line_score_gap": 8,
+    "selected_first_pair_selected_line_head": 1,
+    "selected_first_pair_selected_successor": 3,
+    "top2_rate": 3,
+    "top2_rate_relative": 10,
+    "top3_rate": 7,
+    "top3_rate_relative": 1,
+    "win_rate": 2,
+    "win_rate_relative": 9
+  },
+  "started_at": "2026-11-29T00:17:02.685521+00:00",
+  "training": {
+    "races": 6857,
+    "second_rows": 41908
+  }
+}
